@@ -140,7 +140,7 @@ export function readSchemes(config: Json): { schemes: Scheme[]; diagnostics: Dia
     const type = at(p, 'type');
     if (!isScheme(type)) {
       diagnostics.push({
-        code: 'FER1301',
+        code: 'FER1501',
         severity: 'error',
         message: `Pagination type ${JSON.stringify(type)} is not one of ${PAGINATION_SCHEMES.join(', ')}.`,
         pointer: `${pointer}/type`,

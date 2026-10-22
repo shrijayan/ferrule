@@ -427,7 +427,7 @@ describe('convert: client, order, streaming and $client', () => {
       targets: { python: { package_name: 'acme' } },
       client_settings: { default_timeout: 'never' },
     });
-    expect(diagnostics.map((d) => d.code)).toEqual(['FER1105']);
+    expect(diagnostics.map((d) => d.code)).toEqual(['FER1305']);
   });
 
   it('writes x-ferrule-streaming with the top-level on_event handlers', () => {
@@ -452,16 +452,16 @@ describe('convert: client, order, streaming and $client', () => {
       format: 'jsonl',
     });
     expect(diagnostics.map((d) => [d.code, d.pointer])).toEqual([
-      ['FER1201', '/resources/users/methods/retrieve/streaming'],
+      ['FER1401', '/resources/users/methods/retrieve/streaming'],
     ]);
   });
 
-  it('reports FER1401 for a resource sharing the $client Forge group', () => {
+  it('reports FER1006 for a resource sharing the $client Forge group', () => {
     const { diagnostics } = convert(makeSpec(), {
       resources: { ferrule_client: {}, $client: { methods: { ping: 'get /users' } } },
     });
     expect(diagnostics.map((d) => [d.code, d.severity, d.pointer])).toEqual([
-      ['FER1401', 'error', '/resources/ferrule_client'],
+      ['FER1006', 'error', '/resources/ferrule_client'],
     ]);
   });
 
@@ -471,7 +471,7 @@ describe('convert: client, order, streaming and $client', () => {
       resources: { u: { methods: { get: { endpoint: 'get /users/{id}', paginated: 'nope' } } } },
     } as unknown as Config);
     expect(diagnostics.map((d) => [d.code, d.pointer])).toEqual([
-      ['FER1301', '/pagination/1/type'],
+      ['FER1501', '/pagination/1/type'],
       ['FER1002', '/resources/u/methods/get/paginated'],
     ]);
     expect(diagnostics[1]?.suggestion).toContain('cursor_page');

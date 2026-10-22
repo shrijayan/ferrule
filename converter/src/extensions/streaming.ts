@@ -137,7 +137,7 @@ export function buildStreaming(input: StreamingInput): {
   const paramDiscriminator = typeof rawDiscriminator === 'string' ? rawDiscriminator : null;
   if (!Object.hasOwn(s, 'param_discriminator')) {
     diagnostics.push({
-      code: 'FER1201',
+      code: 'FER1401',
       severity: 'warning',
       message: 'streaming has no param_discriminator; the method is treated as always streaming.',
       pointer: `${pointer}/streaming`,
@@ -151,7 +151,7 @@ export function buildStreaming(input: StreamingInput): {
     );
     if (!propertyNames(spec, schema).has(paramDiscriminator)) {
       diagnostics.push({
-        code: 'FER1202',
+        code: 'FER1402',
         severity: 'warning',
         message: `param_discriminator ${paramDiscriminator} is not a JSON request body property.`,
         pointer: `${pointer}/streaming/param_discriminator`,
@@ -164,7 +164,7 @@ export function buildStreaming(input: StreamingInput): {
   const eventSchema = eventModel === undefined ? undefined : resolveEventModel(config, eventModel);
   if (eventModel !== undefined && eventSchema === undefined) {
     diagnostics.push({
-      code: 'FER1203',
+      code: 'FER1403',
       severity: 'warning',
       message: `stream_event_model ${eventModel} is not a model of a configured resource.`,
       pointer: `${pointer}/streaming/stream_event_model`,

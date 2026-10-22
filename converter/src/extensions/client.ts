@@ -116,7 +116,7 @@ function readOpts(settings: Json, diagnostics: Diagnostic[]): FerruleClientOpt[]
     const type = at(o, 'type');
     if (!OPT_TYPES.includes(type as OptType)) {
       diagnostics.push({
-        code: 'FER1101',
+        code: 'FER1301',
         severity: 'error',
         message: `Client option ${name} has type ${JSON.stringify(type)}.`,
         pointer: `${pointer}/type`,
@@ -130,7 +130,7 @@ function readOpts(settings: Json, diagnostics: Diagnostic[]): FerruleClientOpt[]
     });
     if (sends.length > 1) {
       diagnostics.push({
-        code: 'FER1102',
+        code: 'FER1302',
         severity: 'warning',
         message: `Client option ${name} is sent in ${sends.length} places; only ${sends[0]?.key} is used.`,
         pointer,
@@ -200,7 +200,7 @@ function readSchemes(
       const scheme = readScheme(raw);
       if (scheme === undefined) {
         diagnostics.push({
-          code: 'FER1103',
+          code: 'FER1303',
           severity: 'warning',
           message: `Security scheme ${name} is not an http bearer/basic/digest, apiKey, oauth2 or openIdConnect scheme.`,
           pointer: toJsonPointer([...where, name]),
@@ -273,7 +273,7 @@ export function buildClient(
   for (const opt of opts) {
     if (opt.auth !== undefined && !Object.hasOwn(securitySchemes, opt.auth.securityScheme)) {
       diagnostics.push({
-        code: 'FER1104',
+        code: 'FER1304',
         severity: 'error',
         message: `Client option ${opt.name} authenticates with security scheme ${opt.auth.securityScheme}, which is not defined.`,
         pointer: toJsonPointer(['client_settings', 'opts', opt.name, 'auth', 'security_scheme']),
@@ -287,7 +287,7 @@ export function buildClient(
     const parsed = timeoutSeconds(at(settings, 'default_timeout'));
     if (parsed === undefined) {
       diagnostics.push({
-        code: 'FER1105',
+        code: 'FER1305',
         severity: 'error',
         message: `default_timeout ${JSON.stringify(at(settings, 'default_timeout'))} is not a positive number of milliseconds or an ISO 8601 duration.`,
         pointer: '/client_settings/default_timeout',

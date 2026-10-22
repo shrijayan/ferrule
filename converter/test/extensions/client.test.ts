@@ -102,8 +102,8 @@ describe('x-ferrule-client', () => {
       httpLimits: { maxConnections: 10, keepaliveExpiry: 5 },
     });
     expect(diagnostics.map((d) => [d.code, d.severity, d.pointer])).toEqual([
-      ['FER1102', 'warning', '/client_settings/opts/org_id'],
-      ['FER1103', 'warning', '/components/securitySchemes/Broken'],
+      ['FER1302', 'warning', '/client_settings/opts/org_id'],
+      ['FER1303', 'warning', '/components/securitySchemes/Broken'],
     ]);
   });
 
@@ -158,10 +158,10 @@ describe('x-ferrule-client', () => {
       },
     );
     expect(diagnostics.map((d) => [d.code, d.severity, d.pointer])).toEqual([
-      ['FER1101', 'error', '/client_settings/opts/x/type'],
-      ['FER1101', 'error', '/client_settings/opts/y/type'],
-      ['FER1104', 'error', '/client_settings/opts/k/auth/security_scheme'],
-      ['FER1105', 'error', '/client_settings/default_timeout'],
+      ['FER1301', 'error', '/client_settings/opts/x/type'],
+      ['FER1301', 'error', '/client_settings/opts/y/type'],
+      ['FER1304', 'error', '/client_settings/opts/k/auth/security_scheme'],
+      ['FER1305', 'error', '/client_settings/default_timeout'],
     ]);
     expect(diagnostics[2]?.suggestion).toContain('(none defined)');
     expect(client).toMatchObject({

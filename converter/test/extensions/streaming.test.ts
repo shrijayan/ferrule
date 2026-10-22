@@ -97,15 +97,15 @@ describe('x-ferrule-streaming', () => {
     const missing = buildStreaming(input({ stream_event_model: 'chat.nope' }));
     expect(missing.streaming?.paramDiscriminator).toBeNull();
     expect(missing.diagnostics.map((d) => [d.code, d.pointer])).toEqual([
-      ['FER1201', '/resources/chat/methods/create/streaming'],
-      ['FER1203', '/resources/chat/methods/create/streaming/stream_event_model'],
+      ['FER1401', '/resources/chat/methods/create/streaming'],
+      ['FER1403', '/resources/chat/methods/create/streaming/stream_event_model'],
     ]);
     const unknown = buildStreaming({
       ...input({ param_discriminator: 'go' }),
       op: { requestBody: 'bad' },
     });
     expect(unknown.diagnostics.map((d) => [d.code, d.severity, d.pointer])).toEqual([
-      ['FER1202', 'warning', '/resources/chat/methods/create/streaming/param_discriminator'],
+      ['FER1402', 'warning', '/resources/chat/methods/create/streaming/param_discriminator'],
     ]);
   });
 });

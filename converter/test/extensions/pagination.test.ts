@@ -118,8 +118,8 @@ describe('readSchemes', () => {
     const bad = readSchemes({ pagination: [{ name: 'a', type: 'token' }, 'junk'] });
     expect(bad.schemes).toEqual([]);
     expect(bad.diagnostics.map((d) => [d.code, d.pointer])).toEqual([
-      ['FER1301', '/pagination/0/type'],
-      ['FER1301', '/pagination/1/type'],
+      ['FER1501', '/pagination/0/type'],
+      ['FER1501', '/pagination/1/type'],
     ]);
     expect(readSchemes({ pagination: { type: 1 } }).diagnostics[0]?.pointer).toBe(
       '/pagination/type',

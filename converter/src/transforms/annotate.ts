@@ -207,7 +207,7 @@ function checkClientGroup(ctx: Ctx, resources: Readonly<Record<string, Resource>
   for (const name of Object.keys(resources)) {
     if (!collidesWithClientGroup(name)) continue;
     ctx.diagnostics.push({
-      code: 'FER1401',
+      code: 'FER1006',
       severity: 'error',
       message: `Resource ${name} lands in the same Forge group as $client methods (${CLIENT_GROUP}).`,
       pointer: toJsonPointer(['resources', name]),
