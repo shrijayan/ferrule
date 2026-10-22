@@ -75,6 +75,13 @@ export interface SdkParam {
   readonly type: SdkType;
   /** Whether the spec marks it deprecated. */
   readonly deprecated?: boolean;
+  /**
+   * The spec's `example`, `minimum` and `maximum` (for README and test examples). Forge does not
+   * expose them yet (docs/forge-gaps.md G18), so the adapter leaves them unset.
+   */
+  readonly example?: unknown;
+  readonly minimum?: number;
+  readonly maximum?: number;
 }
 
 export type PaginationScheme =
@@ -189,6 +196,8 @@ export type SdkSecurityScheme =
 
 /** Client class settings from `x-ferrule-client` (ADR 0003). */
 export interface SdkClientSettings {
+  /** `organization.name` (or `default_client_name`) as written, such as `onebusaway-sdk`. */
+  readonly name: string;
   /** The client class, such as `OnebusawaySDK`. */
   readonly className: string;
   /** Prefix of `<PREFIX>_BASE_URL` and friends, such as `ONEBUSAWAY_SDK`. */
@@ -216,6 +225,10 @@ export interface SdkClient {
   readonly resources: readonly SdkResource[];
   /** `$client` methods, emitted on the client class. */
   readonly clientMethods: readonly SdkMethod[];
+  /** The client class, such as `OnebusawaySDK` (`settings.className`, for the file emitters). */
+  readonly clientClass: string | undefined;
+  /** Prefix of the SDK's env vars, such as `ONEBUSAWAY_SDK` (`settings.envPrefix`). */
+  readonly envPrefix: string | undefined;
   /** Every named model the resources reference, sorted by module. */
   readonly models: readonly SdkModelDecl[];
 }

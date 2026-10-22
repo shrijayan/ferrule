@@ -22,6 +22,11 @@ gaps worth an issue on cloudflare/forge (queued in [HUMAN-ACTIONS.md](HUMAN-ACTI
 | G14 | Union naming for nullable vs real unions | `union-info.exclusive` and a `null` scalar member: works | `T | null` -> `Optional[T]` | No |
 | G15 | Formatting and imports exactly as ruff/isort would (line length 120, length-sort, force-wrap) | Sandboxed, no ruff | `PythonPrinter` reproduces the oracle's isort settings and the few ruff wraps the spike needs (long `FieldInfo(...)`, long imports, `__all__`). General formatting stays plan §7 "Finish" (G8) | No |
 | G16 | Header line | n/a | Emitter writes `# File generated from our OpenAPI spec by Ferrule. See CONTRIBUTING.md for details.` | No |
+| G17 | Union members in document order (`Union[Literal[...], str]`) | `union-info.members` comes back reordered (lumaai `anyOf: [enum, string]` arrives string first) | type-mapper lists literal members first, which matches the oracles checked | Yes: keep document order |
+| G18 | Parameter `example`, `minimum`, `maximum` (README and api-resource test examples) | `field-info` has `default` only | `SdkParam.example/minimum/maximum` exist but stay unset; project tests fall back to defaults | Yes: expose them, or mirror via `x-ferrule-*` |
+| G19 | One endpoint used by two stainless.yml methods (lumaai `generations.create` and `generations.video.create`) | An operation belongs to one group; the second method is dropped | None yet (lumaai `generation_create_params.py` and `generations.create` missing); needs a converter alias (`x-forge` alias operation) | Maybe: method aliases |
+| G20 | Description of an inline object schema (class docstring) | `object-info` has no description; a property's own description stands in | Adapter copies the property description onto its inline object (matches every OneBusAway class) | Yes: describe object types |
+| G21 | Multipart / binary request bodies (`FileTypes`) | `content-info.ty` is `unknown` for non-JSON media types | Body typed `unknown`; non-object bodies are FER201 | Yes: types for non-JSON content |
 
 ## Verdict for Phase 1
 

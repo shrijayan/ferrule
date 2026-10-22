@@ -49,7 +49,9 @@ export function runForge(fixture: string): Map<string, string> {
     execFileSync(forgeBinary, ['--target', `wasm://${wasm}`, '--out', out, fixture], {
       stdio: ['ignore', 'pipe', 'pipe'],
     });
-    return readTree(out);
+    // Code files only: the project files (README, pyproject, tests) have their own goldens
+    // under test/files, and a generated pyproject.toml here would re-root ruff's config.
+    return new Map([...readTree(out)].filter(([path]) => path.startsWith('src/')));
   } finally {
     rmSync(out, { recursive: true, force: true });
   }

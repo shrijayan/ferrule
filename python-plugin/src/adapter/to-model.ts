@@ -315,6 +315,7 @@ export function clientClassName(name: string): string {
 
 function toSettings(raw: RawClient): SdkClientSettings {
   return {
+    name: raw.name,
     className: clientClassName(raw.name),
     envPrefix: raw.envPrefix,
     opts: raw.opts,
@@ -383,6 +384,8 @@ function toClient(methods: readonly Method[], baseUrl: string): SdkClient | unde
     settings,
     resources: freeze(root).subresources,
     clientMethods: byOrder(clientMethods),
+    clientClass: settings?.className,
+    envPrefix: settings?.envPrefix,
     models,
   };
 }

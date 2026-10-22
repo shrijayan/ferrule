@@ -48,6 +48,8 @@ function client(m: SdkMethod): { c: SdkClient; r: SdkResource } {
       settings: undefined,
       resources: [r],
       clientMethods: [],
+      clientClass: undefined,
+      envPrefix: undefined,
       models: [],
     },
     r,

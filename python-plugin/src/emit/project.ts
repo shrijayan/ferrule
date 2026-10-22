@@ -14,6 +14,8 @@ import {
   resourceModule,
   returnModel,
 } from './common.ts';
+import { emitProjectFiles } from './files/index.ts';
+import { type ProjectMeta, toProjectFilesInput } from './files-input.ts';
 import { emitAliasFile, emitModelFile } from './models.ts';
 import { emitParamsFile } from './params.ts';
 import { className, emitResourceFile } from './resources.ts';
@@ -91,7 +93,7 @@ function methodTypes(
 }
 
 /** Every code file of the SDK. */
-export function emitRootFiles(client: SdkClient): FileTree {
+export function emitRootFiles(client: SdkClient, meta?: ProjectMeta): FileTree {
   const files = new Map<string, string>();
   const pkg = client.package.name;
   /** types package directory ('' for `types`) -> module -> exported name. */
@@ -152,5 +154,10 @@ export function emitRootFiles(client: SdkClient): FileTree {
   }
 
   if (client.settings !== undefined) files.set(modulePath(pkg, '_client'), emitClientFile(client));
+  if (meta !== undefined) {
+    const input = toProjectFilesInput(client, meta);
+    if (input !== undefined)
+      for (const [path, text] of emitProjectFiles(input)) files.set(path, text);
+  }
   return new Map([...files].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)));
 }

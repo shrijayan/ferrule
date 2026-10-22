@@ -5,6 +5,7 @@ import { readClient, readMethodExtensions } from '../src/adapter/extensions.ts';
 import { FerruleError } from '../src/diagnostics.ts';
 import { emitClientFile } from '../src/emit/client.ts';
 import { argsDocstring, stainlessMethodOrder } from '../src/emit/common.ts';
+import { PLACEHOLDER_META, toProjectFilesInput } from '../src/emit/files-input.ts';
 import { call, formatExpr } from '../src/emit/format.ts';
 import { emitAliasFile, emitModelFile } from '../src/emit/models.ts';
 import { emitParamsFile } from '../src/emit/params.ts';
@@ -64,6 +65,7 @@ function method(over: Partial<SdkMethod> = {}): SdkMethod {
 }
 
 const settings = (over: Partial<SdkClientSettings> = {}): SdkClientSettings => ({
+  name: 'acme',
   className: 'Acme',
   envPrefix: 'ACME',
   opts: [
@@ -102,6 +104,8 @@ function sdk(
       settings: settings(),
       resources: [r],
       clientMethods: [],
+      clientClass: undefined,
+      envPrefix: undefined,
       models: [],
       ...over,
     },
@@ -506,5 +510,31 @@ describe('types', () => {
       '    ),',
       ')',
     ]);
+  });
+});
+
+describe('project-file input', () => {
+  it('maps resources, params and the api-key query auth', () => {
+    const m = method({
+      pathParams: [param({ wireName: 'id', pyName: 'id', required: true })],
+      queryParams: [param({ example: 'x', minimum: 1, maximum: 2 })],
+    });
+    const { c } = sdk([m]);
+    const key = {
+      ...c.settings?.opts[0],
+      send: { in: 'query', name: 'key' },
+    } as SdkClientSettings['opts'][number];
+    const client = { ...c, settings: settings({ opts: [key] }) };
+    expect(toProjectFilesInput(client, PLACEHOLDER_META)).toBeUndefined();
+    const free = sdk([method(), m]).c;
+    const input = toProjectFilesInput(
+      { ...free, settings: settings({ opts: [key] }) },
+      PLACEHOLDER_META,
+    );
+    expect(input?.auth).toEqual({ kind: 'api_key_query', env: 'ACME_API_KEY', param: 'key' });
+    expect(input?.readmeExample.accessor).toBe('things');
+    expect(input?.resources[0]?.methods[0]?.params.map((p) => [p.location, p.example])).toEqual([]);
+    expect(input?.resources[0]?.variable).toBe('thing');
+    expect(toProjectFilesInput({ ...free, settings: undefined }, PLACEHOLDER_META)).toBeUndefined();
   });
 });

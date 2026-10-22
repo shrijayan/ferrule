@@ -92,7 +92,11 @@ describe('oracle parity (onebusaway, when oracles/cache is fetched)', () => {
   const haveRuff = existsSync(oracle) && spawnSync('uvx', ['--version']).status === 0;
   const golden = haveRuff ? ruffFormatted(join(goldenDir, 'onebusaway')) : new Map();
   const dropHeader = (s: string): string => s.slice(s.indexOf('\n') + 1);
-  it.skipIf(!haveRuff).each([...golden.keys()])('%s matches but for the header', (path) => {
+  // The code files; project files (README, tests) are task C's and use placeholder metadata.
+  const code = [...golden.keys()].filter((p) =>
+    /^src\/onebusaway\/(_client\.py|resources\/|types\/)/.test(p),
+  );
+  it.skipIf(!haveRuff).each(code)('%s matches but for the header', (path) => {
     const expected = readFileSync(join(oracle, path), 'utf8');
     expect(dropHeader(golden.get(path) ?? '')).toBe(dropHeader(expected));
   });
