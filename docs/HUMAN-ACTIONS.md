@@ -10,3 +10,7 @@ Things the autonomous build must not do. Each has exact steps.
 6. **Install apps** — Renovate, DCO (probot/dco), OpenSSF Scorecard (runs via workflow).
 7. **Forge RFC** — open an issue on cloudflare/forge describing the Python plugin and migration tools; link RFC #45. Draft: `docs/rfcs/forge-python-plugin.md`.
 8. **Legal review of runtime reuse** before 0.1 (plan §4 legal guardrails).
+9. **`release` environment** — create it, restrict deployment branches to `main`, add required reviewers; point PyPI/npm trusted publishers at `release.yml` + `release`.
+10. **Dependabot off** — disable security updates in repo settings (Renovate replaces it).
+11. **release-please token** — add a GitHub App or fine-grained PAT so release PRs trigger CI.
+12. **CODEOWNERS** — replace `@ferrule-dev/maintainers` with a real team/handle.

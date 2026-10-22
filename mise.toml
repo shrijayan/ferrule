@@ -41,3 +41,6 @@ run = "bash scripts/forge-telemetry-check.sh"
 
 [tasks."docs:build"]
 run = "pnpm --filter @ferrule/docs build"
+
+[tasks."release:dry-run"]
+run = "bash scripts/release-dry-run.sh"
