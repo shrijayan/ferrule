@@ -1,0 +1,36 @@
+[tools]
+node = "24"
+pnpm = "11.24.0"
+python = "3.12"
+uv = "0.11.28"
+lefthook = "latest"
+gitleaks = "latest"
+
+[tasks."forge:setup"]
+description = "Clone and build the pinned Forge commit into .cache/forge"
+run = "bash scripts/forge-setup.sh"
+
+[tasks.install]
+run = ["pnpm install --frozen-lockfile", "uv sync --all-packages --frozen"]
+
+[tasks."lint:ts"]
+run = "pnpm exec biome check ."
+
+[tasks."lint:py"]
+run = ["uv run ruff check .", "uv run ruff format --check ."]
+
+[tasks."typecheck:ts"]
+run = "pnpm -r --if-present typecheck"
+
+[tasks."typecheck:py"]
+run = ["uv run pyright", "uv run mypy runtime/src migrate/src"]
+
+[tasks."test:ts"]
+run = "pnpm -r --if-present test"
+
+[tasks."test:py"]
+run = "uv run pytest"
+
+[tasks.check]
+description = "Everything ci.yml runs"
+depends = ["lint:ts", "lint:py", "typecheck:ts", "typecheck:py", "test:ts", "test:py"]

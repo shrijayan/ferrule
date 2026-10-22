@@ -1,0 +1,55 @@
+[project]
+name = "ferrule-workspace"
+version = "0.0.0"
+requires-python = ">=3.12"
+
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = ["runtime", "migrate"]
+
+[dependency-groups]
+dev = [
+  "ruff==0.17.1",
+  "pyright==1.1.414",
+  "mypy==2.4.0",
+  "pytest==9.1.1",
+  "pytest-cov",
+  "hypothesis==6.170.5",
+  "syrupy==6.1.1",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["oracles/cache", "corpus/cache", ".cache", "python-plugin/test/golden"]
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+  "D203",   # conflicts with D211
+  "D213",   # conflicts with D212
+  "COM812", # conflicts with the formatter
+  "ISC001", # conflicts with the formatter
+]
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/**" = ["S101", "D", "PLR2004", "INP001"]
+
+[tool.pyright]
+typeCheckingMode = "strict"
+pythonVersion = "3.12"
+exclude = ["oracles/cache", "corpus/cache", ".cache", "**/node_modules", "**/.venv"]
+
+[tool.mypy]
+strict = true
+python_version = "3.12"
+exclude = ["oracles/cache", "corpus/cache", ".cache"]
+
+[tool.coverage.run]
+branch = true
+
+[tool.coverage.report]
+fail_under = 90
+show_missing = true

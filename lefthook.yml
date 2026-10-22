@@ -1,0 +1,17 @@
+pre-commit:
+  parallel: true
+  commands:
+    biome:
+      glob: "*.{ts,js,json,mjs}"
+      run: pnpm exec biome check --no-errors-on-unmatched {staged_files}
+    ruff:
+      glob: "*.py"
+      run: uv run ruff check {staged_files} && uv run ruff format --check {staged_files}
+    gitleaks:
+      run: gitleaks protect --staged --no-banner || gitleaks git --staged --no-banner
+commit-msg:
+  commands:
+    commitlint:
+      run: pnpm exec commitlint --edit {1}
+    dco:
+      run: grep -q '^Signed-off-by:' {1} || (echo "DCO: commit with -s" && exit 1)

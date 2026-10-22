@@ -1,0 +1,21 @@
+# deps / build
+node_modules/
+dist/
+*.wasm
+.venv/
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+coverage/
+.coverage
+htmlcov/
+# downloaded data (never committed)
+.cache/
+oracles/cache/
+corpus/cache/
+# docs site
+docs/site/dist/
+docs/site/.astro/
+.DS_Store
