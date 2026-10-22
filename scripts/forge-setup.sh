@@ -17,4 +17,7 @@ git -C "$dir" checkout --quiet --detach "$FORGE_COMMIT"
 test "$(git -C "$dir" rev-parse HEAD)" = "$FORGE_COMMIT"
 
 cargo build --manifest-path "$dir/Cargo.toml" --release --locked --features wasm
+# The TypeScript plugin library (@cloudflare/forge/plugin, /ts) and its WIT.
+(cd "$dir" && pnpm install --frozen-lockfile)
+(cd "$dir/packages/forge" && node scripts/build.mjs)
 echo "forge $(git -C "$dir" rev-parse --short HEAD) built: $dir/target/release/forge"
