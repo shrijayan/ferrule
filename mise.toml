@@ -38,3 +38,6 @@ depends = ["lint:ts", "lint:py", "typecheck:ts", "typecheck:py", "test:ts", "tes
 [tasks."forge:telemetry"]
 description = "Fail if Forge gains a network-capable dependency (ADR 0006)"
 run = "bash scripts/forge-telemetry-check.sh"
+
+[tasks."docs:build"]
+run = "pnpm --filter @ferrule/docs build"

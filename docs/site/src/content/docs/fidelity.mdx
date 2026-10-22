@@ -1,0 +1,27 @@
+---
+title: Fidelity board
+description: Nightly regeneration of public Stainless Python SDKs, scored against their last Stainless release.
+---
+
+import fidelity from '../../data/fidelity.json';
+
+Each row is a public Stainless Python SDK regenerated nightly by `parity.yml` and compared with
+its last Stainless commit: public API diff (griffe), the repo's own tests, HTTP replay, and a
+normalized text diff.
+
+{fidelity.length === 0 ? (
+  <p><em>No results yet. The board fills in once nightly parity runs start (Phase 5).</em></p>
+) : (
+  <table>
+    <thead>
+      <tr><th>Repository</th><th>Breaking</th><th>Additive</th><th>Tests</th><th>Closeness</th></tr>
+    </thead>
+    <tbody>
+      {fidelity.map((r) => (
+        <tr>
+          <td>{r.repo}</td><td>{r.breaking}</td><td>{r.additive}</td><td>{r.tests}</td><td>{r.closeness}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+)}

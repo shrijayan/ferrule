@@ -1,0 +1,36 @@
+---
+title: Ferrule
+description: Leave Stainless without your users noticing. Same config, same Python SDK, proof of zero breaking changes.
+template: splash
+hero:
+  tagline: Leave Stainless without your users noticing. Same config, same Python SDK, proof of zero breaking changes.
+  actions:
+    - text: Get started
+      link: /ferrule/getting-started/
+      icon: right-arrow
+    - text: Architecture
+      link: /ferrule/architecture/
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+Ferrule is an open-source toolkit for teams leaving Stainless. It turns an OpenAPI spec and a
+`stainless.yml` into the same idiomatic Python SDK Stainless would have generated, and proves
+nothing public changed. It uses Cloudflare's Forge as the engine instead of building another
+generator. Everything runs locally and in CI: no hosted service, no account.
+
+<CardGrid>
+  <Card title="Proof that nothing broke" icon="approve-check">
+    `ferrule verify` prints `0 breaking / N additive` against your last Stainless release.
+  </Card>
+  <Card title="One-command adoption" icon="rocket">
+    `uvx ferrule adopt .` rescues your spec, converts your config, records hand edits and opens a PR.
+  </Card>
+  <Card title="Output you own" icon="open-book">
+    Apache-2.0, no licence obligations on generated code, no token, no telemetry. DCO, never a CLA.
+  </Card>
+  <Card title="Public fidelity board" icon="list-format">
+    Nightly regeneration of public Stainless Python repos, with published scores.
+  </Card>
+</CardGrid>

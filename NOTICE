@@ -1,0 +1,52 @@
+Ferrule
+Copyright 2026 The Ferrule Authors
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+"Stainless" and "Cloudflare" are trademarks of their respective owners. Ferrule is an
+independent project and is not affiliated with or endorsed by them. The names are used only
+to describe compatibility.
+
+========================================================================
+Third-party software and material
+========================================================================
+
+Each entry lists the source, its licence, the commit used, and what was taken.
+Files derived from these sources keep their original headers and are marked
+"Modified by The Ferrule Authors" where changed.
+
+------------------------------------------------------------------------
+Stainless-generated SDK runtimes (Apache-2.0)
+------------------------------------------------------------------------
+Used in: runtime/ (see runtime/NOTICE for per-file detail)
+Sources: (none yet; add repository, commit and files when code is imported)
+
+------------------------------------------------------------------------
+Fern (Apache-2.0 / MIT), https://github.com/fern-api/fern
+------------------------------------------------------------------------
+Used in: corpus/ fixtures
+Sources: (none yet)
+
+------------------------------------------------------------------------
+stainful (MIT), https://github.com/stainlu/stainful
+------------------------------------------------------------------------
+Used in: corpus/ fixtures
+Sources: (none yet)
+
+------------------------------------------------------------------------
+perseid (Apache-2.0)
+------------------------------------------------------------------------
+Used in: corpus/ fixtures
+Sources: (none yet)
+
+------------------------------------------------------------------------
+TypeSpec http-specs (MIT), https://github.com/microsoft/typespec
+------------------------------------------------------------------------
+Used in: corpus/ fixtures
+Sources: (none yet)
+
+------------------------------------------------------------------------
+Cloudflare Forge (Apache-2.0), https://github.com/cloudflare/forge
+------------------------------------------------------------------------
+Used as a pinned build-time dependency (ADR 0005). No Forge source is
+copied into this repository or into generated SDKs.
