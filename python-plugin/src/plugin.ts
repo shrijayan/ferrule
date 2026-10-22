@@ -4,8 +4,8 @@
  * exercised by the CLI golden test rather than in-process (see vitest.config.ts).
  */
 import { definePlugin, type File } from '@cloudflare/forge/plugin';
-import { forgeToModel, groupToModel } from './adapter/to-model.ts';
-import { emitGroupFiles, emitRootFiles, type FileTree } from './emit/project.ts';
+import { forgeToModel } from './adapter/to-model.ts';
+import { emitRootFiles, type FileTree } from './emit/project.ts';
 
 function toFiles(tree: FileTree): File[] {
   return [...tree].map(([path, content]) => ({ path, content }));
@@ -16,8 +16,8 @@ export const { generate, generateGroup } = definePlugin({
     const client = forgeToModel(forge);
     return client === undefined ? [] : toFiles(emitRootFiles(client));
   },
-  generateGroup(group) {
-    const client = groupToModel(group);
-    return client === undefined ? [] : toFiles(emitGroupFiles(client));
+  // Every file needs document-level data (gaps G7, G10), so `generate` emits them all.
+  generateGroup() {
+    return [];
   },
 });

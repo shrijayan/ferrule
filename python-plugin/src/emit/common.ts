@@ -25,7 +25,6 @@ export function relImport(from: string, target: string): string {
   return `.${'.'.repeat(pkg.length - common)}${tgt.slice(common).join('.')}`;
 }
 
-/** Greedy word wrap at `width` columns. */
 /**
  * Makes spec text safe inside a `"""` docstring: backslashes doubled (as Stainless does) and
  * quotes that could close the docstring escaped, so a spec can't inject code into the SDK.
@@ -34,6 +33,7 @@ export function escapeDocstring(text: string): string {
   return text.replaceAll('\\', '\\\\').replaceAll('"""', '\\"\\"\\"').replace(/"$/, '\\"');
 }
 
+/** Greedy word wrap at `width` columns. */
 export function wrap(text: string, width = 80): string[] {
   const lines: string[] = [];
   for (const para of text.split('\n')) {
@@ -71,28 +71,100 @@ export function resourceClassBase(resource: SdkResource): string {
 }
 
 /**
- * A synthesized type named after its method, with the resource's last word singular as the
- * oracles have it: `AgenciesWithCoverageListResponse`, `CardProgramListParams`.
+ * The dotted module of a resource: `resources.stop`, or `resources.generations.generations` for
+ * a resource with subresources, which becomes a package.
  */
-export function methodRef(resource: SdkResource, method: SdkMethod, suffix: string): SdkRef {
-  const words = singular(splitWords(resource.path[resource.path.length - 1] ?? ''));
+export function resourceModule(resource: SdkResource): string {
+  const base = ['resources', ...resource.path];
+  if (resource.subresources.length > 0) base.push(resource.path[resource.path.length - 1] ?? '');
+  return base.join('.');
+}
+
+/** Standard methods come first in this order; the rest follow by name (as the oracles order). */
+const STANDARD = ['create', 'retrieve', 'update', 'list', 'delete'];
+
+export function stainlessMethodOrder(methods: readonly SdkMethod[]): SdkMethod[] {
+  const rank = (m: SdkMethod): number => {
+    const i = STANDARD.indexOf(m.name);
+    return i < 0 ? STANDARD.length : i;
+  };
+  return [...methods].sort(
+    (a, b) => rank(a) - rank(b) || (a.name < b.name ? -1 : a.name > b.name ? 1 : 0),
+  );
+}
+
+/**
+ * A synthesized type named after its method, with the resource's last word singular as the
+ * oracles have it: `AgenciesWithCoverageListResponse`, `CardProgramListParams`. Types of a
+ * subresource sit in its parent's directory: `types/generations/video_create_params.py`.
+ * `$client` methods (no resource) are named after the method alone.
+ */
+export function methodRef(
+  resource: SdkResource | undefined,
+  method: SdkMethod,
+  suffix: string,
+): SdkRef {
+  const words =
+    resource === undefined
+      ? []
+      : singular(splitWords(resource.path[resource.path.length - 1] ?? ''));
+  const dir = resource === undefined ? [] : resource.path.slice(0, -1);
+  const leaf = [snakeCase(words), method.name, suffix.toLowerCase()].filter((w) => w !== '');
   return {
     kind: 'ref',
     name: `${classSegment(words)}${classSegment(splitWords(method.name))}${suffix}`,
-    module: `${snakeCase(words)}_${method.name}_${suffix.toLowerCase()}`,
+    module: [...dir, leaf.join('_')].join('.'),
   };
 }
 
 /**
- * What a method returns: for a paginated method, one item; otherwise the response. A named
- * model stays a ref; an inline object becomes a synthesized `<Resource><Method>Response`.
+ * What a method returns: for a paginated method, one item; for a streaming one, one event;
+ * otherwise the response. A named model stays a ref; an inline object becomes a synthesized
+ * `<Resource><Method>Response`.
  */
 export function returnModel(
-  resource: SdkResource,
+  resource: SdkResource | undefined,
   method: SdkMethod,
 ): { readonly ref: SdkRef; readonly inline: SdkType | undefined } | undefined {
-  const t = method.pagination?.item ?? method.response;
+  const t = method.pagination?.item ?? method.streaming?.event ?? method.response;
   if (t === undefined) return undefined;
   if (t.kind === 'ref') return { ref: t, inline: undefined };
   return { ref: methodRef(resource, method, 'Response'), inline: t };
+}
+
+/** The keyword arguments of a method (query and body), in the oracle order. */
+export function methodParams(method: SdkMethod): SdkParam[] {
+  return sortFields([...method.queryParams, ...method.bodyParams]);
+}
+
+const EXTRA_ARGS: readonly [string, string][] = [
+  ['extra_headers', 'Send extra headers'],
+  ['extra_query', 'Add additional query parameters to the request'],
+  ['extra_body', 'Add additional JSON properties to the request'],
+  ['timeout', 'Override the client-level default timeout for this request, in seconds'],
+];
+
+/**
+ * A method docstring: the description (else the summary), then, when the method takes any
+ * parameter, an `Args:` section listing the documented keyword arguments and the extras.
+ */
+export function argsDocstring(method: SdkMethod, args: readonly SdkParam[] | undefined): string[] {
+  const text = (method.description || method.summary).trim();
+  const body = wrap(escapeDocstring(text));
+  if (args === undefined) {
+    if (body.length === 0) return [];
+    if (body.length === 1) return [`"""${body[0]}"""`];
+    return ['"""', ...body, '"""'];
+  }
+  const all: [string, string][] = [
+    ...args
+      .filter((a) => a.description.trim() !== '')
+      .map((a): [string, string] => [a.pyName, escapeDocstring(a.description.trim())]),
+    ...EXTRA_ARGS,
+  ];
+  const argLines = all.flatMap(([name, desc], i) => {
+    const [first = '', ...rest] = wrap(desc);
+    return [...(i === 0 ? [] : ['']), `  ${name}: ${first}`, ...rest.map((l) => `      ${l}`)];
+  });
+  return ['"""', ...body, ...(body.length > 0 ? [''] : []), 'Args:', ...argLines, '"""'];
 }

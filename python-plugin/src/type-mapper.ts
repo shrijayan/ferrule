@@ -8,6 +8,17 @@ export interface AnnotationContext {
   objectName(obj: SdkObject): string;
   /** The name a named model has in this file; imports it if needed. */
   refName(ref: SdkRef): string;
+  /** Imports `name` from the package module `module` (such as `_types`). */
+  runtime?(module: string, name: string): void;
+  /**
+   * Request types (method arguments, TypedDict params) rather than response models: arrays are
+   * `Iterable` (`SequenceNotStr` for strings), dates also accept `str`.
+   */
+  readonly input?: boolean;
+  /** Names the file's fields use, which a `from datetime import` would clash with. */
+  readonly shadowed?: ReadonlySet<string>;
+  /** The alias the file declares for a union, if any. */
+  unionName?(union: SdkType): string | undefined;
 }
 
 const PRIMITIVES = {
@@ -24,6 +35,8 @@ function pyLiteral(v: string | number | boolean): string {
   return String(v);
 }
 
+const isNull = (t: SdkType): boolean => t.kind === 'primitive' && t.name === 'null';
+
 /** Map an SdkType to a Python annotation, registering needed imports on `printer`. */
 export function toAnnotation(
   type: SdkType,
@@ -34,28 +47,46 @@ export function toAnnotation(
   switch (type.kind) {
     case 'primitive':
       if (type.name === 'datetime' || type.name === 'date') {
-        printer.importFrom('datetime', type.name);
-        return type.name;
+        let name: string = type.name;
+        if (ctx.shadowed?.has(type.name)) {
+          // A field of the same name would shadow the class: `import datetime`, `datetime.date`.
+          printer.importModule('datetime');
+          name = `datetime.${type.name}`;
+        } else printer.importFrom('datetime', type.name);
+        if (!ctx.input) return name;
+        printer.importFrom('typing', 'Union');
+        return `Union[str, ${name}]`;
       }
       return PRIMITIVES[type.name];
     case 'unknown':
       return 'object';
     case 'array':
-      printer.importFrom('typing', 'List');
-      return `List[${ann(type.items)}]`;
+      if (!ctx.input) {
+        printer.importFrom('typing', 'List');
+        return `List[${ann(type.items)}]`;
+      }
+      if (type.items.kind === 'primitive' && type.items.name === 'string') {
+        ctx.runtime?.('_types', 'SequenceNotStr');
+        return 'SequenceNotStr[str]';
+      }
+      printer.importFrom('typing', 'Iterable');
+      return `Iterable[${ann(type.items)}]`;
     case 'map':
       printer.importFrom('typing', 'Dict');
       return `Dict[str, ${ann(type.values)}]`;
     case 'union': {
-      const isNull = (t: SdkType): boolean => t.kind === 'primitive' && t.name === 'null';
-      const rest = type.variants.filter((t) => !isNull(t));
-      let inner: string;
-      if (rest.length === 1 && rest[0] !== undefined) inner = ann(rest[0]);
-      else {
+      const alias = ctx.unionName?.(type);
+      if (alias !== undefined) return alias;
+      // Forge does not keep member order (gap G17); the oracles list enums before plain types.
+      const rank = (t: SdkType): number => (t.kind === 'literal' ? 0 : 1);
+      const rest = type.variants.filter((t) => !isNull(t)).sort((a, b) => rank(a) - rank(b));
+      const nullable = rest.length !== type.variants.length;
+      if (rest.length > 1) {
         printer.importFrom('typing', 'Union');
-        inner = `Union[${rest.map(ann).join(', ')}]`;
+        return `Union[${[...rest.map(ann), ...(nullable ? ['None'] : [])].join(', ')}]`;
       }
-      if (rest.length === type.variants.length) return inner;
+      const inner = rest[0] === undefined ? 'None' : ann(rest[0]);
+      if (!nullable) return inner;
       printer.importFrom('typing', 'Optional');
       return `Optional[${inner}]`;
     }
@@ -71,7 +102,5 @@ export function toAnnotation(
 
 /** True for `T | null`, which a field types as `Optional[T]` already. */
 export function isNullable(type: SdkType): boolean {
-  return (
-    type.kind === 'union' && type.variants.some((t) => t.kind === 'primitive' && t.name === 'null')
-  );
+  return type.kind === 'union' && type.variants.some(isNull);
 }

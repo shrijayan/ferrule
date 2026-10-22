@@ -90,6 +90,12 @@ export function fakeForge(doc: Doc): Forge {
     return m;
   };
 
+  /** Forge reads a `$ref` property's description from the schema it names. */
+  const refDescription = (p: Schema): string =>
+    text(p, '$ref') === ''
+      ? ''
+      : text(schemas[text(p, '$ref').split('/').pop() ?? ''] ?? {}, 'description');
+
   const fieldsOf = (s: Schema): Field[] => {
     const props = (at(s, 'properties') ?? {}) as Record<string, Schema>;
     const required = (at(s, 'required') ?? []) as string[];
@@ -97,7 +103,7 @@ export function fakeForge(doc: Doc): Forge {
       wireName: wire,
       name: name(wire),
       required: required.includes(wire),
-      description: text(p, 'description'),
+      description: text(p, 'description') || refDescription(p),
       deprecated: false,
       readOnly: false,
       sensitive: false,
@@ -177,7 +183,7 @@ export function fakeForge(doc: Doc): Forge {
     const existing = groups.find((g) => g.name.snake() === key);
     if (existing !== undefined) return existing;
     const methods: Method[] = [];
-    byGroup.set(key, methods);
+    byGroup.set(name(key).snake(), methods);
     const g: Group = {
       name: name(key),
       description: '',
@@ -193,20 +199,27 @@ export function fakeForge(doc: Doc): Forge {
   };
 
   for (const [path, ops] of Object.entries(doc.paths)) {
+    // Path-level parameters apply to every operation of the path.
+    const pathLevel = at(ops as Schema, 'parameters');
+    const shared = (Array.isArray(pathLevel) ? pathLevel : []) as Schema[];
     for (const [verb, op] of Object.entries(ops)) {
+      if (verb === 'parameters') continue;
       const groupName = at(op, 'x-fern-sdk-group-name');
       if (!Array.isArray(groupName)) continue;
       const group = groupOf(groupName.join('_'));
       const locations = new Map<Field, Location>();
       const paramFields: Field[] = [];
-      for (const p of (at(op, 'parameters') ?? []) as Schema[]) {
+      const own = (at(op, 'parameters') ?? []) as Schema[];
+      const names = new Set(own.map((p) => at(p, 'name')));
+      for (const p of [...shared.filter((s) => !names.has(at(s, 'name'))), ...own]) {
         const where = at(p, 'in');
         if (where !== 'query' && where !== 'path') continue;
         const field: Field = {
           wireName: String(at(p, 'name')),
           name: name(String(at(p, 'name'))),
           required: at(p, 'required') === true,
-          description: text(p, 'description'),
+          description:
+            text(p, 'description') || text((at(p, 'schema') ?? {}) as Schema, 'description'),
           deprecated: false,
           readOnly: false,
           sensitive: false,

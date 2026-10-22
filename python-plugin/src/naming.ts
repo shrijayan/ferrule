@@ -66,7 +66,19 @@ export function pascalCase(words: readonly string[]): string {
 }
 
 /** Words Stainless spells upper-case inside class names, such as `SituationURL`. */
-const ACRONYMS = new Set(['id', 'ids', 'url', 'uri', 'api', 'http', 'https', 'ip', 'json', 'uuid']);
+const ACRONYMS = new Set([
+  'id',
+  'ids',
+  'url',
+  'uri',
+  'api',
+  'http',
+  'https',
+  'ip',
+  'json',
+  'uuid',
+  'sdk',
+]);
 
 /** A class-name segment: PascalCase with acronyms upper-cased; `ids` becomes `IDs`. */
 export function classSegment(words: readonly string[]): string {

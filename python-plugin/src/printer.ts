@@ -48,6 +48,13 @@ export class PythonPrinter {
   private depth = 0;
   private readonly plainImports = new Set<string>();
   private readonly fromImports = new Map<string, Set<string>>();
+  private readonly exploded = new Set<string>();
+
+  /** Prints `from module import (...)` one name per line (a magic trailing comma). */
+  explode(module: string): this {
+    this.exploded.add(module);
+    return this;
+  }
 
   constructor(
     private readonly header: readonly string[] = [],
@@ -74,6 +81,17 @@ export class PythonPrinter {
     return this;
   }
 
+  /** The current indentation. */
+  get indentation(): string {
+    return this.indentUnit.repeat(this.depth);
+  }
+
+  /** A line printed as is, already indented. */
+  raw(text: string): this {
+    this.lines.push(text);
+    return this;
+  }
+
   /** Print `header` then run `body` one level deeper. */
   block(header: string, body: (p: this) => void): this {
     this.line(header);
@@ -91,21 +109,32 @@ export class PythonPrinter {
     return this;
   }
 
-  private importLines(): string[] {
+  private importLines(indent = ''): string[] {
     const sections: string[][] = [[], [], [], []];
     for (const m of [...this.plainImports].sort(byLength)) {
-      sections[sectionOf(m)]?.push(`import ${m}`);
+      sections[sectionOf(m)]?.push(`${indent}import ${m}`);
     }
     for (const m of [...this.fromImports.keys()].sort(byLength)) {
       const names = [...(this.fromImports.get(m) ?? [])].sort(byNameType);
-      const one = `from ${m} import ${names.join(', ')}`;
+      const one = `${indent}from ${m} import ${names.join(', ')}`;
       const text =
-        one.length <= LINE_LENGTH
+        one.length <= LINE_LENGTH && !this.exploded.has(m)
           ? one
-          : [`from ${m} import (`, ...names.map((n) => `    ${n},`), ')'].join('\n');
+          : [
+              `${indent}from ${m} import (`,
+              ...names.map((n) => `${indent}    ${n},`),
+              `${indent})`,
+            ].join('\n');
       sections[sectionOf(m)]?.push(text);
     }
     return sections.filter((s) => s.length > 0).flatMap((s) => [...s, '']);
+  }
+
+  /** The registered imports alone, at `indent`, for an `if TYPE_CHECKING:` block. */
+  importBlock(indent: string): string[] {
+    const lines = this.importLines(indent).join('\n').split('\n');
+    while (lines.length > 0 && lines[lines.length - 1] === '') lines.pop();
+    return lines;
   }
 
   /** Header, imports by section, then the body, ending with exactly one newline. */

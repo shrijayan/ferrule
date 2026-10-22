@@ -55,7 +55,7 @@ describe('readMethodExtensions', () => {
     ['x-ferrule-bogus', 1, 'FER102 #/p/x-ferrule-bogus'],
     ['x-ferrule-resource', undefined, 'FER103 #/p/x-ferrule-resource'],
     ['x-ferrule-resource', { path: [] }, 'FER101 #/p/x-ferrule-resource'],
-    ['x-ferrule-resource', { path: ['a-b'] }, 'FER101 #/p/x-ferrule-resource'],
+    ['x-ferrule-resource', { path: ['a b'] }, 'FER101 #/p/x-ferrule-resource'],
     ['x-ferrule-method-name', 3, 'FER101 #/p/x-ferrule-method-name'],
     ['x-ferrule-package', { name: 'a' }, 'FER101 #/p/x-ferrule-package'],
     ['x-ferrule-package', 'acme', 'FER101 #/p/x-ferrule-package'],
@@ -70,7 +70,7 @@ describe('readMethodExtensions', () => {
       { scheme: 'cursor', page: 'p', request: { a: 1 }, response: {} },
       'FER101 #/p/x-ferrule-pagination',
     ],
-    ['x-ferrule-streaming', { format: 'sse' }, 'FER201 #/p/x-ferrule-streaming'],
+    ['x-ferrule-streaming', { format: 'xml' }, 'FER101 #/p/x-ferrule-streaming'],
   ])('rejects %s = %j', (key, value, expected) => {
     expect(code(() => readMethodExtensions(ext({ [key]: value as Json }), '#/p'))).toBe(expected);
   });

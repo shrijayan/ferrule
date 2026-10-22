@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { relImport, sortFields, wrap } from '../src/emit/common.ts';
 import { docstring, emitModelFile } from '../src/emit/models.ts';
 import { emitParamsFile } from '../src/emit/params.ts';
-import { emitGroupFiles } from '../src/emit/project.ts';
+import { emitRootFiles } from '../src/emit/project.ts';
 import { emitResourceFile } from '../src/emit/resources.ts';
 import type { SdkClient, SdkMethod, SdkParam, SdkResource, SdkType } from '../src/model/index.ts';
 import { classSegment, singular } from '../src/naming.ts';
@@ -24,19 +24,32 @@ function method(over: Partial<SdkMethod> = {}): SdkMethod {
     path: '/t',
     summary: '',
     description: '',
+    order: 0,
+    deprecated: false,
     pathParams: [],
     queryParams: [],
+    headerParams: [],
     body: undefined,
+    bodyParams: [],
+    bodyMediaType: undefined,
     response: obj,
     pagination: undefined,
+    streaming: undefined,
     ...over,
   };
 }
 
 function client(m: SdkMethod): { c: SdkClient; r: SdkResource } {
-  const r: SdkResource = { path: ['things'], methods: [m], subresources: [] };
+  const r: SdkResource = { path: ['things'], order: 0, methods: [m], subresources: [] };
   return {
-    c: { package: { name: 'acme', repo: 'a/b' }, baseUrl: '', resources: [r], models: [] },
+    c: {
+      package: { name: 'acme', repo: 'a/b' },
+      baseUrl: '',
+      settings: undefined,
+      resources: [r],
+      clientMethods: [],
+      models: [],
+    },
     r,
   };
 }
@@ -75,7 +88,7 @@ describe('toAnnotation', () => {
       ],
     };
     expect(toAnnotation(t, p, ctx)).toBe(
-      'Optional[Union[str, int, float, bool, datetime, date, object, List[Ref], Dict[str, Optional[str]], Literal["a", 1, True, False], Obj]]',
+      'Union[Literal["a", 1, True, False], str, int, float, bool, datetime, date, object, List[Ref], Dict[str, Optional[str]], Obj, None]',
     );
     expect(p.toString()).toBe(
       [
@@ -125,9 +138,18 @@ describe('models', () => {
   it('wraps long docstrings and prints pass for empty classes', () => {
     expect(docstring('', '')).toEqual([]);
     expect(docstring('word '.repeat(30), '    ')).toEqual([
-      `    """${'word '.repeat(16).trim()}`,
+      '    """',
+      `    ${'word '.repeat(16).trim()}`,
       `    ${'word '.repeat(14).trim()}`,
       '    """',
+    ]);
+    expect(docstring('Short first. Then more.\n\nAnd a paragraph.', '')).toEqual([
+      '"""Short first.',
+      '',
+      'Then more.',
+      '',
+      'And a paragraph.',
+      '"""',
     ]);
     const out = emitModelFile({
       ref: { kind: 'ref', name: 'Empty', module: 'empty' },
@@ -174,7 +196,7 @@ describe('resources', () => {
     expect(out).toContain('query=await async_maybe_transform(');
     expect(out).toContain('return await self._post(');
     expect(out).toContain('        q: str,\n');
-    expect(out).toContain('          q: Q.\n\n          r:\n');
+    expect(out).toContain('          q: Q.\n\n          extra_headers:');
   });
 
   it('prints a docstring-less method', () => {
@@ -182,39 +204,36 @@ describe('resources', () => {
     expect(emitResourceFile(c, r)).toContain(') -> ThingListResponse:\n        return self._get(');
   });
 
-  it.each([
-    ['path parameters', method({ pathParams: [param({})] })],
-    ['bodies', method({ body: str })],
-    ['methods without a response', method({ response: undefined })],
-    [
-      'pagination over POST',
-      method({
-        httpMethod: 'post',
-        pagination: { scheme: 'cursor', page: 'CursorPage', request: {}, response: {}, item: obj },
-      }),
-    ],
-  ])('rejects %s', (_, m) => {
-    const { c, r } = client(m);
-    expect(() => emitResourceFile(c, r)).toThrow(/FER201/);
+  it('rejects a body that is not an object and param-switched streaming', () => {
+    const a = client(method({ httpMethod: 'post', body: str }));
+    expect(() => emitResourceFile(a.c, a.r)).toThrow(/FER201/);
+    const b = client(
+      method({ streaming: { format: 'sse', paramDiscriminator: 'stream', event: obj } }),
+    );
+    expect(() => emitResourceFile(b.c, b.r)).toThrow(/FER201/);
   });
 
-  it('rejects a non-object inline response', () => {
-    const { c } = client(method({ response: { kind: 'array', items: str } }));
-    expect(() => emitGroupFiles(c)).toThrow(/FER201 .*a array response/);
-  });
-
-  it('skips resources without methods', () => {
-    const { c, r } = client(method());
+  it('emits nested resources as packages and aliases non-object responses', () => {
+    const { c, r } = client(method({ response: { kind: 'array', items: str } }));
     const parent: SdkResource = {
       path: ['p'],
+      order: 0,
       methods: [],
       subresources: [{ ...r, path: ['p', 'things'] }],
     };
-    const files = emitGroupFiles({ ...c, resources: [parent] });
+    const files = emitRootFiles({ ...c, resources: [parent] });
     expect([...files.keys()]).toEqual([
+      'src/acme/resources/__init__.py',
+      'src/acme/resources/p/__init__.py',
+      'src/acme/resources/p/p.py',
       'src/acme/resources/p/things.py',
-      'src/acme/types/thing_list_response.py',
+      'src/acme/types/__init__.py',
+      'src/acme/types/p/__init__.py',
+      'src/acme/types/p/thing_list_response.py',
     ]);
+    expect(files.get('src/acme/types/p/thing_list_response.py')).toContain(
+      'ThingListResponse: TypeAlias = List[str]',
+    );
   });
 });
 
@@ -232,11 +251,13 @@ describe('params', () => {
     expect(out).toContain('from .shared.u import U');
   });
 
-  it.each([
-    ['aliased', param({ wireName: 'qQ' })],
-    ['object-typed', param({ type: obj })],
-  ])('rejects %s query params', (_, q) => {
+  it('aliases renamed params and declares inline TypedDicts', () => {
     const { r } = client(method());
-    expect(() => emitParamsFile(r, method({ queryParams: [q] }))).toThrow(/FER201/);
+    const out = emitParamsFile(
+      r,
+      method({ queryParams: [param({ wireName: 'qQ', pyName: 'q_q' }), param({ type: obj })] }),
+    );
+    expect(out).toContain('q_q: Annotated[str, PropertyInfo(alias="qQ")]');
+    expect(out).toContain('class Q(TypedDict, total=False):');
   });
 });
