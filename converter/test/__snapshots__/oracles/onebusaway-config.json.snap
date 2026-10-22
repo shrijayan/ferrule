@@ -1,0 +1,612 @@
+{
+  "sha256": "1503da94bd86bbd99ed4c878bb29fc62bc90013d9a5784bb5f39c9aae5f2c3f2",
+  "root": {
+    "x-ferrule-client": {
+      "defaultEnvironment": "production",
+      "defaultHeaders": {},
+      "envPrefix": "ONEBUSAWAY_SDK",
+      "environments": [
+        {
+          "name": "production",
+          "url": "https://api.pugetsound.onebusaway.org"
+        }
+      ],
+      "name": "onebusaway-sdk",
+      "omitPlatformHeaders": false,
+      "opts": [
+        {
+          "auth": {
+            "role": "value",
+            "securityScheme": "ApiKeyAuth"
+          },
+          "name": "api_key",
+          "nullable": false,
+          "readEnv": "ONEBUSAWAY_API_KEY",
+          "send": {
+            "in": "query",
+            "name": "key"
+          },
+          "type": "string"
+        }
+      ],
+      "query": {
+        "arrayFormat": "repeat",
+        "nestedFormat": "brackets"
+      },
+      "retries": {
+        "initialDelaySeconds": 0.5,
+        "maxDelaySeconds": 8,
+        "maxRetries": 2
+      },
+      "security": [
+        {
+          "ApiKeyAuth": []
+        }
+      ],
+      "securitySchemes": {
+        "ApiKeyAuth": {
+          "in": "query",
+          "name": "key",
+          "type": "apiKey"
+        }
+      },
+      "timeoutSeconds": 60
+    },
+    "x-ferrule-config": {
+      "edition": "2025-10-08",
+      "packageName": "onebusaway",
+      "projectName": "onebusaway",
+      "pythonEdition": "python.2025-10-08",
+      "version": 1
+    }
+  },
+  "mirrored": {
+    "x-ferrule-client": {
+      "defaultEnvironment": "production",
+      "defaultHeaders": {},
+      "envPrefix": "ONEBUSAWAY_SDK",
+      "environments": [
+        {
+          "name": "production",
+          "url": "https://api.pugetsound.onebusaway.org"
+        }
+      ],
+      "name": "onebusaway-sdk",
+      "omitPlatformHeaders": false,
+      "opts": [
+        {
+          "auth": {
+            "role": "value",
+            "securityScheme": "ApiKeyAuth"
+          },
+          "name": "api_key",
+          "nullable": false,
+          "readEnv": "ONEBUSAWAY_API_KEY",
+          "send": {
+            "in": "query",
+            "name": "key"
+          },
+          "type": "string"
+        }
+      ],
+      "query": {
+        "arrayFormat": "repeat",
+        "nestedFormat": "brackets"
+      },
+      "retries": {
+        "initialDelaySeconds": 0.5,
+        "maxDelaySeconds": 8,
+        "maxRetries": 2
+      },
+      "security": [
+        {
+          "ApiKeyAuth": []
+        }
+      ],
+      "securitySchemes": {
+        "ApiKeyAuth": {
+          "in": "query",
+          "name": "key",
+          "type": "apiKey"
+        }
+      },
+      "timeoutSeconds": 60
+    },
+    "x-ferrule-models": {
+      "Reference": {
+        "module": "shared.references",
+        "name": "References"
+      },
+      "ResponseWrapper": {
+        "module": "shared.response_wrapper",
+        "name": "ResponseWrapper"
+      }
+    },
+    "x-ferrule-package": {
+      "name": "onebusaway",
+      "repo": "OneBusAway/python-sdk"
+    }
+  },
+  "operations": {
+    "GET /api/where/agencies-with-coverage.json": {
+      "x-fern-sdk-group-name": [
+        "agencies_with_coverage"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          0
+        ],
+        "path": [
+          "agencies_with_coverage"
+        ]
+      }
+    },
+    "GET /api/where/agency/{agencyID}.json": {
+      "x-fern-sdk-group-name": [
+        "agency"
+      ],
+      "x-fern-sdk-method-name": "retrieve",
+      "x-ferrule-method-name": "retrieve",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          1
+        ],
+        "path": [
+          "agency"
+        ]
+      }
+    },
+    "GET /api/where/arrival-and-departure-for-stop/{stopID}.json": {
+      "x-fern-sdk-group-name": [
+        "arrival_and_departure"
+      ],
+      "x-fern-sdk-method-name": "retrieve",
+      "x-ferrule-method-name": "retrieve",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          17
+        ],
+        "path": [
+          "arrival_and_departure"
+        ]
+      }
+    },
+    "GET /api/where/arrivals-and-departures-for-location.json": {
+      "x-fern-sdk-group-name": [
+        "arrivals_and_departures_for_location"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          16
+        ],
+        "path": [
+          "arrivals_and_departures_for_location"
+        ]
+      }
+    },
+    "GET /api/where/arrivals-and-departures-for-stop/{stopID}.json": {
+      "x-fern-sdk-group-name": [
+        "arrival_and_departure"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          17
+        ],
+        "path": [
+          "arrival_and_departure"
+        ]
+      }
+    },
+    "GET /api/where/block/{blockID}.json": {
+      "x-fern-sdk-group-name": [
+        "block"
+      ],
+      "x-fern-sdk-method-name": "retrieve",
+      "x-ferrule-method-name": "retrieve",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          27
+        ],
+        "path": [
+          "block"
+        ]
+      }
+    },
+    "GET /api/where/config.json": {
+      "x-fern-sdk-group-name": [
+        "config"
+      ],
+      "x-fern-sdk-method-name": "retrieve",
+      "x-ferrule-method-name": "retrieve",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          3
+        ],
+        "path": [
+          "config"
+        ]
+      }
+    },
+    "GET /api/where/current-time.json": {
+      "x-fern-sdk-group-name": [
+        "current_time"
+      ],
+      "x-fern-sdk-method-name": "retrieve",
+      "x-ferrule-method-name": "retrieve",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          4
+        ],
+        "path": [
+          "current_time"
+        ]
+      }
+    },
+    "GET /api/where/report-problem-with-stop/{stopID}.json": {
+      "x-fern-sdk-group-name": [
+        "report_problem_with_stop"
+      ],
+      "x-fern-sdk-method-name": "retrieve",
+      "x-ferrule-method-name": "retrieve",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          23
+        ],
+        "path": [
+          "report_problem_with_stop"
+        ]
+      }
+    },
+    "GET /api/where/report-problem-with-trip/{tripID}.json": {
+      "x-fern-sdk-group-name": [
+        "report_problem_with_trip"
+      ],
+      "x-fern-sdk-method-name": "retrieve",
+      "x-ferrule-method-name": "retrieve",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          24
+        ],
+        "path": [
+          "report_problem_with_trip"
+        ]
+      }
+    },
+    "GET /api/where/route-ids-for-agency/{agencyID}.json": {
+      "x-fern-sdk-group-name": [
+        "route_ids_for_agency"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          12
+        ],
+        "path": [
+          "route_ids_for_agency"
+        ]
+      }
+    },
+    "GET /api/where/route/{routeID}.json": {
+      "x-fern-sdk-group-name": [
+        "route"
+      ],
+      "x-fern-sdk-method-name": "retrieve",
+      "x-ferrule-method-name": "retrieve",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          11
+        ],
+        "path": [
+          "route"
+        ]
+      }
+    },
+    "GET /api/where/routes-for-agency/{agencyID}.json": {
+      "x-fern-sdk-group-name": [
+        "routes_for_agency"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          14
+        ],
+        "path": [
+          "routes_for_agency"
+        ]
+      }
+    },
+    "GET /api/where/routes-for-location.json": {
+      "x-fern-sdk-group-name": [
+        "routes_for_location"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          13
+        ],
+        "path": [
+          "routes_for_location"
+        ]
+      }
+    },
+    "GET /api/where/schedule-for-route/{routeID}.json": {
+      "x-fern-sdk-group-name": [
+        "schedule_for_route"
+      ],
+      "x-fern-sdk-method-name": "retrieve",
+      "x-ferrule-method-name": "retrieve",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          15
+        ],
+        "path": [
+          "schedule_for_route"
+        ]
+      }
+    },
+    "GET /api/where/schedule-for-stop/{stopID}.json": {
+      "x-fern-sdk-group-name": [
+        "schedule_for_stop"
+      ],
+      "x-fern-sdk-method-name": "retrieve",
+      "x-ferrule-method-name": "retrieve",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          10
+        ],
+        "path": [
+          "schedule_for_stop"
+        ]
+      }
+    },
+    "GET /api/where/search/route.json": {
+      "x-fern-sdk-group-name": [
+        "search_for_route"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          26
+        ],
+        "path": [
+          "search_for_route"
+        ]
+      }
+    },
+    "GET /api/where/search/stop.json": {
+      "x-fern-sdk-group-name": [
+        "search_for_stop"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          25
+        ],
+        "path": [
+          "search_for_stop"
+        ]
+      }
+    },
+    "GET /api/where/shape/{shapeID}.json": {
+      "x-fern-sdk-group-name": [
+        "shape"
+      ],
+      "x-fern-sdk-method-name": "retrieve",
+      "x-ferrule-method-name": "retrieve",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          28
+        ],
+        "path": [
+          "shape"
+        ]
+      }
+    },
+    "GET /api/where/stop-ids-for-agency/{agencyID}.json": {
+      "x-fern-sdk-group-name": [
+        "stop_ids_for_agency"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          9
+        ],
+        "path": [
+          "stop_ids_for_agency"
+        ]
+      }
+    },
+    "GET /api/where/stop/{stopID}.json": {
+      "x-fern-sdk-group-name": [
+        "stop"
+      ],
+      "x-fern-sdk-method-name": "retrieve",
+      "x-ferrule-method-name": "retrieve",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          8
+        ],
+        "path": [
+          "stop"
+        ]
+      }
+    },
+    "GET /api/where/stops-for-agency/{agencyID}.json": {
+      "x-fern-sdk-group-name": [
+        "stops_for_agency"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          7
+        ],
+        "path": [
+          "stops_for_agency"
+        ]
+      }
+    },
+    "GET /api/where/stops-for-location.json": {
+      "x-fern-sdk-group-name": [
+        "stops_for_location"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          5
+        ],
+        "path": [
+          "stops_for_location"
+        ]
+      }
+    },
+    "GET /api/where/stops-for-route/{routeID}.json": {
+      "x-fern-sdk-group-name": [
+        "stops_for_route"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          6
+        ],
+        "path": [
+          "stops_for_route"
+        ]
+      }
+    },
+    "GET /api/where/trip-details/{tripID}.json": {
+      "x-fern-sdk-group-name": [
+        "trip-details"
+      ],
+      "x-fern-sdk-method-name": "retrieve",
+      "x-ferrule-method-name": "retrieve",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          20
+        ],
+        "path": [
+          "trip-details"
+        ]
+      }
+    },
+    "GET /api/where/trip-for-vehicle/{vehicleID}.json": {
+      "x-fern-sdk-group-name": [
+        "trip_for_vehicle"
+      ],
+      "x-fern-sdk-method-name": "retrieve",
+      "x-ferrule-method-name": "retrieve",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          21
+        ],
+        "path": [
+          "trip_for_vehicle"
+        ]
+      }
+    },
+    "GET /api/where/trip/{tripID}.json": {
+      "x-fern-sdk-group-name": [
+        "trip"
+      ],
+      "x-fern-sdk-method-name": "retrieve",
+      "x-ferrule-method-name": "retrieve",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          18
+        ],
+        "path": [
+          "trip"
+        ]
+      }
+    },
+    "GET /api/where/trips-for-location.json": {
+      "x-fern-sdk-group-name": [
+        "trips_for_location"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          19
+        ],
+        "path": [
+          "trips_for_location"
+        ]
+      }
+    },
+    "GET /api/where/trips-for-route/{routeID}.json": {
+      "x-fern-sdk-group-name": [
+        "trips_for_route"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          22
+        ],
+        "path": [
+          "trips_for_route"
+        ]
+      }
+    },
+    "GET /api/where/vehicles-for-agency/{agencyID}.json": {
+      "x-fern-sdk-group-name": [
+        "vehicles_for_agency"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          2
+        ],
+        "path": [
+          "vehicles_for_agency"
+        ]
+      }
+    }
+  }
+}

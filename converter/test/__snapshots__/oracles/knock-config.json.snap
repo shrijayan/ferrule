@@ -1,0 +1,2184 @@
+{
+  "sha256": "61f53acb6a0ac44e0708b8b8a317e157c77a289ad643974c94ecc9bad65d80e5",
+  "root": {
+    "x-ferrule-client": {
+      "defaultEnvironment": "production",
+      "defaultHeaders": {},
+      "envPrefix": "KNOCK",
+      "environments": [
+        {
+          "name": "production",
+          "url": "https://api.knock.app"
+        }
+      ],
+      "name": "knock",
+      "omitPlatformHeaders": false,
+      "opts": [
+        {
+          "auth": {
+            "role": "value",
+            "securityScheme": "BearerAuth"
+          },
+          "name": "api_key",
+          "nullable": false,
+          "readEnv": "KNOCK_API_KEY",
+          "type": "string"
+        }
+      ],
+      "query": {
+        "arrayFormat": "brackets",
+        "nestedFormat": "brackets"
+      },
+      "retries": {
+        "initialDelaySeconds": 0.5,
+        "maxDelaySeconds": 8,
+        "maxRetries": 2
+      },
+      "security": [
+        {
+          "BearerAuth": []
+        }
+      ],
+      "securitySchemes": {
+        "BearerAuth": {
+          "scheme": "bearer",
+          "type": "http"
+        }
+      },
+      "timeoutSeconds": 60
+    },
+    "x-ferrule-config": {
+      "edition": "2025-10-08",
+      "packageName": "knockapi",
+      "projectName": "knockapi",
+      "pythonEdition": "python.2025-10-08",
+      "version": 1
+    }
+  },
+  "mirrored": {
+    "x-ferrule-client": {
+      "defaultEnvironment": "production",
+      "defaultHeaders": {},
+      "envPrefix": "KNOCK",
+      "environments": [
+        {
+          "name": "production",
+          "url": "https://api.knock.app"
+        }
+      ],
+      "name": "knock",
+      "omitPlatformHeaders": false,
+      "opts": [
+        {
+          "auth": {
+            "role": "value",
+            "securityScheme": "BearerAuth"
+          },
+          "name": "api_key",
+          "nullable": false,
+          "readEnv": "KNOCK_API_KEY",
+          "type": "string"
+        }
+      ],
+      "query": {
+        "arrayFormat": "brackets",
+        "nestedFormat": "brackets"
+      },
+      "retries": {
+        "initialDelaySeconds": 0.5,
+        "maxDelaySeconds": 8,
+        "maxRetries": 2
+      },
+      "security": [
+        {
+          "BearerAuth": []
+        }
+      ],
+      "securitySchemes": {
+        "BearerAuth": {
+          "scheme": "bearer",
+          "type": "http"
+        }
+      },
+      "timeoutSeconds": 60
+    },
+    "x-ferrule-models": {
+      "Activity": {
+        "module": "activity",
+        "name": "Activity"
+      },
+      "AudienceMember": {
+        "module": "audience_member",
+        "name": "AudienceMember"
+      },
+      "BulkOperation": {
+        "module": "bulk_operation",
+        "name": "BulkOperation"
+      },
+      "ChannelData": {
+        "module": "recipients.channel_data",
+        "name": "ChannelData"
+      },
+      "ChannelDataRequest": {
+        "module": "recipients.channel_data_request",
+        "name": "ChannelDataRequest"
+      },
+      "Condition": {
+        "module": "condition",
+        "name": "Condition"
+      },
+      "DiscordChannelData": {
+        "module": "recipients.discord_channel_data",
+        "name": "DiscordChannelData"
+      },
+      "IdentifyUserRequest": {
+        "module": "identify_user_request",
+        "name": "IdentifyUserRequest"
+      },
+      "InlineChannelDataRequest": {
+        "module": "recipients.inline_channel_data_request",
+        "name": "InlineChannelDataRequest"
+      },
+      "InlineIdentifyObjectRequest": {
+        "module": "inline_object_request",
+        "name": "InlineObjectRequest"
+      },
+      "InlineIdentifyUserRequest": {
+        "module": "inline_identify_user_request",
+        "name": "InlineIdentifyUserRequest"
+      },
+      "InlinePreferenceSetRequest": {
+        "module": "recipients.inline_preference_set_request",
+        "name": "InlinePreferenceSetRequest"
+      },
+      "InlineTenantRequest": {
+        "module": "inline_tenant_request",
+        "name": "InlineTenantRequest"
+      },
+      "Message": {
+        "module": "message",
+        "name": "Message"
+      },
+      "MessageDeliveryLog": {
+        "module": "message_delivery_log",
+        "name": "MessageDeliveryLog"
+      },
+      "MessageEvent": {
+        "module": "message_event",
+        "name": "MessageEvent"
+      },
+      "MsTeamsChannelData": {
+        "module": "recipients.ms_teams_channel_data",
+        "name": "MsTeamsChannelData"
+      },
+      "Object": {
+        "module": "object",
+        "name": "Object"
+      },
+      "OneSignalChannelData": {
+        "module": "recipients.one_signal_channel_data",
+        "name": "OneSignalChannelData"
+      },
+      "PageInfo": {
+        "module": "page_info",
+        "name": "PageInfo"
+      },
+      "PreferenceSet": {
+        "module": "recipients.preference_set",
+        "name": "PreferenceSet"
+      },
+      "PreferenceSetChannelTypeSetting": {
+        "module": "recipients.preference_set_channel_type_setting",
+        "name": "PreferenceSetChannelTypeSetting"
+      },
+      "PreferenceSetChannelTypes": {
+        "module": "recipients.preference_set_channel_types",
+        "name": "PreferenceSetChannelTypes"
+      },
+      "PreferenceSetRequest": {
+        "module": "recipients.preference_set_request",
+        "name": "PreferenceSetRequest"
+      },
+      "PushChannelData": {
+        "module": "recipients.push_channel_data",
+        "name": "PushChannelData"
+      },
+      "Recipient": {
+        "module": "recipient",
+        "name": "Recipient"
+      },
+      "RecipientReference": {
+        "module": "recipient_reference",
+        "name": "RecipientReference"
+      },
+      "RecipientRequest": {
+        "module": "recipient_request",
+        "name": "RecipientRequest"
+      },
+      "Schedule": {
+        "module": "schedule",
+        "name": "Schedule"
+      },
+      "ScheduleRepeatRule": {
+        "module": "schedule_repeat_rule",
+        "name": "ScheduleRepeatRule"
+      },
+      "SlackChannelData": {
+        "module": "recipients.slack_channel_data",
+        "name": "SlackChannelData"
+      },
+      "Subscription": {
+        "module": "recipients.subscription",
+        "name": "Subscription"
+      },
+      "Tenant": {
+        "module": "tenant",
+        "name": "Tenant"
+      },
+      "TenantRequest": {
+        "module": "tenant_request",
+        "name": "TenantRequest"
+      },
+      "User": {
+        "module": "user",
+        "name": "User"
+      }
+    },
+    "x-ferrule-package": {
+      "name": "knockapi",
+      "repo": "knocklabs/knock-python"
+    }
+  },
+  "operations": {
+    "DELETE /v1/audiences/{key}/members": {
+      "x-fern-sdk-group-name": [
+        "audiences"
+      ],
+      "x-fern-sdk-method-name": "remove_members",
+      "x-ferrule-method-name": "remove_members",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          12
+        ],
+        "path": [
+          "audiences"
+        ]
+      },
+      "x-ratelimit-tier": 3
+    },
+    "GET /v1/audiences/{key}/members": {
+      "x-fern-sdk-group-name": [
+        "audiences"
+      ],
+      "x-fern-sdk-method-name": "list_members",
+      "x-ferrule-method-name": "list_members",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          12
+        ],
+        "path": [
+          "audiences"
+        ]
+      },
+      "x-ratelimit-tier": 4
+    },
+    "POST /v1/audiences/{key}/members": {
+      "x-fern-sdk-group-name": [
+        "audiences"
+      ],
+      "x-fern-sdk-method-name": "add_members",
+      "x-ferrule-method-name": "add_members",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          12
+        ],
+        "path": [
+          "audiences"
+        ]
+      },
+      "x-ratelimit-tier": 3
+    },
+    "GET /v1/bulk_operations/{id}": {
+      "x-fern-sdk-group-name": [
+        "bulk_operations"
+      ],
+      "x-fern-sdk-method-name": "get",
+      "x-ferrule-method-name": "get",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          5
+        ],
+        "path": [
+          "bulk_operations"
+        ]
+      },
+      "x-ratelimit-tier": 4
+    },
+    "POST /v1/channels/{channel_id}/messages/bulk/{action}": {
+      "x-fern-sdk-group-name": [
+        "channels",
+        "bulk"
+      ],
+      "x-fern-sdk-method-name": "update_message_status",
+      "x-ferrule-method-name": "update_message_status",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          11,
+          0
+        ],
+        "path": [
+          "channels",
+          "bulk"
+        ]
+      },
+      "x-ratelimit-tier": 2,
+      "x-retention-policy": true
+    },
+    "POST /v1/integrations/census/custom-destination": {
+      "x-fern-sdk-group-name": [
+        "integrations",
+        "census"
+      ],
+      "x-fern-sdk-method-name": "custom_destination",
+      "x-ferrule-method-name": "custom_destination",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          8,
+          0
+        ],
+        "path": [
+          "integrations",
+          "census"
+        ]
+      },
+      "x-ratelimit-tier": 3
+    },
+    "POST /v1/integrations/hightouch/embedded-destination": {
+      "x-fern-sdk-group-name": [
+        "integrations",
+        "hightouch"
+      ],
+      "x-fern-sdk-method-name": "embedded_destination",
+      "x-ferrule-method-name": "embedded_destination",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          8,
+          1
+        ],
+        "path": [
+          "integrations",
+          "hightouch"
+        ]
+      },
+      "x-ratelimit-tier": 3
+    },
+    "GET /v1/messages": {
+      "x-fern-sdk-group-name": [
+        "messages"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-pagination": {
+        "continueOnEmptyItems": false,
+        "page": "items_cursor",
+        "paramLocation": "query",
+        "request": {
+          "after": "next_cursor_param",
+          "before": "previous_cursor_param",
+          "page_size": "page_size"
+        },
+        "response": {
+          "items": "items",
+          "page_info.after": "next_cursor_field"
+        },
+        "scheme": "cursor"
+      },
+      "x-ferrule-resource": {
+        "order": [
+          6
+        ],
+        "path": [
+          "messages"
+        ]
+      },
+      "x-ratelimit-tier": 4,
+      "x-retention-policy": true
+    },
+    "POST /v1/messages/batch/archived": {
+      "x-fern-sdk-group-name": [
+        "messages",
+        "batch"
+      ],
+      "x-fern-sdk-method-name": "archive",
+      "x-ferrule-method-name": "archive",
+      "x-ferrule-method-order": 6,
+      "x-ferrule-resource": {
+        "order": [
+          6,
+          0
+        ],
+        "path": [
+          "messages",
+          "batch"
+        ]
+      },
+      "x-ratelimit-tier": 3
+    },
+    "GET /v1/messages/batch/content": {
+      "x-fern-sdk-group-name": [
+        "messages",
+        "batch"
+      ],
+      "x-fern-sdk-method-name": "get_content",
+      "x-ferrule-method-name": "get_content",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          6,
+          0
+        ],
+        "path": [
+          "messages",
+          "batch"
+        ]
+      },
+      "x-ratelimit-tier": 4,
+      "x-retention-policy": true
+    },
+    "POST /v1/messages/batch/interacted": {
+      "x-fern-sdk-group-name": [
+        "messages",
+        "batch"
+      ],
+      "x-fern-sdk-method-name": "mark_as_interacted",
+      "x-ferrule-method-name": "mark_as_interacted",
+      "x-ferrule-method-order": 5,
+      "x-ferrule-resource": {
+        "order": [
+          6,
+          0
+        ],
+        "path": [
+          "messages",
+          "batch"
+        ]
+      },
+      "x-ratelimit-tier": 3
+    },
+    "POST /v1/messages/batch/read": {
+      "x-fern-sdk-group-name": [
+        "messages",
+        "batch"
+      ],
+      "x-fern-sdk-method-name": "mark_as_read",
+      "x-ferrule-method-name": "mark_as_read",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          6,
+          0
+        ],
+        "path": [
+          "messages",
+          "batch"
+        ]
+      },
+      "x-ratelimit-tier": 3
+    },
+    "POST /v1/messages/batch/seen": {
+      "x-fern-sdk-group-name": [
+        "messages",
+        "batch"
+      ],
+      "x-fern-sdk-method-name": "mark_as_seen",
+      "x-ferrule-method-name": "mark_as_seen",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          6,
+          0
+        ],
+        "path": [
+          "messages",
+          "batch"
+        ]
+      },
+      "x-ratelimit-tier": 3
+    },
+    "POST /v1/messages/batch/unarchived": {
+      "x-fern-sdk-group-name": [
+        "messages",
+        "batch"
+      ],
+      "x-fern-sdk-method-name": "unarchive",
+      "x-ferrule-method-name": "unarchive",
+      "x-ferrule-method-order": 7,
+      "x-ferrule-resource": {
+        "order": [
+          6,
+          0
+        ],
+        "path": [
+          "messages",
+          "batch"
+        ]
+      },
+      "x-ratelimit-tier": 3
+    },
+    "POST /v1/messages/batch/unread": {
+      "x-fern-sdk-group-name": [
+        "messages",
+        "batch"
+      ],
+      "x-fern-sdk-method-name": "mark_as_unread",
+      "x-ferrule-method-name": "mark_as_unread",
+      "x-ferrule-method-order": 4,
+      "x-ferrule-resource": {
+        "order": [
+          6,
+          0
+        ],
+        "path": [
+          "messages",
+          "batch"
+        ]
+      },
+      "x-ratelimit-tier": 3
+    },
+    "POST /v1/messages/batch/unseen": {
+      "x-fern-sdk-group-name": [
+        "messages",
+        "batch"
+      ],
+      "x-fern-sdk-method-name": "mark_as_unseen",
+      "x-ferrule-method-name": "mark_as_unseen",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          6,
+          0
+        ],
+        "path": [
+          "messages",
+          "batch"
+        ]
+      },
+      "x-ratelimit-tier": 3
+    },
+    "GET /v1/messages/{message_id}": {
+      "x-fern-sdk-group-name": [
+        "messages"
+      ],
+      "x-fern-sdk-method-name": "get",
+      "x-ferrule-method-name": "get",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          6
+        ],
+        "path": [
+          "messages"
+        ]
+      },
+      "x-ratelimit-tier": 4,
+      "x-retention-policy": true
+    },
+    "GET /v1/messages/{message_id}/activities": {
+      "x-fern-sdk-group-name": [
+        "messages"
+      ],
+      "x-fern-sdk-method-name": "list_activities",
+      "x-ferrule-method-name": "list_activities",
+      "x-ferrule-method-order": 5,
+      "x-ferrule-pagination": {
+        "continueOnEmptyItems": false,
+        "page": "items_cursor",
+        "paramLocation": "query",
+        "request": {
+          "after": "next_cursor_param",
+          "before": "previous_cursor_param",
+          "page_size": "page_size"
+        },
+        "response": {
+          "items": "items",
+          "page_info.after": "next_cursor_field"
+        },
+        "scheme": "cursor"
+      },
+      "x-ferrule-resource": {
+        "order": [
+          6
+        ],
+        "path": [
+          "messages"
+        ]
+      },
+      "x-ratelimit-tier": 4,
+      "x-retention-policy": true
+    },
+    "DELETE /v1/messages/{message_id}/archived": {
+      "x-fern-sdk-group-name": [
+        "messages"
+      ],
+      "x-fern-sdk-method-name": "unarchive",
+      "x-ferrule-method-name": "unarchive",
+      "x-ferrule-method-order": 12,
+      "x-ferrule-resource": {
+        "order": [
+          6
+        ],
+        "path": [
+          "messages"
+        ]
+      },
+      "x-ratelimit-tier": 2
+    },
+    "PUT /v1/messages/{message_id}/archived": {
+      "x-fern-sdk-group-name": [
+        "messages"
+      ],
+      "x-fern-sdk-method-name": "archive",
+      "x-ferrule-method-name": "archive",
+      "x-ferrule-method-order": 11,
+      "x-ferrule-resource": {
+        "order": [
+          6
+        ],
+        "path": [
+          "messages"
+        ]
+      },
+      "x-ratelimit-tier": 2
+    },
+    "GET /v1/messages/{message_id}/content": {
+      "x-fern-sdk-group-name": [
+        "messages"
+      ],
+      "x-fern-sdk-method-name": "get_content",
+      "x-ferrule-method-name": "get_content",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          6
+        ],
+        "path": [
+          "messages"
+        ]
+      },
+      "x-ratelimit-tier": 4,
+      "x-retention-policy": true
+    },
+    "GET /v1/messages/{message_id}/delivery_logs": {
+      "x-fern-sdk-group-name": [
+        "messages"
+      ],
+      "x-fern-sdk-method-name": "list_delivery_logs",
+      "x-ferrule-method-name": "list_delivery_logs",
+      "x-ferrule-method-order": 4,
+      "x-ferrule-pagination": {
+        "continueOnEmptyItems": false,
+        "page": "items_cursor",
+        "paramLocation": "query",
+        "request": {
+          "after": "next_cursor_param",
+          "before": "previous_cursor_param",
+          "page_size": "page_size"
+        },
+        "response": {
+          "items": "items",
+          "page_info.after": "next_cursor_field"
+        },
+        "scheme": "cursor"
+      },
+      "x-ferrule-resource": {
+        "order": [
+          6
+        ],
+        "path": [
+          "messages"
+        ]
+      },
+      "x-ratelimit-tier": 3,
+      "x-retention-policy": true
+    },
+    "GET /v1/messages/{message_id}/events": {
+      "x-fern-sdk-group-name": [
+        "messages"
+      ],
+      "x-fern-sdk-method-name": "list_events",
+      "x-ferrule-method-name": "list_events",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-pagination": {
+        "continueOnEmptyItems": false,
+        "page": "items_cursor",
+        "paramLocation": "query",
+        "request": {
+          "after": "next_cursor_param",
+          "before": "previous_cursor_param",
+          "page_size": "page_size"
+        },
+        "response": {
+          "items": "items",
+          "page_info.after": "next_cursor_field"
+        },
+        "scheme": "cursor"
+      },
+      "x-ferrule-resource": {
+        "order": [
+          6
+        ],
+        "path": [
+          "messages"
+        ]
+      },
+      "x-ratelimit-tier": 3,
+      "x-retention-policy": true
+    },
+    "PUT /v1/messages/{message_id}/interacted": {
+      "x-fern-sdk-group-name": [
+        "messages"
+      ],
+      "x-fern-sdk-method-name": "mark_as_interacted",
+      "x-ferrule-method-name": "mark_as_interacted",
+      "x-ferrule-method-order": 10,
+      "x-ferrule-resource": {
+        "order": [
+          6
+        ],
+        "path": [
+          "messages"
+        ]
+      },
+      "x-ratelimit-tier": 2
+    },
+    "DELETE /v1/messages/{message_id}/read": {
+      "x-fern-sdk-group-name": [
+        "messages"
+      ],
+      "x-fern-sdk-method-name": "mark_as_unread",
+      "x-ferrule-method-name": "mark_as_unread",
+      "x-ferrule-method-order": 9,
+      "x-ferrule-resource": {
+        "order": [
+          6
+        ],
+        "path": [
+          "messages"
+        ]
+      },
+      "x-ratelimit-tier": 2
+    },
+    "PUT /v1/messages/{message_id}/read": {
+      "x-fern-sdk-group-name": [
+        "messages"
+      ],
+      "x-fern-sdk-method-name": "mark_as_read",
+      "x-ferrule-method-name": "mark_as_read",
+      "x-ferrule-method-order": 8,
+      "x-ferrule-resource": {
+        "order": [
+          6
+        ],
+        "path": [
+          "messages"
+        ]
+      },
+      "x-ratelimit-tier": 2
+    },
+    "DELETE /v1/messages/{message_id}/seen": {
+      "x-fern-sdk-group-name": [
+        "messages"
+      ],
+      "x-fern-sdk-method-name": "mark_as_unseen",
+      "x-ferrule-method-name": "mark_as_unseen",
+      "x-ferrule-method-order": 7,
+      "x-ferrule-resource": {
+        "order": [
+          6
+        ],
+        "path": [
+          "messages"
+        ]
+      },
+      "x-ratelimit-tier": 2
+    },
+    "PUT /v1/messages/{message_id}/seen": {
+      "x-fern-sdk-group-name": [
+        "messages"
+      ],
+      "x-fern-sdk-method-name": "mark_as_seen",
+      "x-ferrule-method-name": "mark_as_seen",
+      "x-ferrule-method-order": 6,
+      "x-ferrule-resource": {
+        "order": [
+          6
+        ],
+        "path": [
+          "messages"
+        ]
+      },
+      "x-ratelimit-tier": 2
+    },
+    "DELETE /v1/messages/{message_id}/unarchived": {
+      "x-ratelimit-tier": 2
+    },
+    "DELETE /v1/messages/{message_id}/unread": {
+      "x-ratelimit-tier": 2
+    },
+    "DELETE /v1/messages/{message_id}/unseen": {
+      "x-ratelimit-tier": 2
+    },
+    "POST /v1/notify": {
+      "x-ratelimit-tier": 3
+    },
+    "POST /v1/notify/cancel": {
+      "x-ratelimit-tier": 3
+    },
+    "GET /v1/objects/{collection}": {
+      "x-fern-sdk-group-name": [
+        "objects"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-pagination": {
+        "continueOnEmptyItems": false,
+        "page": "entries_cursor",
+        "paramLocation": "query",
+        "request": {
+          "after": "next_cursor_param",
+          "before": "previous_cursor_param",
+          "page_size": "page_size"
+        },
+        "response": {
+          "entries": "entries",
+          "page_info.after": "next_cursor_field"
+        },
+        "scheme": "cursor"
+      },
+      "x-ferrule-resource": {
+        "order": [
+          3
+        ],
+        "path": [
+          "objects"
+        ]
+      },
+      "x-ratelimit-tier": 4
+    },
+    "POST /v1/objects/{collection}/bulk/delete": {
+      "x-fern-sdk-group-name": [
+        "objects",
+        "bulk"
+      ],
+      "x-fern-sdk-method-name": "delete",
+      "x-ferrule-method-name": "delete",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          3,
+          0
+        ],
+        "path": [
+          "objects",
+          "bulk"
+        ]
+      },
+      "x-ratelimit-tier": 1
+    },
+    "POST /v1/objects/{collection}/bulk/set": {
+      "x-fern-sdk-group-name": [
+        "objects",
+        "bulk"
+      ],
+      "x-fern-sdk-method-name": "set",
+      "x-ferrule-method-name": "set",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          3,
+          0
+        ],
+        "path": [
+          "objects",
+          "bulk"
+        ]
+      },
+      "x-ratelimit-tier": 1
+    },
+    "POST /v1/objects/{collection}/bulk/subscriptions/add": {
+      "x-fern-sdk-group-name": [
+        "objects",
+        "bulk"
+      ],
+      "x-fern-sdk-method-name": "add_subscriptions",
+      "x-ferrule-method-name": "add_subscriptions",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          3,
+          0
+        ],
+        "path": [
+          "objects",
+          "bulk"
+        ]
+      },
+      "x-ratelimit-tier": 1
+    },
+    "DELETE /v1/objects/{collection}/{id}": {
+      "x-fern-sdk-group-name": [
+        "objects"
+      ],
+      "x-fern-sdk-method-name": "delete",
+      "x-ferrule-method-name": "delete",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          3
+        ],
+        "path": [
+          "objects"
+        ]
+      },
+      "x-ratelimit-tier": 3
+    },
+    "GET /v1/objects/{collection}/{id}": {
+      "x-fern-sdk-group-name": [
+        "objects"
+      ],
+      "x-fern-sdk-method-name": "get",
+      "x-ferrule-method-name": "get",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          3
+        ],
+        "path": [
+          "objects"
+        ]
+      },
+      "x-ratelimit-tier": 4
+    },
+    "PUT /v1/objects/{collection}/{id}": {
+      "x-fern-sdk-group-name": [
+        "objects"
+      ],
+      "x-fern-sdk-method-name": "set",
+      "x-ferrule-method-name": "set",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          3
+        ],
+        "path": [
+          "objects"
+        ]
+      },
+      "x-ratelimit-tier": 3
+    },
+    "GET /v1/objects/{collection}/{id}/messages": {
+      "x-fern-sdk-group-name": [
+        "objects"
+      ],
+      "x-fern-sdk-method-name": "list_messages",
+      "x-ferrule-method-name": "list_messages",
+      "x-ferrule-method-order": 8,
+      "x-ferrule-pagination": {
+        "continueOnEmptyItems": false,
+        "page": "items_cursor",
+        "paramLocation": "query",
+        "request": {
+          "after": "next_cursor_param",
+          "before": "previous_cursor_param",
+          "page_size": "page_size"
+        },
+        "response": {
+          "items": "items",
+          "page_info.after": "next_cursor_field"
+        },
+        "scheme": "cursor"
+      },
+      "x-ferrule-resource": {
+        "order": [
+          3
+        ],
+        "path": [
+          "objects"
+        ]
+      },
+      "x-ratelimit-tier": 4,
+      "x-retention-policy": true
+    },
+    "GET /v1/objects/{collection}/{id}/schedules": {
+      "x-fern-sdk-group-name": [
+        "objects"
+      ],
+      "x-fern-sdk-method-name": "list_schedules",
+      "x-ferrule-method-name": "list_schedules",
+      "x-ferrule-method-order": 7,
+      "x-ferrule-pagination": {
+        "continueOnEmptyItems": false,
+        "page": "entries_cursor",
+        "paramLocation": "query",
+        "request": {
+          "after": "next_cursor_param",
+          "before": "previous_cursor_param",
+          "page_size": "page_size"
+        },
+        "response": {
+          "entries": "entries",
+          "page_info.after": "next_cursor_field"
+        },
+        "scheme": "cursor"
+      },
+      "x-ferrule-resource": {
+        "order": [
+          3
+        ],
+        "path": [
+          "objects"
+        ]
+      },
+      "x-ratelimit-tier": 4
+    },
+    "DELETE /v1/objects/{collection}/{object_id}/channel_data/{channel_id}": {
+      "x-fern-sdk-group-name": [
+        "objects"
+      ],
+      "x-fern-sdk-method-name": "unset_channel_data",
+      "x-ferrule-method-name": "unset_channel_data",
+      "x-ferrule-method-order": 11,
+      "x-ferrule-resource": {
+        "order": [
+          3
+        ],
+        "path": [
+          "objects"
+        ]
+      },
+      "x-ratelimit-tier": 3
+    },
+    "GET /v1/objects/{collection}/{object_id}/channel_data/{channel_id}": {
+      "x-fern-sdk-group-name": [
+        "objects"
+      ],
+      "x-fern-sdk-method-name": "get_channel_data",
+      "x-ferrule-method-name": "get_channel_data",
+      "x-ferrule-method-order": 9,
+      "x-ferrule-resource": {
+        "order": [
+          3
+        ],
+        "path": [
+          "objects"
+        ]
+      },
+      "x-ratelimit-tier": 4
+    },
+    "PUT /v1/objects/{collection}/{object_id}/channel_data/{channel_id}": {
+      "x-fern-sdk-group-name": [
+        "objects"
+      ],
+      "x-fern-sdk-method-name": "set_channel_data",
+      "x-ferrule-method-name": "set_channel_data",
+      "x-ferrule-method-order": 10,
+      "x-ferrule-resource": {
+        "order": [
+          3
+        ],
+        "path": [
+          "objects"
+        ]
+      },
+      "x-ratelimit-tier": 3
+    },
+    "GET /v1/objects/{collection}/{object_id}/preferences": {
+      "x-fern-sdk-group-name": [
+        "objects"
+      ],
+      "x-fern-sdk-method-name": "list_preferences",
+      "x-ferrule-method-name": "list_preferences",
+      "x-ferrule-method-order": 4,
+      "x-ferrule-resource": {
+        "order": [
+          3
+        ],
+        "path": [
+          "objects"
+        ]
+      },
+      "x-ratelimit-tier": 4
+    },
+    "GET /v1/objects/{collection}/{object_id}/preferences/{id}": {
+      "x-fern-sdk-group-name": [
+        "objects"
+      ],
+      "x-fern-sdk-method-name": "get_preferences",
+      "x-ferrule-method-name": "get_preferences",
+      "x-ferrule-method-order": 5,
+      "x-ferrule-resource": {
+        "order": [
+          3
+        ],
+        "path": [
+          "objects"
+        ]
+      },
+      "x-ratelimit-tier": 4
+    },
+    "PUT /v1/objects/{collection}/{object_id}/preferences/{id}": {
+      "x-fern-sdk-group-name": [
+        "objects"
+      ],
+      "x-fern-sdk-method-name": "set_preferences",
+      "x-ferrule-method-name": "set_preferences",
+      "x-ferrule-method-order": 6,
+      "x-ferrule-resource": {
+        "order": [
+          3
+        ],
+        "path": [
+          "objects"
+        ]
+      },
+      "x-ratelimit-tier": 3
+    },
+    "PUT /v1/objects/{collection}/{object_id}/preferences/{id}/categories": {
+      "x-ratelimit-tier": 3
+    },
+    "PUT /v1/objects/{collection}/{object_id}/preferences/{id}/categories/{key}": {
+      "x-ratelimit-tier": 3
+    },
+    "PUT /v1/objects/{collection}/{object_id}/preferences/{id}/channel_types": {
+      "x-ratelimit-tier": 3
+    },
+    "PUT /v1/objects/{collection}/{object_id}/preferences/{id}/channel_types/{type}": {
+      "x-ratelimit-tier": 3
+    },
+    "PUT /v1/objects/{collection}/{object_id}/preferences/{id}/workflows": {
+      "x-ratelimit-tier": 3
+    },
+    "PUT /v1/objects/{collection}/{object_id}/preferences/{id}/workflows/{key}": {
+      "x-ratelimit-tier": 3
+    },
+    "DELETE /v1/objects/{collection}/{object_id}/subscriptions": {
+      "x-fern-sdk-group-name": [
+        "objects"
+      ],
+      "x-fern-sdk-method-name": "delete_subscriptions",
+      "x-ferrule-method-name": "delete_subscriptions",
+      "x-ferrule-method-order": 14,
+      "x-ferrule-resource": {
+        "order": [
+          3
+        ],
+        "path": [
+          "objects"
+        ]
+      },
+      "x-ratelimit-tier": 3
+    },
+    "GET /v1/objects/{collection}/{object_id}/subscriptions": {
+      "x-fern-sdk-group-name": [
+        "objects"
+      ],
+      "x-fern-sdk-method-name": "list_subscriptions",
+      "x-ferrule-method-name": "list_subscriptions",
+      "x-ferrule-method-order": 12,
+      "x-ferrule-pagination": {
+        "continueOnEmptyItems": false,
+        "page": "entries_cursor",
+        "paramLocation": "query",
+        "request": {
+          "after": "next_cursor_param",
+          "before": "previous_cursor_param",
+          "page_size": "page_size"
+        },
+        "response": {
+          "entries": "entries",
+          "page_info.after": "next_cursor_field"
+        },
+        "scheme": "cursor"
+      },
+      "x-ferrule-resource": {
+        "order": [
+          3
+        ],
+        "path": [
+          "objects"
+        ]
+      },
+      "x-ratelimit-tier": 4
+    },
+    "POST /v1/objects/{collection}/{object_id}/subscriptions": {
+      "x-fern-sdk-group-name": [
+        "objects"
+      ],
+      "x-fern-sdk-method-name": "add_subscriptions",
+      "x-ferrule-method-name": "add_subscriptions",
+      "x-ferrule-method-order": 13,
+      "x-ferrule-resource": {
+        "order": [
+          3
+        ],
+        "path": [
+          "objects"
+        ]
+      },
+      "x-ratelimit-tier": 3
+    },
+    "GET /v1/providers/ms-teams/{channel_id}/auth_check": {
+      "x-fern-sdk-group-name": [
+        "providers",
+        "ms_teams"
+      ],
+      "x-fern-sdk-method-name": "check_auth",
+      "x-ferrule-method-name": "check_auth",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          7,
+          1
+        ],
+        "path": [
+          "providers",
+          "ms_teams"
+        ]
+      },
+      "x-ratelimit-tier": 2
+    },
+    "GET /v1/providers/ms-teams/{channel_id}/channels": {
+      "x-fern-sdk-group-name": [
+        "providers",
+        "ms_teams"
+      ],
+      "x-fern-sdk-method-name": "list_channels",
+      "x-ferrule-method-name": "list_channels",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          7,
+          1
+        ],
+        "path": [
+          "providers",
+          "ms_teams"
+        ]
+      },
+      "x-ratelimit-tier": 2
+    },
+    "PUT /v1/providers/ms-teams/{channel_id}/revoke_access": {
+      "x-fern-sdk-group-name": [
+        "providers",
+        "ms_teams"
+      ],
+      "x-fern-sdk-method-name": "revoke_access",
+      "x-ferrule-method-name": "revoke_access",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          7,
+          1
+        ],
+        "path": [
+          "providers",
+          "ms_teams"
+        ]
+      },
+      "x-ratelimit-tier": 2
+    },
+    "GET /v1/providers/ms-teams/{channel_id}/teams": {
+      "x-fern-sdk-group-name": [
+        "providers",
+        "ms_teams"
+      ],
+      "x-fern-sdk-method-name": "list_teams",
+      "x-ferrule-method-name": "list_teams",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-pagination": {
+        "continueOnEmptyItems": false,
+        "page": "ms_teams_pagination",
+        "paramLocation": "query",
+        "request": {
+          "query_options.$skiptoken": "next_cursor_param",
+          "query_options.$top": "query_options.$top"
+        },
+        "response": {
+          "ms_teams_teams": "ms_teams_teams",
+          "skip_token": "next_cursor_field"
+        },
+        "scheme": "cursor"
+      },
+      "x-ferrule-resource": {
+        "order": [
+          7,
+          1
+        ],
+        "path": [
+          "providers",
+          "ms_teams"
+        ]
+      },
+      "x-ratelimit-tier": 2
+    },
+    "GET /v1/providers/slack/{channel_id}/auth_check": {
+      "x-fern-sdk-group-name": [
+        "providers",
+        "slack"
+      ],
+      "x-fern-sdk-method-name": "check_auth",
+      "x-ferrule-method-name": "check_auth",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          7,
+          0
+        ],
+        "path": [
+          "providers",
+          "slack"
+        ]
+      },
+      "x-ratelimit-tier": 2
+    },
+    "GET /v1/providers/slack/{channel_id}/channels": {
+      "x-fern-sdk-group-name": [
+        "providers",
+        "slack"
+      ],
+      "x-fern-sdk-method-name": "list_channels",
+      "x-ferrule-method-name": "list_channels",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-pagination": {
+        "continueOnEmptyItems": false,
+        "page": "slack_channels_cursor",
+        "paramLocation": "query",
+        "request": {
+          "query_options.cursor": "next_cursor_param",
+          "query_options.limit": "query_options.limit"
+        },
+        "response": {
+          "next_cursor": "next_cursor_field",
+          "slack_channels": "slack_channels"
+        },
+        "scheme": "cursor"
+      },
+      "x-ferrule-resource": {
+        "order": [
+          7,
+          0
+        ],
+        "path": [
+          "providers",
+          "slack"
+        ]
+      },
+      "x-ratelimit-tier": 2
+    },
+    "PUT /v1/providers/slack/{channel_id}/revoke_access": {
+      "x-fern-sdk-group-name": [
+        "providers",
+        "slack"
+      ],
+      "x-fern-sdk-method-name": "revoke_access",
+      "x-ferrule-method-name": "revoke_access",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          7,
+          0
+        ],
+        "path": [
+          "providers",
+          "slack"
+        ]
+      },
+      "x-ratelimit-tier": 2
+    },
+    "DELETE /v1/schedules": {
+      "x-fern-sdk-group-name": [
+        "schedules"
+      ],
+      "x-fern-sdk-method-name": "delete",
+      "x-ferrule-method-name": "delete",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          10
+        ],
+        "path": [
+          "schedules"
+        ]
+      },
+      "x-ratelimit-tier": 3
+    },
+    "GET /v1/schedules": {
+      "x-fern-sdk-group-name": [
+        "schedules"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-pagination": {
+        "continueOnEmptyItems": false,
+        "page": "entries_cursor",
+        "paramLocation": "query",
+        "request": {
+          "after": "next_cursor_param",
+          "before": "previous_cursor_param",
+          "page_size": "page_size"
+        },
+        "response": {
+          "entries": "entries",
+          "page_info.after": "next_cursor_field"
+        },
+        "scheme": "cursor"
+      },
+      "x-ferrule-resource": {
+        "order": [
+          10
+        ],
+        "path": [
+          "schedules"
+        ]
+      },
+      "x-ratelimit-tier": 4
+    },
+    "POST /v1/schedules": {
+      "x-fern-sdk-group-name": [
+        "schedules"
+      ],
+      "x-fern-sdk-method-name": "create",
+      "x-ferrule-method-name": "create",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          10
+        ],
+        "path": [
+          "schedules"
+        ]
+      },
+      "x-ratelimit-tier": 3
+    },
+    "PUT /v1/schedules": {
+      "x-fern-sdk-group-name": [
+        "schedules"
+      ],
+      "x-fern-sdk-method-name": "update",
+      "x-ferrule-method-name": "update",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          10
+        ],
+        "path": [
+          "schedules"
+        ]
+      },
+      "x-ratelimit-tier": 3
+    },
+    "POST /v1/schedules/bulk/create": {
+      "x-fern-sdk-group-name": [
+        "schedules",
+        "bulk"
+      ],
+      "x-fern-sdk-method-name": "create",
+      "x-ferrule-method-name": "create",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          10,
+          0
+        ],
+        "path": [
+          "schedules",
+          "bulk"
+        ]
+      },
+      "x-ratelimit-tier": 1
+    },
+    "GET /v1/tenants": {
+      "x-fern-sdk-group-name": [
+        "tenants"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-pagination": {
+        "continueOnEmptyItems": false,
+        "page": "entries_cursor",
+        "paramLocation": "query",
+        "request": {
+          "after": "next_cursor_param",
+          "before": "previous_cursor_param",
+          "page_size": "page_size"
+        },
+        "response": {
+          "entries": "entries",
+          "page_info.after": "next_cursor_field"
+        },
+        "scheme": "cursor"
+      },
+      "x-ferrule-resource": {
+        "order": [
+          4
+        ],
+        "path": [
+          "tenants"
+        ]
+      },
+      "x-ratelimit-tier": 4
+    },
+    "POST /v1/tenants/bulk/delete": {
+      "x-fern-sdk-group-name": [
+        "tenants",
+        "bulk"
+      ],
+      "x-fern-sdk-method-name": "delete",
+      "x-ferrule-method-name": "delete",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          4,
+          0
+        ],
+        "path": [
+          "tenants",
+          "bulk"
+        ]
+      },
+      "x-ratelimit-tier": 1
+    },
+    "POST /v1/tenants/bulk/set": {
+      "x-fern-sdk-group-name": [
+        "tenants",
+        "bulk"
+      ],
+      "x-fern-sdk-method-name": "set",
+      "x-ferrule-method-name": "set",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          4,
+          0
+        ],
+        "path": [
+          "tenants",
+          "bulk"
+        ]
+      },
+      "x-ratelimit-tier": 1
+    },
+    "DELETE /v1/tenants/{id}": {
+      "x-fern-sdk-group-name": [
+        "tenants"
+      ],
+      "x-fern-sdk-method-name": "delete",
+      "x-ferrule-method-name": "delete",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          4
+        ],
+        "path": [
+          "tenants"
+        ]
+      },
+      "x-ratelimit-tier": 2
+    },
+    "GET /v1/tenants/{id}": {
+      "x-fern-sdk-group-name": [
+        "tenants"
+      ],
+      "x-fern-sdk-method-name": "get",
+      "x-ferrule-method-name": "get",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          4
+        ],
+        "path": [
+          "tenants"
+        ]
+      },
+      "x-ratelimit-tier": 4
+    },
+    "PUT /v1/tenants/{id}": {
+      "x-fern-sdk-group-name": [
+        "tenants"
+      ],
+      "x-fern-sdk-method-name": "set",
+      "x-ferrule-method-name": "set",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          4
+        ],
+        "path": [
+          "tenants"
+        ]
+      },
+      "x-ratelimit-tier": 3
+    },
+    "GET /v1/users": {
+      "x-fern-sdk-group-name": [
+        "users"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-pagination": {
+        "continueOnEmptyItems": false,
+        "page": "entries_cursor",
+        "paramLocation": "query",
+        "request": {
+          "after": "next_cursor_param",
+          "before": "previous_cursor_param",
+          "page_size": "page_size"
+        },
+        "response": {
+          "entries": "entries",
+          "page_info.after": "next_cursor_field"
+        },
+        "scheme": "cursor"
+      },
+      "x-ferrule-resource": {
+        "order": [
+          2
+        ],
+        "path": [
+          "users"
+        ]
+      },
+      "x-ratelimit-tier": 4
+    },
+    "POST /v1/users/bulk/delete": {
+      "x-fern-sdk-group-name": [
+        "users",
+        "bulk"
+      ],
+      "x-fern-sdk-method-name": "delete",
+      "x-ferrule-method-name": "delete",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          2,
+          2
+        ],
+        "path": [
+          "users",
+          "bulk"
+        ]
+      },
+      "x-ratelimit-tier": 1
+    },
+    "POST /v1/users/bulk/identify": {
+      "x-fern-sdk-group-name": [
+        "users",
+        "bulk"
+      ],
+      "x-fern-sdk-method-name": "identify",
+      "x-ferrule-method-name": "identify",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          2,
+          2
+        ],
+        "path": [
+          "users",
+          "bulk"
+        ]
+      },
+      "x-ratelimit-tier": 1
+    },
+    "POST /v1/users/bulk/preferences": {
+      "x-fern-sdk-group-name": [
+        "users",
+        "bulk"
+      ],
+      "x-fern-sdk-method-name": "set_preferences",
+      "x-ferrule-method-name": "set_preferences",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          2,
+          2
+        ],
+        "path": [
+          "users",
+          "bulk"
+        ]
+      },
+      "x-ratelimit-tier": 1
+    },
+    "DELETE /v1/users/{user_id}": {
+      "x-fern-sdk-group-name": [
+        "users"
+      ],
+      "x-fern-sdk-method-name": "delete",
+      "x-ferrule-method-name": "delete",
+      "x-ferrule-method-order": 4,
+      "x-ferrule-resource": {
+        "order": [
+          2
+        ],
+        "path": [
+          "users"
+        ]
+      },
+      "x-ratelimit-tier": 2
+    },
+    "GET /v1/users/{user_id}": {
+      "x-fern-sdk-group-name": [
+        "users"
+      ],
+      "x-fern-sdk-method-name": "get",
+      "x-ferrule-method-name": "get",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          2
+        ],
+        "path": [
+          "users"
+        ]
+      },
+      "x-ratelimit-tier": 4
+    },
+    "PUT /v1/users/{user_id}": {
+      "x-fern-sdk-group-name": [
+        "users"
+      ],
+      "x-fern-sdk-method-name": "update",
+      "x-ferrule-method-name": "update",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          2
+        ],
+        "path": [
+          "users"
+        ]
+      },
+      "x-ratelimit-tier": 3
+    },
+    "DELETE /v1/users/{user_id}/channel_data/{channel_id}": {
+      "x-fern-sdk-group-name": [
+        "users"
+      ],
+      "x-fern-sdk-method-name": "unset_channel_data",
+      "x-ferrule-method-name": "unset_channel_data",
+      "x-ferrule-method-order": 13,
+      "x-ferrule-resource": {
+        "order": [
+          2
+        ],
+        "path": [
+          "users"
+        ]
+      },
+      "x-ratelimit-tier": 3
+    },
+    "GET /v1/users/{user_id}/channel_data/{channel_id}": {
+      "x-fern-sdk-group-name": [
+        "users"
+      ],
+      "x-fern-sdk-method-name": "get_channel_data",
+      "x-ferrule-method-name": "get_channel_data",
+      "x-ferrule-method-order": 11,
+      "x-ferrule-resource": {
+        "order": [
+          2
+        ],
+        "path": [
+          "users"
+        ]
+      },
+      "x-ratelimit-tier": 4
+    },
+    "PUT /v1/users/{user_id}/channel_data/{channel_id}": {
+      "x-fern-sdk-group-name": [
+        "users"
+      ],
+      "x-fern-sdk-method-name": "set_channel_data",
+      "x-ferrule-method-name": "set_channel_data",
+      "x-ferrule-method-order": 12,
+      "x-ferrule-resource": {
+        "order": [
+          2
+        ],
+        "path": [
+          "users"
+        ]
+      },
+      "x-ratelimit-tier": 3
+    },
+    "GET /v1/users/{user_id}/feeds/{id}": {
+      "x-fern-sdk-group-name": [
+        "users",
+        "feeds"
+      ],
+      "x-fern-sdk-method-name": "list_items",
+      "x-ferrule-method-name": "list_items",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-pagination": {
+        "continueOnEmptyItems": false,
+        "page": "entries_cursor",
+        "paramLocation": "query",
+        "request": {
+          "after": "next_cursor_param",
+          "before": "previous_cursor_param",
+          "page_size": "page_size"
+        },
+        "response": {
+          "entries": "entries",
+          "page_info.after": "next_cursor_field"
+        },
+        "scheme": "cursor"
+      },
+      "x-ferrule-resource": {
+        "order": [
+          2,
+          0
+        ],
+        "path": [
+          "users",
+          "feeds"
+        ]
+      },
+      "x-ratelimit-tier": 2
+    },
+    "GET /v1/users/{user_id}/feeds/{id}/settings": {
+      "x-fern-sdk-group-name": [
+        "users",
+        "feeds"
+      ],
+      "x-fern-sdk-method-name": "get_settings",
+      "x-ferrule-method-name": "get_settings",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          2,
+          0
+        ],
+        "path": [
+          "users",
+          "feeds"
+        ]
+      },
+      "x-ratelimit-tier": 4
+    },
+    "PUT /v1/users/{user_id}/guides/messages/{message_id}/archived": {
+      "x-fern-sdk-group-name": [
+        "users",
+        "guides"
+      ],
+      "x-fern-sdk-method-name": "mark_message_as_archived",
+      "x-ferrule-method-name": "mark_message_as_archived",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          2,
+          1
+        ],
+        "path": [
+          "users",
+          "guides"
+        ]
+      },
+      "x-ratelimit-tier": 2
+    },
+    "PUT /v1/users/{user_id}/guides/messages/{message_id}/interacted": {
+      "x-fern-sdk-group-name": [
+        "users",
+        "guides"
+      ],
+      "x-fern-sdk-method-name": "mark_message_as_interacted",
+      "x-ferrule-method-name": "mark_message_as_interacted",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          2,
+          1
+        ],
+        "path": [
+          "users",
+          "guides"
+        ]
+      },
+      "x-ratelimit-tier": 2
+    },
+    "PUT /v1/users/{user_id}/guides/messages/{message_id}/seen": {
+      "x-fern-sdk-group-name": [
+        "users",
+        "guides"
+      ],
+      "x-fern-sdk-method-name": "mark_message_as_seen",
+      "x-ferrule-method-name": "mark_message_as_seen",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          2,
+          1
+        ],
+        "path": [
+          "users",
+          "guides"
+        ]
+      },
+      "x-ratelimit-tier": 2
+    },
+    "GET /v1/users/{user_id}/guides/{channel_id}": {
+      "x-fern-sdk-group-name": [
+        "users",
+        "guides"
+      ],
+      "x-fern-sdk-method-name": "get_channel",
+      "x-ferrule-method-name": "get_channel",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          2,
+          1
+        ],
+        "path": [
+          "users",
+          "guides"
+        ]
+      },
+      "x-ratelimit-tier": 2
+    },
+    "GET /v1/users/{user_id}/in-app-messages/{channel_id}/{message_type}": {
+      "x-ratelimit-tier": 2
+    },
+    "POST /v1/users/{user_id}/merge": {
+      "x-fern-sdk-group-name": [
+        "users"
+      ],
+      "x-fern-sdk-method-name": "merge",
+      "x-ferrule-method-name": "merge",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          2
+        ],
+        "path": [
+          "users"
+        ]
+      },
+      "x-ratelimit-tier": 2
+    },
+    "GET /v1/users/{user_id}/messages": {
+      "x-fern-sdk-group-name": [
+        "users"
+      ],
+      "x-fern-sdk-method-name": "list_messages",
+      "x-ferrule-method-name": "list_messages",
+      "x-ferrule-method-order": 5,
+      "x-ferrule-pagination": {
+        "continueOnEmptyItems": false,
+        "page": "items_cursor",
+        "paramLocation": "query",
+        "request": {
+          "after": "next_cursor_param",
+          "before": "previous_cursor_param",
+          "page_size": "page_size"
+        },
+        "response": {
+          "items": "items",
+          "page_info.after": "next_cursor_field"
+        },
+        "scheme": "cursor"
+      },
+      "x-ferrule-resource": {
+        "order": [
+          2
+        ],
+        "path": [
+          "users"
+        ]
+      },
+      "x-ratelimit-tier": 4,
+      "x-retention-policy": true
+    },
+    "GET /v1/users/{user_id}/preferences": {
+      "x-fern-sdk-group-name": [
+        "users"
+      ],
+      "x-fern-sdk-method-name": "list_preferences",
+      "x-ferrule-method-name": "list_preferences",
+      "x-ferrule-method-order": 8,
+      "x-ferrule-resource": {
+        "order": [
+          2
+        ],
+        "path": [
+          "users"
+        ]
+      },
+      "x-ratelimit-tier": 4
+    },
+    "GET /v1/users/{user_id}/preferences/{id}": {
+      "x-fern-sdk-group-name": [
+        "users"
+      ],
+      "x-fern-sdk-method-name": "get_preferences",
+      "x-ferrule-method-name": "get_preferences",
+      "x-ferrule-method-order": 9,
+      "x-ferrule-resource": {
+        "order": [
+          2
+        ],
+        "path": [
+          "users"
+        ]
+      },
+      "x-ratelimit-tier": 4
+    },
+    "PUT /v1/users/{user_id}/preferences/{id}": {
+      "x-fern-sdk-group-name": [
+        "users"
+      ],
+      "x-fern-sdk-method-name": "set_preferences",
+      "x-ferrule-method-name": "set_preferences",
+      "x-ferrule-method-order": 10,
+      "x-ferrule-resource": {
+        "order": [
+          2
+        ],
+        "path": [
+          "users"
+        ]
+      },
+      "x-ratelimit-tier": 3
+    },
+    "PUT /v1/users/{user_id}/preferences/{id}/categories": {
+      "x-ratelimit-tier": 3
+    },
+    "PUT /v1/users/{user_id}/preferences/{id}/categories/{key}": {
+      "x-ratelimit-tier": 3
+    },
+    "PUT /v1/users/{user_id}/preferences/{id}/channel_types": {
+      "x-ratelimit-tier": 3
+    },
+    "PUT /v1/users/{user_id}/preferences/{id}/channel_types/{type}": {
+      "x-ratelimit-tier": 3
+    },
+    "PUT /v1/users/{user_id}/preferences/{id}/workflows": {
+      "x-ratelimit-tier": 3
+    },
+    "PUT /v1/users/{user_id}/preferences/{id}/workflows/{key}": {
+      "x-ratelimit-tier": 3
+    },
+    "GET /v1/users/{user_id}/schedules": {
+      "x-fern-sdk-group-name": [
+        "users"
+      ],
+      "x-fern-sdk-method-name": "list_schedules",
+      "x-ferrule-method-name": "list_schedules",
+      "x-ferrule-method-order": 6,
+      "x-ferrule-pagination": {
+        "continueOnEmptyItems": false,
+        "page": "entries_cursor",
+        "paramLocation": "query",
+        "request": {
+          "after": "next_cursor_param",
+          "before": "previous_cursor_param",
+          "page_size": "page_size"
+        },
+        "response": {
+          "entries": "entries",
+          "page_info.after": "next_cursor_field"
+        },
+        "scheme": "cursor"
+      },
+      "x-ferrule-resource": {
+        "order": [
+          2
+        ],
+        "path": [
+          "users"
+        ]
+      },
+      "x-ratelimit-tier": 4
+    },
+    "GET /v1/users/{user_id}/subscriptions": {
+      "x-fern-sdk-group-name": [
+        "users"
+      ],
+      "x-fern-sdk-method-name": "list_subscriptions",
+      "x-ferrule-method-name": "list_subscriptions",
+      "x-ferrule-method-order": 7,
+      "x-ferrule-pagination": {
+        "continueOnEmptyItems": false,
+        "page": "entries_cursor",
+        "paramLocation": "query",
+        "request": {
+          "after": "next_cursor_param",
+          "before": "previous_cursor_param",
+          "page_size": "page_size"
+        },
+        "response": {
+          "entries": "entries",
+          "page_info.after": "next_cursor_field"
+        },
+        "scheme": "cursor"
+      },
+      "x-ferrule-resource": {
+        "order": [
+          2
+        ],
+        "path": [
+          "users"
+        ]
+      },
+      "x-ratelimit-tier": 4
+    },
+    "POST /v1/workflows/{key}/cancel": {
+      "x-fern-sdk-group-name": [
+        "workflows"
+      ],
+      "x-fern-sdk-method-name": "cancel",
+      "x-ferrule-method-name": "cancel",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          9
+        ],
+        "path": [
+          "workflows"
+        ]
+      },
+      "x-ratelimit-tier": 5
+    },
+    "POST /v1/workflows/{key}/trigger": {
+      "x-fern-sdk-group-name": [
+        "workflows"
+      ],
+      "x-fern-sdk-method-name": "trigger",
+      "x-ferrule-method-name": "trigger",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          9
+        ],
+        "path": [
+          "workflows"
+        ]
+      },
+      "x-idempotent": true,
+      "x-ratelimit-tier": 5
+    }
+  }
+}

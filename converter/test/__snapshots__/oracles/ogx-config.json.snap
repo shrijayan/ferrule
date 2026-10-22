@@ -1,0 +1,1895 @@
+{
+  "sha256": "42e093dcd72f029fb1e22262a5b76463861d38399aefeb343d4628d4cb58f0f2",
+  "root": {
+    "x-ferrule-client": {
+      "defaultEnvironment": "production",
+      "defaultHeaders": {},
+      "envPrefix": "OGX_CLIENT",
+      "environments": [
+        {
+          "name": "production",
+          "url": "http://any-hosted-ogx.com"
+        }
+      ],
+      "name": "ogx-client",
+      "omitPlatformHeaders": false,
+      "opts": [
+        {
+          "auth": {
+            "role": "value",
+            "securityScheme": "BearerAuth"
+          },
+          "name": "api_key",
+          "nullable": true,
+          "readEnv": "OGX_CLIENT_API_KEY",
+          "type": "string"
+        }
+      ],
+      "query": {
+        "arrayFormat": "comma",
+        "nestedFormat": "brackets"
+      },
+      "retries": {
+        "initialDelaySeconds": 0.5,
+        "maxDelaySeconds": 8,
+        "maxRetries": 2
+      },
+      "security": [
+        {},
+        {
+          "BearerAuth": []
+        }
+      ],
+      "securitySchemes": {
+        "BearerAuth": {
+          "scheme": "bearer",
+          "type": "http"
+        }
+      },
+      "timeoutSeconds": 60
+    },
+    "x-ferrule-config": {
+      "edition": "2025-10-08",
+      "packageName": "ogx_client",
+      "projectName": "ogx_client",
+      "pythonEdition": "python.2025-10-08",
+      "version": 1
+    }
+  },
+  "mirrored": {
+    "x-ferrule-client": {
+      "defaultEnvironment": "production",
+      "defaultHeaders": {},
+      "envPrefix": "OGX_CLIENT",
+      "environments": [
+        {
+          "name": "production",
+          "url": "http://any-hosted-ogx.com"
+        }
+      ],
+      "name": "ogx-client",
+      "omitPlatformHeaders": false,
+      "opts": [
+        {
+          "auth": {
+            "role": "value",
+            "securityScheme": "BearerAuth"
+          },
+          "name": "api_key",
+          "nullable": true,
+          "readEnv": "OGX_CLIENT_API_KEY",
+          "type": "string"
+        }
+      ],
+      "query": {
+        "arrayFormat": "comma",
+        "nestedFormat": "brackets"
+      },
+      "retries": {
+        "initialDelaySeconds": 0.5,
+        "maxDelaySeconds": 8,
+        "maxRetries": 2
+      },
+      "security": [
+        {},
+        {
+          "BearerAuth": []
+        }
+      ],
+      "securitySchemes": {
+        "BearerAuth": {
+          "scheme": "bearer",
+          "type": "http"
+        }
+      },
+      "timeoutSeconds": 60
+    },
+    "x-ferrule-models": {
+      "Conversation": {
+        "module": "conversation_object",
+        "name": "ConversationObject"
+      },
+      "HealthInfo": {
+        "module": "shared.health_info",
+        "name": "HealthInfo"
+      },
+      "InterleavedContent": {
+        "module": "shared.interleaved_content",
+        "name": "InterleavedContent"
+      },
+      "InterleavedContentItem": {
+        "module": "shared.interleaved_content_item",
+        "name": "InterleavedContentItem"
+      },
+      "ListOpenAIFileResponse": {
+        "module": "list_files_response",
+        "name": "ListFilesResponse"
+      },
+      "ListPromptsResponse": {
+        "module": "list_prompts_response",
+        "name": "ListPromptsResponse"
+      },
+      "ListProvidersResponse": {
+        "module": "shared.list_providers_response",
+        "name": "ListProvidersResponse"
+      },
+      "ListRoutesResponse": {
+        "module": "shared.list_routes_response",
+        "name": "ListRoutesResponse"
+      },
+      "OpenAIChatCompletionChunk": {
+        "module": "chat_completion_chunk",
+        "name": "ChatCompletionChunk"
+      },
+      "OpenAICompactedResponse": {
+        "module": "compacted_response",
+        "name": "CompactedResponse"
+      },
+      "OpenAIEmbeddingsResponse": {
+        "module": "create_embeddings_response",
+        "name": "CreateEmbeddingsResponse"
+      },
+      "OpenAIFileDeleteResponse": {
+        "module": "delete_file_response",
+        "name": "DeleteFileResponse"
+      },
+      "OpenAIFileObject": {
+        "module": "file",
+        "name": "File"
+      },
+      "OpenAIListModelsResponse": {
+        "module": "list_models_response",
+        "name": "ListModelsResponse"
+      },
+      "OpenAIModel": {
+        "module": "model",
+        "name": "Model"
+      },
+      "OpenAIResponseInput": {
+        "module": "response_input",
+        "name": "ResponseInput"
+      },
+      "OpenAIResponseMessage": {
+        "module": "response_message",
+        "name": "ResponseMessage"
+      },
+      "OpenAIResponseObject": {
+        "module": "response_object",
+        "name": "ResponseObject"
+      },
+      "OpenAIResponseObjectStream": {
+        "module": "response_object_stream",
+        "name": "ResponseObjectStream"
+      },
+      "OpenAIResponseOutput": {
+        "module": "response_output",
+        "name": "ResponseOutput"
+      },
+      "ParamType": {
+        "module": "shared.param_type",
+        "name": "ParamType"
+      },
+      "Prompt": {
+        "module": "prompt",
+        "name": "Prompt"
+      },
+      "ProviderInfo": {
+        "module": "shared.provider_info",
+        "name": "ProviderInfo"
+      },
+      "QueryChunksResponse": {
+        "module": "queryChunksResponse",
+        "name": "QueryChunksResponse"
+      },
+      "RouteInfo": {
+        "module": "shared.route_info",
+        "name": "RouteInfo"
+      },
+      "SamplingParams": {
+        "module": "shared.sampling_params",
+        "name": "SamplingParams"
+      },
+      "SystemMessage": {
+        "module": "shared.system_message",
+        "name": "SystemMessage"
+      },
+      "VectorStoreDeleteResponse": {
+        "module": "vector_store_delete_response",
+        "name": "VectorStoreDeleteResponse"
+      },
+      "VectorStoreFileBatchObject": {
+        "module": "vector_stores.vector_store_file_batches",
+        "name": "VectorStoreFileBatches"
+      },
+      "VectorStoreFileObject": {
+        "module": "vector_stores.vector_store_file",
+        "name": "VectorStoreFile"
+      },
+      "VectorStoreFilesListInBatchResponse": {
+        "module": "vector_stores.list_vector_store_files_in_batch_response",
+        "name": "ListVectorStoreFilesInBatchResponse"
+      },
+      "VectorStoreListResponse": {
+        "module": "list_vector_stores_response",
+        "name": "ListVectorStoresResponse"
+      },
+      "VectorStoreObject": {
+        "module": "vector_store",
+        "name": "VectorStore"
+      },
+      "VectorStoreSearchResponsePage": {
+        "module": "vector_store_search_response",
+        "name": "VectorStoreSearchResponse"
+      },
+      "VersionInfo": {
+        "module": "shared.version_info",
+        "name": "VersionInfo"
+      }
+    },
+    "x-ferrule-package": {
+      "name": "ogx_client",
+      "repo": "ogx-ai/ogx-client-python"
+    }
+  },
+  "operations": {
+    "GET /v1/batches": {
+      "x-codeSamples": [
+        {
+          "label": "OpenAI",
+          "lang": "OpenAI",
+          "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nbatches = client.batches.list()\nfor batch in batches:\n    print(batch.id, batch.status)"
+        }
+      ],
+      "x-fern-sdk-group-name": [
+        "batches"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-pagination": {
+        "continueOnEmptyItems": false,
+        "page": "openai_cursor_page",
+        "paramLocation": "query",
+        "request": {
+          "after": "next_cursor_param",
+          "limit": "limit"
+        },
+        "response": {
+          "data": "data",
+          "has_more": "has_more",
+          "last_id": "next_cursor_field"
+        },
+        "scheme": "cursor"
+      },
+      "x-ferrule-resource": {
+        "order": [
+          14
+        ],
+        "path": [
+          "batches"
+        ]
+      }
+    },
+    "POST /v1/batches": {
+      "x-codeSamples": [
+        {
+          "label": "OpenAI",
+          "lang": "OpenAI",
+          "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nbatch = client.batches.create(\n    input_file_id=\"file-abc123\",\n    endpoint=\"/v1/chat/completions\",\n    completion_window=\"24h\",\n)\nprint(batch.id)"
+        }
+      ],
+      "x-fern-sdk-group-name": [
+        "batches"
+      ],
+      "x-fern-sdk-method-name": "create",
+      "x-ferrule-method-name": "create",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          14
+        ],
+        "path": [
+          "batches"
+        ]
+      }
+    },
+    "GET /v1/batches/{batch_id}": {
+      "x-codeSamples": [
+        {
+          "label": "OpenAI",
+          "lang": "OpenAI",
+          "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nbatch = client.batches.retrieve(\"batch_abc123\")\nprint(batch)"
+        }
+      ],
+      "x-fern-sdk-group-name": [
+        "batches"
+      ],
+      "x-fern-sdk-method-name": "retrieve",
+      "x-ferrule-method-name": "retrieve",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          14
+        ],
+        "path": [
+          "batches"
+        ]
+      }
+    },
+    "POST /v1/batches/{batch_id}/cancel": {
+      "x-codeSamples": [
+        {
+          "label": "OpenAI",
+          "lang": "OpenAI",
+          "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nbatch = client.batches.cancel(\"batch_abc123\")\nprint(batch)"
+        }
+      ],
+      "x-fern-sdk-group-name": [
+        "batches"
+      ],
+      "x-fern-sdk-method-name": "cancel",
+      "x-ferrule-method-name": "cancel",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          14
+        ],
+        "path": [
+          "batches"
+        ]
+      }
+    },
+    "GET /v1/chat/completions": {
+      "x-codeSamples": [
+        {
+          "label": "OpenAI",
+          "lang": "OpenAI",
+          "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nresponse = client.chat.completions.list()\nprint(response)"
+        }
+      ],
+      "x-fern-sdk-group-name": [
+        "chat",
+        "completions"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          6,
+          0
+        ],
+        "path": [
+          "chat",
+          "completions"
+        ]
+      }
+    },
+    "POST /v1/chat/completions": {
+      "x-codeSamples": [
+        {
+          "label": "OpenAI",
+          "lang": "OpenAI",
+          "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nresponse = client.chat.completions.create(\n    model=\"meta-llama/Llama-3.1-8B-Instruct\",\n    messages=[\n        {\"role\": \"user\", \"content\": \"What is the capital of France?\"},\n    ],\n)\nprint(response.choices[0].message.content)"
+        }
+      ],
+      "x-fern-sdk-group-name": [
+        "chat",
+        "completions"
+      ],
+      "x-fern-sdk-method-name": "create",
+      "x-ferrule-method-name": "create",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          6,
+          0
+        ],
+        "path": [
+          "chat",
+          "completions"
+        ]
+      },
+      "x-ferrule-streaming": {
+        "eventModel": "chat.chat_completion_chunk",
+        "eventSchema": "OpenAIChatCompletionChunk",
+        "format": "sse",
+        "onEvent": [
+          {
+            "dataStartsWith": "[DONE]",
+            "handle": "done",
+            "kind": "data"
+          },
+          {
+            "errorProperty": "error",
+            "handle": "yield",
+            "kind": "fallthrough"
+          }
+        ],
+        "paramDiscriminator": "stream",
+        "synthesizeEventAndData": false
+      }
+    },
+    "GET /v1/chat/completions/{completion_id}": {
+      "x-codeSamples": [
+        {
+          "label": "OpenAI",
+          "lang": "OpenAI",
+          "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\ncompletion = client.chat.completions.retrieve(\"completion_id\")\nprint(completion)"
+        }
+      ],
+      "x-fern-sdk-group-name": [
+        "chat",
+        "completions"
+      ],
+      "x-fern-sdk-method-name": "retrieve",
+      "x-ferrule-method-name": "retrieve",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          6,
+          0
+        ],
+        "path": [
+          "chat",
+          "completions"
+        ]
+      }
+    },
+    "GET /v1/chat/completions/{completion_id}/messages": {
+      "x-codeSamples": [
+        {
+          "label": "OpenAI",
+          "lang": "OpenAI",
+          "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nmessages = client.chat.completions.messages.list(completion_id=\"completion_id\")\nprint(messages.data)"
+        }
+      ],
+      "x-fern-sdk-group-name": [
+        "chat",
+        "completions",
+        "messages"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-pagination": {
+        "continueOnEmptyItems": false,
+        "page": "openai_cursor_page",
+        "paramLocation": "query",
+        "request": {
+          "after": "next_cursor_param",
+          "limit": "limit"
+        },
+        "response": {
+          "data": "data",
+          "has_more": "has_more",
+          "last_id": "next_cursor_field"
+        },
+        "scheme": "cursor"
+      },
+      "x-ferrule-resource": {
+        "order": [
+          6,
+          0,
+          0
+        ],
+        "path": [
+          "chat",
+          "completions",
+          "messages"
+        ]
+      }
+    },
+    "POST /v1/completions": {
+      "x-codeSamples": [
+        {
+          "label": "OpenAI",
+          "lang": "OpenAI",
+          "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nresponse = client.completions.create(\n    model=\"meta-llama/Llama-3.1-8B-Instruct\",\n    prompt=\"The capital of France is\",\n)\nprint(response.choices[0].text)"
+        }
+      ],
+      "x-fern-sdk-group-name": [
+        "completions"
+      ],
+      "x-fern-sdk-method-name": "create",
+      "x-ferrule-method-name": "create",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          7
+        ],
+        "path": [
+          "completions"
+        ]
+      },
+      "x-ferrule-streaming": {
+        "format": "sse",
+        "onEvent": [
+          {
+            "dataStartsWith": "[DONE]",
+            "handle": "done",
+            "kind": "data"
+          },
+          {
+            "errorProperty": "error",
+            "handle": "yield",
+            "kind": "fallthrough"
+          }
+        ],
+        "paramDiscriminator": "stream",
+        "synthesizeEventAndData": false
+      }
+    },
+    "POST /v1/conversations": {
+      "x-fern-sdk-group-name": [
+        "conversations"
+      ],
+      "x-fern-sdk-method-name": "create",
+      "x-ferrule-method-name": "create",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          3
+        ],
+        "path": [
+          "conversations"
+        ]
+      }
+    },
+    "DELETE /v1/conversations/{conversation_id}": {
+      "x-fern-sdk-group-name": [
+        "conversations"
+      ],
+      "x-fern-sdk-method-name": "delete",
+      "x-ferrule-method-name": "delete",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          3
+        ],
+        "path": [
+          "conversations"
+        ]
+      }
+    },
+    "GET /v1/conversations/{conversation_id}": {
+      "x-fern-sdk-group-name": [
+        "conversations"
+      ],
+      "x-fern-sdk-method-name": "retrieve",
+      "x-ferrule-method-name": "retrieve",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          3
+        ],
+        "path": [
+          "conversations"
+        ]
+      }
+    },
+    "POST /v1/conversations/{conversation_id}": {
+      "x-fern-sdk-group-name": [
+        "conversations"
+      ],
+      "x-fern-sdk-method-name": "update",
+      "x-ferrule-method-name": "update",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          3
+        ],
+        "path": [
+          "conversations"
+        ]
+      }
+    },
+    "GET /v1/conversations/{conversation_id}/items": {
+      "x-fern-sdk-group-name": [
+        "conversations",
+        "items"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-pagination": {
+        "continueOnEmptyItems": false,
+        "page": "openai_cursor_page",
+        "paramLocation": "query",
+        "request": {
+          "after": "next_cursor_param",
+          "limit": "limit"
+        },
+        "response": {
+          "data": "data",
+          "has_more": "has_more",
+          "last_id": "next_cursor_field"
+        },
+        "scheme": "cursor"
+      },
+      "x-ferrule-resource": {
+        "order": [
+          3,
+          0
+        ],
+        "path": [
+          "conversations",
+          "items"
+        ]
+      }
+    },
+    "POST /v1/conversations/{conversation_id}/items": {
+      "x-fern-sdk-group-name": [
+        "conversations",
+        "items"
+      ],
+      "x-fern-sdk-method-name": "create",
+      "x-ferrule-method-name": "create",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          3,
+          0
+        ],
+        "path": [
+          "conversations",
+          "items"
+        ]
+      }
+    },
+    "DELETE /v1/conversations/{conversation_id}/items/{item_id}": {
+      "x-fern-sdk-group-name": [
+        "conversations",
+        "items"
+      ],
+      "x-fern-sdk-method-name": "delete",
+      "x-ferrule-method-name": "delete",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          3,
+          0
+        ],
+        "path": [
+          "conversations",
+          "items"
+        ]
+      }
+    },
+    "GET /v1/conversations/{conversation_id}/items/{item_id}": {
+      "x-fern-sdk-group-name": [
+        "conversations",
+        "items"
+      ],
+      "x-fern-sdk-method-name": "get",
+      "x-ferrule-method-name": "get",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          3,
+          0
+        ],
+        "path": [
+          "conversations",
+          "items"
+        ]
+      }
+    },
+    "POST /v1/embeddings": {
+      "x-codeSamples": [
+        {
+          "label": "OpenAI",
+          "lang": "OpenAI",
+          "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nresponse = client.embeddings.create(\n    model=\"all-MiniLM-L6-v2\",\n    input=\"OGX is awesome\",\n)\nprint(response.data[0].embedding[:5])"
+        }
+      ],
+      "x-fern-sdk-group-name": [
+        "embeddings"
+      ],
+      "x-fern-sdk-method-name": "create",
+      "x-ferrule-method-name": "create",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          5
+        ],
+        "path": [
+          "embeddings"
+        ]
+      }
+    },
+    "GET /v1/files": {
+      "x-codeSamples": [
+        {
+          "label": "OpenAI",
+          "lang": "OpenAI",
+          "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nfiles = client.files.list()\nfor f in files:\n    print(f.id, f.filename)"
+        }
+      ],
+      "x-fern-sdk-group-name": [
+        "files"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-pagination": {
+        "continueOnEmptyItems": false,
+        "page": "openai_cursor_page",
+        "paramLocation": "query",
+        "request": {
+          "after": "next_cursor_param",
+          "limit": "limit"
+        },
+        "response": {
+          "data": "data",
+          "has_more": "has_more",
+          "last_id": "next_cursor_field"
+        },
+        "scheme": "cursor"
+      },
+      "x-ferrule-resource": {
+        "order": [
+          13
+        ],
+        "path": [
+          "files"
+        ]
+      }
+    },
+    "POST /v1/files": {
+      "x-codeSamples": [
+        {
+          "label": "OpenAI",
+          "lang": "OpenAI",
+          "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nfile = client.files.create(\n    file=open(\"data.jsonl\", \"rb\"),\n    purpose=\"batch\",\n)\nprint(file.id)"
+        }
+      ],
+      "x-fern-sdk-group-name": [
+        "files"
+      ],
+      "x-fern-sdk-method-name": "create",
+      "x-ferrule-method-name": "create",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          13
+        ],
+        "path": [
+          "files"
+        ]
+      }
+    },
+    "DELETE /v1/files/{file_id}": {
+      "x-codeSamples": [
+        {
+          "label": "OpenAI",
+          "lang": "OpenAI",
+          "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nresponse = client.files.delete(\"file-abc123\")\nprint(response)"
+        }
+      ],
+      "x-fern-sdk-group-name": [
+        "files"
+      ],
+      "x-fern-sdk-method-name": "delete",
+      "x-ferrule-method-name": "delete",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          13
+        ],
+        "path": [
+          "files"
+        ]
+      }
+    },
+    "GET /v1/files/{file_id}": {
+      "x-codeSamples": [
+        {
+          "label": "OpenAI",
+          "lang": "OpenAI",
+          "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nfile = client.files.retrieve(\"file-abc123\")\nprint(file)"
+        }
+      ],
+      "x-fern-sdk-group-name": [
+        "files"
+      ],
+      "x-fern-sdk-method-name": "retrieve",
+      "x-ferrule-method-name": "retrieve",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          13
+        ],
+        "path": [
+          "files"
+        ]
+      }
+    },
+    "GET /v1/files/{file_id}/content": {
+      "x-codeSamples": [
+        {
+          "label": "OpenAI",
+          "lang": "OpenAI",
+          "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\ncontent = client.files.content(\"file-abc123\")\nprint(content.text)"
+        }
+      ],
+      "x-fern-sdk-group-name": [
+        "files"
+      ],
+      "x-fern-sdk-method-name": "content",
+      "x-ferrule-method-name": "content",
+      "x-ferrule-method-order": 4,
+      "x-ferrule-resource": {
+        "order": [
+          13
+        ],
+        "path": [
+          "files"
+        ]
+      }
+    },
+    "GET /v1/health": {
+      "x-fern-sdk-group-name": [
+        "inspect"
+      ],
+      "x-fern-sdk-method-name": "health",
+      "x-ferrule-method-name": "health",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          4
+        ],
+        "path": [
+          "inspect"
+        ]
+      },
+      "x-public": true
+    },
+    "GET /v1/inspect/routes": {
+      "x-fern-sdk-group-name": [
+        "routes"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          12
+        ],
+        "path": [
+          "routes"
+        ]
+      }
+    },
+    "POST /v1/messages": {
+      "x-codeSamples": [
+        {
+          "label": "Anthropic",
+          "lang": "Anthropic",
+          "source": "from anthropic import Anthropic\n\nclient = Anthropic(\n    base_url=\"http://localhost:8321/v1\",\n    api_key=\"fake\",\n)\n\nmessage = client.messages.create(\n    model=\"llama-3.3-70b\",\n    max_tokens=1024,\n    messages=[\n        {\"role\": \"user\", \"content\": \"What is OGX?\"}\n    ],\n)\n\nprint(message.content[0].text)"
+        }
+      ]
+    },
+    "GET /v1/models": {
+      "x-codeSamples": [
+        {
+          "label": "OpenAI",
+          "lang": "OpenAI",
+          "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nmodels = client.models.list()\nfor model in models:\n    print(model.id)"
+        },
+        {
+          "label": "Anthropic",
+          "lang": "Anthropic",
+          "source": "from anthropic import Anthropic\n\nclient = Anthropic(\n    base_url=\"http://localhost:8321/v1\",\n    api_key=\"fake\",\n)\n\nmodels = client.models.list()\nfor model in models:\n    print(model.id)"
+        },
+        {
+          "label": "Google",
+          "lang": "Google",
+          "source": "from google import genai\nfrom google.genai import types\n\nclient = genai.Client(\n    api_key=\"fake\",\n    http_options=types.HttpOptions(\n        base_url=\"http://localhost:8321\",\n        api_version=\"v1\",\n    ),\n)\nfor model in client.models.list():\n    print(model.name)"
+        }
+      ],
+      "x-fern-sdk-group-name": [
+        "models",
+        "openai"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          10,
+          0
+        ],
+        "path": [
+          "models",
+          "openai"
+        ]
+      }
+    },
+    "GET /v1/models/{model_id}": {
+      "x-codeSamples": [
+        {
+          "label": "OpenAI",
+          "lang": "OpenAI",
+          "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nmodel = client.models.retrieve(\"meta-llama/Llama-3.1-8B-Instruct\")\nprint(model)"
+        },
+        {
+          "label": "Anthropic",
+          "lang": "Anthropic",
+          "source": "from anthropic import Anthropic\n\nclient = Anthropic(\n    base_url=\"http://localhost:8321/v1\",\n    api_key=\"fake\",\n)\n\nmodel = client.models.retrieve(\"openai/gpt-4o\")\nprint(model.id)"
+        },
+        {
+          "label": "Google",
+          "lang": "Google",
+          "source": "from google import genai\nfrom google.genai import types\n\nclient = genai.Client(\n    api_key=\"fake\",\n    http_options=types.HttpOptions(\n        base_url=\"http://localhost:8321\",\n        api_version=\"v1\",\n    ),\n)\nmodel = client.models.get(model=\"openai/gpt-4o\")\nprint(model.name)"
+        }
+      ],
+      "x-fern-sdk-group-name": [
+        "models"
+      ],
+      "x-fern-sdk-method-name": "retrieve",
+      "x-ferrule-method-name": "retrieve",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          10
+        ],
+        "path": [
+          "models"
+        ]
+      }
+    },
+    "GET /v1/prompts": {
+      "x-fern-sdk-group-name": [
+        "prompts"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          2
+        ],
+        "path": [
+          "prompts"
+        ]
+      }
+    },
+    "POST /v1/prompts": {
+      "x-fern-sdk-group-name": [
+        "prompts"
+      ],
+      "x-fern-sdk-method-name": "create",
+      "x-ferrule-method-name": "create",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          2
+        ],
+        "path": [
+          "prompts"
+        ]
+      }
+    },
+    "DELETE /v1/prompts/{prompt_id}": {
+      "x-fern-sdk-group-name": [
+        "prompts"
+      ],
+      "x-fern-sdk-method-name": "delete",
+      "x-ferrule-method-name": "delete",
+      "x-ferrule-method-order": 4,
+      "x-ferrule-resource": {
+        "order": [
+          2
+        ],
+        "path": [
+          "prompts"
+        ]
+      }
+    },
+    "GET /v1/prompts/{prompt_id}": {
+      "x-fern-sdk-group-name": [
+        "prompts"
+      ],
+      "x-fern-sdk-method-name": "retrieve",
+      "x-ferrule-method-name": "retrieve",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          2
+        ],
+        "path": [
+          "prompts"
+        ]
+      }
+    },
+    "PUT /v1/prompts/{prompt_id}": {
+      "x-fern-sdk-group-name": [
+        "prompts"
+      ],
+      "x-fern-sdk-method-name": "update",
+      "x-ferrule-method-name": "update",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          2
+        ],
+        "path": [
+          "prompts"
+        ]
+      }
+    },
+    "PUT /v1/prompts/{prompt_id}/set-default-version": {
+      "x-fern-sdk-group-name": [
+        "prompts"
+      ],
+      "x-fern-sdk-method-name": "set_default_version",
+      "x-ferrule-method-name": "set_default_version",
+      "x-ferrule-method-order": 5,
+      "x-ferrule-resource": {
+        "order": [
+          2
+        ],
+        "path": [
+          "prompts"
+        ]
+      }
+    },
+    "GET /v1/prompts/{prompt_id}/versions": {
+      "x-fern-sdk-group-name": [
+        "prompts",
+        "versions"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          2,
+          0
+        ],
+        "path": [
+          "prompts",
+          "versions"
+        ]
+      }
+    },
+    "GET /v1/providers": {
+      "x-fern-sdk-group-name": [
+        "providers"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          11
+        ],
+        "path": [
+          "providers"
+        ]
+      }
+    },
+    "GET /v1/providers/{provider_id}": {
+      "x-fern-sdk-group-name": [
+        "providers"
+      ],
+      "x-fern-sdk-method-name": "retrieve",
+      "x-ferrule-method-name": "retrieve",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          11
+        ],
+        "path": [
+          "providers"
+        ]
+      }
+    },
+    "GET /v1/responses": {
+      "x-codeSamples": [
+        {
+          "label": "OpenAI",
+          "lang": "OpenAI",
+          "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nresponses = client.responses.list()\nfor r in responses:\n    print(r.id)"
+        }
+      ],
+      "x-fern-sdk-group-name": [
+        "responses"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-pagination": {
+        "continueOnEmptyItems": false,
+        "page": "openai_cursor_page",
+        "paramLocation": "query",
+        "request": {
+          "after": "next_cursor_param",
+          "limit": "limit"
+        },
+        "response": {
+          "data": "data",
+          "has_more": "has_more",
+          "last_id": "next_cursor_field"
+        },
+        "scheme": "cursor"
+      },
+      "x-ferrule-resource": {
+        "order": [
+          1
+        ],
+        "path": [
+          "responses"
+        ]
+      }
+    },
+    "POST /v1/responses": {
+      "x-codeSamples": [
+        {
+          "label": "OpenAI",
+          "lang": "OpenAI",
+          "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nresponse = client.responses.create(\n    model=\"meta-llama/Llama-3.1-8B-Instruct\",\n    input=\"What is the capital of France?\",\n)\nprint(response.output_text)"
+        }
+      ],
+      "x-fern-sdk-group-name": [
+        "responses"
+      ],
+      "x-fern-sdk-method-name": "create",
+      "x-ferrule-method-name": "create",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          1
+        ],
+        "path": [
+          "responses"
+        ]
+      },
+      "x-ferrule-streaming": {
+        "eventModel": "responses.response_object_stream",
+        "eventSchema": "OpenAIResponseObjectStream",
+        "format": "sse",
+        "onEvent": [
+          {
+            "dataStartsWith": "[DONE]",
+            "handle": "done",
+            "kind": "data"
+          },
+          {
+            "errorProperty": "error",
+            "handle": "yield",
+            "kind": "fallthrough"
+          }
+        ],
+        "paramDiscriminator": "stream",
+        "synthesizeEventAndData": false
+      }
+    },
+    "POST /v1/responses/compact": {
+      "x-fern-sdk-group-name": [
+        "responses"
+      ],
+      "x-fern-sdk-method-name": "compact",
+      "x-ferrule-method-name": "compact",
+      "x-ferrule-method-order": 4,
+      "x-ferrule-resource": {
+        "order": [
+          1
+        ],
+        "path": [
+          "responses"
+        ]
+      }
+    },
+    "DELETE /v1/responses/{response_id}": {
+      "x-codeSamples": [
+        {
+          "label": "OpenAI",
+          "lang": "OpenAI",
+          "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nresponse = client.responses.delete(\"resp_abc123\")\nprint(response)"
+        }
+      ],
+      "x-fern-sdk-group-name": [
+        "responses"
+      ],
+      "x-fern-sdk-method-name": "delete",
+      "x-ferrule-method-name": "delete",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          1
+        ],
+        "path": [
+          "responses"
+        ]
+      }
+    },
+    "GET /v1/responses/{response_id}": {
+      "x-codeSamples": [
+        {
+          "label": "OpenAI",
+          "lang": "OpenAI",
+          "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nresponse = client.responses.retrieve(\"resp_abc123\")\nprint(response)"
+        }
+      ],
+      "x-fern-sdk-group-name": [
+        "responses"
+      ],
+      "x-fern-sdk-method-name": "retrieve",
+      "x-ferrule-method-name": "retrieve",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          1
+        ],
+        "path": [
+          "responses"
+        ]
+      }
+    },
+    "POST /v1/responses/{response_id}/cancel": {
+      "x-codeSamples": [
+        {
+          "label": "OpenAI",
+          "lang": "OpenAI",
+          "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nresponse = client.responses.cancel(\"resp_abc123\")\nprint(response)"
+        }
+      ]
+    },
+    "GET /v1/responses/{response_id}/input_items": {
+      "x-codeSamples": [
+        {
+          "label": "OpenAI",
+          "lang": "OpenAI",
+          "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\ninput_items = client.responses.input_items.list(\"resp_abc123\")\nfor item in input_items:\n    print(item)"
+        }
+      ],
+      "x-fern-sdk-group-name": [
+        "responses",
+        "input_items"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          1,
+          0
+        ],
+        "path": [
+          "responses",
+          "input_items"
+        ]
+      }
+    },
+    "POST /v1/vector-io/insert": {
+      "x-fern-sdk-group-name": [
+        "vector_io"
+      ],
+      "x-fern-sdk-method-name": "insert",
+      "x-ferrule-method-name": "insert",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          8
+        ],
+        "path": [
+          "vector_io"
+        ]
+      }
+    },
+    "POST /v1/vector-io/query": {
+      "x-fern-sdk-group-name": [
+        "vector_io"
+      ],
+      "x-fern-sdk-method-name": "query",
+      "x-ferrule-method-name": "query",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          8
+        ],
+        "path": [
+          "vector_io"
+        ]
+      }
+    },
+    "GET /v1/vector_stores": {
+      "x-codeSamples": [
+        {
+          "label": "OpenAI",
+          "lang": "OpenAI",
+          "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nvector_stores = client.vector_stores.list()\nfor vs in vector_stores:\n    print(vs.id, vs.name)"
+        }
+      ],
+      "x-fern-sdk-group-name": [
+        "vector_stores"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-pagination": {
+        "continueOnEmptyItems": false,
+        "page": "openai_cursor_page",
+        "paramLocation": "query",
+        "request": {
+          "after": "next_cursor_param",
+          "limit": "limit"
+        },
+        "response": {
+          "data": "data",
+          "has_more": "has_more",
+          "last_id": "next_cursor_field"
+        },
+        "scheme": "cursor"
+      },
+      "x-ferrule-resource": {
+        "order": [
+          9
+        ],
+        "path": [
+          "vector_stores"
+        ]
+      }
+    },
+    "POST /v1/vector_stores": {
+      "x-codeSamples": [
+        {
+          "label": "OpenAI",
+          "lang": "OpenAI",
+          "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nvector_store = client.vector_stores.create(\n    name=\"my-vector-store\",\n)\nprint(vector_store.id)"
+        }
+      ],
+      "x-fern-sdk-group-name": [
+        "vector_stores"
+      ],
+      "x-fern-sdk-method-name": "create",
+      "x-ferrule-method-name": "create",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          9
+        ],
+        "path": [
+          "vector_stores"
+        ]
+      }
+    },
+    "DELETE /v1/vector_stores/{vector_store_id}": {
+      "x-codeSamples": [
+        {
+          "label": "OpenAI",
+          "lang": "OpenAI",
+          "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nresponse = client.vector_stores.delete(\"vs_abc123\")\nprint(response)"
+        }
+      ],
+      "x-fern-sdk-group-name": [
+        "vector_stores"
+      ],
+      "x-fern-sdk-method-name": "delete",
+      "x-ferrule-method-name": "delete",
+      "x-ferrule-method-order": 4,
+      "x-ferrule-resource": {
+        "order": [
+          9
+        ],
+        "path": [
+          "vector_stores"
+        ]
+      }
+    },
+    "GET /v1/vector_stores/{vector_store_id}": {
+      "x-codeSamples": [
+        {
+          "label": "OpenAI",
+          "lang": "OpenAI",
+          "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nvector_store = client.vector_stores.retrieve(\"vs_abc123\")\nprint(vector_store)"
+        }
+      ],
+      "x-fern-sdk-group-name": [
+        "vector_stores"
+      ],
+      "x-fern-sdk-method-name": "retrieve",
+      "x-ferrule-method-name": "retrieve",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          9
+        ],
+        "path": [
+          "vector_stores"
+        ]
+      }
+    },
+    "POST /v1/vector_stores/{vector_store_id}": {
+      "x-codeSamples": [
+        {
+          "label": "OpenAI",
+          "lang": "OpenAI",
+          "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nvector_store = client.vector_stores.update(\n    \"vs_abc123\",\n    name=\"updated-name\",\n)\nprint(vector_store)"
+        }
+      ],
+      "x-fern-sdk-group-name": [
+        "vector_stores"
+      ],
+      "x-fern-sdk-method-name": "update",
+      "x-ferrule-method-name": "update",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          9
+        ],
+        "path": [
+          "vector_stores"
+        ]
+      }
+    },
+    "POST /v1/vector_stores/{vector_store_id}/file_batches": {
+      "x-codeSamples": [
+        {
+          "label": "OpenAI",
+          "lang": "OpenAI",
+          "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nbatch = client.vector_stores.file_batches.create(\n    vector_store_id=\"vs_abc123\",\n    file_ids=[\"file-abc123\", \"file-def456\"],\n)\nprint(batch)"
+        }
+      ],
+      "x-fern-sdk-group-name": [
+        "vector_stores",
+        "file_batches"
+      ],
+      "x-fern-sdk-method-name": "create",
+      "x-ferrule-method-name": "create",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          9,
+          1
+        ],
+        "path": [
+          "vector_stores",
+          "file_batches"
+        ]
+      }
+    },
+    "GET /v1/vector_stores/{vector_store_id}/file_batches/{batch_id}": {
+      "x-codeSamples": [
+        {
+          "label": "OpenAI",
+          "lang": "OpenAI",
+          "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nbatch = client.vector_stores.file_batches.retrieve(\n    vector_store_id=\"vs_abc123\",\n    batch_id=\"vsfb_abc123\",\n)\nprint(batch)"
+        }
+      ],
+      "x-fern-sdk-group-name": [
+        "vector_stores",
+        "file_batches"
+      ],
+      "x-fern-sdk-method-name": "retrieve",
+      "x-ferrule-method-name": "retrieve",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          9,
+          1
+        ],
+        "path": [
+          "vector_stores",
+          "file_batches"
+        ]
+      }
+    },
+    "POST /v1/vector_stores/{vector_store_id}/file_batches/{batch_id}/cancel": {
+      "x-codeSamples": [
+        {
+          "label": "OpenAI",
+          "lang": "OpenAI",
+          "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nbatch = client.vector_stores.file_batches.cancel(\n    vector_store_id=\"vs_abc123\",\n    batch_id=\"vsfb_abc123\",\n)\nprint(batch)"
+        }
+      ],
+      "x-fern-sdk-group-name": [
+        "vector_stores",
+        "file_batches"
+      ],
+      "x-fern-sdk-method-name": "cancel",
+      "x-ferrule-method-name": "cancel",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          9,
+          1
+        ],
+        "path": [
+          "vector_stores",
+          "file_batches"
+        ]
+      }
+    },
+    "GET /v1/vector_stores/{vector_store_id}/file_batches/{batch_id}/files": {
+      "x-codeSamples": [
+        {
+          "label": "OpenAI",
+          "lang": "OpenAI",
+          "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nfiles = client.vector_stores.file_batches.list_files(\n    vector_store_id=\"vs_abc123\",\n    batch_id=\"vsfb_abc123\",\n)\nfor f in files:\n    print(f.id)"
+        }
+      ],
+      "x-fern-sdk-group-name": [
+        "vector_stores",
+        "file_batches"
+      ],
+      "x-fern-sdk-method-name": "list_files",
+      "x-ferrule-method-name": "list_files",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-pagination": {
+        "continueOnEmptyItems": false,
+        "page": "openai_cursor_page",
+        "paramLocation": "query",
+        "request": {
+          "after": "next_cursor_param",
+          "limit": "limit"
+        },
+        "response": {
+          "data": "data",
+          "has_more": "has_more",
+          "last_id": "next_cursor_field"
+        },
+        "scheme": "cursor"
+      },
+      "x-ferrule-resource": {
+        "order": [
+          9,
+          1
+        ],
+        "path": [
+          "vector_stores",
+          "file_batches"
+        ]
+      }
+    },
+    "GET /v1/vector_stores/{vector_store_id}/files": {
+      "x-codeSamples": [
+        {
+          "label": "OpenAI",
+          "lang": "OpenAI",
+          "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nfiles = client.vector_stores.files.list(\"vs_abc123\")\nfor f in files:\n    print(f.id)"
+        }
+      ],
+      "x-fern-sdk-group-name": [
+        "vector_stores",
+        "files"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-pagination": {
+        "continueOnEmptyItems": false,
+        "page": "openai_cursor_page",
+        "paramLocation": "query",
+        "request": {
+          "after": "next_cursor_param",
+          "limit": "limit"
+        },
+        "response": {
+          "data": "data",
+          "has_more": "has_more",
+          "last_id": "next_cursor_field"
+        },
+        "scheme": "cursor"
+      },
+      "x-ferrule-resource": {
+        "order": [
+          9,
+          0
+        ],
+        "path": [
+          "vector_stores",
+          "files"
+        ]
+      }
+    },
+    "POST /v1/vector_stores/{vector_store_id}/files": {
+      "x-codeSamples": [
+        {
+          "label": "OpenAI",
+          "lang": "OpenAI",
+          "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nfile = client.vector_stores.files.create(\n    vector_store_id=\"vs_abc123\",\n    file_id=\"file-abc123\",\n)\nprint(file)"
+        }
+      ],
+      "x-fern-sdk-group-name": [
+        "vector_stores",
+        "files"
+      ],
+      "x-fern-sdk-method-name": "create",
+      "x-ferrule-method-name": "create",
+      "x-ferrule-method-order": 4,
+      "x-ferrule-resource": {
+        "order": [
+          9,
+          0
+        ],
+        "path": [
+          "vector_stores",
+          "files"
+        ]
+      }
+    },
+    "DELETE /v1/vector_stores/{vector_store_id}/files/{file_id}": {
+      "x-codeSamples": [
+        {
+          "label": "OpenAI",
+          "lang": "OpenAI",
+          "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nresponse = client.vector_stores.files.delete(\n    vector_store_id=\"vs_abc123\",\n    file_id=\"file-abc123\",\n)\nprint(response)"
+        }
+      ],
+      "x-fern-sdk-group-name": [
+        "vector_stores",
+        "files"
+      ],
+      "x-fern-sdk-method-name": "delete",
+      "x-ferrule-method-name": "delete",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          9,
+          0
+        ],
+        "path": [
+          "vector_stores",
+          "files"
+        ]
+      }
+    },
+    "GET /v1/vector_stores/{vector_store_id}/files/{file_id}": {
+      "x-codeSamples": [
+        {
+          "label": "OpenAI",
+          "lang": "OpenAI",
+          "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nfile = client.vector_stores.files.retrieve(\n    vector_store_id=\"vs_abc123\",\n    file_id=\"file-abc123\",\n)\nprint(file)"
+        }
+      ],
+      "x-fern-sdk-group-name": [
+        "vector_stores",
+        "files"
+      ],
+      "x-fern-sdk-method-name": "retrieve",
+      "x-ferrule-method-name": "retrieve",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          9,
+          0
+        ],
+        "path": [
+          "vector_stores",
+          "files"
+        ]
+      }
+    },
+    "POST /v1/vector_stores/{vector_store_id}/files/{file_id}": {
+      "x-fern-sdk-group-name": [
+        "vector_stores",
+        "files"
+      ],
+      "x-fern-sdk-method-name": "update",
+      "x-ferrule-method-name": "update",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          9,
+          0
+        ],
+        "path": [
+          "vector_stores",
+          "files"
+        ]
+      }
+    },
+    "GET /v1/vector_stores/{vector_store_id}/files/{file_id}/content": {
+      "x-codeSamples": [
+        {
+          "label": "OpenAI",
+          "lang": "OpenAI",
+          "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\ncontent = client.vector_stores.files.content(\n    vector_store_id=\"vs_abc123\",\n    file_id=\"file-abc123\",\n)\nprint(content)"
+        }
+      ],
+      "x-fern-sdk-group-name": [
+        "vector_stores",
+        "files"
+      ],
+      "x-fern-sdk-method-name": "content",
+      "x-ferrule-method-name": "content",
+      "x-ferrule-method-order": 5,
+      "x-ferrule-resource": {
+        "order": [
+          9,
+          0
+        ],
+        "path": [
+          "vector_stores",
+          "files"
+        ]
+      }
+    },
+    "POST /v1/vector_stores/{vector_store_id}/search": {
+      "x-codeSamples": [
+        {
+          "label": "OpenAI",
+          "lang": "OpenAI",
+          "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nresults = client.vector_stores.search(\n    vector_store_id=\"vs_abc123\",\n    query=\"What is OGX?\",\n)\nfor result in results:\n    print(result)"
+        }
+      ],
+      "x-fern-sdk-group-name": [
+        "vector_stores"
+      ],
+      "x-fern-sdk-method-name": "search",
+      "x-ferrule-method-name": "search",
+      "x-ferrule-method-order": 5,
+      "x-ferrule-resource": {
+        "order": [
+          9
+        ],
+        "path": [
+          "vector_stores"
+        ]
+      }
+    },
+    "GET /v1/version": {
+      "x-fern-sdk-group-name": [
+        "inspect"
+      ],
+      "x-fern-sdk-method-name": "version",
+      "x-ferrule-method-name": "version",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          4
+        ],
+        "path": [
+          "inspect"
+        ]
+      },
+      "x-public": true
+    },
+    "GET /v1alpha/admin/health": {
+      "x-fern-sdk-group-name": [
+        "alpha",
+        "admin"
+      ],
+      "x-fern-sdk-method-name": "health",
+      "x-ferrule-method-name": "health",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          15,
+          0
+        ],
+        "path": [
+          "alpha",
+          "admin"
+        ]
+      }
+    },
+    "GET /v1alpha/admin/inspect/routes": {
+      "x-fern-sdk-group-name": [
+        "alpha",
+        "admin"
+      ],
+      "x-fern-sdk-method-name": "list_routes",
+      "x-ferrule-method-name": "list_routes",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          15,
+          0
+        ],
+        "path": [
+          "alpha",
+          "admin"
+        ]
+      }
+    },
+    "GET /v1alpha/admin/providers": {
+      "x-fern-sdk-group-name": [
+        "alpha",
+        "admin"
+      ],
+      "x-fern-sdk-method-name": "list_providers",
+      "x-ferrule-method-name": "list_providers",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          15,
+          0
+        ],
+        "path": [
+          "alpha",
+          "admin"
+        ]
+      }
+    },
+    "GET /v1alpha/admin/providers/{provider_id}": {
+      "x-fern-sdk-group-name": [
+        "alpha",
+        "admin"
+      ],
+      "x-fern-sdk-method-name": "inspect_provider",
+      "x-ferrule-method-name": "inspect_provider",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          15,
+          0
+        ],
+        "path": [
+          "alpha",
+          "admin"
+        ]
+      }
+    },
+    "GET /v1alpha/admin/version": {
+      "x-fern-sdk-group-name": [
+        "alpha",
+        "admin"
+      ],
+      "x-fern-sdk-method-name": "version",
+      "x-ferrule-method-name": "version",
+      "x-ferrule-method-order": 4,
+      "x-ferrule-resource": {
+        "order": [
+          15,
+          0
+        ],
+        "path": [
+          "alpha",
+          "admin"
+        ]
+      }
+    },
+    "POST /v1alpha/inference/rerank": {
+      "x-fern-sdk-group-name": [
+        "alpha",
+        "inference"
+      ],
+      "x-fern-sdk-method-name": "rerank",
+      "x-ferrule-method-name": "rerank",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          15,
+          1
+        ],
+        "path": [
+          "alpha",
+          "inference"
+        ]
+      }
+    },
+    "POST /v1alpha/interactions": {
+      "x-codeSamples": [
+        {
+          "label": "Google",
+          "lang": "Google",
+          "source": "from google import genai\nfrom google.genai import types\n\nclient = genai.Client(\n    api_key=\"fake\",\n    http_options=types.HttpOptions(\n        base_url=\"http://localhost:8321\",\n        api_version=\"v1alpha\",\n    ),\n)\ninteraction = client.interactions.create(\n    model=\"meta-llama/Llama-3.1-8B-Instruct\",\n    input=\"What is the capital of France?\",\n)\nprint(interaction.outputs[0].text)"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,344 @@
+{
+  "sha256": "8b3104db19518f52fc3a80e4f6e9a44a88bb8931c51d3bd9de9008a3d5e5a7e5",
+  "root": {
+    "x-ferrule-client": {
+      "defaultEnvironment": "production",
+      "defaultHeaders": {},
+      "envPrefix": "LUMAAI",
+      "environments": [
+        {
+          "name": "production",
+          "url": "https://api.lumalabs.ai/dream-machine/v1"
+        }
+      ],
+      "name": "lumaai",
+      "omitPlatformHeaders": false,
+      "opts": [
+        {
+          "auth": {
+            "role": "value",
+            "securityScheme": "BearerAuth"
+          },
+          "name": "auth_token",
+          "nullable": false,
+          "readEnv": "LUMAAI_API_KEY",
+          "type": "string"
+        }
+      ],
+      "query": {
+        "arrayFormat": "comma",
+        "nestedFormat": "brackets"
+      },
+      "retries": {
+        "initialDelaySeconds": 0.5,
+        "maxDelaySeconds": 8,
+        "maxRetries": 2
+      },
+      "security": [
+        {
+          "BearerAuth": []
+        }
+      ],
+      "securitySchemes": {
+        "BearerAuth": {
+          "scheme": "bearer",
+          "type": "http"
+        }
+      },
+      "timeoutSeconds": 60
+    },
+    "x-ferrule-config": {
+      "edition": "2025-10-08",
+      "packageName": "lumaai",
+      "projectName": "lumaai",
+      "pythonEdition": "python.2025-10-08",
+      "version": 1
+    }
+  },
+  "mirrored": {
+    "x-ferrule-client": {
+      "defaultEnvironment": "production",
+      "defaultHeaders": {},
+      "envPrefix": "LUMAAI",
+      "environments": [
+        {
+          "name": "production",
+          "url": "https://api.lumalabs.ai/dream-machine/v1"
+        }
+      ],
+      "name": "lumaai",
+      "omitPlatformHeaders": false,
+      "opts": [
+        {
+          "auth": {
+            "role": "value",
+            "securityScheme": "BearerAuth"
+          },
+          "name": "auth_token",
+          "nullable": false,
+          "readEnv": "LUMAAI_API_KEY",
+          "type": "string"
+        }
+      ],
+      "query": {
+        "arrayFormat": "comma",
+        "nestedFormat": "brackets"
+      },
+      "retries": {
+        "initialDelaySeconds": 0.5,
+        "maxDelaySeconds": 8,
+        "maxRetries": 2
+      },
+      "security": [
+        {
+          "BearerAuth": []
+        }
+      ],
+      "securitySchemes": {
+        "BearerAuth": {
+          "scheme": "bearer",
+          "type": "http"
+        }
+      },
+      "timeoutSeconds": 60
+    },
+    "x-ferrule-models": {
+      "Generation": {
+        "module": "generation",
+        "name": "Generation"
+      }
+    },
+    "x-ferrule-package": {
+      "name": "lumaai",
+      "repo": "lumalabs/lumaai-python"
+    }
+  },
+  "operations": {
+    "GET /credits": {
+      "x-fern-sdk-group-name": [
+        "credits"
+      ],
+      "x-fern-sdk-method-name": "get",
+      "x-ferrule-method-name": "get",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          2
+        ],
+        "path": [
+          "credits"
+        ]
+      }
+    },
+    "GET /generations": {
+      "x-fern-sdk-group-name": [
+        "generations"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          0
+        ],
+        "path": [
+          "generations"
+        ]
+      }
+    },
+    "GET /generations/concepts/list": {
+      "x-fern-sdk-group-name": [
+        "generations",
+        "concepts"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          0,
+          0
+        ],
+        "path": [
+          "generations",
+          "concepts"
+        ]
+      }
+    },
+    "POST /generations/image": {
+      "x-fern-sdk-group-name": [
+        "generations",
+        "image"
+      ],
+      "x-fern-sdk-method-name": "create",
+      "x-ferrule-method-name": "create",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          0,
+          1
+        ],
+        "path": [
+          "generations",
+          "image"
+        ]
+      }
+    },
+    "POST /generations/image/reframe": {
+      "x-fern-sdk-group-name": [
+        "generations",
+        "image"
+      ],
+      "x-fern-sdk-method-name": "reframe",
+      "x-ferrule-method-name": "reframe",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          0,
+          1
+        ],
+        "path": [
+          "generations",
+          "image"
+        ]
+      }
+    },
+    "POST /generations/video": {
+      "x-fern-sdk-group-name": [
+        "generations",
+        "video"
+      ],
+      "x-fern-sdk-method-name": "create",
+      "x-ferrule-method-name": "create",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          0,
+          2
+        ],
+        "path": [
+          "generations",
+          "video"
+        ]
+      }
+    },
+    "POST /generations/video/modify": {
+      "x-fern-sdk-group-name": [
+        "generations",
+        "video"
+      ],
+      "x-fern-sdk-method-name": "modify",
+      "x-ferrule-method-name": "modify",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          0,
+          2
+        ],
+        "path": [
+          "generations",
+          "video"
+        ]
+      }
+    },
+    "POST /generations/video/reframe": {
+      "x-fern-sdk-group-name": [
+        "generations",
+        "video"
+      ],
+      "x-fern-sdk-method-name": "reframe",
+      "x-ferrule-method-name": "reframe",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          0,
+          2
+        ],
+        "path": [
+          "generations",
+          "video"
+        ]
+      }
+    },
+    "DELETE /generations/{id}": {
+      "x-fern-sdk-group-name": [
+        "generations"
+      ],
+      "x-fern-sdk-method-name": "delete",
+      "x-ferrule-method-name": "delete",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          0
+        ],
+        "path": [
+          "generations"
+        ]
+      }
+    },
+    "GET /generations/{id}": {
+      "x-fern-sdk-group-name": [
+        "generations"
+      ],
+      "x-fern-sdk-method-name": "get",
+      "x-ferrule-method-name": "get",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          0
+        ],
+        "path": [
+          "generations"
+        ]
+      }
+    },
+    "POST /generations/{id}/audio": {
+      "x-fern-sdk-group-name": [
+        "generations"
+      ],
+      "x-fern-sdk-method-name": "audio",
+      "x-ferrule-method-name": "audio",
+      "x-ferrule-method-order": 5,
+      "x-ferrule-resource": {
+        "order": [
+          0
+        ],
+        "path": [
+          "generations"
+        ]
+      }
+    },
+    "POST /generations/{id}/upscale": {
+      "x-fern-sdk-group-name": [
+        "generations"
+      ],
+      "x-fern-sdk-method-name": "upscale",
+      "x-ferrule-method-name": "upscale",
+      "x-ferrule-method-order": 4,
+      "x-ferrule-resource": {
+        "order": [
+          0
+        ],
+        "path": [
+          "generations"
+        ]
+      }
+    },
+    "GET /ping": {
+      "x-fern-sdk-group-name": [
+        "ping"
+      ],
+      "x-fern-sdk-method-name": "check",
+      "x-ferrule-method-name": "check",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          1
+        ],
+        "path": [
+          "ping"
+        ]
+      }
+    }
+  }
+}

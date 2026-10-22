@@ -1,0 +1,278 @@
+{
+  "sha256": "8189eb088ba35d3123cda2113f5edc3045f40ef299e406f3630347664f5bb8fe",
+  "root": {
+    "x-ferrule-client": {
+      "defaultEnvironment": "production",
+      "defaultHeaders": {},
+      "envPrefix": "ISAACUS",
+      "environments": [
+        {
+          "name": "production",
+          "url": "https://api.isaacus.com/v1"
+        }
+      ],
+      "name": "isaacus",
+      "omitPlatformHeaders": false,
+      "opts": [
+        {
+          "auth": {
+            "role": "value",
+            "securityScheme": "APIKeyBearerTokenAuth"
+          },
+          "description": "An Isaacus-issued API key passed as a bearer token via the `Authorization` header.",
+          "name": "api_key",
+          "nullable": false,
+          "readEnv": "ISAACUS_API_KEY",
+          "type": "string"
+        }
+      ],
+      "query": {
+        "arrayFormat": "comma",
+        "nestedFormat": "brackets"
+      },
+      "retries": {
+        "initialDelaySeconds": 0.5,
+        "maxDelaySeconds": 8,
+        "maxRetries": 2
+      },
+      "security": [
+        {
+          "APIKeyBearerTokenAuth": []
+        }
+      ],
+      "securitySchemes": {
+        "APIKeyBearerTokenAuth": {
+          "scheme": "bearer",
+          "type": "http"
+        }
+      },
+      "timeoutSeconds": 60
+    },
+    "x-ferrule-config": {
+      "edition": "2025-10-08",
+      "packageName": "isaacus",
+      "projectName": "isaacus",
+      "pythonEdition": "python.2025-10-08",
+      "version": 1
+    }
+  },
+  "mirrored": {
+    "x-ferrule-client": {
+      "defaultEnvironment": "production",
+      "defaultHeaders": {},
+      "envPrefix": "ISAACUS",
+      "environments": [
+        {
+          "name": "production",
+          "url": "https://api.isaacus.com/v1"
+        }
+      ],
+      "name": "isaacus",
+      "omitPlatformHeaders": false,
+      "opts": [
+        {
+          "auth": {
+            "role": "value",
+            "securityScheme": "APIKeyBearerTokenAuth"
+          },
+          "description": "An Isaacus-issued API key passed as a bearer token via the `Authorization` header.",
+          "name": "api_key",
+          "nullable": false,
+          "readEnv": "ISAACUS_API_KEY",
+          "type": "string"
+        }
+      ],
+      "query": {
+        "arrayFormat": "comma",
+        "nestedFormat": "brackets"
+      },
+      "retries": {
+        "initialDelaySeconds": 0.5,
+        "maxDelaySeconds": 8,
+        "maxRetries": 2
+      },
+      "security": [
+        {
+          "APIKeyBearerTokenAuth": []
+        }
+      ],
+      "securitySchemes": {
+        "APIKeyBearerTokenAuth": {
+          "scheme": "bearer",
+          "type": "http"
+        }
+      },
+      "timeoutSeconds": 60
+    },
+    "x-ferrule-models": {
+      "AnswerExtractionResponse": {
+        "module": "extractions.answer_extraction_response",
+        "name": "AnswerExtractionResponse"
+      },
+      "EmbeddingResponse": {
+        "module": "embedding_response",
+        "name": "EmbeddingResponse"
+      },
+      "EnrichmentResponse": {
+        "module": "enrichment_response",
+        "name": "EnrichmentResponse"
+      },
+      "ILGSv1 Crossreference": {
+        "module": "ilgs.crossreference",
+        "name": "Crossreference"
+      },
+      "ILGSv1 Date": {
+        "module": "ilgs.date",
+        "name": "Date"
+      },
+      "ILGSv1 Email": {
+        "module": "ilgs.email",
+        "name": "Email"
+      },
+      "ILGSv1 External Document": {
+        "module": "ilgs.external_document",
+        "name": "ExternalDocument"
+      },
+      "ILGSv1 ID Number": {
+        "module": "ilgs.id_number",
+        "name": "IdNumber"
+      },
+      "ILGSv1 Location": {
+        "module": "ilgs.location",
+        "name": "Location"
+      },
+      "ILGSv1 Person": {
+        "module": "ilgs.person",
+        "name": "Person"
+      },
+      "ILGSv1 Phone Number": {
+        "module": "ilgs.phone_number",
+        "name": "PhoneNumber"
+      },
+      "ILGSv1 Quote": {
+        "module": "ilgs.quote",
+        "name": "Quote"
+      },
+      "ILGSv1 Segment": {
+        "module": "ilgs.segment",
+        "name": "Segment"
+      },
+      "ILGSv1 Span": {
+        "module": "ilgs.span",
+        "name": "Span"
+      },
+      "ILGSv1 Term": {
+        "module": "ilgs.term",
+        "name": "Term"
+      },
+      "ILGSv1 Website": {
+        "module": "ilgs.website",
+        "name": "Website"
+      },
+      "ILGSv1Document": {
+        "module": "ilgs.document",
+        "name": "Document"
+      },
+      "RerankingResponse": {
+        "module": "reranking_response",
+        "name": "RerankingResponse"
+      },
+      "UniversalClassificationResponse": {
+        "module": "classifications.universal_classification_response",
+        "name": "UniversalClassificationResponse"
+      }
+    },
+    "x-ferrule-package": {
+      "name": "isaacus",
+      "repo": "isaacus-dev/isaacus-python"
+    }
+  },
+  "operations": {
+    "POST /classifications/universal": {
+      "x-fern-sdk-group-name": [
+        "classifications",
+        "universal"
+      ],
+      "x-fern-sdk-method-name": "create",
+      "x-ferrule-method-name": "create",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          1,
+          0
+        ],
+        "path": [
+          "classifications",
+          "universal"
+        ]
+      }
+    },
+    "POST /embeddings": {
+      "x-fern-sdk-group-name": [
+        "embeddings"
+      ],
+      "x-fern-sdk-method-name": "create",
+      "x-ferrule-method-name": "create",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          0
+        ],
+        "path": [
+          "embeddings"
+        ]
+      }
+    },
+    "POST /enrichments": {
+      "x-fern-sdk-group-name": [
+        "enrichments"
+      ],
+      "x-fern-sdk-method-name": "create",
+      "x-ferrule-method-name": "create",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          4
+        ],
+        "path": [
+          "enrichments"
+        ]
+      }
+    },
+    "POST /extractions/qa": {
+      "x-fern-sdk-group-name": [
+        "extractions",
+        "qa"
+      ],
+      "x-fern-sdk-method-name": "create",
+      "x-ferrule-method-name": "create",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          3,
+          0
+        ],
+        "path": [
+          "extractions",
+          "qa"
+        ]
+      }
+    },
+    "POST /rerankings": {
+      "x-fern-sdk-group-name": [
+        "rerankings"
+      ],
+      "x-fern-sdk-method-name": "create",
+      "x-ferrule-method-name": "create",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          2
+        ],
+        "path": [
+          "rerankings"
+        ]
+      }
+    }
+  }
+}

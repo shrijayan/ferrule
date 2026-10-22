@@ -1,0 +1,570 @@
+{
+  "sha256": "7fdebc3a8d9b28d4299a3f26c6200d20f6044b8d3d1b9ab56672998e7df3052b",
+  "root": {
+    "x-ferrule-client": {
+      "defaultEnvironment": "production",
+      "defaultHeaders": {},
+      "envPrefix": "PAPR",
+      "environments": [
+        {
+          "name": "production",
+          "url": "https://memory.papr.ai"
+        }
+      ],
+      "name": "Papr",
+      "omitPlatformHeaders": false,
+      "opts": [
+        {
+          "auth": {
+            "role": "value",
+            "securityScheme": "X-API-Key"
+          },
+          "name": "api_key",
+          "nullable": false,
+          "readEnv": "PAPR_MEMORY_API_KEY",
+          "type": "string"
+        },
+        {
+          "auth": {
+            "role": "value",
+            "securityScheme": "X-Session-Token"
+          },
+          "name": "X-Session-Token",
+          "nullable": true,
+          "readEnv": "PAPR_MEMORY_Session_Token",
+          "type": "string"
+        },
+        {
+          "auth": {
+            "role": "value",
+            "securityScheme": "Bearer"
+          },
+          "name": "bearer_token",
+          "nullable": true,
+          "readEnv": "PAPR_MEMORY_BEARER_TOKEN",
+          "type": "string"
+        }
+      ],
+      "query": {
+        "arrayFormat": "comma",
+        "nestedFormat": "brackets"
+      },
+      "retries": {
+        "initialDelaySeconds": 0.5,
+        "maxDelaySeconds": 8,
+        "maxRetries": 2
+      },
+      "security": [
+        {
+          "X-API-Key": []
+        },
+        {
+          "X-Session-Token": []
+        },
+        {
+          "Bearer": []
+        }
+      ],
+      "securitySchemes": {
+        "Bearer": {
+          "scheme": "bearer",
+          "type": "http"
+        },
+        "OAuth2": {
+          "flows": {
+            "authorizationCode": {
+              "authorizationUrl": "http://localhost:8000/login",
+              "refreshUrl": "http://localhost:8000/token",
+              "scopes": {
+                "email": "Email access",
+                "offline_access": "Offline access",
+                "openid": "OpenID",
+                "profile": "Profile access"
+              },
+              "tokenUrl": "http://localhost:8000/token"
+            }
+          },
+          "type": "oauth2"
+        },
+        "X-API-Key": {
+          "in": "header",
+          "name": "X-API-Key",
+          "type": "apiKey"
+        },
+        "X-Session-Token": {
+          "in": "header",
+          "name": "X-Session-Token",
+          "type": "apiKey"
+        }
+      },
+      "timeoutSeconds": 60
+    },
+    "x-ferrule-config": {
+      "edition": "2025-10-08",
+      "packageName": "papr_memory",
+      "projectName": "papr_memory",
+      "pythonEdition": "python.2025-10-08",
+      "version": 1
+    }
+  },
+  "mirrored": {
+    "x-ferrule-client": {
+      "defaultEnvironment": "production",
+      "defaultHeaders": {},
+      "envPrefix": "PAPR",
+      "environments": [
+        {
+          "name": "production",
+          "url": "https://memory.papr.ai"
+        }
+      ],
+      "name": "Papr",
+      "omitPlatformHeaders": false,
+      "opts": [
+        {
+          "auth": {
+            "role": "value",
+            "securityScheme": "X-API-Key"
+          },
+          "name": "api_key",
+          "nullable": false,
+          "readEnv": "PAPR_MEMORY_API_KEY",
+          "type": "string"
+        },
+        {
+          "auth": {
+            "role": "value",
+            "securityScheme": "X-Session-Token"
+          },
+          "name": "X-Session-Token",
+          "nullable": true,
+          "readEnv": "PAPR_MEMORY_Session_Token",
+          "type": "string"
+        },
+        {
+          "auth": {
+            "role": "value",
+            "securityScheme": "Bearer"
+          },
+          "name": "bearer_token",
+          "nullable": true,
+          "readEnv": "PAPR_MEMORY_BEARER_TOKEN",
+          "type": "string"
+        }
+      ],
+      "query": {
+        "arrayFormat": "comma",
+        "nestedFormat": "brackets"
+      },
+      "retries": {
+        "initialDelaySeconds": 0.5,
+        "maxDelaySeconds": 8,
+        "maxRetries": 2
+      },
+      "security": [
+        {
+          "X-API-Key": []
+        },
+        {
+          "X-Session-Token": []
+        },
+        {
+          "Bearer": []
+        }
+      ],
+      "securitySchemes": {
+        "Bearer": {
+          "scheme": "bearer",
+          "type": "http"
+        },
+        "OAuth2": {
+          "flows": {
+            "authorizationCode": {
+              "authorizationUrl": "http://localhost:8000/login",
+              "refreshUrl": "http://localhost:8000/token",
+              "scopes": {
+                "email": "Email access",
+                "offline_access": "Offline access",
+                "openid": "OpenID",
+                "profile": "Profile access"
+              },
+              "tokenUrl": "http://localhost:8000/token"
+            }
+          },
+          "type": "oauth2"
+        },
+        "X-API-Key": {
+          "in": "header",
+          "name": "X-API-Key",
+          "type": "apiKey"
+        },
+        "X-Session-Token": {
+          "in": "header",
+          "name": "X-Session-Token",
+          "type": "apiKey"
+        }
+      },
+      "timeoutSeconds": 60
+    },
+    "x-ferrule-models": {
+      "AddMemoryRequest": {
+        "module": "add_memory",
+        "name": "AddMemory"
+      },
+      "AddMemoryResponse": {
+        "module": "add_memory_response",
+        "name": "AddMemoryResponse"
+      },
+      "BatchFeedbackRequest": {
+        "module": "batch_request",
+        "name": "BatchRequest"
+      },
+      "BatchFeedbackResponse": {
+        "module": "batch_response",
+        "name": "BatchResponse"
+      },
+      "ContextItem": {
+        "module": "context_item",
+        "name": "ContextItem"
+      },
+      "FeedbackRequest": {
+        "module": "feedback_request",
+        "name": "FeedbackRequest"
+      },
+      "FeedbackResponse": {
+        "module": "feedback_response",
+        "name": "FeedbackResponse"
+      },
+      "MemoryMetadata": {
+        "module": "memory_metadata",
+        "name": "MemoryMetadata"
+      },
+      "MemoryType": {
+        "module": "memory_type",
+        "name": "MemoryType"
+      },
+      "RelationshipItem": {
+        "module": "relationship_item",
+        "name": "RelationshipItem"
+      },
+      "SearchResponse": {
+        "module": "search_response",
+        "name": "SearchResponse"
+      },
+      "UserResponse": {
+        "module": "user_response",
+        "name": "UserResponse"
+      },
+      "UserType": {
+        "module": "user_type",
+        "name": "UserType"
+      }
+    },
+    "x-ferrule-package": {
+      "name": "papr_memory",
+      "repo": "Papr-ai/papr-pythonSDK"
+    }
+  },
+  "operations": {
+    "POST /v1/feedback": {
+      "x-fern-sdk-group-name": [
+        "feedback"
+      ],
+      "x-fern-sdk-method-name": "submit",
+      "x-ferrule-method-name": "submit",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          2
+        ],
+        "path": [
+          "feedback"
+        ]
+      },
+      "x-openai-isConsequential": false
+    },
+    "POST /v1/feedback/batch": {
+      "x-fern-sdk-group-name": [
+        "feedback"
+      ],
+      "x-fern-sdk-method-name": "submitBatch",
+      "x-ferrule-method-name": "submitBatch",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          2
+        ],
+        "path": [
+          "feedback"
+        ]
+      },
+      "x-openai-isConsequential": false
+    },
+    "GET /v1/feedback/{feedback_id}": {
+      "x-fern-sdk-group-name": [
+        "feedback"
+      ],
+      "x-fern-sdk-method-name": "getById",
+      "x-ferrule-method-name": "getById",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          2
+        ],
+        "path": [
+          "feedback"
+        ]
+      },
+      "x-openai-isConsequential": false
+    },
+    "POST /v1/memory": {
+      "x-fern-sdk-group-name": [
+        "memory"
+      ],
+      "x-fern-sdk-method-name": "add",
+      "x-ferrule-method-name": "add",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          1
+        ],
+        "path": [
+          "memory"
+        ]
+      },
+      "x-openai-isConsequential": false
+    },
+    "DELETE /v1/memory/all": {
+      "x-openai-isConsequential": true
+    },
+    "POST /v1/memory/batch": {
+      "x-fern-sdk-group-name": [
+        "memory"
+      ],
+      "x-fern-sdk-method-name": "add_batch",
+      "x-ferrule-method-name": "add_batch",
+      "x-ferrule-method-order": 4,
+      "x-ferrule-resource": {
+        "order": [
+          1
+        ],
+        "path": [
+          "memory"
+        ]
+      },
+      "x-openai-isConsequential": false
+    },
+    "POST /v1/memory/search": {
+      "x-fern-sdk-group-name": [
+        "memory"
+      ],
+      "x-fern-sdk-method-name": "search",
+      "x-ferrule-method-name": "search",
+      "x-ferrule-method-order": 5,
+      "x-ferrule-resource": {
+        "order": [
+          1
+        ],
+        "path": [
+          "memory"
+        ]
+      },
+      "x-openai-isConsequential": false
+    },
+    "DELETE /v1/memory/{memory_id}": {
+      "x-fern-sdk-group-name": [
+        "memory"
+      ],
+      "x-fern-sdk-method-name": "delete",
+      "x-ferrule-method-name": "delete",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          1
+        ],
+        "path": [
+          "memory"
+        ]
+      },
+      "x-openai-isConsequential": true
+    },
+    "GET /v1/memory/{memory_id}": {
+      "x-fern-sdk-group-name": [
+        "memory"
+      ],
+      "x-fern-sdk-method-name": "get",
+      "x-ferrule-method-name": "get",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          1
+        ],
+        "path": [
+          "memory"
+        ]
+      },
+      "x-openai-isConsequential": false
+    },
+    "PUT /v1/memory/{memory_id}": {
+      "x-fern-sdk-group-name": [
+        "memory"
+      ],
+      "x-fern-sdk-method-name": "update",
+      "x-ferrule-method-name": "update",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          1
+        ],
+        "path": [
+          "memory"
+        ]
+      },
+      "x-openai-isConsequential": true
+    },
+    "GET /v1/schemas": {
+      "x-openai-isConsequential": false
+    },
+    "POST /v1/schemas": {
+      "x-openai-isConsequential": false
+    },
+    "DELETE /v1/schemas/{schema_id}": {
+      "x-openai-isConsequential": false
+    },
+    "GET /v1/schemas/{schema_id}": {
+      "x-openai-isConsequential": false
+    },
+    "PUT /v1/schemas/{schema_id}": {
+      "x-openai-isConsequential": false
+    },
+    "POST /v1/schemas/{schema_id}/activate": {
+      "x-openai-isConsequential": false
+    },
+    "GET /v1/user": {
+      "x-fern-sdk-group-name": [
+        "user"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          0
+        ],
+        "path": [
+          "user"
+        ]
+      },
+      "x-operation-description": "List users for a developer",
+      "x-operation-name": "list_users",
+      "x-operation-tags": [
+        "User"
+      ]
+    },
+    "POST /v1/user": {
+      "x-fern-sdk-group-name": [
+        "user"
+      ],
+      "x-fern-sdk-method-name": "create",
+      "x-ferrule-method-name": "create",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          0
+        ],
+        "path": [
+          "user"
+        ]
+      },
+      "x-operation-description": "Create a new user or link existing user to developer",
+      "x-operation-name": "create_user",
+      "x-operation-tags": [
+        "User"
+      ]
+    },
+    "POST /v1/user/batch": {
+      "x-fern-sdk-group-name": [
+        "user"
+      ],
+      "x-fern-sdk-method-name": "create_batch",
+      "x-ferrule-method-name": "create_batch",
+      "x-ferrule-method-order": 5,
+      "x-ferrule-resource": {
+        "order": [
+          0
+        ],
+        "path": [
+          "user"
+        ]
+      },
+      "x-operation-description": "Create multiple users or link existing users to developer, and add each to the developer's workspace (if one exists).",
+      "x-operation-name": "create_user_batch",
+      "x-operation-tags": [
+        "User"
+      ]
+    },
+    "DELETE /v1/user/{user_id}": {
+      "x-fern-sdk-group-name": [
+        "user"
+      ],
+      "x-fern-sdk-method-name": "delete",
+      "x-ferrule-method-name": "delete",
+      "x-ferrule-method-order": 4,
+      "x-ferrule-resource": {
+        "order": [
+          0
+        ],
+        "path": [
+          "user"
+        ]
+      },
+      "x-operation-description": "Delete user association with developer and the user itself by , assume external user_id is provided, and resolve to internal user_id (_User.objectId)",
+      "x-operation-name": "delete_user",
+      "x-operation-tags": [
+        "User"
+      ]
+    },
+    "GET /v1/user/{user_id}": {
+      "x-fern-sdk-group-name": [
+        "user"
+      ],
+      "x-fern-sdk-method-name": "get",
+      "x-ferrule-method-name": "get",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          0
+        ],
+        "path": [
+          "user"
+        ]
+      },
+      "x-operation-description": "Get user details by user_id (_User.objectId) and developer association",
+      "x-operation-name": "get_user",
+      "x-operation-tags": [
+        "User"
+      ]
+    },
+    "PUT /v1/user/{user_id}": {
+      "x-fern-sdk-group-name": [
+        "user"
+      ],
+      "x-fern-sdk-method-name": "update",
+      "x-ferrule-method-name": "update",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          0
+        ],
+        "path": [
+          "user"
+        ]
+      },
+      "x-operation-description": "Update user details by user_id (_User.objectId) and developer association",
+      "x-operation-name": "update_user",
+      "x-operation-tags": [
+        "User"
+      ]
+    }
+  }
+}

@@ -1,0 +1,456 @@
+{
+  "sha256": "861e0a35b7c7266bb082a3f960c1317d5cea6ace44ddeed83924bd2e3dd174d6",
+  "root": {
+    "x-ferrule-client": {
+      "defaultEnvironment": "production",
+      "defaultHeaders": {},
+      "envPrefix": "STAGEHAND",
+      "environments": [
+        {
+          "name": "production",
+          "url": "https://api.stagehand.browserbase.com"
+        }
+      ],
+      "name": "stagehand",
+      "omitPlatformHeaders": false,
+      "opts": [
+        {
+          "auth": {
+            "role": "value",
+            "securityScheme": "BBApiKeyAuth"
+          },
+          "description": "Your [Browserbase API Key](https://www.browserbase.com/settings)",
+          "name": "BROWSERBASE_API_KEY",
+          "nullable": false,
+          "readEnv": "BROWSERBASE_API_KEY",
+          "type": "string"
+        },
+        {
+          "auth": {
+            "role": "value",
+            "securityScheme": "BBProjectIdAuth"
+          },
+          "description": "Deprecated. Browserbase API keys are now project-scoped, so this value is no longer required.",
+          "name": "BROWSERBASE_PROJECT_ID",
+          "nullable": true,
+          "readEnv": "BROWSERBASE_PROJECT_ID",
+          "type": "string"
+        },
+        {
+          "auth": {
+            "role": "value",
+            "securityScheme": "LLMModelApiKeyAuth"
+          },
+          "description": "Your LLM provider API key (e.g. OPENAI_API_KEY, ANTHROPIC_API_KEY, etc.)",
+          "name": "MODEL_API_KEY",
+          "nullable": false,
+          "readEnv": "MODEL_API_KEY",
+          "type": "string"
+        }
+      ],
+      "query": {
+        "arrayFormat": "comma",
+        "nestedFormat": "brackets"
+      },
+      "retries": {
+        "initialDelaySeconds": 0.5,
+        "maxDelaySeconds": 8,
+        "maxRetries": 2
+      },
+      "security": [
+        {
+          "BBApiKeyAuth": [],
+          "BBProjectIdAuth": [],
+          "LLMModelApiKeyAuth": []
+        }
+      ],
+      "securitySchemes": {
+        "BBApiKeyAuth": {
+          "in": "header",
+          "name": "x-bb-api-key",
+          "type": "apiKey"
+        },
+        "BBProjectIdAuth": {
+          "in": "header",
+          "name": "x-bb-project-id",
+          "type": "apiKey"
+        },
+        "BrowserbaseApiKey": {
+          "in": "header",
+          "name": "x-bb-api-key",
+          "type": "apiKey"
+        },
+        "BrowserbaseProjectId": {
+          "in": "header",
+          "name": "x-bb-project-id",
+          "type": "apiKey"
+        },
+        "LLMModelApiKeyAuth": {
+          "in": "header",
+          "name": "x-model-api-key",
+          "type": "apiKey"
+        },
+        "ModelApiKey": {
+          "in": "header",
+          "name": "x-model-api-key",
+          "type": "apiKey"
+        }
+      },
+      "timeoutSeconds": 60
+    },
+    "x-ferrule-config": {
+      "edition": "2025-10-10",
+      "packageName": "stagehand",
+      "projectName": "stagehand",
+      "pythonEdition": "python.2025-11-20",
+      "version": 1
+    }
+  },
+  "mirrored": {
+    "x-ferrule-client": {
+      "defaultEnvironment": "production",
+      "defaultHeaders": {},
+      "envPrefix": "STAGEHAND",
+      "environments": [
+        {
+          "name": "production",
+          "url": "https://api.stagehand.browserbase.com"
+        }
+      ],
+      "name": "stagehand",
+      "omitPlatformHeaders": false,
+      "opts": [
+        {
+          "auth": {
+            "role": "value",
+            "securityScheme": "BBApiKeyAuth"
+          },
+          "description": "Your [Browserbase API Key](https://www.browserbase.com/settings)",
+          "name": "BROWSERBASE_API_KEY",
+          "nullable": false,
+          "readEnv": "BROWSERBASE_API_KEY",
+          "type": "string"
+        },
+        {
+          "auth": {
+            "role": "value",
+            "securityScheme": "BBProjectIdAuth"
+          },
+          "description": "Deprecated. Browserbase API keys are now project-scoped, so this value is no longer required.",
+          "name": "BROWSERBASE_PROJECT_ID",
+          "nullable": true,
+          "readEnv": "BROWSERBASE_PROJECT_ID",
+          "type": "string"
+        },
+        {
+          "auth": {
+            "role": "value",
+            "securityScheme": "LLMModelApiKeyAuth"
+          },
+          "description": "Your LLM provider API key (e.g. OPENAI_API_KEY, ANTHROPIC_API_KEY, etc.)",
+          "name": "MODEL_API_KEY",
+          "nullable": false,
+          "readEnv": "MODEL_API_KEY",
+          "type": "string"
+        }
+      ],
+      "query": {
+        "arrayFormat": "comma",
+        "nestedFormat": "brackets"
+      },
+      "retries": {
+        "initialDelaySeconds": 0.5,
+        "maxDelaySeconds": 8,
+        "maxRetries": 2
+      },
+      "security": [
+        {
+          "BBApiKeyAuth": [],
+          "BBProjectIdAuth": [],
+          "LLMModelApiKeyAuth": []
+        }
+      ],
+      "securitySchemes": {
+        "BBApiKeyAuth": {
+          "in": "header",
+          "name": "x-bb-api-key",
+          "type": "apiKey"
+        },
+        "BBProjectIdAuth": {
+          "in": "header",
+          "name": "x-bb-project-id",
+          "type": "apiKey"
+        },
+        "BrowserbaseApiKey": {
+          "in": "header",
+          "name": "x-bb-api-key",
+          "type": "apiKey"
+        },
+        "BrowserbaseProjectId": {
+          "in": "header",
+          "name": "x-bb-project-id",
+          "type": "apiKey"
+        },
+        "LLMModelApiKeyAuth": {
+          "in": "header",
+          "name": "x-model-api-key",
+          "type": "apiKey"
+        },
+        "ModelApiKey": {
+          "in": "header",
+          "name": "x-model-api-key",
+          "type": "apiKey"
+        }
+      },
+      "timeoutSeconds": 60
+    },
+    "x-ferrule-models": {
+      "Action": {
+        "module": "action",
+        "name": "Action"
+      },
+      "ModelConfig": {
+        "module": "model_config",
+        "name": "ModelConfig"
+      },
+      "StreamEvent": {
+        "module": "stream_event",
+        "name": "StreamEvent"
+      }
+    },
+    "x-ferrule-package": {
+      "name": "stagehand",
+      "repo": "browserbase/stagehand-python"
+    }
+  },
+  "operations": {
+    "POST /v1/sessions/start": {
+      "x-fern-sdk-group-name": [
+        "sessions"
+      ],
+      "x-fern-sdk-method-name": "start",
+      "x-ferrule-method-name": "start",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          0
+        ],
+        "path": [
+          "sessions"
+        ]
+      }
+    },
+    "POST /v1/sessions/{id}/act": {
+      "x-fern-sdk-group-name": [
+        "sessions"
+      ],
+      "x-fern-sdk-method-name": "act",
+      "x-ferrule-method-name": "act",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          0
+        ],
+        "path": [
+          "sessions"
+        ]
+      },
+      "x-ferrule-streaming": {
+        "eventModel": "sessions.stream_event",
+        "eventSchema": "StreamEvent",
+        "format": "sse",
+        "onEvent": [
+          {
+            "eventType": "error",
+            "handle": "error",
+            "kind": "event"
+          },
+          {
+            "eventType": [
+              "starting",
+              "connected",
+              "running",
+              "finished"
+            ],
+            "handle": "yield",
+            "kind": "event"
+          }
+        ],
+        "paramDiscriminator": "streamResponse",
+        "paramsTypeName": "streamResponse",
+        "synthesizeEventAndData": false
+      }
+    },
+    "POST /v1/sessions/{id}/agentExecute": {
+      "x-fern-sdk-group-name": [
+        "sessions"
+      ],
+      "x-fern-sdk-method-name": "execute",
+      "x-ferrule-method-name": "execute",
+      "x-ferrule-method-order": 4,
+      "x-ferrule-resource": {
+        "order": [
+          0
+        ],
+        "path": [
+          "sessions"
+        ]
+      },
+      "x-ferrule-streaming": {
+        "eventModel": "sessions.stream_event",
+        "eventSchema": "StreamEvent",
+        "format": "sse",
+        "onEvent": [
+          {
+            "eventType": "error",
+            "handle": "error",
+            "kind": "event"
+          },
+          {
+            "eventType": [
+              "starting",
+              "connected",
+              "running",
+              "finished"
+            ],
+            "handle": "yield",
+            "kind": "event"
+          }
+        ],
+        "paramDiscriminator": "streamResponse",
+        "paramsTypeName": "streamResponse",
+        "synthesizeEventAndData": false
+      }
+    },
+    "POST /v1/sessions/{id}/end": {
+      "x-fern-sdk-group-name": [
+        "sessions"
+      ],
+      "x-fern-sdk-method-name": "end",
+      "x-ferrule-method-name": "end",
+      "x-ferrule-method-order": 7,
+      "x-ferrule-resource": {
+        "order": [
+          0
+        ],
+        "path": [
+          "sessions"
+        ]
+      }
+    },
+    "POST /v1/sessions/{id}/extract": {
+      "x-fern-sdk-group-name": [
+        "sessions"
+      ],
+      "x-fern-sdk-method-name": "extract",
+      "x-ferrule-method-name": "extract",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          0
+        ],
+        "path": [
+          "sessions"
+        ]
+      },
+      "x-ferrule-streaming": {
+        "eventModel": "sessions.stream_event",
+        "eventSchema": "StreamEvent",
+        "format": "sse",
+        "onEvent": [
+          {
+            "eventType": "error",
+            "handle": "error",
+            "kind": "event"
+          },
+          {
+            "eventType": [
+              "starting",
+              "connected",
+              "running",
+              "finished"
+            ],
+            "handle": "yield",
+            "kind": "event"
+          }
+        ],
+        "paramDiscriminator": "streamResponse",
+        "paramsTypeName": "streamResponse",
+        "synthesizeEventAndData": false
+      }
+    },
+    "POST /v1/sessions/{id}/navigate": {
+      "x-fern-sdk-group-name": [
+        "sessions"
+      ],
+      "x-fern-sdk-method-name": "navigate",
+      "x-ferrule-method-name": "navigate",
+      "x-ferrule-method-order": 5,
+      "x-ferrule-resource": {
+        "order": [
+          0
+        ],
+        "path": [
+          "sessions"
+        ]
+      }
+    },
+    "POST /v1/sessions/{id}/observe": {
+      "x-fern-sdk-group-name": [
+        "sessions"
+      ],
+      "x-fern-sdk-method-name": "observe",
+      "x-ferrule-method-name": "observe",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          0
+        ],
+        "path": [
+          "sessions"
+        ]
+      },
+      "x-ferrule-streaming": {
+        "eventModel": "sessions.stream_event",
+        "eventSchema": "StreamEvent",
+        "format": "sse",
+        "onEvent": [
+          {
+            "eventType": "error",
+            "handle": "error",
+            "kind": "event"
+          },
+          {
+            "eventType": [
+              "starting",
+              "connected",
+              "running",
+              "finished"
+            ],
+            "handle": "yield",
+            "kind": "event"
+          }
+        ],
+        "paramDiscriminator": "streamResponse",
+        "paramsTypeName": "streamResponse",
+        "synthesizeEventAndData": false
+      }
+    },
+    "GET /v1/sessions/{id}/replay": {
+      "x-fern-sdk-group-name": [
+        "sessions"
+      ],
+      "x-fern-sdk-method-name": "replay",
+      "x-ferrule-method-name": "replay",
+      "x-ferrule-method-order": 6,
+      "x-ferrule-resource": {
+        "order": [
+          0
+        ],
+        "path": [
+          "sessions"
+        ]
+      }
+    }
+  }
+}

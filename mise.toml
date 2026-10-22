@@ -57,3 +57,7 @@ run = ["pnpm --filter @ferrule/python-plugin build", "pnpm --filter @ferrule/pyt
 [tasks.spike]
 description = "Phase 1 gate: OneBusAway agencies_with_coverage through converter, Forge and plugin"
 run = "bash scripts/spike.sh"
+
+[tasks."converter:oracles"]
+description = "Phase 2 gate: convert every config oracle and compare with snapshots"
+run = "python3 -m scripts.oracles.converter_oracles"

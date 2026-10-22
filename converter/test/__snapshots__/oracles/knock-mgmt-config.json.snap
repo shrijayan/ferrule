@@ -1,0 +1,2238 @@
+{
+  "sha256": "e5cb67159caa6728d11852ccd24cfc4da207406fa7d8ba677f110718f37af059",
+  "root": {
+    "x-ferrule-client": {
+      "defaultEnvironment": "production",
+      "defaultHeaders": {},
+      "envPrefix": "KNOCK_MGMT",
+      "environments": [
+        {
+          "name": "production",
+          "url": "https://control.knock.app"
+        }
+      ],
+      "name": "knock mgmt",
+      "omitPlatformHeaders": false,
+      "opts": [
+        {
+          "auth": {
+            "role": "value",
+            "securityScheme": "BearerAuth"
+          },
+          "name": "service_token",
+          "nullable": false,
+          "readEnv": "KNOCK_SERVICE_TOKEN",
+          "type": "string"
+        }
+      ],
+      "query": {
+        "arrayFormat": "comma",
+        "nestedFormat": "brackets"
+      },
+      "retries": {
+        "initialDelaySeconds": 0.5,
+        "maxDelaySeconds": 8,
+        "maxRetries": 2
+      },
+      "security": [
+        {
+          "BearerAuth": []
+        }
+      ],
+      "securitySchemes": {
+        "BearerAuth": {
+          "scheme": "bearer",
+          "type": "http"
+        }
+      },
+      "timeoutSeconds": 60
+    },
+    "x-ferrule-config": {
+      "edition": "2025-10-08",
+      "packageName": "knock_mapi",
+      "projectName": "knock_mapi",
+      "pythonEdition": "python.2025-10-08",
+      "version": 1
+    }
+  },
+  "mirrored": {
+    "x-ferrule-client": {
+      "defaultEnvironment": "production",
+      "defaultHeaders": {},
+      "envPrefix": "KNOCK_MGMT",
+      "environments": [
+        {
+          "name": "production",
+          "url": "https://control.knock.app"
+        }
+      ],
+      "name": "knock mgmt",
+      "omitPlatformHeaders": false,
+      "opts": [
+        {
+          "auth": {
+            "role": "value",
+            "securityScheme": "BearerAuth"
+          },
+          "name": "service_token",
+          "nullable": false,
+          "readEnv": "KNOCK_SERVICE_TOKEN",
+          "type": "string"
+        }
+      ],
+      "query": {
+        "arrayFormat": "comma",
+        "nestedFormat": "brackets"
+      },
+      "retries": {
+        "initialDelaySeconds": 0.5,
+        "maxDelaySeconds": 8,
+        "maxRetries": 2
+      },
+      "security": [
+        {
+          "BearerAuth": []
+        }
+      ],
+      "securitySchemes": {
+        "BearerAuth": {
+          "scheme": "bearer",
+          "type": "http"
+        }
+      },
+      "timeoutSeconds": 60
+    },
+    "x-ferrule-models": {
+      "Audience": {
+        "module": "audience",
+        "name": "Audience"
+      },
+      "AudienceCondition": {
+        "module": "audience_condition",
+        "name": "AudienceCondition"
+      },
+      "Branch": {
+        "module": "branch",
+        "name": "Branch"
+      },
+      "Broadcast": {
+        "module": "broadcast",
+        "name": "Broadcast"
+      },
+      "BroadcastRequest": {
+        "module": "broadcast_request",
+        "name": "BroadcastRequest"
+      },
+      "Channel": {
+        "module": "channel",
+        "name": "Channel"
+      },
+      "ChannelEnvironmentSettings": {
+        "module": "channel_environment_settings",
+        "name": "ChannelEnvironmentSettings"
+      },
+      "ChannelGroup": {
+        "module": "channel_group",
+        "name": "ChannelGroup"
+      },
+      "ChannelGroupRule": {
+        "module": "channel_group_rule",
+        "name": "ChannelGroupRule"
+      },
+      "ChatChannelSettings": {
+        "module": "chat_channel_settings",
+        "name": "ChatChannelSettings"
+      },
+      "ChatTemplate": {
+        "module": "chat_template",
+        "name": "ChatTemplate"
+      },
+      "Commit": {
+        "module": "commit",
+        "name": "Commit"
+      },
+      "Condition": {
+        "module": "condition",
+        "name": "Condition"
+      },
+      "ConditionGroup": {
+        "module": "condition_group",
+        "name": "ConditionGroup"
+      },
+      "Duration": {
+        "module": "duration",
+        "name": "Duration"
+      },
+      "DynamicAudience": {
+        "module": "dynamic_audience",
+        "name": "DynamicAudience"
+      },
+      "EmailChannelSettings": {
+        "module": "email_channel_settings",
+        "name": "EmailChannelSettings"
+      },
+      "EmailLayout": {
+        "module": "email_layout",
+        "name": "EmailLayout"
+      },
+      "EmailTemplate": {
+        "module": "email_template",
+        "name": "EmailTemplate"
+      },
+      "Environment": {
+        "module": "environment",
+        "name": "Environment"
+      },
+      "Guide": {
+        "module": "guide",
+        "name": "Guide"
+      },
+      "GuideActivationUrlPattern": {
+        "module": "guide_activation_url_pattern",
+        "name": "GuideActivationUrlPattern"
+      },
+      "GuideStep": {
+        "module": "guide_step",
+        "name": "GuideStep"
+      },
+      "InAppFeedChannelSettings": {
+        "module": "in_app_feed_channel_settings",
+        "name": "InAppFeedChannelSettings"
+      },
+      "InAppFeedTemplate": {
+        "module": "in_app_feed_template",
+        "name": "InAppFeedTemplate"
+      },
+      "Member": {
+        "module": "member",
+        "name": "Member"
+      },
+      "MemberUser": {
+        "module": "member_user",
+        "name": "MemberUser"
+      },
+      "MessageType": {
+        "module": "message_type",
+        "name": "MessageType"
+      },
+      "MessageTypeBooleanField": {
+        "module": "shared.message_type_boolean_field",
+        "name": "MessageTypeBooleanField"
+      },
+      "MessageTypeButtonField": {
+        "module": "shared.message_type_button_field",
+        "name": "MessageTypeButtonField"
+      },
+      "MessageTypeImageField": {
+        "module": "shared.message_type_image_field",
+        "name": "MessageTypeImageField"
+      },
+      "MessageTypeJsonField": {
+        "module": "shared.message_type_json_field",
+        "name": "MessageTypeJsonField"
+      },
+      "MessageTypeMarkdownField": {
+        "module": "shared.message_type_markdown_field",
+        "name": "MessageTypeMarkdownField"
+      },
+      "MessageTypeMultiSelectField": {
+        "module": "shared.message_type_multi_select_field",
+        "name": "MessageTypeMultiSelectField"
+      },
+      "MessageTypeSelectField": {
+        "module": "shared.message_type_select_field",
+        "name": "MessageTypeSelectField"
+      },
+      "MessageTypeTextField": {
+        "module": "message_type_text_field",
+        "name": "MessageTypeTextField"
+      },
+      "MessageTypeTextareaField": {
+        "module": "shared.message_type_textarea_field",
+        "name": "MessageTypeTextareaField"
+      },
+      "MessageTypeUrlField": {
+        "module": "shared.message_type_url_field",
+        "name": "MessageTypeUrlField"
+      },
+      "MessageTypeVariant": {
+        "module": "message_type_variant",
+        "name": "MessageTypeVariant"
+      },
+      "PageInfo": {
+        "module": "shared.page_info",
+        "name": "PageInfo"
+      },
+      "Partial": {
+        "module": "partial",
+        "name": "Partial"
+      },
+      "PushChannelSettings": {
+        "module": "push_channel_settings",
+        "name": "PushChannelSettings"
+      },
+      "PushTemplate": {
+        "module": "push_template",
+        "name": "PushTemplate"
+      },
+      "RequestTemplate": {
+        "module": "request_template",
+        "name": "RequestTemplate"
+      },
+      "SendWindow": {
+        "module": "send_window",
+        "name": "SendWindow"
+      },
+      "SmsChannelSettings": {
+        "module": "sms_channel_settings",
+        "name": "SmsChannelSettings"
+      },
+      "SmsTemplate": {
+        "module": "sms_template",
+        "name": "SmsTemplate"
+      },
+      "Source": {
+        "module": "source",
+        "name": "Source"
+      },
+      "SourceEnvironmentSettings": {
+        "module": "source_environment_settings",
+        "name": "SourceEnvironmentSettings"
+      },
+      "SourceEvent": {
+        "module": "source_event",
+        "name": "SourceEvent"
+      },
+      "SourceEventActionMapping": {
+        "module": "source_event_action_mapping",
+        "name": "SourceEventActionMapping"
+      },
+      "SourceEventsResponse": {
+        "module": "source_events_response",
+        "name": "SourceEventsResponse"
+      },
+      "SourceLog": {
+        "module": "source_log",
+        "name": "SourceLog"
+      },
+      "SourceLogAction": {
+        "module": "source_log_action",
+        "name": "SourceLogAction"
+      },
+      "SourceLogsResponse": {
+        "module": "source_logs_response",
+        "name": "SourceLogsResponse"
+      },
+      "SourcePreprocessScript": {
+        "module": "source_preprocess_script",
+        "name": "SourcePreprocessScript"
+      },
+      "SourceProviderResponse": {
+        "module": "source_provider_response",
+        "name": "SourceProviderResponse"
+      },
+      "SourceProvidersResponse": {
+        "module": "source_providers_response",
+        "name": "SourceProvidersResponse"
+      },
+      "SourceRehearseRequest": {
+        "module": "source_rehearse_request",
+        "name": "SourceRehearseRequest"
+      },
+      "SourceRehearseResponse": {
+        "module": "source_rehearse_response",
+        "name": "SourceRehearseResponse"
+      },
+      "SourceRequest": {
+        "module": "source_request",
+        "name": "SourceRequest"
+      },
+      "SourceStatusResponse": {
+        "module": "source_status_response",
+        "name": "SourceStatusResponse"
+      },
+      "SourcesResponse": {
+        "module": "sources_response",
+        "name": "SourcesResponse"
+      },
+      "StaticAudience": {
+        "module": "static_audience",
+        "name": "StaticAudience"
+      },
+      "Translation": {
+        "module": "translation",
+        "name": "Translation"
+      },
+      "Variable": {
+        "module": "variable",
+        "name": "Variable"
+      },
+      "WebhookTemplate": {
+        "module": "webhook_template",
+        "name": "WebhookTemplate"
+      },
+      "Workflow": {
+        "module": "workflow",
+        "name": "Workflow"
+      },
+      "WorkflowAIAgentStep": {
+        "module": "workflow_ai_agent_step",
+        "name": "WorkflowAiAgentStep"
+      },
+      "WorkflowBatchStep": {
+        "module": "workflow_batch_step",
+        "name": "WorkflowBatchStep"
+      },
+      "WorkflowBranchStep": {
+        "module": "workflow_branch_step",
+        "name": "WorkflowBranchStep"
+      },
+      "WorkflowChatStep": {
+        "module": "workflow_chat_step",
+        "name": "WorkflowChatStep"
+      },
+      "WorkflowDelayStep": {
+        "module": "workflow_delay_step",
+        "name": "WorkflowDelayStep"
+      },
+      "WorkflowEmailStep": {
+        "module": "workflow_email_step",
+        "name": "WorkflowEmailStep"
+      },
+      "WorkflowFetchStep": {
+        "module": "workflow_fetch_step",
+        "name": "WorkflowFetchStep"
+      },
+      "WorkflowInAppFeedStep": {
+        "module": "workflow_in_app_feed_step",
+        "name": "WorkflowInAppFeedStep"
+      },
+      "WorkflowPushStep": {
+        "module": "workflow_push_step",
+        "name": "WorkflowPushStep"
+      },
+      "WorkflowRandomCohortStep": {
+        "module": "workflow_random_cohort_step",
+        "name": "WorkflowRandomCohortStep"
+      },
+      "WorkflowSmsStep": {
+        "module": "workflow_sms_step",
+        "name": "WorkflowSmsStep"
+      },
+      "WorkflowStep": {
+        "module": "workflow_step",
+        "name": "WorkflowStep"
+      },
+      "WorkflowThrottleStep": {
+        "module": "workflow_throttle_step",
+        "name": "WorkflowThrottleStep"
+      },
+      "WorkflowTriggerWorkflowStep": {
+        "module": "workflow_trigger_workflow_step",
+        "name": "WorkflowTriggerWorkflowStep"
+      },
+      "WorkflowUpdateDataStep": {
+        "module": "workflow_update_data_step",
+        "name": "WorkflowUpdateDataStep"
+      },
+      "WorkflowUpdateObjectStep": {
+        "module": "workflow_update_object_step",
+        "name": "WorkflowUpdateObjectStep"
+      },
+      "WorkflowUpdateTenantStep": {
+        "module": "workflow_update_tenant_step",
+        "name": "WorkflowUpdateTenantStep"
+      },
+      "WorkflowUpdateUserStep": {
+        "module": "workflow_update_user_step",
+        "name": "WorkflowUpdateUserStep"
+      },
+      "WorkflowWebhookStep": {
+        "module": "workflow_webhook_step",
+        "name": "WorkflowWebhookStep"
+      }
+    },
+    "x-ferrule-package": {
+      "name": "knock_mapi",
+      "repo": "knocklabs/knock-mgmt-python"
+    }
+  },
+  "operations": {
+    "POST /v1/api_keys/exchange": {
+      "x-fern-sdk-group-name": [
+        "api_keys"
+      ],
+      "x-fern-sdk-method-name": "exchange",
+      "x-ferrule-method-name": "exchange",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          9
+        ],
+        "path": [
+          "api_keys"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.APIKeys.Exchange(context.TODO(), knockmapi.APIKeyExchangeParams{\n\t\tEnvironment: \"development\",\n\t})\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.APIKey)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nresponse = client.api_keys.exchange(\n    environment=\"development\",\n)\nprint(response.api_key)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nconst response = await client.apiKeys.exchange({ environment: 'development' });\n\nconsole.log(response.api_key);"
+      }
+    },
+    "GET /v1/audiences": {
+      "x-fern-sdk-group-name": [
+        "audiences"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 4,
+      "x-ferrule-pagination": {
+        "continueOnEmptyItems": false,
+        "page": "entries_cursor",
+        "paramLocation": "query",
+        "request": {
+          "after": "next_cursor_param",
+          "before": "previous_cursor_param",
+          "limit": "limit"
+        },
+        "response": {
+          "entries": "entries",
+          "page_info.after": "next_cursor_field"
+        },
+        "scheme": "cursor"
+      },
+      "x-ferrule-resource": {
+        "order": [
+          19
+        ],
+        "path": [
+          "audiences"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tpage, err := client.Audiences.List(context.TODO(), knockmapi.AudienceListParams{\n\t\tEnvironment: \"development\",\n\t})\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", page)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\npage = client.audiences.list(\n    environment=\"development\",\n)\npage = page.entries[0]\nprint(page)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\n// Automatically fetches more pages as needed.\nfor await (const audience of client.audiences.list({ environment: 'development' })) {\n  console.log(audience);\n}"
+      }
+    },
+    "DELETE /v1/audiences/{audience_key}": {
+      "x-fern-sdk-group-name": [
+        "audiences"
+      ],
+      "x-fern-sdk-method-name": "archive",
+      "x-ferrule-method-name": "archive",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          19
+        ],
+        "path": [
+          "audiences"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.Audiences.Archive(\n\t\tcontext.TODO(),\n\t\t\"audience_key\",\n\t\tknockmapi.AudienceArchiveParams{\n\t\t\tEnvironment: \"development\",\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.Result)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nresponse = client.audiences.archive(\n    audience_key=\"audience_key\",\n    environment=\"development\",\n)\nprint(response.result)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nconst response = await client.audiences.archive('audience_key', { environment: 'development' });\n\nconsole.log(response.result);"
+      }
+    },
+    "GET /v1/audiences/{audience_key}": {
+      "x-fern-sdk-group-name": [
+        "audiences"
+      ],
+      "x-fern-sdk-method-name": "retrieve",
+      "x-ferrule-method-name": "retrieve",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          19
+        ],
+        "path": [
+          "audiences"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\taudience, err := client.Audiences.Get(\n\t\tcontext.TODO(),\n\t\t\"audience_key\",\n\t\tknockmapi.AudienceGetParams{\n\t\t\tEnvironment: \"development\",\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", audience)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\naudience = client.audiences.retrieve(\n    audience_key=\"audience_key\",\n    environment=\"development\",\n)\nprint(audience)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nconst audience = await client.audiences.retrieve('audience_key', { environment: 'development' });\n\nconsole.log(audience);"
+      }
+    },
+    "PUT /v1/audiences/{audience_key}": {
+      "x-fern-sdk-group-name": [
+        "audiences"
+      ],
+      "x-fern-sdk-method-name": "upsert",
+      "x-ferrule-method-name": "upsert",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          19
+        ],
+        "path": [
+          "audiences"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.Audiences.Upsert(\n\t\tcontext.TODO(),\n\t\t\"audience_key\",\n\t\tknockmapi.AudienceUpsertParams{\n\t\t\tEnvironment: \"development\",\n\t\t\tAudience: knockmapi.AudienceUpsertParamsAudienceUnion{\n\t\t\t\tOfDynamic: &knockmapi.AudienceUpsertParamsAudienceDynamic{\n\t\t\t\t\tName: \"Premium users\",\n\t\t\t\t},\n\t\t\t},\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.Audience)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nresponse = client.audiences.upsert(\n    audience_key=\"audience_key\",\n    environment=\"development\",\n    audience={\n        \"name\": \"Premium users\",\n        \"type\": \"dynamic\",\n    },\n)\nprint(response.audience)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nconst response = await client.audiences.upsert('audience_key', {\n  environment: 'development',\n  audience: { name: 'Premium users', type: 'dynamic' },\n});\n\nconsole.log(response.audience);"
+      }
+    },
+    "PUT /v1/audiences/{audience_key}/validate": {
+      "x-fern-sdk-group-name": [
+        "audiences"
+      ],
+      "x-fern-sdk-method-name": "validate",
+      "x-ferrule-method-name": "validate",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          19
+        ],
+        "path": [
+          "audiences"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.Audiences.Validate(\n\t\tcontext.TODO(),\n\t\t\"audience_key\",\n\t\tknockmapi.AudienceValidateParams{\n\t\t\tEnvironment: \"development\",\n\t\t\tAudience: knockmapi.AudienceValidateParamsAudienceUnion{\n\t\t\t\tOfDynamic: &knockmapi.AudienceValidateParamsAudienceDynamic{\n\t\t\t\t\tName: \"Premium users\",\n\t\t\t\t},\n\t\t\t},\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.Audience)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nresponse = client.audiences.validate(\n    audience_key=\"audience_key\",\n    environment=\"development\",\n    audience={\n        \"name\": \"Premium users\",\n        \"type\": \"dynamic\",\n    },\n)\nprint(response.audience)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nconst response = await client.audiences.validate('audience_key', {\n  environment: 'development',\n  audience: { name: 'Premium users', type: 'dynamic' },\n});\n\nconsole.log(response.audience);"
+      }
+    },
+    "GET /v1/branches": {
+      "x-fern-sdk-group-name": [
+        "branches"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-pagination": {
+        "continueOnEmptyItems": false,
+        "page": "entries_cursor",
+        "paramLocation": "query",
+        "request": {
+          "after": "next_cursor_param",
+          "before": "previous_cursor_param",
+          "limit": "limit"
+        },
+        "response": {
+          "entries": "entries",
+          "page_info.after": "next_cursor_field"
+        },
+        "scheme": "cursor"
+      },
+      "x-ferrule-resource": {
+        "order": [
+          17
+        ],
+        "path": [
+          "branches"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tpage, err := client.Branches.List(context.TODO(), knockmapi.BranchListParams{\n\t\tEnvironment: \"development\",\n\t})\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", page)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\npage = client.branches.list(\n    environment=\"development\",\n)\npage = page.entries[0]\nprint(page.created_at)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\n// Automatically fetches more pages as needed.\nfor await (const branch of client.branches.list({ environment: 'development' })) {\n  console.log(branch.created_at);\n}"
+      }
+    },
+    "DELETE /v1/branches/{branch_slug}": {
+      "x-fern-sdk-group-name": [
+        "branches"
+      ],
+      "x-fern-sdk-method-name": "delete",
+      "x-ferrule-method-name": "delete",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          17
+        ],
+        "path": [
+          "branches"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\terr := client.Branches.Delete(\n\t\tcontext.TODO(),\n\t\t\"feature-branch\",\n\t\tknockmapi.BranchDeleteParams{\n\t\t\tEnvironment: \"development\",\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nclient.branches.delete(\n    branch_slug=\"feature-branch\",\n    environment=\"development\",\n)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nawait client.branches.delete('feature-branch', { environment: 'development' });"
+      }
+    },
+    "GET /v1/branches/{branch_slug}": {
+      "x-fern-sdk-group-name": [
+        "branches"
+      ],
+      "x-fern-sdk-method-name": "retrieve",
+      "x-ferrule-method-name": "retrieve",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          17
+        ],
+        "path": [
+          "branches"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tbranch, err := client.Branches.Get(\n\t\tcontext.TODO(),\n\t\t\"feature-branch\",\n\t\tknockmapi.BranchGetParams{\n\t\t\tEnvironment: \"development\",\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", branch.CreatedAt)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nbranch = client.branches.retrieve(\n    branch_slug=\"feature-branch\",\n    environment=\"development\",\n)\nprint(branch.created_at)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nconst branch = await client.branches.retrieve('feature-branch', { environment: 'development' });\n\nconsole.log(branch.created_at);"
+      }
+    },
+    "POST /v1/branches/{branch_slug}": {
+      "x-fern-sdk-group-name": [
+        "branches"
+      ],
+      "x-fern-sdk-method-name": "create",
+      "x-ferrule-method-name": "create",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          17
+        ],
+        "path": [
+          "branches"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tbranch, err := client.Branches.New(\n\t\tcontext.TODO(),\n\t\t\"feature-branch\",\n\t\tknockmapi.BranchNewParams{\n\t\t\tEnvironment: \"development\",\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", branch.CreatedAt)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nbranch = client.branches.create(\n    branch_slug=\"feature-branch\",\n    environment=\"development\",\n)\nprint(branch.created_at)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nconst branch = await client.branches.create('feature-branch', { environment: 'development' });\n\nconsole.log(branch.created_at);"
+      }
+    },
+    "GET /v1/broadcasts": {
+      "x-fern-sdk-group-name": [
+        "broadcasts"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-pagination": {
+        "continueOnEmptyItems": false,
+        "page": "entries_cursor",
+        "paramLocation": "query",
+        "request": {
+          "after": "next_cursor_param",
+          "before": "previous_cursor_param",
+          "limit": "limit"
+        },
+        "response": {
+          "entries": "entries",
+          "page_info.after": "next_cursor_field"
+        },
+        "scheme": "cursor"
+      },
+      "x-ferrule-resource": {
+        "order": [
+          18
+        ],
+        "path": [
+          "broadcasts"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tpage, err := client.Broadcasts.List(context.TODO(), knockmapi.BroadcastListParams{\n\t\tEnvironment: \"development\",\n\t})\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", page)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\npage = client.broadcasts.list(\n    environment=\"development\",\n)\npage = page.entries[0]\nprint(page.valid)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\n// Automatically fetches more pages as needed.\nfor await (const broadcast of client.broadcasts.list({ environment: 'development' })) {\n  console.log(broadcast.valid);\n}"
+      }
+    },
+    "GET /v1/broadcasts/{broadcast_key}": {
+      "x-fern-sdk-group-name": [
+        "broadcasts"
+      ],
+      "x-fern-sdk-method-name": "retrieve",
+      "x-ferrule-method-name": "retrieve",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          18
+        ],
+        "path": [
+          "broadcasts"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tbroadcast, err := client.Broadcasts.Get(\n\t\tcontext.TODO(),\n\t\t\"broadcast_key\",\n\t\tknockmapi.BroadcastGetParams{\n\t\t\tEnvironment: \"development\",\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", broadcast.Valid)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nbroadcast = client.broadcasts.retrieve(\n    broadcast_key=\"broadcast_key\",\n    environment=\"development\",\n)\nprint(broadcast.valid)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nconst broadcast = await client.broadcasts.retrieve('broadcast_key', { environment: 'development' });\n\nconsole.log(broadcast.valid);"
+      }
+    },
+    "PUT /v1/broadcasts/{broadcast_key}": {
+      "x-fern-sdk-group-name": [
+        "broadcasts"
+      ],
+      "x-fern-sdk-method-name": "upsert",
+      "x-ferrule-method-name": "upsert",
+      "x-ferrule-method-order": 4,
+      "x-ferrule-resource": {
+        "order": [
+          18
+        ],
+        "path": [
+          "broadcasts"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.Broadcasts.Upsert(\n\t\tcontext.TODO(),\n\t\t\"broadcast_key\",\n\t\tknockmapi.BroadcastUpsertParams{\n\t\t\tEnvironment: \"development\",\n\t\t\tBroadcast: knockmapi.BroadcastRequestParam{\n\t\t\t\tName: \"My Broadcast\",\n\t\t\t\tSteps: []knockmapi.BroadcastRequestStepUnionParam{{\n\t\t\t\t\tOfWorkflowInAppFeedStep: &knockmapi.WorkflowInAppFeedStepParam{\n\t\t\t\t\t\tRef: \"channel_1\",\n\t\t\t\t\t\tTemplate: knockmapi.InAppFeedTemplateParam{\n\t\t\t\t\t\t\tMarkdownBody: \"Hello **{{ recipient.name }}**\",\n\t\t\t\t\t\t},\n\t\t\t\t\t\tType: knockmapi.WorkflowInAppFeedStepTypeChannel,\n\t\t\t\t\t},\n\t\t\t\t}},\n\t\t\t},\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.Broadcast)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nresponse = client.broadcasts.upsert(\n    broadcast_key=\"broadcast_key\",\n    environment=\"development\",\n    broadcast={\n        \"name\": \"My Broadcast\",\n        \"steps\": [{\n            \"ref\": \"channel_1\",\n            \"template\": {\n                \"markdown_body\": \"Hello **{{ recipient.name }}**\"\n            },\n            \"type\": \"channel\",\n        }],\n    },\n)\nprint(response.broadcast)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nconst response = await client.broadcasts.upsert('broadcast_key', {\n  environment: 'development',\n  broadcast: {\n    name: 'My Broadcast',\n    steps: [\n      {\n        ref: 'channel_1',\n        template: { markdown_body: 'Hello **{{ recipient.name }}**' },\n        type: 'channel',\n      },\n    ],\n  },\n});\n\nconsole.log(response.broadcast);"
+      }
+    },
+    "PUT /v1/broadcasts/{broadcast_key}/cancel": {
+      "x-fern-sdk-group-name": [
+        "broadcasts"
+      ],
+      "x-fern-sdk-method-name": "cancel",
+      "x-ferrule-method-name": "cancel",
+      "x-ferrule-method-order": 5,
+      "x-ferrule-resource": {
+        "order": [
+          18
+        ],
+        "path": [
+          "broadcasts"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.Broadcasts.Cancel(\n\t\tcontext.TODO(),\n\t\t\"broadcast_key\",\n\t\tknockmapi.BroadcastCancelParams{\n\t\t\tEnvironment: \"development\",\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.Broadcast)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nresponse = client.broadcasts.cancel(\n    broadcast_key=\"broadcast_key\",\n    environment=\"development\",\n)\nprint(response.broadcast)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nconst response = await client.broadcasts.cancel('broadcast_key', { environment: 'development' });\n\nconsole.log(response.broadcast);"
+      }
+    },
+    "PUT /v1/broadcasts/{broadcast_key}/send": {
+      "x-fern-sdk-group-name": [
+        "broadcasts"
+      ],
+      "x-fern-sdk-method-name": "send",
+      "x-ferrule-method-name": "send",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          18
+        ],
+        "path": [
+          "broadcasts"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.Broadcasts.Send(\n\t\tcontext.TODO(),\n\t\t\"broadcast_key\",\n\t\tknockmapi.BroadcastSendParams{\n\t\t\tEnvironment: \"development\",\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.Broadcast)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nresponse = client.broadcasts.send(\n    broadcast_key=\"broadcast_key\",\n    environment=\"development\",\n)\nprint(response.broadcast)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nconst response = await client.broadcasts.send('broadcast_key', { environment: 'development' });\n\nconsole.log(response.broadcast);"
+      }
+    },
+    "PUT /v1/broadcasts/{broadcast_key}/validate": {
+      "x-fern-sdk-group-name": [
+        "broadcasts"
+      ],
+      "x-fern-sdk-method-name": "validate",
+      "x-ferrule-method-name": "validate",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          18
+        ],
+        "path": [
+          "broadcasts"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.Broadcasts.Validate(\n\t\tcontext.TODO(),\n\t\t\"broadcast_key\",\n\t\tknockmapi.BroadcastValidateParams{\n\t\t\tEnvironment: \"development\",\n\t\t\tBroadcast: knockmapi.BroadcastRequestParam{\n\t\t\t\tName: \"My Broadcast\",\n\t\t\t\tSteps: []knockmapi.BroadcastRequestStepUnionParam{{\n\t\t\t\t\tOfWorkflowInAppFeedStep: &knockmapi.WorkflowInAppFeedStepParam{\n\t\t\t\t\t\tRef: \"channel_1\",\n\t\t\t\t\t\tTemplate: knockmapi.InAppFeedTemplateParam{\n\t\t\t\t\t\t\tMarkdownBody: \"Hello **{{ recipient.name }}**\",\n\t\t\t\t\t\t},\n\t\t\t\t\t\tType: knockmapi.WorkflowInAppFeedStepTypeChannel,\n\t\t\t\t\t},\n\t\t\t\t}},\n\t\t\t},\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.Broadcast)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nresponse = client.broadcasts.validate(\n    broadcast_key=\"broadcast_key\",\n    environment=\"development\",\n    broadcast={\n        \"name\": \"My Broadcast\",\n        \"steps\": [{\n            \"ref\": \"channel_1\",\n            \"template\": {\n                \"markdown_body\": \"Hello **{{ recipient.name }}**\"\n            },\n            \"type\": \"channel\",\n        }],\n    },\n)\nprint(response.broadcast)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nconst response = await client.broadcasts.validate('broadcast_key', {\n  environment: 'development',\n  broadcast: {\n    name: 'My Broadcast',\n    steps: [\n      {\n        ref: 'channel_1',\n        template: { markdown_body: 'Hello **{{ recipient.name }}**' },\n        type: 'channel',\n      },\n    ],\n  },\n});\n\nconsole.log(response.broadcast);"
+      }
+    },
+    "GET /v1/channel_groups": {
+      "x-fern-sdk-group-name": [
+        "channel_groups"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-pagination": {
+        "continueOnEmptyItems": false,
+        "page": "entries_cursor",
+        "paramLocation": "query",
+        "request": {
+          "after": "next_cursor_param",
+          "before": "previous_cursor_param",
+          "limit": "limit"
+        },
+        "response": {
+          "entries": "entries",
+          "page_info.after": "next_cursor_field"
+        },
+        "scheme": "cursor"
+      },
+      "x-ferrule-resource": {
+        "order": [
+          10
+        ],
+        "path": [
+          "channel_groups"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tpage, err := client.ChannelGroups.List(context.TODO(), knockmapi.ChannelGroupListParams{})\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", page)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\npage = client.channel_groups.list()\npage = page.entries[0]\nprint(page.channel_rules)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\n// Automatically fetches more pages as needed.\nfor await (const channelGroup of client.channelGroups.list()) {\n  console.log(channelGroup.channel_rules);\n}"
+      }
+    },
+    "DELETE /v1/channel_groups/{channel_group_key}": {
+      "x-fern-sdk-group-name": [
+        "channel_groups"
+      ],
+      "x-fern-sdk-method-name": "delete",
+      "x-ferrule-method-name": "delete",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          10
+        ],
+        "path": [
+          "channel_groups"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\terr := client.ChannelGroups.Delete(context.TODO(), \"channel_group_key\")\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nclient.channel_groups.delete(\n    \"channel_group_key\",\n)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nawait client.channelGroups.delete('channel_group_key');"
+      }
+    },
+    "GET /v1/channel_groups/{channel_group_key}": {
+      "x-fern-sdk-group-name": [
+        "channel_groups"
+      ],
+      "x-fern-sdk-method-name": "retrieve",
+      "x-ferrule-method-name": "retrieve",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          10
+        ],
+        "path": [
+          "channel_groups"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tchannelGroup, err := client.ChannelGroups.Get(context.TODO(), \"channel_group_key\")\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", channelGroup.ChannelRules)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nchannel_group = client.channel_groups.retrieve(\n    \"channel_group_key\",\n)\nprint(channel_group.channel_rules)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nconst channelGroup = await client.channelGroups.retrieve('channel_group_key');\n\nconsole.log(channelGroup.channel_rules);"
+      }
+    },
+    "PUT /v1/channel_groups/{channel_group_key}": {
+      "x-fern-sdk-group-name": [
+        "channel_groups"
+      ],
+      "x-fern-sdk-method-name": "upsert",
+      "x-ferrule-method-name": "upsert",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          10
+        ],
+        "path": [
+          "channel_groups"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.ChannelGroups.Upsert(\n\t\tcontext.TODO(),\n\t\t\"channel_group_key\",\n\t\tknockmapi.ChannelGroupUpsertParams{\n\t\t\tChannelGroup: knockmapi.ChannelGroupUpsertParamsChannelGroup{\n\t\t\t\tChannelType: \"push\",\n\t\t\t\tName:        \"Push Notification Group\",\n\t\t\t},\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.ChannelGroup)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nresponse = client.channel_groups.upsert(\n    channel_group_key=\"channel_group_key\",\n    channel_group={\n        \"channel_type\": \"push\",\n        \"name\": \"Push Notification Group\",\n    },\n)\nprint(response.channel_group)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nconst response = await client.channelGroups.upsert('channel_group_key', {\n  channel_group: { channel_type: 'push', name: 'Push Notification Group' },\n});\n\nconsole.log(response.channel_group);"
+      }
+    },
+    "GET /v1/channels": {
+      "x-fern-sdk-group-name": [
+        "channels"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-pagination": {
+        "continueOnEmptyItems": false,
+        "page": "entries_cursor",
+        "paramLocation": "query",
+        "request": {
+          "after": "next_cursor_param",
+          "before": "previous_cursor_param",
+          "limit": "limit"
+        },
+        "response": {
+          "entries": "entries",
+          "page_info.after": "next_cursor_field"
+        },
+        "scheme": "cursor"
+      },
+      "x-ferrule-resource": {
+        "order": [
+          11
+        ],
+        "path": [
+          "channels"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tpage, err := client.Channels.List(context.TODO(), knockmapi.ChannelListParams{})\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", page)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\npage = client.channels.list()\npage = page.entries[0]\nprint(page.id)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\n// Automatically fetches more pages as needed.\nfor await (const channel of client.channels.list()) {\n  console.log(channel.id);\n}"
+      }
+    },
+    "GET /v1/channels/{channel_key}": {
+      "x-fern-sdk-group-name": [
+        "channels"
+      ],
+      "x-fern-sdk-method-name": "retrieve",
+      "x-ferrule-method-name": "retrieve",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          11
+        ],
+        "path": [
+          "channels"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tchannel, err := client.Channels.Get(context.TODO(), \"channel_key\")\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", channel.ID)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nchannel = client.channels.retrieve(\n    \"channel_key\",\n)\nprint(channel.id)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nconst channel = await client.channels.retrieve('channel_key');\n\nconsole.log(channel.id);"
+      }
+    },
+    "GET /v1/commits": {
+      "x-fern-sdk-group-name": [
+        "commits"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-pagination": {
+        "continueOnEmptyItems": false,
+        "page": "entries_cursor",
+        "paramLocation": "query",
+        "request": {
+          "after": "next_cursor_param",
+          "before": "previous_cursor_param",
+          "limit": "limit"
+        },
+        "response": {
+          "entries": "entries",
+          "page_info.after": "next_cursor_field"
+        },
+        "scheme": "cursor"
+      },
+      "x-ferrule-resource": {
+        "order": [
+          3
+        ],
+        "path": [
+          "commits"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tpage, err := client.Commits.List(context.TODO(), knockmapi.CommitListParams{\n\t\tEnvironment: \"development\",\n\t})\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", page)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\npage = client.commits.list(\n    environment=\"development\",\n)\npage = page.entries[0]\nprint(page.id)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\n// Automatically fetches more pages as needed.\nfor await (const commit of client.commits.list({ environment: 'development' })) {\n  console.log(commit.id);\n}"
+      }
+    },
+    "PUT /v1/commits": {
+      "x-fern-sdk-group-name": [
+        "commits"
+      ],
+      "x-fern-sdk-method-name": "commit_all",
+      "x-ferrule-method-name": "commit_all",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          3
+        ],
+        "path": [
+          "commits"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.Commits.CommitAll(context.TODO(), knockmapi.CommitCommitAllParams{\n\t\tEnvironment: \"development\",\n\t})\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.Result)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nresponse = client.commits.commit_all(\n    environment=\"development\",\n)\nprint(response.result)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nconst response = await client.commits.commitAll({ environment: 'development' });\n\nconsole.log(response.result);"
+      }
+    },
+    "PUT /v1/commits/promote": {
+      "x-fern-sdk-group-name": [
+        "commits"
+      ],
+      "x-fern-sdk-method-name": "promote_all",
+      "x-ferrule-method-name": "promote_all",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          3
+        ],
+        "path": [
+          "commits"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.Commits.PromoteAll(context.TODO(), knockmapi.CommitPromoteAllParams{\n\t\tToEnvironment: \"to_environment\",\n\t})\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.Result)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nresponse = client.commits.promote_all(\n    to_environment=\"to_environment\",\n)\nprint(response.result)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nconst response = await client.commits.promoteAll({ to_environment: 'to_environment' });\n\nconsole.log(response.result);"
+      }
+    },
+    "GET /v1/commits/{id}": {
+      "x-fern-sdk-group-name": [
+        "commits"
+      ],
+      "x-fern-sdk-method-name": "retrieve",
+      "x-ferrule-method-name": "retrieve",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          3
+        ],
+        "path": [
+          "commits"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tcommit, err := client.Commits.Get(context.TODO(), \"182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e\")\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", commit.ID)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\ncommit = client.commits.retrieve(\n    \"182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e\",\n)\nprint(commit.id)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nconst commit = await client.commits.retrieve('182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e');\n\nconsole.log(commit.id);"
+      }
+    },
+    "PUT /v1/commits/{id}/promote": {
+      "x-fern-sdk-group-name": [
+        "commits"
+      ],
+      "x-fern-sdk-method-name": "promote_one",
+      "x-ferrule-method-name": "promote_one",
+      "x-ferrule-method-order": 4,
+      "x-ferrule-resource": {
+        "order": [
+          3
+        ],
+        "path": [
+          "commits"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.Commits.PromoteOne(context.TODO(), \"id\")\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.Commit)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nresponse = client.commits.promote_one(\n    \"id\",\n)\nprint(response.commit)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nconst response = await client.commits.promoteOne('id');\n\nconsole.log(response.commit);"
+      }
+    },
+    "GET /v1/email_layouts": {
+      "x-fern-sdk-group-name": [
+        "email_layouts"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-pagination": {
+        "continueOnEmptyItems": false,
+        "page": "entries_cursor",
+        "paramLocation": "query",
+        "request": {
+          "after": "next_cursor_param",
+          "before": "previous_cursor_param",
+          "limit": "limit"
+        },
+        "response": {
+          "entries": "entries",
+          "page_info.after": "next_cursor_field"
+        },
+        "scheme": "cursor"
+      },
+      "x-ferrule-resource": {
+        "order": [
+          2
+        ],
+        "path": [
+          "email_layouts"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tpage, err := client.EmailLayouts.List(context.TODO(), knockmapi.EmailLayoutListParams{\n\t\tEnvironment: \"development\",\n\t})\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", page)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\npage = client.email_layouts.list(\n    environment=\"development\",\n)\npage = page.entries[0]\nprint(page.branding_overrides)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\n// Automatically fetches more pages as needed.\nfor await (const emailLayout of client.emailLayouts.list({ environment: 'development' })) {\n  console.log(emailLayout.branding_overrides);\n}"
+      }
+    },
+    "GET /v1/email_layouts/{email_layout_key}": {
+      "x-fern-sdk-group-name": [
+        "email_layouts"
+      ],
+      "x-fern-sdk-method-name": "retrieve",
+      "x-ferrule-method-name": "retrieve",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          2
+        ],
+        "path": [
+          "email_layouts"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\temailLayout, err := client.EmailLayouts.Get(\n\t\tcontext.TODO(),\n\t\t\"email_layout_key\",\n\t\tknockmapi.EmailLayoutGetParams{\n\t\t\tEnvironment: \"development\",\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", emailLayout.BrandingOverrides)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nemail_layout = client.email_layouts.retrieve(\n    email_layout_key=\"email_layout_key\",\n    environment=\"development\",\n)\nprint(email_layout.branding_overrides)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nconst emailLayout = await client.emailLayouts.retrieve('email_layout_key', {\n  environment: 'development',\n});\n\nconsole.log(emailLayout.branding_overrides);"
+      }
+    },
+    "PUT /v1/email_layouts/{email_layout_key}": {
+      "x-fern-sdk-group-name": [
+        "email_layouts"
+      ],
+      "x-fern-sdk-method-name": "upsert",
+      "x-ferrule-method-name": "upsert",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          2
+        ],
+        "path": [
+          "email_layouts"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.EmailLayouts.Upsert(\n\t\tcontext.TODO(),\n\t\t\"email_layout_key\",\n\t\tknockmapi.EmailLayoutUpsertParams{\n\t\t\tEnvironment: \"development\",\n\t\t\tEmailLayout: knockmapi.EmailLayoutUpsertParamsEmailLayout{\n\t\t\t\tHTMLLayout: \"<html><body>Hello, world!</body></html>\",\n\t\t\t\tName:       \"Transactional\",\n\t\t\t\tTextLayout: \"Hello, world!\",\n\t\t\t},\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.EmailLayout)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nresponse = client.email_layouts.upsert(\n    email_layout_key=\"email_layout_key\",\n    environment=\"development\",\n    email_layout={\n        \"html_layout\": \"<html><body>Hello, world!</body></html>\",\n        \"name\": \"Transactional\",\n        \"text_layout\": \"Hello, world!\",\n    },\n)\nprint(response.email_layout)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nconst response = await client.emailLayouts.upsert('email_layout_key', {\n  environment: 'development',\n  email_layout: {\n    html_layout: '<html><body>Hello, world!</body></html>',\n    name: 'Transactional',\n    text_layout: 'Hello, world!',\n  },\n});\n\nconsole.log(response.email_layout);"
+      }
+    },
+    "PUT /v1/email_layouts/{email_layout_key}/validate": {
+      "x-fern-sdk-group-name": [
+        "email_layouts"
+      ],
+      "x-fern-sdk-method-name": "validate",
+      "x-ferrule-method-name": "validate",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          2
+        ],
+        "path": [
+          "email_layouts"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.EmailLayouts.Validate(\n\t\tcontext.TODO(),\n\t\t\"email_layout_key\",\n\t\tknockmapi.EmailLayoutValidateParams{\n\t\t\tEnvironment: \"development\",\n\t\t\tEmailLayout: knockmapi.EmailLayoutValidateParamsEmailLayout{\n\t\t\t\tHTMLLayout: \"<html><body>Hello, world!</body></html>\",\n\t\t\t\tName:       \"Transactional\",\n\t\t\t\tTextLayout: \"Hello, world!\",\n\t\t\t},\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.EmailLayout)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nresponse = client.email_layouts.validate(\n    email_layout_key=\"email_layout_key\",\n    environment=\"development\",\n    email_layout={\n        \"html_layout\": \"<html><body>Hello, world!</body></html>\",\n        \"name\": \"Transactional\",\n        \"text_layout\": \"Hello, world!\",\n    },\n)\nprint(response.email_layout)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nconst response = await client.emailLayouts.validate('email_layout_key', {\n  environment: 'development',\n  email_layout: {\n    html_layout: '<html><body>Hello, world!</body></html>',\n    name: 'Transactional',\n    text_layout: 'Hello, world!',\n  },\n});\n\nconsole.log(response.email_layout);"
+      }
+    },
+    "GET /v1/environments": {
+      "x-fern-sdk-group-name": [
+        "environments"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-pagination": {
+        "continueOnEmptyItems": false,
+        "page": "entries_cursor",
+        "paramLocation": "query",
+        "request": {
+          "after": "next_cursor_param",
+          "before": "previous_cursor_param",
+          "limit": "limit"
+        },
+        "response": {
+          "entries": "entries",
+          "page_info.after": "next_cursor_field"
+        },
+        "scheme": "cursor"
+      },
+      "x-ferrule-resource": {
+        "order": [
+          14
+        ],
+        "path": [
+          "environments"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tpage, err := client.Environments.List(context.TODO(), knockmapi.EnvironmentListParams{})\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", page)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\npage = client.environments.list()\npage = page.entries[0]\nprint(page.hide_pii_data)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\n// Automatically fetches more pages as needed.\nfor await (const environment of client.environments.list()) {\n  console.log(environment.hide_pii_data);\n}"
+      }
+    },
+    "GET /v1/environments/{environment_slug}": {
+      "x-fern-sdk-group-name": [
+        "environments"
+      ],
+      "x-fern-sdk-method-name": "retrieve",
+      "x-ferrule-method-name": "retrieve",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          14
+        ],
+        "path": [
+          "environments"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tenvironment, err := client.Environments.Get(context.TODO(), \"development\")\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", environment.HidePiiData)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nenvironment = client.environments.retrieve(\n    \"development\",\n)\nprint(environment.hide_pii_data)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nconst environment = await client.environments.retrieve('development');\n\nconsole.log(environment.hide_pii_data);"
+      }
+    },
+    "GET /v1/guides": {
+      "x-fern-sdk-group-name": [
+        "guides"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-pagination": {
+        "continueOnEmptyItems": false,
+        "page": "entries_cursor",
+        "paramLocation": "query",
+        "request": {
+          "after": "next_cursor_param",
+          "before": "previous_cursor_param",
+          "limit": "limit"
+        },
+        "response": {
+          "entries": "entries",
+          "page_info.after": "next_cursor_field"
+        },
+        "scheme": "cursor"
+      },
+      "x-ferrule-resource": {
+        "order": [
+          16
+        ],
+        "path": [
+          "guides"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tpage, err := client.Guides.List(context.TODO(), knockmapi.GuideListParams{\n\t\tEnvironment: \"development\",\n\t})\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", page)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\npage = client.guides.list(\n    environment=\"development\",\n)\npage = page.entries[0]\nprint(page.valid)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\n// Automatically fetches more pages as needed.\nfor await (const guide of client.guides.list({ environment: 'development' })) {\n  console.log(guide.valid);\n}"
+      }
+    },
+    "DELETE /v1/guides/{guide_key}": {
+      "x-fern-sdk-group-name": [
+        "guides"
+      ],
+      "x-fern-sdk-method-name": "archive",
+      "x-ferrule-method-name": "archive",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          16
+        ],
+        "path": [
+          "guides"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.Guides.Archive(context.TODO(), \"guide_key\")\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.Result)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nresponse = client.guides.archive(\n    \"guide_key\",\n)\nprint(response.result)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nconst response = await client.guides.archive('guide_key');\n\nconsole.log(response.result);"
+      }
+    },
+    "GET /v1/guides/{guide_key}": {
+      "x-fern-sdk-group-name": [
+        "guides"
+      ],
+      "x-fern-sdk-method-name": "retrieve",
+      "x-ferrule-method-name": "retrieve",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          16
+        ],
+        "path": [
+          "guides"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tguide, err := client.Guides.Get(\n\t\tcontext.TODO(),\n\t\t\"guide_key\",\n\t\tknockmapi.GuideGetParams{\n\t\t\tEnvironment: \"development\",\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", guide.Valid)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nguide = client.guides.retrieve(\n    guide_key=\"guide_key\",\n    environment=\"development\",\n)\nprint(guide.valid)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nconst guide = await client.guides.retrieve('guide_key', { environment: 'development' });\n\nconsole.log(guide.valid);"
+      }
+    },
+    "PUT /v1/guides/{guide_key}": {
+      "x-fern-sdk-group-name": [
+        "guides"
+      ],
+      "x-fern-sdk-method-name": "upsert",
+      "x-ferrule-method-name": "upsert",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          16
+        ],
+        "path": [
+          "guides"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.Guides.Upsert(\n\t\tcontext.TODO(),\n\t\t\"guide_key\",\n\t\tknockmapi.GuideUpsertParams{\n\t\t\tEnvironment: \"development\",\n\t\t\tGuide: knockmapi.GuideUpsertParamsGuide{\n\t\t\t\tChannelKey: \"in-app-guide\",\n\t\t\t\tName:       \"Getting Started Guide\",\n\t\t\t\tSteps: []knockmapi.GuideStepParam{{\n\t\t\t\t\tRef:              \"welcome-step\",\n\t\t\t\t\tSchemaKey:        \"tooltip\",\n\t\t\t\t\tSchemaSemver:     \"1.0.0\",\n\t\t\t\t\tSchemaVariantKey: \"default\",\n\t\t\t\t}},\n\t\t\t},\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.Guide)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nresponse = client.guides.upsert(\n    guide_key=\"guide_key\",\n    environment=\"development\",\n    guide={\n        \"channel_key\": \"in-app-guide\",\n        \"name\": \"Getting Started Guide\",\n        \"steps\": [{\n            \"ref\": \"welcome-step\",\n            \"schema_key\": \"tooltip\",\n            \"schema_semver\": \"1.0.0\",\n            \"schema_variant_key\": \"default\",\n        }],\n    },\n)\nprint(response.guide)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nconst response = await client.guides.upsert('guide_key', {\n  environment: 'development',\n  guide: {\n    channel_key: 'in-app-guide',\n    name: 'Getting Started Guide',\n    steps: [\n      {\n        ref: 'welcome-step',\n        schema_key: 'tooltip',\n        schema_semver: '1.0.0',\n        schema_variant_key: 'default',\n      },\n    ],\n  },\n});\n\nconsole.log(response.guide);"
+      }
+    },
+    "PUT /v1/guides/{guide_key}/activate": {
+      "x-fern-sdk-group-name": [
+        "guides"
+      ],
+      "x-fern-sdk-method-name": "activate",
+      "x-ferrule-method-name": "activate",
+      "x-ferrule-method-order": 5,
+      "x-ferrule-resource": {
+        "order": [
+          16
+        ],
+        "path": [
+          "guides"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.Guides.Activate(\n\t\tcontext.TODO(),\n\t\t\"guide_key\",\n\t\tknockmapi.GuideActivateParams{\n\t\t\tEnvironment: \"development\",\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.Guide)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nresponse = client.guides.activate(\n    guide_key=\"guide_key\",\n    environment=\"development\",\n    status=True,\n)\nprint(response.guide)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nconst response = await client.guides.activate('guide_key', {\n  environment: 'development',\n  status: true,\n});\n\nconsole.log(response.guide);"
+      }
+    },
+    "PUT /v1/guides/{guide_key}/validate": {
+      "x-fern-sdk-group-name": [
+        "guides"
+      ],
+      "x-fern-sdk-method-name": "validate",
+      "x-ferrule-method-name": "validate",
+      "x-ferrule-method-order": 4,
+      "x-ferrule-resource": {
+        "order": [
+          16
+        ],
+        "path": [
+          "guides"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.Guides.Validate(\n\t\tcontext.TODO(),\n\t\t\"guide_key\",\n\t\tknockmapi.GuideValidateParams{\n\t\t\tEnvironment: \"development\",\n\t\t\tGuide: knockmapi.GuideValidateParamsGuide{\n\t\t\t\tChannelKey: \"in-app-guide\",\n\t\t\t\tName:       \"Getting Started Guide\",\n\t\t\t\tSteps: []knockmapi.GuideStepParam{{\n\t\t\t\t\tRef:              \"welcome-step\",\n\t\t\t\t\tSchemaKey:        \"tooltip\",\n\t\t\t\t\tSchemaSemver:     \"1.0.0\",\n\t\t\t\t\tSchemaVariantKey: \"default\",\n\t\t\t\t}},\n\t\t\t},\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.Guide)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nresponse = client.guides.validate(\n    guide_key=\"guide_key\",\n    environment=\"development\",\n    guide={\n        \"channel_key\": \"in-app-guide\",\n        \"name\": \"Getting Started Guide\",\n        \"steps\": [{\n            \"ref\": \"welcome-step\",\n            \"schema_key\": \"tooltip\",\n            \"schema_semver\": \"1.0.0\",\n            \"schema_variant_key\": \"default\",\n        }],\n    },\n)\nprint(response.guide)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nconst response = await client.guides.validate('guide_key', {\n  environment: 'development',\n  guide: {\n    channel_key: 'in-app-guide',\n    name: 'Getting Started Guide',\n    steps: [\n      {\n        ref: 'welcome-step',\n        schema_key: 'tooltip',\n        schema_semver: '1.0.0',\n        schema_variant_key: 'default',\n      },\n    ],\n  },\n});\n\nconsole.log(response.guide);"
+      }
+    },
+    "GET /v1/members": {
+      "x-fern-sdk-group-name": [
+        "members"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-pagination": {
+        "continueOnEmptyItems": false,
+        "page": "entries_cursor",
+        "paramLocation": "query",
+        "request": {
+          "after": "next_cursor_param",
+          "before": "previous_cursor_param",
+          "limit": "limit"
+        },
+        "response": {
+          "entries": "entries",
+          "page_info.after": "next_cursor_field"
+        },
+        "scheme": "cursor"
+      },
+      "x-ferrule-resource": {
+        "order": [
+          12
+        ],
+        "path": [
+          "members"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tpage, err := client.Members.List(context.TODO(), knockmapi.MemberListParams{})\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", page)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\npage = client.members.list()\npage = page.entries[0]\nprint(page.id)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\n// Automatically fetches more pages as needed.\nfor await (const member of client.members.list()) {\n  console.log(member.id);\n}"
+      }
+    },
+    "DELETE /v1/members/{id}": {
+      "x-fern-sdk-group-name": [
+        "members"
+      ],
+      "x-fern-sdk-method-name": "delete",
+      "x-ferrule-method-name": "delete",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          12
+        ],
+        "path": [
+          "members"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\terr := client.Members.Delete(context.TODO(), \"182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e\")\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nclient.members.delete(\n    \"182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e\",\n)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nawait client.members.delete('182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e');"
+      }
+    },
+    "GET /v1/members/{id}": {
+      "x-fern-sdk-group-name": [
+        "members"
+      ],
+      "x-fern-sdk-method-name": "retrieve",
+      "x-ferrule-method-name": "retrieve",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          12
+        ],
+        "path": [
+          "members"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tmember, err := client.Members.Get(context.TODO(), \"182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e\")\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", member.ID)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nmember = client.members.retrieve(\n    \"182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e\",\n)\nprint(member.id)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nconst member = await client.members.retrieve('182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e');\n\nconsole.log(member.id);"
+      }
+    },
+    "GET /v1/message_types": {
+      "x-fern-sdk-group-name": [
+        "message_types"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-pagination": {
+        "continueOnEmptyItems": false,
+        "page": "entries_cursor",
+        "paramLocation": "query",
+        "request": {
+          "after": "next_cursor_param",
+          "before": "previous_cursor_param",
+          "limit": "limit"
+        },
+        "response": {
+          "entries": "entries",
+          "page_info.after": "next_cursor_field"
+        },
+        "scheme": "cursor"
+      },
+      "x-ferrule-resource": {
+        "order": [
+          7
+        ],
+        "path": [
+          "message_types"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tpage, err := client.MessageTypes.List(context.TODO(), knockmapi.MessageTypeListParams{\n\t\tEnvironment: \"development\",\n\t})\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", page)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\npage = client.message_types.list(\n    environment=\"development\",\n)\npage = page.entries[0]\nprint(page.valid)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\n// Automatically fetches more pages as needed.\nfor await (const messageType of client.messageTypes.list({ environment: 'development' })) {\n  console.log(messageType.valid);\n}"
+      }
+    },
+    "GET /v1/message_types/{message_type_key}": {
+      "x-fern-sdk-group-name": [
+        "message_types"
+      ],
+      "x-fern-sdk-method-name": "retrieve",
+      "x-ferrule-method-name": "retrieve",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          7
+        ],
+        "path": [
+          "message_types"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tmessageType, err := client.MessageTypes.Get(\n\t\tcontext.TODO(),\n\t\t\"email\",\n\t\tknockmapi.MessageTypeGetParams{\n\t\t\tEnvironment: \"development\",\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", messageType.Valid)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nmessage_type = client.message_types.retrieve(\n    message_type_key=\"email\",\n    environment=\"development\",\n)\nprint(message_type.valid)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nconst messageType = await client.messageTypes.retrieve('email', { environment: 'development' });\n\nconsole.log(messageType.valid);"
+      }
+    },
+    "PUT /v1/message_types/{message_type_key}": {
+      "x-fern-sdk-group-name": [
+        "message_types"
+      ],
+      "x-fern-sdk-method-name": "upsert",
+      "x-ferrule-method-name": "upsert",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          7
+        ],
+        "path": [
+          "message_types"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.MessageTypes.Upsert(\n\t\tcontext.TODO(),\n\t\t\"email\",\n\t\tknockmapi.MessageTypeUpsertParams{\n\t\t\tEnvironment: \"development\",\n\t\t\tMessageType: knockmapi.MessageTypeUpsertParamsMessageType{\n\t\t\t\tDescription: knockmapi.String(\"This is a message type\"),\n\t\t\t\tName:        \"My Message Type\",\n\t\t\t\tPreview:     \"<div>Hello, world!</div>\",\n\t\t\t},\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.MessageType)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nresponse = client.message_types.upsert(\n    message_type_key=\"email\",\n    environment=\"development\",\n    message_type={\n        \"description\": \"This is a message type\",\n        \"name\": \"My Message Type\",\n        \"preview\": \"<div>Hello, world!</div>\",\n    },\n)\nprint(response.message_type)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nconst response = await client.messageTypes.upsert('email', {\n  environment: 'development',\n  message_type: {\n    description: 'This is a message type',\n    name: 'My Message Type',\n    preview: '<div>Hello, world!</div>',\n  },\n});\n\nconsole.log(response.message_type);"
+      }
+    },
+    "PUT /v1/message_types/{message_type_key}/validate": {
+      "x-fern-sdk-group-name": [
+        "message_types"
+      ],
+      "x-fern-sdk-method-name": "validate",
+      "x-ferrule-method-name": "validate",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          7
+        ],
+        "path": [
+          "message_types"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.MessageTypes.Validate(\n\t\tcontext.TODO(),\n\t\t\"email\",\n\t\tknockmapi.MessageTypeValidateParams{\n\t\t\tEnvironment: \"development\",\n\t\t\tMessageType: knockmapi.MessageTypeValidateParamsMessageType{\n\t\t\t\tDescription: knockmapi.String(\"This is a message type\"),\n\t\t\t\tName:        \"My Message Type\",\n\t\t\t\tPreview:     \"<div>Hello, world!</div>\",\n\t\t\t},\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.MessageType)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nresponse = client.message_types.validate(\n    message_type_key=\"email\",\n    environment=\"development\",\n    message_type={\n        \"description\": \"This is a message type\",\n        \"name\": \"My Message Type\",\n        \"preview\": \"<div>Hello, world!</div>\",\n    },\n)\nprint(response.message_type)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nconst response = await client.messageTypes.validate('email', {\n  environment: 'development',\n  message_type: {\n    description: 'This is a message type',\n    name: 'My Message Type',\n    preview: '<div>Hello, world!</div>',\n  },\n});\n\nconsole.log(response.message_type);"
+      }
+    },
+    "GET /v1/partials": {
+      "x-fern-sdk-group-name": [
+        "partials"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-pagination": {
+        "continueOnEmptyItems": false,
+        "page": "entries_cursor",
+        "paramLocation": "query",
+        "request": {
+          "after": "next_cursor_param",
+          "before": "previous_cursor_param",
+          "limit": "limit"
+        },
+        "response": {
+          "entries": "entries",
+          "page_info.after": "next_cursor_field"
+        },
+        "scheme": "cursor"
+      },
+      "x-ferrule-resource": {
+        "order": [
+          4
+        ],
+        "path": [
+          "partials"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tpage, err := client.Partials.List(context.TODO(), knockmapi.PartialListParams{\n\t\tEnvironment: \"development\",\n\t})\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", page)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\npage = client.partials.list(\n    environment=\"development\",\n)\npage = page.entries[0]\nprint(page.valid)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\n// Automatically fetches more pages as needed.\nfor await (const partial of client.partials.list({ environment: 'development' })) {\n  console.log(partial.valid);\n}"
+      }
+    },
+    "GET /v1/partials/{partial_key}": {
+      "x-fern-sdk-group-name": [
+        "partials"
+      ],
+      "x-fern-sdk-method-name": "retrieve",
+      "x-ferrule-method-name": "retrieve",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          4
+        ],
+        "path": [
+          "partials"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tpartial, err := client.Partials.Get(\n\t\tcontext.TODO(),\n\t\t\"partial_key\",\n\t\tknockmapi.PartialGetParams{\n\t\t\tEnvironment: \"development\",\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", partial.Valid)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\npartial = client.partials.retrieve(\n    partial_key=\"partial_key\",\n    environment=\"development\",\n)\nprint(partial.valid)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nconst partial = await client.partials.retrieve('partial_key', { environment: 'development' });\n\nconsole.log(partial.valid);"
+      }
+    },
+    "PUT /v1/partials/{partial_key}": {
+      "x-fern-sdk-group-name": [
+        "partials"
+      ],
+      "x-fern-sdk-method-name": "upsert",
+      "x-ferrule-method-name": "upsert",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          4
+        ],
+        "path": [
+          "partials"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.Partials.Upsert(\n\t\tcontext.TODO(),\n\t\t\"partial_key\",\n\t\tknockmapi.PartialUpsertParams{\n\t\t\tEnvironment: \"development\",\n\t\t\tPartial: knockmapi.PartialUpsertParamsPartial{\n\t\t\t\tContent: \"<p>Hello, world!</p>\",\n\t\t\t\tName:    \"My Partial\",\n\t\t\t\tType:    \"html\",\n\t\t\t},\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.Partial)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nresponse = client.partials.upsert(\n    partial_key=\"partial_key\",\n    environment=\"development\",\n    partial={\n        \"content\": \"<p>Hello, world!</p>\",\n        \"name\": \"My Partial\",\n        \"type\": \"html\",\n    },\n)\nprint(response.partial)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nconst response = await client.partials.upsert('partial_key', {\n  environment: 'development',\n  partial: {\n    content: '<p>Hello, world!</p>',\n    name: 'My Partial',\n    type: 'html',\n  },\n});\n\nconsole.log(response.partial);"
+      }
+    },
+    "PUT /v1/partials/{partial_key}/validate": {
+      "x-fern-sdk-group-name": [
+        "partials"
+      ],
+      "x-fern-sdk-method-name": "validate",
+      "x-ferrule-method-name": "validate",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          4
+        ],
+        "path": [
+          "partials"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.Partials.Validate(\n\t\tcontext.TODO(),\n\t\t\"partial_key\",\n\t\tknockmapi.PartialValidateParams{\n\t\t\tEnvironment: \"development\",\n\t\t\tPartial: knockmapi.PartialValidateParamsPartial{\n\t\t\t\tContent: \"<p>Hello, world!</p>\",\n\t\t\t\tName:    \"My Partial\",\n\t\t\t\tType:    \"html\",\n\t\t\t},\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.Partial)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nresponse = client.partials.validate(\n    partial_key=\"partial_key\",\n    environment=\"development\",\n    partial={\n        \"content\": \"<p>Hello, world!</p>\",\n        \"name\": \"My Partial\",\n        \"type\": \"html\",\n    },\n)\nprint(response.partial)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nconst response = await client.partials.validate('partial_key', {\n  environment: 'development',\n  partial: {\n    content: '<p>Hello, world!</p>',\n    name: 'My Partial',\n    type: 'html',\n  },\n});\n\nconsole.log(response.partial);"
+      }
+    },
+    "GET /v1/source_providers": {
+      "x-fern-sdk-group-name": [
+        "data_sources"
+      ],
+      "x-fern-sdk-method-name": "list_providers",
+      "x-ferrule-method-name": "list_providers",
+      "x-ferrule-method-order": 7,
+      "x-ferrule-resource": {
+        "order": [
+          13
+        ],
+        "path": [
+          "data_sources"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tsourceProvidersResponse, err := client.DataSources.ListProviders(context.TODO())\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", sourceProvidersResponse.Entries)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nsource_providers_response = client.data_sources.list_providers()\nprint(source_providers_response.entries)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nconst sourceProvidersResponse = await client.dataSources.listProviders();\n\nconsole.log(sourceProvidersResponse.entries);"
+      }
+    },
+    "GET /v1/source_providers/{key}": {
+      "x-fern-sdk-group-name": [
+        "data_sources"
+      ],
+      "x-fern-sdk-method-name": "retrieve_provider",
+      "x-ferrule-method-name": "retrieve_provider",
+      "x-ferrule-method-order": 8,
+      "x-ferrule-resource": {
+        "order": [
+          13
+        ],
+        "path": [
+          "data_sources"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tsourceProviderResponse, err := client.DataSources.GetProvider(\n\t\tcontext.TODO(),\n\t\t\"key\",\n\t\tknockmapi.DataSourceGetProviderParams{},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", sourceProviderResponse.Provider)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nsource_provider_response = client.data_sources.retrieve_provider(\n    key=\"key\",\n)\nprint(source_provider_response.provider)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nconst sourceProviderResponse = await client.dataSources.retrieveProvider('key');\n\nconsole.log(sourceProviderResponse.provider);"
+      }
+    },
+    "GET /v1/sources": {
+      "x-fern-sdk-group-name": [
+        "data_sources"
+      ],
+      "x-fern-sdk-method-name": "list_sources",
+      "x-ferrule-method-name": "list_sources",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          13
+        ],
+        "path": [
+          "data_sources"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tsourcesResponse, err := client.DataSources.ListSources(context.TODO(), knockmapi.DataSourceListSourcesParams{})\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", sourcesResponse.Entries)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nsources_response = client.data_sources.list_sources()\nprint(sources_response.entries)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nconst sourcesResponse = await client.dataSources.listSources();\n\nconsole.log(sourcesResponse.entries);"
+      }
+    },
+    "GET /v1/sources/{key}": {
+      "x-fern-sdk-group-name": [
+        "data_sources"
+      ],
+      "x-fern-sdk-method-name": "retrieve",
+      "x-ferrule-method-name": "retrieve",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          13
+        ],
+        "path": [
+          "data_sources"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tsource, err := client.DataSources.Get(\n\t\tcontext.TODO(),\n\t\t\"key\",\n\t\tknockmapi.DataSourceGetParams{\n\t\t\tEnvironment: \"development\",\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", source.CreatedAt)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nsource = client.data_sources.retrieve(\n    key=\"key\",\n    environment=\"development\",\n)\nprint(source.created_at)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nconst source = await client.dataSources.retrieve('key', { environment: 'development' });\n\nconsole.log(source.created_at);"
+      }
+    },
+    "PUT /v1/sources/{key}": {
+      "x-fern-sdk-group-name": [
+        "data_sources"
+      ],
+      "x-fern-sdk-method-name": "upsert",
+      "x-ferrule-method-name": "upsert",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          13
+        ],
+        "path": [
+          "data_sources"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.DataSources.Upsert(\n\t\tcontext.TODO(),\n\t\t\"key\",\n\t\tknockmapi.DataSourceUpsertParams{\n\t\t\tEnvironment: \"development\",\n\t\t\tSource: knockmapi.SourceRequestParam{\n\t\t\t\tName: \"Universal HTTP Source\",\n\t\t\t},\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.Source)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nresponse = client.data_sources.upsert(\n    key=\"key\",\n    environment=\"development\",\n    source={\n        \"name\": \"Universal HTTP Source\"\n    },\n)\nprint(response.source)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nconst response = await client.dataSources.upsert('key', {\n  environment: 'development',\n  source: { name: 'Universal HTTP Source' },\n});\n\nconsole.log(response.source);"
+      }
+    },
+    "GET /v1/sources/{key}/events": {
+      "x-fern-sdk-group-name": [
+        "data_sources"
+      ],
+      "x-fern-sdk-method-name": "list_events",
+      "x-ferrule-method-name": "list_events",
+      "x-ferrule-method-order": 5,
+      "x-ferrule-resource": {
+        "order": [
+          13
+        ],
+        "path": [
+          "data_sources"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tsourceEventsResponse, err := client.DataSources.ListEvents(\n\t\tcontext.TODO(),\n\t\t\"key\",\n\t\tknockmapi.DataSourceListEventsParams{},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", sourceEventsResponse.Entries)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nsource_events_response = client.data_sources.list_events(\n    key=\"key\",\n)\nprint(source_events_response.entries)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nconst sourceEventsResponse = await client.dataSources.listEvents('key');\n\nconsole.log(sourceEventsResponse.entries);"
+      }
+    },
+    "GET /v1/sources/{key}/logs": {
+      "x-fern-sdk-group-name": [
+        "data_sources"
+      ],
+      "x-fern-sdk-method-name": "list_logs",
+      "x-ferrule-method-name": "list_logs",
+      "x-ferrule-method-order": 6,
+      "x-ferrule-pagination": {
+        "continueOnEmptyItems": false,
+        "page": "entries_cursor",
+        "paramLocation": "query",
+        "request": {
+          "after": "next_cursor_param",
+          "before": "previous_cursor_param",
+          "limit": "limit"
+        },
+        "response": {
+          "entries": "entries",
+          "page_info.after": "next_cursor_field"
+        },
+        "scheme": "cursor"
+      },
+      "x-ferrule-resource": {
+        "order": [
+          13
+        ],
+        "path": [
+          "data_sources"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tpage, err := client.DataSources.ListLogs(\n\t\tcontext.TODO(),\n\t\t\"key\",\n\t\tknockmapi.DataSourceListLogsParams{\n\t\t\tEnvironment: \"development\",\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", page)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\npage = client.data_sources.list_logs(\n    key=\"key\",\n    environment=\"development\",\n)\npage = page.entries[0]\nprint(page.id)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\n// Automatically fetches more pages as needed.\nfor await (const sourceLog of client.dataSources.listLogs('key', { environment: 'development' })) {\n  console.log(sourceLog.id);\n}"
+      }
+    },
+    "POST /v1/sources/{key}/rehearse": {
+      "x-fern-sdk-group-name": [
+        "data_sources"
+      ],
+      "x-fern-sdk-method-name": "rehearse",
+      "x-ferrule-method-name": "rehearse",
+      "x-ferrule-method-order": 4,
+      "x-ferrule-resource": {
+        "order": [
+          13
+        ],
+        "path": [
+          "data_sources"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tsourceRehearseResponse, err := client.DataSources.Rehearse(\n\t\tcontext.TODO(),\n\t\t\"key\",\n\t\tknockmapi.DataSourceRehearseParams{\n\t\t\tEnvironment: \"development\",\n\t\t\tSourceRehearseRequest: knockmapi.SourceRehearseRequestParam{\n\t\t\t\tPayload: map[string]any{\n\t\t\t\t\t\"body\":    \"bar\",\n\t\t\t\t\t\"headers\": \"bar\",\n\t\t\t\t},\n\t\t\t},\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", sourceRehearseResponse.LogID)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nsource_rehearse_response = client.data_sources.rehearse(\n    key=\"key\",\n    environment=\"development\",\n    payload={\n        \"body\": \"bar\",\n        \"headers\": \"bar\",\n    },\n)\nprint(source_rehearse_response.log_id)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nconst sourceRehearseResponse = await client.dataSources.rehearse('key', {\n  environment: 'development',\n  payload: { body: 'bar', headers: 'bar' },\n});\n\nconsole.log(sourceRehearseResponse.log_id);"
+      }
+    },
+    "GET /v1/sources/{key}/status": {
+      "x-fern-sdk-group-name": [
+        "data_sources"
+      ],
+      "x-fern-sdk-method-name": "retrieve_status",
+      "x-ferrule-method-name": "retrieve_status",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          13
+        ],
+        "path": [
+          "data_sources"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tsourceStatusResponse, err := client.DataSources.GetStatus(\n\t\tcontext.TODO(),\n\t\t\"key\",\n\t\tknockmapi.DataSourceGetStatusParams{},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", sourceStatusResponse.EventsCount)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nsource_status_response = client.data_sources.retrieve_status(\n    key=\"key\",\n)\nprint(source_status_response.events_count)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nconst sourceStatusResponse = await client.dataSources.retrieveStatus('key');\n\nconsole.log(sourceStatusResponse.events_count);"
+      }
+    },
+    "GET /v1/translations": {
+      "x-fern-sdk-group-name": [
+        "translations"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-pagination": {
+        "continueOnEmptyItems": false,
+        "page": "entries_cursor",
+        "paramLocation": "query",
+        "request": {
+          "after": "next_cursor_param",
+          "before": "previous_cursor_param",
+          "limit": "limit"
+        },
+        "response": {
+          "entries": "entries",
+          "page_info.after": "next_cursor_field"
+        },
+        "scheme": "cursor"
+      },
+      "x-ferrule-resource": {
+        "order": [
+          5
+        ],
+        "path": [
+          "translations"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tpage, err := client.Translations.List(context.TODO(), knockmapi.TranslationListParams{\n\t\tEnvironment: \"development\",\n\t})\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", page)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\npage = client.translations.list(\n    environment=\"development\",\n)\npage = page.entries[0]\nprint(page.content)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\n// Automatically fetches more pages as needed.\nfor await (const translation of client.translations.list({ environment: 'development' })) {\n  console.log(translation.content);\n}"
+      }
+    },
+    "GET /v1/translations/{locale_code}": {
+      "x-fern-sdk-group-name": [
+        "translations"
+      ],
+      "x-fern-sdk-method-name": "retrieve",
+      "x-ferrule-method-name": "retrieve",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          5
+        ],
+        "path": [
+          "translations"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\ttranslation, err := client.Translations.Get(\n\t\tcontext.TODO(),\n\t\t\"locale_code\",\n\t\tknockmapi.TranslationGetParams{\n\t\t\tEnvironment: \"development\",\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", translation.Translation)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\ntranslation = client.translations.retrieve(\n    locale_code=\"locale_code\",\n    environment=\"development\",\n)\nprint(translation.translation)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nconst translation = await client.translations.retrieve('locale_code', {\n  environment: 'development',\n});\n\nconsole.log(translation.translation);"
+      }
+    },
+    "PUT /v1/translations/{locale_code}": {
+      "x-fern-sdk-group-name": [
+        "translations"
+      ],
+      "x-fern-sdk-method-name": "upsert",
+      "x-ferrule-method-name": "upsert",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          5
+        ],
+        "path": [
+          "translations"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.Translations.Upsert(\n\t\tcontext.TODO(),\n\t\t\"locale_code\",\n\t\tknockmapi.TranslationUpsertParams{\n\t\t\tEnvironment: \"development\",\n\t\t\tNamespace:   \"namespace\",\n\t\t\tTranslation: knockmapi.TranslationUpsertParamsTranslation{\n\t\t\t\tContent: `{\"hello\":\"Hello, world!\"}`,\n\t\t\t\tFormat:  \"json\",\n\t\t\t},\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.Translation)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nresponse = client.translations.upsert(\n    locale_code=\"locale_code\",\n    environment=\"development\",\n    namespace=\"namespace\",\n    translation={\n        \"content\": \"{\\\"hello\\\":\\\"Hello, world!\\\"}\",\n        \"format\": \"json\",\n    },\n)\nprint(response.translation)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nconst response = await client.translations.upsert('locale_code', {\n  environment: 'development',\n  namespace: 'namespace',\n  translation: { content: '{\"hello\":\"Hello, world!\"}', format: 'json' },\n});\n\nconsole.log(response.translation);"
+      }
+    },
+    "PUT /v1/translations/{locale_code}/validate": {
+      "x-fern-sdk-group-name": [
+        "translations"
+      ],
+      "x-fern-sdk-method-name": "validate",
+      "x-ferrule-method-name": "validate",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          5
+        ],
+        "path": [
+          "translations"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.Translations.Validate(\n\t\tcontext.TODO(),\n\t\t\"locale_code\",\n\t\tknockmapi.TranslationValidateParams{\n\t\t\tEnvironment: \"development\",\n\t\t\tTranslation: knockmapi.TranslationValidateParamsTranslation{\n\t\t\t\tContent: `{\"hello\":\"Hello, world!\"}`,\n\t\t\t\tFormat:  \"json\",\n\t\t\t},\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.Translation)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nresponse = client.translations.validate(\n    locale_code=\"locale_code\",\n    environment=\"development\",\n    translation={\n        \"content\": \"{\\\"hello\\\":\\\"Hello, world!\\\"}\",\n        \"format\": \"json\",\n    },\n)\nprint(response.translation)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nconst response = await client.translations.validate('locale_code', {\n  environment: 'development',\n  translation: { content: '{\"hello\":\"Hello, world!\"}', format: 'json' },\n});\n\nconsole.log(response.translation);"
+      }
+    },
+    "GET /v1/variables": {
+      "x-fern-sdk-group-name": [
+        "variables"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-pagination": {
+        "continueOnEmptyItems": false,
+        "page": "entries_cursor",
+        "paramLocation": "query",
+        "request": {
+          "after": "next_cursor_param",
+          "before": "previous_cursor_param",
+          "limit": "limit"
+        },
+        "response": {
+          "entries": "entries",
+          "page_info.after": "next_cursor_field"
+        },
+        "scheme": "cursor"
+      },
+      "x-ferrule-resource": {
+        "order": [
+          15
+        ],
+        "path": [
+          "variables"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tpage, err := client.Variables.List(context.TODO(), knockmapi.VariableListParams{\n\t\tEnvironment: \"development\",\n\t})\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", page)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\npage = client.variables.list(\n    environment=\"development\",\n)\npage = page.entries[0]\nprint(page.inserted_at)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\n// Automatically fetches more pages as needed.\nfor await (const variable of client.variables.list({ environment: 'development' })) {\n  console.log(variable.inserted_at);\n}"
+      }
+    },
+    "GET /v1/variables/{key}": {
+      "x-fern-sdk-group-name": [
+        "variables"
+      ],
+      "x-fern-sdk-method-name": "retrieve",
+      "x-ferrule-method-name": "retrieve",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          15
+        ],
+        "path": [
+          "variables"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tvariable, err := client.Variables.Get(context.TODO(), \"key\")\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", variable.InsertedAt)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nvariable = client.variables.retrieve(\n    \"key\",\n)\nprint(variable.inserted_at)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nconst variable = await client.variables.retrieve('key');\n\nconsole.log(variable.inserted_at);"
+      }
+    },
+    "GET /v1/whoami": {
+      "x-fern-sdk-group-name": [
+        "auth"
+      ],
+      "x-fern-sdk-method-name": "verify",
+      "x-ferrule-method-name": "verify",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          8
+        ],
+        "path": [
+          "auth"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.Auth.Verify(context.TODO())\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.UserID)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nresponse = client.auth.verify()\nprint(response.user_id)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nconst response = await client.auth.verify();\n\nconsole.log(response.user_id);"
+      }
+    },
+    "GET /v1/workflows": {
+      "x-fern-sdk-group-name": [
+        "workflows"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-pagination": {
+        "continueOnEmptyItems": false,
+        "page": "entries_cursor",
+        "paramLocation": "query",
+        "request": {
+          "after": "next_cursor_param",
+          "before": "previous_cursor_param",
+          "limit": "limit"
+        },
+        "response": {
+          "entries": "entries",
+          "page_info.after": "next_cursor_field"
+        },
+        "scheme": "cursor"
+      },
+      "x-ferrule-resource": {
+        "order": [
+          6
+        ],
+        "path": [
+          "workflows"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tpage, err := client.Workflows.List(context.TODO(), knockmapi.WorkflowListParams{\n\t\tEnvironment: \"development\",\n\t})\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", page)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\npage = client.workflows.list(\n    environment=\"development\",\n)\npage = page.entries[0]\nprint(page.valid)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\n// Automatically fetches more pages as needed.\nfor await (const workflow of client.workflows.list({ environment: 'development' })) {\n  console.log(workflow.valid);\n}"
+      }
+    },
+    "GET /v1/workflows/{workflow_key}": {
+      "x-fern-sdk-group-name": [
+        "workflows"
+      ],
+      "x-fern-sdk-method-name": "retrieve",
+      "x-ferrule-method-name": "retrieve",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          6
+        ],
+        "path": [
+          "workflows"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tworkflow, err := client.Workflows.Get(\n\t\tcontext.TODO(),\n\t\t\"workflow_key\",\n\t\tknockmapi.WorkflowGetParams{\n\t\t\tEnvironment: \"development\",\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", workflow.Valid)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nworkflow = client.workflows.retrieve(\n    workflow_key=\"workflow_key\",\n    environment=\"development\",\n)\nprint(workflow.valid)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nconst workflow = await client.workflows.retrieve('workflow_key', { environment: 'development' });\n\nconsole.log(workflow.valid);"
+      }
+    },
+    "PUT /v1/workflows/{workflow_key}": {
+      "x-fern-sdk-group-name": [
+        "workflows"
+      ],
+      "x-fern-sdk-method-name": "upsert",
+      "x-ferrule-method-name": "upsert",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          6
+        ],
+        "path": [
+          "workflows"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.Workflows.Upsert(\n\t\tcontext.TODO(),\n\t\t\"workflow_key\",\n\t\tknockmapi.WorkflowUpsertParams{\n\t\t\tEnvironment: \"development\",\n\t\t\tWorkflow: knockmapi.WorkflowUpsertParamsWorkflow{\n\t\t\t\tName: \"My Workflow\",\n\t\t\t\tSteps: []knockmapi.WorkflowStepUnionParam{{\n\t\t\t\t\tOfWorkflowInAppFeedStep: &knockmapi.WorkflowInAppFeedStepParam{\n\t\t\t\t\t\tRef: \"channel_1\",\n\t\t\t\t\t\tTemplate: knockmapi.InAppFeedTemplateParam{\n\t\t\t\t\t\t\tMarkdownBody: \"Hello **{{ recipient.name }}**\",\n\t\t\t\t\t\t},\n\t\t\t\t\t\tType: knockmapi.WorkflowInAppFeedStepTypeChannel,\n\t\t\t\t\t},\n\t\t\t\t}},\n\t\t\t},\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.Workflow)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nresponse = client.workflows.upsert(\n    workflow_key=\"workflow_key\",\n    environment=\"development\",\n    workflow={\n        \"name\": \"My Workflow\",\n        \"steps\": [{\n            \"ref\": \"channel_1\",\n            \"template\": {\n                \"markdown_body\": \"Hello **{{ recipient.name }}**\"\n            },\n            \"type\": \"channel\",\n        }],\n    },\n)\nprint(response.workflow)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nconst response = await client.workflows.upsert('workflow_key', {\n  environment: 'development',\n  workflow: {\n    name: 'My Workflow',\n    steps: [\n      {\n        ref: 'channel_1',\n        template: { markdown_body: 'Hello **{{ recipient.name }}**' },\n        type: 'channel',\n      },\n    ],\n  },\n});\n\nconsole.log(response.workflow);"
+      }
+    },
+    "PUT /v1/workflows/{workflow_key}/activate": {
+      "x-fern-sdk-group-name": [
+        "workflows"
+      ],
+      "x-fern-sdk-method-name": "activate",
+      "x-ferrule-method-name": "activate",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          6
+        ],
+        "path": [
+          "workflows"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.Workflows.Activate(\n\t\tcontext.TODO(),\n\t\t\"workflow_key\",\n\t\tknockmapi.WorkflowActivateParams{\n\t\t\tEnvironment: \"development\",\n\t\t\tStatus:      true,\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.Workflow)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nresponse = client.workflows.activate(\n    workflow_key=\"workflow_key\",\n    environment=\"development\",\n    status=True,\n)\nprint(response.workflow)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nconst response = await client.workflows.activate('workflow_key', {\n  environment: 'development',\n  status: true,\n});\n\nconsole.log(response.workflow);"
+      }
+    },
+    "PUT /v1/workflows/{workflow_key}/run": {
+      "x-fern-sdk-group-name": [
+        "workflows"
+      ],
+      "x-fern-sdk-method-name": "run",
+      "x-ferrule-method-name": "run",
+      "x-ferrule-method-order": 4,
+      "x-ferrule-resource": {
+        "order": [
+          6
+        ],
+        "path": [
+          "workflows"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.Workflows.Run(\n\t\tcontext.TODO(),\n\t\t\"workflow_key\",\n\t\tknockmapi.WorkflowRunParams{\n\t\t\tEnvironment: \"development\",\n\t\t\tRecipients: []knockmapi.WorkflowRunParamsRecipientUnion{{\n\t\t\t\tOfString: knockmapi.String(\"dnedry\"),\n\t\t\t}},\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.WorkflowRunID)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nresponse = client.workflows.run(\n    workflow_key=\"workflow_key\",\n    environment=\"development\",\n    recipients=[\"dnedry\"],\n)\nprint(response.workflow_run_id)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nconst response = await client.workflows.run('workflow_key', {\n  environment: 'development',\n  recipients: ['dnedry'],\n});\n\nconsole.log(response.workflow_run_id);"
+      }
+    },
+    "POST /v1/workflows/{workflow_key}/steps/{step_ref}/preview_template": {
+      "x-fern-sdk-group-name": [
+        "workflows",
+        "steps"
+      ],
+      "x-fern-sdk-method-name": "preview_template",
+      "x-ferrule-method-name": "preview_template",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          6,
+          0
+        ],
+        "path": [
+          "workflows",
+          "steps"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.Workflows.Steps.PreviewTemplate(\n\t\tcontext.TODO(),\n\t\t\"step_ref\",\n\t\tknockmapi.WorkflowStepPreviewTemplateParams{\n\t\t\tWorkflowKey: \"workflow_key\",\n\t\t\tEnvironment: \"development\",\n\t\t\tRecipient: knockmapi.WorkflowStepPreviewTemplateParamsRecipientUnion{\n\t\t\t\tOfString: knockmapi.String(\"dnedry\"),\n\t\t\t},\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.ContentType)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nresponse = client.workflows.steps.preview_template(\n    step_ref=\"step_ref\",\n    workflow_key=\"workflow_key\",\n    environment=\"development\",\n    recipient=\"dnedry\",\n)\nprint(response.content_type)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nconst response = await client.workflows.steps.previewTemplate('step_ref', {\n  workflow_key: 'workflow_key',\n  environment: 'development',\n  recipient: 'dnedry',\n});\n\nconsole.log(response.content_type);"
+      }
+    },
+    "PUT /v1/workflows/{workflow_key}/validate": {
+      "x-fern-sdk-group-name": [
+        "workflows"
+      ],
+      "x-fern-sdk-method-name": "validate",
+      "x-ferrule-method-name": "validate",
+      "x-ferrule-method-order": 5,
+      "x-ferrule-resource": {
+        "order": [
+          6
+        ],
+        "path": [
+          "workflows"
+        ]
+      },
+      "x-stainless-snippets": {
+        "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.Workflows.Validate(\n\t\tcontext.TODO(),\n\t\t\"workflow_key\",\n\t\tknockmapi.WorkflowValidateParams{\n\t\t\tEnvironment: \"development\",\n\t\t\tWorkflow: knockmapi.WorkflowValidateParamsWorkflow{\n\t\t\t\tName: \"My Workflow\",\n\t\t\t\tSteps: []knockmapi.WorkflowStepUnionParam{{\n\t\t\t\t\tOfWorkflowInAppFeedStep: &knockmapi.WorkflowInAppFeedStepParam{\n\t\t\t\t\t\tRef: \"channel_1\",\n\t\t\t\t\t\tTemplate: knockmapi.InAppFeedTemplateParam{\n\t\t\t\t\t\t\tMarkdownBody: \"Hello **{{ recipient.name }}**\",\n\t\t\t\t\t\t},\n\t\t\t\t\t\tType: knockmapi.WorkflowInAppFeedStepTypeChannel,\n\t\t\t\t\t},\n\t\t\t\t}},\n\t\t\t},\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.Workflow)\n}\n",
+        "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nresponse = client.workflows.validate(\n    workflow_key=\"workflow_key\",\n    environment=\"development\",\n    workflow={\n        \"name\": \"My Workflow\",\n        \"steps\": [{\n            \"ref\": \"channel_1\",\n            \"template\": {\n                \"markdown_body\": \"Hello **{{ recipient.name }}**\"\n            },\n            \"type\": \"channel\",\n        }],\n    },\n)\nprint(response.workflow)",
+        "typescript": "import KnockMgmt from '@knocklabs/mgmt';\n\nconst client = new KnockMgmt({\n  serviceToken: process.env['KNOCK_SERVICE_TOKEN'], // This is the default and can be omitted\n});\n\nconst response = await client.workflows.validate('workflow_key', {\n  environment: 'development',\n  workflow: {\n    name: 'My Workflow',\n    steps: [\n      {\n        ref: 'channel_1',\n        template: { markdown_body: 'Hello **{{ recipient.name }}**' },\n        type: 'channel',\n      },\n    ],\n  },\n});\n\nconsole.log(response.workflow);"
+      }
+    }
+  }
+}

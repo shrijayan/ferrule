@@ -1,0 +1,1020 @@
+{
+  "sha256": "70495c64db2a4fc929b4965120378b8dbab99274a178a8b128acb3f68ded47cd",
+  "root": {
+    "x-ferrule-client": {
+      "defaultEnvironment": "demo",
+      "defaultHeaders": {},
+      "envPrefix": "HONCHO",
+      "environments": [
+        {
+          "name": "demo",
+          "url": "https://demo.honcho.dev"
+        },
+        {
+          "name": "local",
+          "url": "http://localhost:8000"
+        },
+        {
+          "name": "production",
+          "url": "https://api.honcho.dev"
+        }
+      ],
+      "name": "honcho",
+      "omitPlatformHeaders": false,
+      "opts": [
+        {
+          "auth": {
+            "role": "value",
+            "securityScheme": "HTTPBearer"
+          },
+          "name": "api_key",
+          "nullable": true,
+          "readEnv": "HONCHO_API_KEY",
+          "type": "string"
+        }
+      ],
+      "query": {
+        "arrayFormat": "comma",
+        "nestedFormat": "brackets"
+      },
+      "retries": {
+        "initialDelaySeconds": 0.5,
+        "maxDelaySeconds": 8,
+        "maxRetries": 2
+      },
+      "security": [
+        {
+          "HTTPBearer": []
+        },
+        {}
+      ],
+      "securitySchemes": {
+        "HTTPBearer": {
+          "scheme": "bearer",
+          "type": "http"
+        }
+      },
+      "timeoutSeconds": 60
+    },
+    "x-ferrule-config": {
+      "edition": "2025-10-08",
+      "packageName": "honcho_core",
+      "projectName": "honcho-core",
+      "pythonEdition": "python.2025-10-08",
+      "version": 1
+    }
+  },
+  "mirrored": {
+    "x-ferrule-client": {
+      "defaultEnvironment": "demo",
+      "defaultHeaders": {},
+      "envPrefix": "HONCHO",
+      "environments": [
+        {
+          "name": "demo",
+          "url": "https://demo.honcho.dev"
+        },
+        {
+          "name": "local",
+          "url": "http://localhost:8000"
+        },
+        {
+          "name": "production",
+          "url": "https://api.honcho.dev"
+        }
+      ],
+      "name": "honcho",
+      "omitPlatformHeaders": false,
+      "opts": [
+        {
+          "auth": {
+            "role": "value",
+            "securityScheme": "HTTPBearer"
+          },
+          "name": "api_key",
+          "nullable": true,
+          "readEnv": "HONCHO_API_KEY",
+          "type": "string"
+        }
+      ],
+      "query": {
+        "arrayFormat": "comma",
+        "nestedFormat": "brackets"
+      },
+      "retries": {
+        "initialDelaySeconds": 0.5,
+        "maxDelaySeconds": 8,
+        "maxRetries": 2
+      },
+      "security": [
+        {
+          "HTTPBearer": []
+        },
+        {}
+      ],
+      "securitySchemes": {
+        "HTTPBearer": {
+          "scheme": "bearer",
+          "type": "http"
+        }
+      },
+      "timeoutSeconds": 60
+    },
+    "x-ferrule-models": {
+      "DeriverStatus": {
+        "module": "deriver_status",
+        "name": "DeriverStatus"
+      },
+      "Message": {
+        "module": "workspaces.sessions.message",
+        "name": "Message"
+      },
+      "MessageCreate": {
+        "module": "workspaces.sessions.message_create",
+        "name": "MessageCreate"
+      },
+      "MessageSearchOptions": {
+        "module": "message_search_options",
+        "name": "MessageSearchOptions"
+      },
+      "Page_Peer_": {
+        "module": "workspaces.page_peer",
+        "name": "PagePeer"
+      },
+      "Page_Session_": {
+        "module": "workspaces.page_session",
+        "name": "PageSession"
+      },
+      "Peer": {
+        "module": "workspaces.peer",
+        "name": "Peer"
+      },
+      "Session": {
+        "module": "workspaces.session",
+        "name": "Session"
+      },
+      "SessionGet": {
+        "module": "workspaces.session_get",
+        "name": "SessionGet"
+      },
+      "SessionPeerConfig": {
+        "module": "workspaces.sessions.session_peer_config",
+        "name": "SessionPeerConfig"
+      },
+      "WebhookEndpoint": {
+        "module": "workspaces.webhook_endpoint",
+        "name": "WebhookEndpoint"
+      },
+      "Workspace": {
+        "module": "workspace",
+        "name": "Workspace"
+      }
+    },
+    "x-ferrule-package": {
+      "name": "honcho_core",
+      "repo": "plastic-labs/honcho-python-core"
+    }
+  },
+  "operations": {
+    "POST /v2/keys": {
+      "x-fern-sdk-group-name": [
+        "keys"
+      ],
+      "x-fern-sdk-method-name": "create",
+      "x-ferrule-method-name": "create",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          1
+        ],
+        "path": [
+          "keys"
+        ]
+      }
+    },
+    "POST /v2/workspaces": {
+      "x-fern-sdk-group-name": [
+        "workspaces"
+      ],
+      "x-fern-sdk-method-name": "get_or_create",
+      "x-ferrule-method-name": "get_or_create",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          0
+        ],
+        "path": [
+          "workspaces"
+        ]
+      }
+    },
+    "POST /v2/workspaces/list": {
+      "x-fern-sdk-group-name": [
+        "workspaces"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-pagination": {
+        "continueOnEmptyItems": false,
+        "page": "page",
+        "paramLocation": "query",
+        "request": {
+          "page": "page_number_param",
+          "size": "size"
+        },
+        "response": {
+          "items": "items",
+          "page": "current_page_number_field",
+          "pages": "total_page_count_field",
+          "size": "size",
+          "total": "total"
+        },
+        "scheme": "page_number"
+      },
+      "x-ferrule-resource": {
+        "order": [
+          0
+        ],
+        "path": [
+          "workspaces"
+        ]
+      }
+    },
+    "PUT /v2/workspaces/{workspace_id}": {
+      "x-fern-sdk-group-name": [
+        "workspaces"
+      ],
+      "x-fern-sdk-method-name": "update",
+      "x-ferrule-method-name": "update",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          0
+        ],
+        "path": [
+          "workspaces"
+        ]
+      }
+    },
+    "GET /v2/workspaces/{workspace_id}/deriver/status": {
+      "x-fern-sdk-group-name": [
+        "workspaces"
+      ],
+      "x-fern-sdk-method-name": "deriver_status",
+      "x-ferrule-method-name": "deriver_status",
+      "x-ferrule-method-order": 4,
+      "x-ferrule-resource": {
+        "order": [
+          0
+        ],
+        "path": [
+          "workspaces"
+        ]
+      }
+    },
+    "POST /v2/workspaces/{workspace_id}/peers": {
+      "x-fern-sdk-group-name": [
+        "workspaces",
+        "peers"
+      ],
+      "x-fern-sdk-method-name": "get_or_create",
+      "x-ferrule-method-name": "get_or_create",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          0,
+          0
+        ],
+        "path": [
+          "workspaces",
+          "peers"
+        ]
+      }
+    },
+    "POST /v2/workspaces/{workspace_id}/peers/list": {
+      "x-fern-sdk-group-name": [
+        "workspaces",
+        "peers"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-pagination": {
+        "continueOnEmptyItems": false,
+        "page": "page",
+        "paramLocation": "query",
+        "request": {
+          "page": "page_number_param",
+          "size": "size"
+        },
+        "response": {
+          "items": "items",
+          "page": "current_page_number_field",
+          "pages": "total_page_count_field",
+          "size": "size",
+          "total": "total"
+        },
+        "scheme": "page_number"
+      },
+      "x-ferrule-resource": {
+        "order": [
+          0,
+          0
+        ],
+        "path": [
+          "workspaces",
+          "peers"
+        ]
+      }
+    },
+    "PUT /v2/workspaces/{workspace_id}/peers/{peer_id}": {
+      "x-fern-sdk-group-name": [
+        "workspaces",
+        "peers"
+      ],
+      "x-fern-sdk-method-name": "update",
+      "x-ferrule-method-name": "update",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          0,
+          0
+        ],
+        "path": [
+          "workspaces",
+          "peers"
+        ]
+      }
+    },
+    "GET /v2/workspaces/{workspace_id}/peers/{peer_id}/card": {
+      "x-fern-sdk-group-name": [
+        "workspaces",
+        "peers"
+      ],
+      "x-fern-sdk-method-name": "card",
+      "x-ferrule-method-name": "card",
+      "x-ferrule-method-order": 6,
+      "x-ferrule-resource": {
+        "order": [
+          0,
+          0
+        ],
+        "path": [
+          "workspaces",
+          "peers"
+        ]
+      }
+    },
+    "POST /v2/workspaces/{workspace_id}/peers/{peer_id}/chat": {
+      "x-fern-sdk-group-name": [
+        "workspaces",
+        "peers"
+      ],
+      "x-fern-sdk-method-name": "chat",
+      "x-ferrule-method-name": "chat",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          0,
+          0
+        ],
+        "path": [
+          "workspaces",
+          "peers"
+        ]
+      }
+    },
+    "POST /v2/workspaces/{workspace_id}/peers/{peer_id}/representation": {
+      "x-fern-sdk-group-name": [
+        "workspaces",
+        "peers"
+      ],
+      "x-fern-sdk-method-name": "working_representation",
+      "x-ferrule-method-name": "working_representation",
+      "x-ferrule-method-order": 4,
+      "x-ferrule-resource": {
+        "order": [
+          0,
+          0
+        ],
+        "path": [
+          "workspaces",
+          "peers"
+        ]
+      }
+    },
+    "POST /v2/workspaces/{workspace_id}/peers/{peer_id}/search": {
+      "x-fern-sdk-group-name": [
+        "workspaces",
+        "peers"
+      ],
+      "x-fern-sdk-method-name": "search",
+      "x-ferrule-method-name": "search",
+      "x-ferrule-method-order": 5,
+      "x-ferrule-resource": {
+        "order": [
+          0,
+          0
+        ],
+        "path": [
+          "workspaces",
+          "peers"
+        ]
+      }
+    },
+    "POST /v2/workspaces/{workspace_id}/peers/{peer_id}/sessions": {
+      "x-fern-sdk-group-name": [
+        "workspaces",
+        "peers",
+        "sessions"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-pagination": {
+        "continueOnEmptyItems": false,
+        "page": "page",
+        "paramLocation": "query",
+        "request": {
+          "page": "page_number_param",
+          "size": "size"
+        },
+        "response": {
+          "items": "items",
+          "page": "current_page_number_field",
+          "pages": "total_page_count_field",
+          "size": "size",
+          "total": "total"
+        },
+        "scheme": "page_number"
+      },
+      "x-ferrule-resource": {
+        "order": [
+          0,
+          0,
+          0
+        ],
+        "path": [
+          "workspaces",
+          "peers",
+          "sessions"
+        ]
+      }
+    },
+    "POST /v2/workspaces/{workspace_id}/search": {
+      "x-fern-sdk-group-name": [
+        "workspaces"
+      ],
+      "x-fern-sdk-method-name": "search",
+      "x-ferrule-method-name": "search",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          0
+        ],
+        "path": [
+          "workspaces"
+        ]
+      }
+    },
+    "POST /v2/workspaces/{workspace_id}/sessions": {
+      "x-fern-sdk-group-name": [
+        "workspaces",
+        "sessions"
+      ],
+      "x-fern-sdk-method-name": "get_or_create",
+      "x-ferrule-method-name": "get_or_create",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          0,
+          1
+        ],
+        "path": [
+          "workspaces",
+          "sessions"
+        ]
+      }
+    },
+    "POST /v2/workspaces/{workspace_id}/sessions/list": {
+      "x-fern-sdk-group-name": [
+        "workspaces",
+        "sessions"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-pagination": {
+        "continueOnEmptyItems": false,
+        "page": "page",
+        "paramLocation": "query",
+        "request": {
+          "page": "page_number_param",
+          "size": "size"
+        },
+        "response": {
+          "items": "items",
+          "page": "current_page_number_field",
+          "pages": "total_page_count_field",
+          "size": "size",
+          "total": "total"
+        },
+        "scheme": "page_number"
+      },
+      "x-ferrule-resource": {
+        "order": [
+          0,
+          1
+        ],
+        "path": [
+          "workspaces",
+          "sessions"
+        ]
+      }
+    },
+    "DELETE /v2/workspaces/{workspace_id}/sessions/{session_id}": {
+      "x-fern-sdk-group-name": [
+        "workspaces",
+        "sessions"
+      ],
+      "x-fern-sdk-method-name": "delete",
+      "x-ferrule-method-name": "delete",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          0,
+          1
+        ],
+        "path": [
+          "workspaces",
+          "sessions"
+        ]
+      }
+    },
+    "PUT /v2/workspaces/{workspace_id}/sessions/{session_id}": {
+      "x-fern-sdk-group-name": [
+        "workspaces",
+        "sessions"
+      ],
+      "x-fern-sdk-method-name": "update",
+      "x-ferrule-method-name": "update",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          0,
+          1
+        ],
+        "path": [
+          "workspaces",
+          "sessions"
+        ]
+      }
+    },
+    "GET /v2/workspaces/{workspace_id}/sessions/{session_id}/clone": {
+      "x-fern-sdk-group-name": [
+        "workspaces",
+        "sessions"
+      ],
+      "x-fern-sdk-method-name": "clone",
+      "x-ferrule-method-name": "clone",
+      "x-ferrule-method-order": 4,
+      "x-ferrule-resource": {
+        "order": [
+          0,
+          1
+        ],
+        "path": [
+          "workspaces",
+          "sessions"
+        ]
+      }
+    },
+    "GET /v2/workspaces/{workspace_id}/sessions/{session_id}/context": {
+      "x-fern-sdk-group-name": [
+        "workspaces",
+        "sessions"
+      ],
+      "x-fern-sdk-method-name": "get_context",
+      "x-ferrule-method-name": "get_context",
+      "x-ferrule-method-order": 5,
+      "x-ferrule-resource": {
+        "order": [
+          0,
+          1
+        ],
+        "path": [
+          "workspaces",
+          "sessions"
+        ]
+      }
+    },
+    "POST /v2/workspaces/{workspace_id}/sessions/{session_id}/messages/": {
+      "x-fern-sdk-group-name": [
+        "workspaces",
+        "sessions",
+        "messages"
+      ],
+      "x-fern-sdk-method-name": "create",
+      "x-ferrule-method-name": "create",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          0,
+          1,
+          0
+        ],
+        "path": [
+          "workspaces",
+          "sessions",
+          "messages"
+        ]
+      }
+    },
+    "POST /v2/workspaces/{workspace_id}/sessions/{session_id}/messages/list": {
+      "x-fern-sdk-group-name": [
+        "workspaces",
+        "sessions",
+        "messages"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-pagination": {
+        "continueOnEmptyItems": false,
+        "page": "page",
+        "paramLocation": "query",
+        "request": {
+          "page": "page_number_param",
+          "size": "size"
+        },
+        "response": {
+          "items": "items",
+          "page": "current_page_number_field",
+          "pages": "total_page_count_field",
+          "size": "size",
+          "total": "total"
+        },
+        "scheme": "page_number"
+      },
+      "x-ferrule-resource": {
+        "order": [
+          0,
+          1,
+          0
+        ],
+        "path": [
+          "workspaces",
+          "sessions",
+          "messages"
+        ]
+      }
+    },
+    "POST /v2/workspaces/{workspace_id}/sessions/{session_id}/messages/upload": {
+      "x-fern-sdk-group-name": [
+        "workspaces",
+        "sessions",
+        "messages"
+      ],
+      "x-fern-sdk-method-name": "upload",
+      "x-ferrule-method-name": "upload",
+      "x-ferrule-method-order": 4,
+      "x-ferrule-resource": {
+        "order": [
+          0,
+          1,
+          0
+        ],
+        "path": [
+          "workspaces",
+          "sessions",
+          "messages"
+        ]
+      }
+    },
+    "GET /v2/workspaces/{workspace_id}/sessions/{session_id}/messages/{message_id}": {
+      "x-fern-sdk-group-name": [
+        "workspaces",
+        "sessions",
+        "messages"
+      ],
+      "x-fern-sdk-method-name": "retrieve",
+      "x-ferrule-method-name": "retrieve",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          0,
+          1,
+          0
+        ],
+        "path": [
+          "workspaces",
+          "sessions",
+          "messages"
+        ]
+      }
+    },
+    "PUT /v2/workspaces/{workspace_id}/sessions/{session_id}/messages/{message_id}": {
+      "x-fern-sdk-group-name": [
+        "workspaces",
+        "sessions",
+        "messages"
+      ],
+      "x-fern-sdk-method-name": "update",
+      "x-ferrule-method-name": "update",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          0,
+          1,
+          0
+        ],
+        "path": [
+          "workspaces",
+          "sessions",
+          "messages"
+        ]
+      }
+    },
+    "DELETE /v2/workspaces/{workspace_id}/sessions/{session_id}/peers": {
+      "x-fern-sdk-group-name": [
+        "workspaces",
+        "sessions",
+        "peers"
+      ],
+      "x-fern-sdk-method-name": "remove",
+      "x-ferrule-method-name": "remove",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          0,
+          1,
+          1
+        ],
+        "path": [
+          "workspaces",
+          "sessions",
+          "peers"
+        ]
+      }
+    },
+    "GET /v2/workspaces/{workspace_id}/sessions/{session_id}/peers": {
+      "x-fern-sdk-group-name": [
+        "workspaces",
+        "sessions",
+        "peers"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-pagination": {
+        "continueOnEmptyItems": false,
+        "page": "page",
+        "paramLocation": "query",
+        "request": {
+          "page": "page_number_param",
+          "size": "size"
+        },
+        "response": {
+          "items": "items",
+          "page": "current_page_number_field",
+          "pages": "total_page_count_field",
+          "size": "size",
+          "total": "total"
+        },
+        "scheme": "page_number"
+      },
+      "x-ferrule-resource": {
+        "order": [
+          0,
+          1,
+          1
+        ],
+        "path": [
+          "workspaces",
+          "sessions",
+          "peers"
+        ]
+      }
+    },
+    "POST /v2/workspaces/{workspace_id}/sessions/{session_id}/peers": {
+      "x-fern-sdk-group-name": [
+        "workspaces",
+        "sessions",
+        "peers"
+      ],
+      "x-fern-sdk-method-name": "add",
+      "x-ferrule-method-name": "add",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          0,
+          1,
+          1
+        ],
+        "path": [
+          "workspaces",
+          "sessions",
+          "peers"
+        ]
+      }
+    },
+    "PUT /v2/workspaces/{workspace_id}/sessions/{session_id}/peers": {
+      "x-fern-sdk-group-name": [
+        "workspaces",
+        "sessions",
+        "peers"
+      ],
+      "x-fern-sdk-method-name": "set",
+      "x-ferrule-method-name": "set",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          0,
+          1,
+          1
+        ],
+        "path": [
+          "workspaces",
+          "sessions",
+          "peers"
+        ]
+      }
+    },
+    "GET /v2/workspaces/{workspace_id}/sessions/{session_id}/peers/{peer_id}/config": {
+      "x-fern-sdk-group-name": [
+        "workspaces",
+        "sessions",
+        "peers"
+      ],
+      "x-fern-sdk-method-name": "get_config",
+      "x-ferrule-method-name": "get_config",
+      "x-ferrule-method-order": 4,
+      "x-ferrule-resource": {
+        "order": [
+          0,
+          1,
+          1
+        ],
+        "path": [
+          "workspaces",
+          "sessions",
+          "peers"
+        ]
+      }
+    },
+    "POST /v2/workspaces/{workspace_id}/sessions/{session_id}/peers/{peer_id}/config": {
+      "x-fern-sdk-group-name": [
+        "workspaces",
+        "sessions",
+        "peers"
+      ],
+      "x-fern-sdk-method-name": "set_config",
+      "x-ferrule-method-name": "set_config",
+      "x-ferrule-method-order": 5,
+      "x-ferrule-resource": {
+        "order": [
+          0,
+          1,
+          1
+        ],
+        "path": [
+          "workspaces",
+          "sessions",
+          "peers"
+        ]
+      }
+    },
+    "POST /v2/workspaces/{workspace_id}/sessions/{session_id}/search": {
+      "x-fern-sdk-group-name": [
+        "workspaces",
+        "sessions"
+      ],
+      "x-fern-sdk-method-name": "search",
+      "x-ferrule-method-name": "search",
+      "x-ferrule-method-order": 6,
+      "x-ferrule-resource": {
+        "order": [
+          0,
+          1
+        ],
+        "path": [
+          "workspaces",
+          "sessions"
+        ]
+      }
+    },
+    "GET /v2/workspaces/{workspace_id}/sessions/{session_id}/summaries": {
+      "x-fern-sdk-group-name": [
+        "workspaces",
+        "sessions"
+      ],
+      "x-fern-sdk-method-name": "summaries",
+      "x-ferrule-method-name": "summaries",
+      "x-ferrule-method-order": 7,
+      "x-ferrule-resource": {
+        "order": [
+          0,
+          1
+        ],
+        "path": [
+          "workspaces",
+          "sessions"
+        ]
+      }
+    },
+    "GET /v2/workspaces/{workspace_id}/webhooks": {
+      "x-fern-sdk-group-name": [
+        "workspaces",
+        "webhooks"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-pagination": {
+        "continueOnEmptyItems": false,
+        "page": "page",
+        "paramLocation": "query",
+        "request": {
+          "page": "page_number_param",
+          "size": "size"
+        },
+        "response": {
+          "items": "items",
+          "page": "current_page_number_field",
+          "pages": "total_page_count_field",
+          "size": "size",
+          "total": "total"
+        },
+        "scheme": "page_number"
+      },
+      "x-ferrule-resource": {
+        "order": [
+          0,
+          2
+        ],
+        "path": [
+          "workspaces",
+          "webhooks"
+        ]
+      }
+    },
+    "POST /v2/workspaces/{workspace_id}/webhooks": {
+      "x-fern-sdk-group-name": [
+        "workspaces",
+        "webhooks"
+      ],
+      "x-fern-sdk-method-name": "get_or_create",
+      "x-ferrule-method-name": "get_or_create",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          0,
+          2
+        ],
+        "path": [
+          "workspaces",
+          "webhooks"
+        ]
+      }
+    },
+    "GET /v2/workspaces/{workspace_id}/webhooks/test": {
+      "x-fern-sdk-group-name": [
+        "workspaces",
+        "webhooks"
+      ],
+      "x-fern-sdk-method-name": "test_emit",
+      "x-ferrule-method-name": "test_emit",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          0,
+          2
+        ],
+        "path": [
+          "workspaces",
+          "webhooks"
+        ]
+      }
+    },
+    "DELETE /v2/workspaces/{workspace_id}/webhooks/{endpoint_id}": {
+      "x-fern-sdk-group-name": [
+        "workspaces",
+        "webhooks"
+      ],
+      "x-fern-sdk-method-name": "delete",
+      "x-ferrule-method-name": "delete",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          0,
+          2
+        ],
+        "path": [
+          "workspaces",
+          "webhooks"
+        ]
+      }
+    }
+  }
+}

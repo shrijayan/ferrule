@@ -1,0 +1,645 @@
+{
+  "sha256": "4701b5d1fa3168b90ac25be02682c8438de599a8103548c92ab8ae4d1733c73f",
+  "root": {
+    "x-ferrule-client": {
+      "defaultEnvironment": "production",
+      "defaultHeaders": {},
+      "envPrefix": "OPENCODE",
+      "environments": [
+        {
+          "name": "production",
+          "url": "http://localhost:54321"
+        }
+      ],
+      "name": "opencode",
+      "omitPlatformHeaders": false,
+      "opts": [],
+      "query": {
+        "arrayFormat": "comma",
+        "nestedFormat": "brackets"
+      },
+      "retries": {
+        "initialDelaySeconds": 0.5,
+        "maxDelaySeconds": 8,
+        "maxRetries": 2
+      },
+      "security": [
+        {}
+      ],
+      "securitySchemes": {},
+      "timeoutSeconds": 60
+    },
+    "x-ferrule-config": {
+      "edition": "2025-10-08",
+      "packageName": "opencode_ai",
+      "projectName": "opencode-ai",
+      "pythonEdition": "python.2025-10-08",
+      "version": 1
+    }
+  },
+  "mirrored": {
+    "x-ferrule-client": {
+      "defaultEnvironment": "production",
+      "defaultHeaders": {},
+      "envPrefix": "OPENCODE",
+      "environments": [
+        {
+          "name": "production",
+          "url": "http://localhost:54321"
+        }
+      ],
+      "name": "opencode",
+      "omitPlatformHeaders": false,
+      "opts": [],
+      "query": {
+        "arrayFormat": "comma",
+        "nestedFormat": "brackets"
+      },
+      "retries": {
+        "initialDelaySeconds": 0.5,
+        "maxDelaySeconds": 8,
+        "maxRetries": 2
+      },
+      "security": [
+        {}
+      ],
+      "securitySchemes": {},
+      "timeoutSeconds": 60
+    },
+    "x-ferrule-models": {
+      "App": {
+        "module": "app",
+        "name": "App"
+      },
+      "AssistantMessage": {
+        "module": "assistantMessage",
+        "name": "AssistantMessage"
+      },
+      "Config": {
+        "module": "config",
+        "name": "Config"
+      },
+      "File": {
+        "module": "file",
+        "name": "File"
+      },
+      "FilePart": {
+        "module": "filePart",
+        "name": "FilePart"
+      },
+      "FilePartInput": {
+        "module": "filePartInput",
+        "name": "FilePartInput"
+      },
+      "FilePartSource": {
+        "module": "filePartSource",
+        "name": "FilePartSource"
+      },
+      "FilePartSourceText": {
+        "module": "filePartSourceText",
+        "name": "FilePartSourceText"
+      },
+      "FileSource": {
+        "module": "fileSource",
+        "name": "FileSource"
+      },
+      "KeybindsConfig": {
+        "module": "keybindsConfig",
+        "name": "KeybindsConfig"
+      },
+      "McpLocalConfig": {
+        "module": "mcpLocalConfig",
+        "name": "McpLocalConfig"
+      },
+      "McpRemoteConfig": {
+        "module": "mcpRemoteConfig",
+        "name": "McpRemoteConfig"
+      },
+      "Message": {
+        "module": "message",
+        "name": "Message"
+      },
+      "MessageAbortedError": {
+        "module": "shared.messageAbortedError",
+        "name": "MessageAbortedError"
+      },
+      "Mode": {
+        "module": "mode",
+        "name": "Mode"
+      },
+      "ModeConfig": {
+        "module": "modeConfig",
+        "name": "ModeConfig"
+      },
+      "Model": {
+        "module": "model",
+        "name": "Model"
+      },
+      "Part": {
+        "module": "part",
+        "name": "Part"
+      },
+      "Provider": {
+        "module": "provider",
+        "name": "Provider"
+      },
+      "ProviderAuthError": {
+        "module": "shared.providerAuthError",
+        "name": "ProviderAuthError"
+      },
+      "Session": {
+        "module": "session",
+        "name": "Session"
+      },
+      "SnapshotPart": {
+        "module": "snapshotPart",
+        "name": "SnapshotPart"
+      },
+      "StepFinishPart": {
+        "module": "stepFinishPart",
+        "name": "StepFinishPart"
+      },
+      "StepStartPart": {
+        "module": "stepStartPart",
+        "name": "StepStartPart"
+      },
+      "Symbol": {
+        "module": "symbol",
+        "name": "Symbol"
+      },
+      "SymbolSource": {
+        "module": "symbolSource",
+        "name": "SymbolSource"
+      },
+      "TextPart": {
+        "module": "textPart",
+        "name": "TextPart"
+      },
+      "TextPartInput": {
+        "module": "textPartInput",
+        "name": "TextPartInput"
+      },
+      "ToolPart": {
+        "module": "toolPart",
+        "name": "ToolPart"
+      },
+      "ToolStateCompleted": {
+        "module": "toolStateCompleted",
+        "name": "ToolStateCompleted"
+      },
+      "ToolStateError": {
+        "module": "toolStateError",
+        "name": "ToolStateError"
+      },
+      "ToolStatePending": {
+        "module": "toolStatePending",
+        "name": "ToolStatePending"
+      },
+      "ToolStateRunning": {
+        "module": "toolStateRunning",
+        "name": "ToolStateRunning"
+      },
+      "UnknownError": {
+        "module": "shared.unknownError",
+        "name": "UnknownError"
+      },
+      "UserMessage": {
+        "module": "userMessage",
+        "name": "UserMessage"
+      }
+    },
+    "x-ferrule-package": {
+      "name": "opencode_ai",
+      "repo": "sst/opencode-sdk-python"
+    }
+  },
+  "operations": {
+    "GET /app": {
+      "x-fern-sdk-group-name": [
+        "app"
+      ],
+      "x-fern-sdk-method-name": "get",
+      "x-ferrule-method-name": "get",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          2
+        ],
+        "path": [
+          "app"
+        ]
+      }
+    },
+    "POST /app/init": {
+      "x-fern-sdk-group-name": [
+        "app"
+      ],
+      "x-fern-sdk-method-name": "init",
+      "x-ferrule-method-name": "init",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          2
+        ],
+        "path": [
+          "app"
+        ]
+      }
+    },
+    "GET /config": {
+      "x-fern-sdk-group-name": [
+        "config"
+      ],
+      "x-fern-sdk-method-name": "get",
+      "x-ferrule-method-name": "get",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          5
+        ],
+        "path": [
+          "config"
+        ]
+      }
+    },
+    "GET /config/providers": {
+      "x-fern-sdk-group-name": [
+        "app"
+      ],
+      "x-fern-sdk-method-name": "providers",
+      "x-ferrule-method-name": "providers",
+      "x-ferrule-method-order": 4,
+      "x-ferrule-resource": {
+        "order": [
+          2
+        ],
+        "path": [
+          "app"
+        ]
+      }
+    },
+    "GET /event": {
+      "x-fern-sdk-group-name": [
+        "event"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          1
+        ],
+        "path": [
+          "event"
+        ]
+      },
+      "x-ferrule-streaming": {
+        "format": "sse",
+        "onEvent": [
+          {
+            "handle": "yield",
+            "kind": "fallthrough"
+          }
+        ],
+        "paramDiscriminator": null,
+        "synthesizeEventAndData": false
+      }
+    },
+    "GET /file": {
+      "x-fern-sdk-group-name": [
+        "file"
+      ],
+      "x-fern-sdk-method-name": "read",
+      "x-ferrule-method-name": "read",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          4
+        ],
+        "path": [
+          "file"
+        ]
+      }
+    },
+    "GET /file/status": {
+      "x-fern-sdk-group-name": [
+        "file"
+      ],
+      "x-fern-sdk-method-name": "status",
+      "x-ferrule-method-name": "status",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          4
+        ],
+        "path": [
+          "file"
+        ]
+      }
+    },
+    "GET /find": {
+      "x-fern-sdk-group-name": [
+        "find"
+      ],
+      "x-fern-sdk-method-name": "text",
+      "x-ferrule-method-name": "text",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          3
+        ],
+        "path": [
+          "find"
+        ]
+      }
+    },
+    "GET /find/file": {
+      "x-fern-sdk-group-name": [
+        "find"
+      ],
+      "x-fern-sdk-method-name": "files",
+      "x-ferrule-method-name": "files",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          3
+        ],
+        "path": [
+          "find"
+        ]
+      }
+    },
+    "GET /find/symbol": {
+      "x-fern-sdk-group-name": [
+        "find"
+      ],
+      "x-fern-sdk-method-name": "symbols",
+      "x-ferrule-method-name": "symbols",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          3
+        ],
+        "path": [
+          "find"
+        ]
+      }
+    },
+    "POST /log": {
+      "x-fern-sdk-group-name": [
+        "app"
+      ],
+      "x-fern-sdk-method-name": "log",
+      "x-ferrule-method-name": "log",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          2
+        ],
+        "path": [
+          "app"
+        ]
+      }
+    },
+    "GET /mode": {
+      "x-fern-sdk-group-name": [
+        "app"
+      ],
+      "x-fern-sdk-method-name": "modes",
+      "x-ferrule-method-name": "modes",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          2
+        ],
+        "path": [
+          "app"
+        ]
+      }
+    },
+    "GET /session": {
+      "x-fern-sdk-group-name": [
+        "session"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          6
+        ],
+        "path": [
+          "session"
+        ]
+      }
+    },
+    "POST /session": {
+      "x-fern-sdk-group-name": [
+        "session"
+      ],
+      "x-fern-sdk-method-name": "create",
+      "x-ferrule-method-name": "create",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          6
+        ],
+        "path": [
+          "session"
+        ]
+      }
+    },
+    "DELETE /session/{id}": {
+      "x-fern-sdk-group-name": [
+        "session"
+      ],
+      "x-fern-sdk-method-name": "delete",
+      "x-ferrule-method-name": "delete",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          6
+        ],
+        "path": [
+          "session"
+        ]
+      }
+    },
+    "POST /session/{id}/abort": {
+      "x-fern-sdk-group-name": [
+        "session"
+      ],
+      "x-fern-sdk-method-name": "abort",
+      "x-ferrule-method-name": "abort",
+      "x-ferrule-method-order": 4,
+      "x-ferrule-resource": {
+        "order": [
+          6
+        ],
+        "path": [
+          "session"
+        ]
+      }
+    },
+    "POST /session/{id}/init": {
+      "x-fern-sdk-group-name": [
+        "session"
+      ],
+      "x-fern-sdk-method-name": "init",
+      "x-ferrule-method-name": "init",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          6
+        ],
+        "path": [
+          "session"
+        ]
+      }
+    },
+    "GET /session/{id}/message": {
+      "x-fern-sdk-group-name": [
+        "session"
+      ],
+      "x-fern-sdk-method-name": "messages",
+      "x-ferrule-method-name": "messages",
+      "x-ferrule-method-order": 8,
+      "x-ferrule-resource": {
+        "order": [
+          6
+        ],
+        "path": [
+          "session"
+        ]
+      }
+    },
+    "POST /session/{id}/message": {
+      "x-fern-sdk-group-name": [
+        "session"
+      ],
+      "x-fern-sdk-method-name": "chat",
+      "x-ferrule-method-name": "chat",
+      "x-ferrule-method-order": 9,
+      "x-ferrule-resource": {
+        "order": [
+          6
+        ],
+        "path": [
+          "session"
+        ]
+      }
+    },
+    "POST /session/{id}/revert": {
+      "x-fern-sdk-group-name": [
+        "session"
+      ],
+      "x-fern-sdk-method-name": "revert",
+      "x-ferrule-method-name": "revert",
+      "x-ferrule-method-order": 10,
+      "x-ferrule-resource": {
+        "order": [
+          6
+        ],
+        "path": [
+          "session"
+        ]
+      }
+    },
+    "DELETE /session/{id}/share": {
+      "x-fern-sdk-group-name": [
+        "session"
+      ],
+      "x-fern-sdk-method-name": "unshare",
+      "x-ferrule-method-name": "unshare",
+      "x-ferrule-method-order": 6,
+      "x-ferrule-resource": {
+        "order": [
+          6
+        ],
+        "path": [
+          "session"
+        ]
+      }
+    },
+    "POST /session/{id}/share": {
+      "x-fern-sdk-group-name": [
+        "session"
+      ],
+      "x-fern-sdk-method-name": "share",
+      "x-ferrule-method-name": "share",
+      "x-ferrule-method-order": 5,
+      "x-ferrule-resource": {
+        "order": [
+          6
+        ],
+        "path": [
+          "session"
+        ]
+      }
+    },
+    "POST /session/{id}/summarize": {
+      "x-fern-sdk-group-name": [
+        "session"
+      ],
+      "x-fern-sdk-method-name": "summarize",
+      "x-ferrule-method-name": "summarize",
+      "x-ferrule-method-order": 7,
+      "x-ferrule-resource": {
+        "order": [
+          6
+        ],
+        "path": [
+          "session"
+        ]
+      }
+    },
+    "POST /session/{id}/unrevert": {
+      "x-fern-sdk-group-name": [
+        "session"
+      ],
+      "x-fern-sdk-method-name": "unrevert",
+      "x-ferrule-method-name": "unrevert",
+      "x-ferrule-method-order": 11,
+      "x-ferrule-resource": {
+        "order": [
+          6
+        ],
+        "path": [
+          "session"
+        ]
+      }
+    },
+    "POST /tui/append-prompt": {
+      "x-fern-sdk-group-name": [
+        "tui"
+      ],
+      "x-fern-sdk-method-name": "appendPrompt",
+      "x-ferrule-method-name": "appendPrompt",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          7
+        ],
+        "path": [
+          "tui"
+        ]
+      }
+    },
+    "POST /tui/open-help": {
+      "x-fern-sdk-group-name": [
+        "tui"
+      ],
+      "x-fern-sdk-method-name": "openHelp",
+      "x-ferrule-method-name": "openHelp",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          7
+        ],
+        "path": [
+          "tui"
+        ]
+      }
+    }
+  }
+}

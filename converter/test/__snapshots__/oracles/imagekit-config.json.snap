@@ -1,0 +1,1090 @@
+{
+  "sha256": "af540ec808904087a1de18f50012d0b103daad822f837a79b2d473c8660611fb",
+  "root": {
+    "x-ferrule-client": {
+      "defaultEnvironment": "production",
+      "defaultHeaders": {},
+      "envPrefix": "IMAGE_KIT",
+      "environments": [
+        {
+          "name": "production",
+          "url": "https://api.imagekit.io"
+        }
+      ],
+      "name": "ImageKit",
+      "omitPlatformHeaders": false,
+      "opts": [
+        {
+          "auth": {
+            "role": "username",
+            "securityScheme": "basicAuth"
+          },
+          "description": "Your ImageKit private API key (starts with `private_`).\nYou can find this in the [ImageKit dashboard](https://imagekit.io/dashboard/developer/api-keys).\n",
+          "name": "private_key",
+          "nullable": false,
+          "readEnv": "IMAGEKIT_PRIVATE_KEY",
+          "type": "string"
+        },
+        {
+          "auth": {
+            "role": "password",
+            "securityScheme": "basicAuth"
+          },
+          "default": "do_not_set",
+          "description": "ImageKit uses your API key as username and ignores the password. \nThe SDK sets a dummy value. You can ignore this field.\n",
+          "name": "password",
+          "nullable": true,
+          "readEnv": "OPTIONAL_IMAGEKIT_IGNORES_THIS",
+          "type": "string"
+        },
+        {
+          "description": "Your ImageKit webhook secret for verifying webhook signatures (starts with `whsec_`).\nYou can find this in the [ImageKit dashboard](https://imagekit.io/dashboard/developer/webhooks).\nOnly required if you're using webhooks.\n",
+          "name": "webhook_secret",
+          "nullable": true,
+          "readEnv": "IMAGEKIT_WEBHOOK_SECRET",
+          "type": "string"
+        }
+      ],
+      "query": {
+        "arrayFormat": "comma",
+        "nestedFormat": "brackets"
+      },
+      "retries": {
+        "initialDelaySeconds": 0.5,
+        "maxDelaySeconds": 8,
+        "maxRetries": 2
+      },
+      "security": [
+        {
+          "basicAuth": []
+        }
+      ],
+      "securitySchemes": {
+        "basicAuth": {
+          "disableBase64": false,
+          "scheme": "basic",
+          "type": "http"
+        }
+      },
+      "timeoutSeconds": 60
+    },
+    "x-ferrule-config": {
+      "edition": "2025-10-08",
+      "packageName": "imagekitio",
+      "projectName": "imagekitio",
+      "pythonEdition": "python.2025-10-08",
+      "version": 1
+    }
+  },
+  "mirrored": {
+    "x-ferrule-client": {
+      "defaultEnvironment": "production",
+      "defaultHeaders": {},
+      "envPrefix": "IMAGE_KIT",
+      "environments": [
+        {
+          "name": "production",
+          "url": "https://api.imagekit.io"
+        }
+      ],
+      "name": "ImageKit",
+      "omitPlatformHeaders": false,
+      "opts": [
+        {
+          "auth": {
+            "role": "username",
+            "securityScheme": "basicAuth"
+          },
+          "description": "Your ImageKit private API key (starts with `private_`).\nYou can find this in the [ImageKit dashboard](https://imagekit.io/dashboard/developer/api-keys).\n",
+          "name": "private_key",
+          "nullable": false,
+          "readEnv": "IMAGEKIT_PRIVATE_KEY",
+          "type": "string"
+        },
+        {
+          "auth": {
+            "role": "password",
+            "securityScheme": "basicAuth"
+          },
+          "default": "do_not_set",
+          "description": "ImageKit uses your API key as username and ignores the password. \nThe SDK sets a dummy value. You can ignore this field.\n",
+          "name": "password",
+          "nullable": true,
+          "readEnv": "OPTIONAL_IMAGEKIT_IGNORES_THIS",
+          "type": "string"
+        },
+        {
+          "description": "Your ImageKit webhook secret for verifying webhook signatures (starts with `whsec_`).\nYou can find this in the [ImageKit dashboard](https://imagekit.io/dashboard/developer/webhooks).\nOnly required if you're using webhooks.\n",
+          "name": "webhook_secret",
+          "nullable": true,
+          "readEnv": "IMAGEKIT_WEBHOOK_SECRET",
+          "type": "string"
+        }
+      ],
+      "query": {
+        "arrayFormat": "comma",
+        "nestedFormat": "brackets"
+      },
+      "retries": {
+        "initialDelaySeconds": 0.5,
+        "maxDelaySeconds": 8,
+        "maxRetries": 2
+      },
+      "security": [
+        {
+          "basicAuth": []
+        }
+      ],
+      "securitySchemes": {
+        "basicAuth": {
+          "disableBase64": false,
+          "scheme": "basic",
+          "type": "http"
+        }
+      },
+      "timeoutSeconds": 60
+    },
+    "x-ferrule-models": {
+      "BaseWebhookEvent": {
+        "module": "BaseWebhookEvent",
+        "name": "BaseWebhookEvent"
+      },
+      "CustomMetadataField": {
+        "module": "CustomMetadataField",
+        "name": "CustomMetadataField"
+      },
+      "FileCreateEvent": {
+        "module": "FileCreateEvent",
+        "name": "FileCreateEvent"
+      },
+      "FileDeleteEvent": {
+        "module": "FileDeleteEvent",
+        "name": "FileDeleteEvent"
+      },
+      "FileDetails": {
+        "module": "File",
+        "name": "File"
+      },
+      "FileUpdateEvent": {
+        "module": "FileUpdateEvent",
+        "name": "FileUpdateEvent"
+      },
+      "FileVersionCreateEvent": {
+        "module": "FileVersionCreateEvent",
+        "name": "FileVersionCreateEvent"
+      },
+      "FileVersionDeleteEvent": {
+        "module": "FileVersionDeleteEvent",
+        "name": "FileVersionDeleteEvent"
+      },
+      "FolderDetails": {
+        "module": "Folder",
+        "name": "Folder"
+      },
+      "Metadata": {
+        "module": "Metadata",
+        "name": "Metadata"
+      },
+      "OriginRequest": {
+        "module": "accounts.OriginRequest",
+        "name": "OriginRequest"
+      },
+      "OriginResponse": {
+        "module": "accounts.OriginResponse",
+        "name": "OriginResponse"
+      },
+      "UpdateFileRequest": {
+        "module": "UpdateFileRequest",
+        "name": "UpdateFileRequest"
+      },
+      "UploadPostTransformErrorEvent": {
+        "module": "UploadPostTransformErrorEvent",
+        "name": "UploadPostTransformErrorEvent"
+      },
+      "UploadPostTransformSuccessEvent": {
+        "module": "UploadPostTransformSuccessEvent",
+        "name": "UploadPostTransformSuccessEvent"
+      },
+      "UploadPreTransformErrorEvent": {
+        "module": "UploadPreTransformErrorEvent",
+        "name": "UploadPreTransformErrorEvent"
+      },
+      "UploadPreTransformSuccessEvent": {
+        "module": "UploadPreTransformSuccessEvent",
+        "name": "UploadPreTransformSuccessEvent"
+      },
+      "UrlEndpointRequest": {
+        "module": "accounts.UrlEndpointRequest",
+        "name": "UrlEndpointRequest"
+      },
+      "UrlEndpointResponse": {
+        "module": "accounts.UrlEndpointResponse",
+        "name": "UrlEndpointResponse"
+      },
+      "VideoTransformationAcceptedEvent": {
+        "module": "VideoTransformationAcceptedEvent",
+        "name": "VideoTransformationAcceptedEvent"
+      },
+      "VideoTransformationErrorEvent": {
+        "module": "VideoTransformationErrorEvent",
+        "name": "VideoTransformationErrorEvent"
+      },
+      "VideoTransformationReadyEvent": {
+        "module": "VideoTransformationReadyEvent",
+        "name": "VideoTransformationReadyEvent"
+      }
+    },
+    "x-ferrule-package": {
+      "name": "imagekitio",
+      "repo": "imagekit-developer/imagekit-python#master"
+    }
+  },
+  "operations": {
+    "POST /api/v1/files/upload": {
+      "x-fern-sdk-group-name": [
+        "files"
+      ],
+      "x-fern-sdk-method-name": "upload",
+      "x-ferrule-method-name": "upload",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          3
+        ],
+        "path": [
+          "files"
+        ]
+      }
+    },
+    "POST /api/v2/files/upload": {
+      "x-fern-sdk-group-name": [
+        "beta",
+        "v2",
+        "files"
+      ],
+      "x-fern-sdk-method-name": "upload",
+      "x-ferrule-method-name": "upload",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          9,
+          0,
+          0
+        ],
+        "path": [
+          "beta",
+          "v2",
+          "files"
+        ]
+      }
+    },
+    "GET /v1/accounts/origins": {
+      "x-fern-sdk-group-name": [
+        "accounts",
+        "origins"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          8,
+          1
+        ],
+        "path": [
+          "accounts",
+          "origins"
+        ]
+      }
+    },
+    "POST /v1/accounts/origins": {
+      "x-fern-sdk-group-name": [
+        "accounts",
+        "origins"
+      ],
+      "x-fern-sdk-method-name": "create",
+      "x-ferrule-method-name": "create",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          8,
+          1
+        ],
+        "path": [
+          "accounts",
+          "origins"
+        ]
+      }
+    },
+    "DELETE /v1/accounts/origins/{id}": {
+      "x-fern-sdk-group-name": [
+        "accounts",
+        "origins"
+      ],
+      "x-fern-sdk-method-name": "delete",
+      "x-ferrule-method-name": "delete",
+      "x-ferrule-method-order": 4,
+      "x-ferrule-resource": {
+        "order": [
+          8,
+          1
+        ],
+        "path": [
+          "accounts",
+          "origins"
+        ]
+      }
+    },
+    "GET /v1/accounts/origins/{id}": {
+      "x-fern-sdk-group-name": [
+        "accounts",
+        "origins"
+      ],
+      "x-fern-sdk-method-name": "get",
+      "x-ferrule-method-name": "get",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          8,
+          1
+        ],
+        "path": [
+          "accounts",
+          "origins"
+        ]
+      }
+    },
+    "PUT /v1/accounts/origins/{id}": {
+      "x-fern-sdk-group-name": [
+        "accounts",
+        "origins"
+      ],
+      "x-fern-sdk-method-name": "update",
+      "x-ferrule-method-name": "update",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          8,
+          1
+        ],
+        "path": [
+          "accounts",
+          "origins"
+        ]
+      }
+    },
+    "GET /v1/accounts/url-endpoints": {
+      "x-fern-sdk-group-name": [
+        "accounts",
+        "urlEndpoints"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          8,
+          2
+        ],
+        "path": [
+          "accounts",
+          "urlEndpoints"
+        ]
+      }
+    },
+    "POST /v1/accounts/url-endpoints": {
+      "x-fern-sdk-group-name": [
+        "accounts",
+        "urlEndpoints"
+      ],
+      "x-fern-sdk-method-name": "create",
+      "x-ferrule-method-name": "create",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          8,
+          2
+        ],
+        "path": [
+          "accounts",
+          "urlEndpoints"
+        ]
+      }
+    },
+    "DELETE /v1/accounts/url-endpoints/{id}": {
+      "x-fern-sdk-group-name": [
+        "accounts",
+        "urlEndpoints"
+      ],
+      "x-fern-sdk-method-name": "delete",
+      "x-ferrule-method-name": "delete",
+      "x-ferrule-method-order": 4,
+      "x-ferrule-resource": {
+        "order": [
+          8,
+          2
+        ],
+        "path": [
+          "accounts",
+          "urlEndpoints"
+        ]
+      }
+    },
+    "GET /v1/accounts/url-endpoints/{id}": {
+      "x-fern-sdk-group-name": [
+        "accounts",
+        "urlEndpoints"
+      ],
+      "x-fern-sdk-method-name": "get",
+      "x-ferrule-method-name": "get",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          8,
+          2
+        ],
+        "path": [
+          "accounts",
+          "urlEndpoints"
+        ]
+      }
+    },
+    "PUT /v1/accounts/url-endpoints/{id}": {
+      "x-fern-sdk-group-name": [
+        "accounts",
+        "urlEndpoints"
+      ],
+      "x-fern-sdk-method-name": "update",
+      "x-ferrule-method-name": "update",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          8,
+          2
+        ],
+        "path": [
+          "accounts",
+          "urlEndpoints"
+        ]
+      }
+    },
+    "GET /v1/accounts/usage": {
+      "x-fern-sdk-group-name": [
+        "accounts",
+        "usage"
+      ],
+      "x-fern-sdk-method-name": "get",
+      "x-ferrule-method-name": "get",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          8,
+          0
+        ],
+        "path": [
+          "accounts",
+          "usage"
+        ]
+      }
+    },
+    "POST /v1/bulkJobs/copyFolder": {
+      "x-fern-sdk-group-name": [
+        "folders"
+      ],
+      "x-fern-sdk-method-name": "copy",
+      "x-ferrule-method-name": "copy",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          7
+        ],
+        "path": [
+          "folders"
+        ]
+      }
+    },
+    "POST /v1/bulkJobs/moveFolder": {
+      "x-fern-sdk-group-name": [
+        "folders"
+      ],
+      "x-fern-sdk-method-name": "move",
+      "x-ferrule-method-name": "move",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          7
+        ],
+        "path": [
+          "folders"
+        ]
+      }
+    },
+    "POST /v1/bulkJobs/renameFolder": {
+      "x-fern-sdk-group-name": [
+        "folders"
+      ],
+      "x-fern-sdk-method-name": "rename",
+      "x-ferrule-method-name": "rename",
+      "x-ferrule-method-order": 4,
+      "x-ferrule-resource": {
+        "order": [
+          7
+        ],
+        "path": [
+          "folders"
+        ]
+      }
+    },
+    "GET /v1/bulkJobs/{jobId}": {
+      "x-fern-sdk-group-name": [
+        "folders",
+        "job"
+      ],
+      "x-fern-sdk-method-name": "get",
+      "x-ferrule-method-name": "get",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          7,
+          0
+        ],
+        "path": [
+          "folders",
+          "job"
+        ]
+      }
+    },
+    "GET /v1/customMetadataFields": {
+      "x-fern-sdk-group-name": [
+        "customMetadataFields"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          2
+        ],
+        "path": [
+          "customMetadataFields"
+        ]
+      }
+    },
+    "POST /v1/customMetadataFields": {
+      "x-fern-sdk-group-name": [
+        "customMetadataFields"
+      ],
+      "x-fern-sdk-method-name": "create",
+      "x-ferrule-method-name": "create",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          2
+        ],
+        "path": [
+          "customMetadataFields"
+        ]
+      }
+    },
+    "DELETE /v1/customMetadataFields/{id}": {
+      "x-fern-sdk-group-name": [
+        "customMetadataFields"
+      ],
+      "x-fern-sdk-method-name": "delete",
+      "x-ferrule-method-name": "delete",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          2
+        ],
+        "path": [
+          "customMetadataFields"
+        ]
+      }
+    },
+    "PATCH /v1/customMetadataFields/{id}": {
+      "x-fern-sdk-group-name": [
+        "customMetadataFields"
+      ],
+      "x-fern-sdk-method-name": "update",
+      "x-ferrule-method-name": "update",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          2
+        ],
+        "path": [
+          "customMetadataFields"
+        ]
+      }
+    },
+    "POST /v1/dummy/test": {
+      "x-fern-sdk-group-name": [
+        "dummy"
+      ],
+      "x-fern-sdk-method-name": "create",
+      "x-ferrule-method-name": "create",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          1
+        ],
+        "path": [
+          "dummy"
+        ]
+      }
+    },
+    "GET /v1/files": {
+      "x-fern-sdk-group-name": [
+        "assets"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          5
+        ],
+        "path": [
+          "assets"
+        ]
+      }
+    },
+    "POST /v1/files/addTags": {
+      "x-fern-sdk-group-name": [
+        "files",
+        "bulk"
+      ],
+      "x-fern-sdk-method-name": "addTags",
+      "x-ferrule-method-name": "addTags",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          3,
+          0
+        ],
+        "path": [
+          "files",
+          "bulk"
+        ]
+      }
+    },
+    "POST /v1/files/batch/deleteByFileIds": {
+      "x-fern-sdk-group-name": [
+        "files",
+        "bulk"
+      ],
+      "x-fern-sdk-method-name": "delete",
+      "x-ferrule-method-name": "delete",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          3,
+          0
+        ],
+        "path": [
+          "files",
+          "bulk"
+        ]
+      }
+    },
+    "POST /v1/files/copy": {
+      "x-fern-sdk-group-name": [
+        "files"
+      ],
+      "x-fern-sdk-method-name": "copy",
+      "x-ferrule-method-name": "copy",
+      "x-ferrule-method-order": 4,
+      "x-ferrule-resource": {
+        "order": [
+          3
+        ],
+        "path": [
+          "files"
+        ]
+      }
+    },
+    "POST /v1/files/move": {
+      "x-fern-sdk-group-name": [
+        "files"
+      ],
+      "x-fern-sdk-method-name": "move",
+      "x-ferrule-method-name": "move",
+      "x-ferrule-method-order": 5,
+      "x-ferrule-resource": {
+        "order": [
+          3
+        ],
+        "path": [
+          "files"
+        ]
+      }
+    },
+    "POST /v1/files/purge": {
+      "x-fern-sdk-group-name": [
+        "cache",
+        "invalidation"
+      ],
+      "x-fern-sdk-method-name": "create",
+      "x-ferrule-method-name": "create",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          6,
+          0
+        ],
+        "path": [
+          "cache",
+          "invalidation"
+        ]
+      }
+    },
+    "GET /v1/files/purge/{requestId}": {
+      "x-fern-sdk-group-name": [
+        "cache",
+        "invalidation"
+      ],
+      "x-fern-sdk-method-name": "get",
+      "x-ferrule-method-name": "get",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          6,
+          0
+        ],
+        "path": [
+          "cache",
+          "invalidation"
+        ]
+      }
+    },
+    "POST /v1/files/removeAITags": {
+      "x-fern-sdk-group-name": [
+        "files",
+        "bulk"
+      ],
+      "x-fern-sdk-method-name": "removeAiTags",
+      "x-ferrule-method-name": "removeAiTags",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          3,
+          0
+        ],
+        "path": [
+          "files",
+          "bulk"
+        ]
+      }
+    },
+    "POST /v1/files/removeTags": {
+      "x-fern-sdk-group-name": [
+        "files",
+        "bulk"
+      ],
+      "x-fern-sdk-method-name": "removeTags",
+      "x-ferrule-method-name": "removeTags",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          3,
+          0
+        ],
+        "path": [
+          "files",
+          "bulk"
+        ]
+      }
+    },
+    "PUT /v1/files/rename": {
+      "x-fern-sdk-group-name": [
+        "files"
+      ],
+      "x-fern-sdk-method-name": "rename",
+      "x-ferrule-method-name": "rename",
+      "x-ferrule-method-order": 6,
+      "x-ferrule-resource": {
+        "order": [
+          3
+        ],
+        "path": [
+          "files"
+        ]
+      }
+    },
+    "DELETE /v1/files/{fileId}": {
+      "x-fern-sdk-group-name": [
+        "files"
+      ],
+      "x-fern-sdk-method-name": "delete",
+      "x-ferrule-method-name": "delete",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          3
+        ],
+        "path": [
+          "files"
+        ]
+      }
+    },
+    "GET /v1/files/{fileId}/details": {
+      "x-fern-sdk-group-name": [
+        "files"
+      ],
+      "x-fern-sdk-method-name": "get",
+      "x-ferrule-method-name": "get",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          3
+        ],
+        "path": [
+          "files"
+        ]
+      }
+    },
+    "PATCH /v1/files/{fileId}/details": {
+      "x-fern-sdk-group-name": [
+        "files"
+      ],
+      "x-fern-sdk-method-name": "update",
+      "x-ferrule-method-name": "update",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          3
+        ],
+        "path": [
+          "files"
+        ]
+      }
+    },
+    "GET /v1/files/{fileId}/metadata": {
+      "x-fern-sdk-group-name": [
+        "files",
+        "metadata"
+      ],
+      "x-fern-sdk-method-name": "get",
+      "x-ferrule-method-name": "get",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          3,
+          2
+        ],
+        "path": [
+          "files",
+          "metadata"
+        ]
+      }
+    },
+    "GET /v1/files/{fileId}/versions": {
+      "x-fern-sdk-group-name": [
+        "files",
+        "versions"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          3,
+          1
+        ],
+        "path": [
+          "files",
+          "versions"
+        ]
+      }
+    },
+    "DELETE /v1/files/{fileId}/versions/{versionId}": {
+      "x-fern-sdk-group-name": [
+        "files",
+        "versions"
+      ],
+      "x-fern-sdk-method-name": "delete",
+      "x-ferrule-method-name": "delete",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          3,
+          1
+        ],
+        "path": [
+          "files",
+          "versions"
+        ]
+      }
+    },
+    "GET /v1/files/{fileId}/versions/{versionId}": {
+      "x-fern-sdk-group-name": [
+        "files",
+        "versions"
+      ],
+      "x-fern-sdk-method-name": "get",
+      "x-ferrule-method-name": "get",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          3,
+          1
+        ],
+        "path": [
+          "files",
+          "versions"
+        ]
+      }
+    },
+    "PUT /v1/files/{fileId}/versions/{versionId}/restore": {
+      "x-fern-sdk-group-name": [
+        "files",
+        "versions"
+      ],
+      "x-fern-sdk-method-name": "restore",
+      "x-ferrule-method-name": "restore",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          3,
+          1
+        ],
+        "path": [
+          "files",
+          "versions"
+        ]
+      }
+    },
+    "DELETE /v1/folder": {
+      "x-fern-sdk-group-name": [
+        "folders"
+      ],
+      "x-fern-sdk-method-name": "delete",
+      "x-ferrule-method-name": "delete",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          7
+        ],
+        "path": [
+          "folders"
+        ]
+      }
+    },
+    "POST /v1/folder": {
+      "x-fern-sdk-group-name": [
+        "folders"
+      ],
+      "x-fern-sdk-method-name": "create",
+      "x-ferrule-method-name": "create",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          7
+        ],
+        "path": [
+          "folders"
+        ]
+      }
+    },
+    "GET /v1/metadata": {
+      "x-fern-sdk-group-name": [
+        "files",
+        "metadata"
+      ],
+      "x-fern-sdk-method-name": "getFromURL",
+      "x-ferrule-method-name": "getFromURL",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          3,
+          2
+        ],
+        "path": [
+          "files",
+          "metadata"
+        ]
+      }
+    },
+    "GET /v1/saved-extensions": {
+      "x-fern-sdk-group-name": [
+        "savedExtensions"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          4
+        ],
+        "path": [
+          "savedExtensions"
+        ]
+      }
+    },
+    "POST /v1/saved-extensions": {
+      "x-fern-sdk-group-name": [
+        "savedExtensions"
+      ],
+      "x-fern-sdk-method-name": "create",
+      "x-ferrule-method-name": "create",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          4
+        ],
+        "path": [
+          "savedExtensions"
+        ]
+      }
+    },
+    "DELETE /v1/saved-extensions/{id}": {
+      "x-fern-sdk-group-name": [
+        "savedExtensions"
+      ],
+      "x-fern-sdk-method-name": "delete",
+      "x-ferrule-method-name": "delete",
+      "x-ferrule-method-order": 4,
+      "x-ferrule-resource": {
+        "order": [
+          4
+        ],
+        "path": [
+          "savedExtensions"
+        ]
+      }
+    },
+    "GET /v1/saved-extensions/{id}": {
+      "x-fern-sdk-group-name": [
+        "savedExtensions"
+      ],
+      "x-fern-sdk-method-name": "get",
+      "x-ferrule-method-name": "get",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          4
+        ],
+        "path": [
+          "savedExtensions"
+        ]
+      }
+    },
+    "PATCH /v1/saved-extensions/{id}": {
+      "x-fern-sdk-group-name": [
+        "savedExtensions"
+      ],
+      "x-fern-sdk-method-name": "update",
+      "x-ferrule-method-name": "update",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          4
+        ],
+        "path": [
+          "savedExtensions"
+        ]
+      }
+    }
+  }
+}
