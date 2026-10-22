@@ -8,7 +8,7 @@ pre-commit:
       glob: "*.py"
       run: uv run ruff check {staged_files} && uv run ruff format --check {staged_files}
     gitleaks:
-      run: gitleaks protect --staged --no-banner || gitleaks git --staged --no-banner
+      run: mise exec -- gitleaks git --staged --no-banner
 commit-msg:
   commands:
     commitlint:
