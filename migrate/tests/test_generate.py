@@ -132,8 +132,11 @@ def test_generate_copies_runtime_and_formats(inputs: tuple[GenerateRequest, Path
     request, _ = inputs
     calls: list[tuple[str, ...]] = []
     result = generate(request, runner=fake_runner(calls))
-    assert [c[1] for c in calls[::2]] == [str(request.tools.converter), "format"]
-    assert len(calls) == 3
+    assert len(calls) == 4
+    assert calls[0][1] == str(request.tools.converter)
+    # Imports are sorted (as Stainless's own `ruff check --fix` does) before formatting.
+    assert calls[2][1:5] == ("check", "--select", "I", "--fix")
+    assert calls[3][1] == "format"
     files = relative_files(request.out)
     assert files == [
         P("src/acme/__init__.py"),
