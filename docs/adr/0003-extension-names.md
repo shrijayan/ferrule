@@ -54,9 +54,20 @@ converter also writes, on every operation it keeps:
 
 `x-ferrule-resource` and `x-ferrule-method-name` stay as the source of truth for
 the plugin (Forge splits names into words and loses spelling such as `$shared`);
-the Fern ones only drive Forge's grouping. Forge does not pass schema-level
-extensions to plugins, so `x-ferrule-model-name` is also mirrored per method in
-`x-ferrule-models` (see docs/forge-gaps.md).
+the Fern ones only drive Forge's grouping.
+
+Forge passes neither document-level nor schema-level extensions to plugins
+(docs/forge-gaps.md G2, G3), so the converter also mirrors these onto every
+operation it annotates:
+
+| Extension           | Where     | Shape                                                                                   |
+| ------------------- | --------- | --------------------------------------------------------------------------------------- |
+| `x-ferrule-package` | operation | `{ name: string, repo: string }`: Python package and `targets.python.production_repo`  |
+| `x-ferrule-models`  | operation | `Record<schemaName, { name: string, module: string }>`: class name and dotted module under `types/` (`$shared` → `shared.<key>`; a resource's models sit in its parent's directory) |
+
+`x-ferrule-pagination` field maps run spec field name → purpose (purpose from
+`x-stainless-pagination-property.purpose`, else the field name); the items field
+has purpose `items`.
 
 ### Consequences
 
