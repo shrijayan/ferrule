@@ -1,0 +1,1692 @@
+{
+  "edition": "python.2025-10-08",
+  "packageName": "onebusaway",
+  "distributionName": "onebusaway",
+  "clientClass": "OnebusawaySDK",
+  "envPrefix": "ONEBUSAWAY_SDK",
+  "repo": "OneBusAway/python-sdk",
+  "version": "1.30.0",
+  "copyrightYear": 2026,
+  "organization": {
+    "name": "onebusaway-sdk",
+    "title": "Onebusaway SDK",
+    "contact": "info@onebusaway.org",
+    "docsUrl": "https://developer.onebusaway.org"
+  },
+  "readmeTitle": "OneBusAway SDK",
+  "auth": {
+    "kind": "api_key_query",
+    "env": "ONEBUSAWAY_API_KEY",
+    "param": "key"
+  },
+  "query": {
+    "arrayFormat": "repeat",
+    "objectFormat": "brackets"
+  },
+  "stats": {
+    "openapiSpecUrl": "https://storage.googleapis.com/stainless-sdk-openapi-specs/open-transit/open-transit-da4eecc88401fd486b0b8ac2a7b3f442748713e3128d878c7f3e24ea7f65f31d.yml",
+    "openapiSpecHash": "8df6b1871782bcd2bd8fb1fb2bbc2694",
+    "configHash": "c28ddf5b7754155603d9fd1c5fcaeeff"
+  },
+  "readmeExample": {
+    "accessor": "current_time",
+    "method": "retrieve",
+    "args": "",
+    "httpMethod": "get",
+    "path": "/api/where/current-time.json"
+  },
+  "retryProbe": {
+    "accessor": "current_time",
+    "method": "retrieve",
+    "args": "",
+    "httpMethod": "get",
+    "path": "/api/where/current-time.json"
+  },
+  "sharedTypes": ["References", "ResponseWrapper"],
+  "resources": [
+    {
+      "name": "agencies_with_coverage",
+      "title": "AgenciesWithCoverage",
+      "variable": "agencies_with_coverage",
+      "module": "resources.agencies_with_coverage",
+      "types": ["AgenciesWithCoverageListResponse"],
+      "typesModule": "types",
+      "methods": [
+        {
+          "name": "list",
+          "httpMethod": "get",
+          "path": "/api/where/agencies-with-coverage.json",
+          "params": [],
+          "response": {
+            "name": "AgenciesWithCoverageListResponse",
+            "module": "types.agencies_with_coverage_list_response"
+          }
+        }
+      ],
+      "subresources": []
+    },
+    {
+      "name": "agency",
+      "title": "Agency",
+      "variable": "agency",
+      "module": "resources.agency",
+      "types": ["AgencyRetrieveResponse"],
+      "typesModule": "types",
+      "methods": [
+        {
+          "name": "retrieve",
+          "httpMethod": "get",
+          "path": "/api/where/agency/{agencyID}.json",
+          "params": [
+            {
+              "pyName": "agency_id",
+              "wireName": "agencyID",
+              "required": true,
+              "location": "path",
+              "type": {
+                "kind": "primitive",
+                "name": "string"
+              }
+            }
+          ],
+          "response": {
+            "name": "AgencyRetrieveResponse",
+            "module": "types.agency_retrieve_response"
+          }
+        }
+      ],
+      "subresources": []
+    },
+    {
+      "name": "vehicles_for_agency",
+      "title": "VehiclesForAgency",
+      "variable": "vehicles_for_agency",
+      "module": "resources.vehicles_for_agency",
+      "types": ["VehiclesForAgencyListResponse"],
+      "typesModule": "types",
+      "methods": [
+        {
+          "name": "list",
+          "httpMethod": "get",
+          "path": "/api/where/vehicles-for-agency/{agencyID}.json",
+          "params": [
+            {
+              "pyName": "agency_id",
+              "wireName": "agencyID",
+              "required": true,
+              "location": "path",
+              "type": {
+                "kind": "primitive",
+                "name": "string"
+              }
+            },
+            {
+              "pyName": "time",
+              "wireName": "time",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "string"
+              }
+            }
+          ],
+          "response": {
+            "name": "VehiclesForAgencyListResponse",
+            "module": "types.vehicles_for_agency_list_response"
+          },
+          "paramsModule": "types.vehicles_for_agency_list_params"
+        }
+      ],
+      "subresources": []
+    },
+    {
+      "name": "config",
+      "title": "Config",
+      "variable": "config",
+      "module": "resources.config",
+      "types": ["ConfigRetrieveResponse"],
+      "typesModule": "types",
+      "methods": [
+        {
+          "name": "retrieve",
+          "httpMethod": "get",
+          "path": "/api/where/config.json",
+          "params": [],
+          "response": {
+            "name": "ConfigRetrieveResponse",
+            "module": "types.config_retrieve_response"
+          }
+        }
+      ],
+      "subresources": []
+    },
+    {
+      "name": "current_time",
+      "title": "CurrentTime",
+      "variable": "current_time",
+      "module": "resources.current_time",
+      "types": ["CurrentTimeRetrieveResponse"],
+      "typesModule": "types",
+      "methods": [
+        {
+          "name": "retrieve",
+          "httpMethod": "get",
+          "path": "/api/where/current-time.json",
+          "params": [],
+          "response": {
+            "name": "CurrentTimeRetrieveResponse",
+            "module": "types.current_time_retrieve_response"
+          }
+        }
+      ],
+      "subresources": []
+    },
+    {
+      "name": "stops_for_location",
+      "title": "StopsForLocation",
+      "variable": "stops_for_location",
+      "module": "resources.stops_for_location",
+      "types": ["StopsForLocationListResponse"],
+      "typesModule": "types",
+      "methods": [
+        {
+          "name": "list",
+          "httpMethod": "get",
+          "path": "/api/where/stops-for-location.json",
+          "params": [
+            {
+              "pyName": "lat",
+              "wireName": "lat",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "number"
+              },
+              "example": 47.656422
+            },
+            {
+              "pyName": "lon",
+              "wireName": "lon",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "number"
+              },
+              "example": -122.305641
+            },
+            {
+              "pyName": "radius",
+              "wireName": "radius",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "number"
+              },
+              "example": 1000
+            },
+            {
+              "pyName": "lat_span",
+              "wireName": "latSpan",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "number"
+              },
+              "example": 0.01
+            },
+            {
+              "pyName": "lon_span",
+              "wireName": "lonSpan",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "number"
+              },
+              "example": 0.01
+            },
+            {
+              "pyName": "query",
+              "wireName": "query",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "string"
+              }
+            }
+          ],
+          "response": {
+            "name": "StopsForLocationListResponse",
+            "module": "types.stops_for_location_list_response"
+          },
+          "paramsModule": "types.stops_for_location_list_params"
+        }
+      ],
+      "subresources": []
+    },
+    {
+      "name": "stops_for_route",
+      "title": "StopsForRoute",
+      "variable": "stops_for_route",
+      "module": "resources.stops_for_route",
+      "types": ["StopsForRouteListResponse"],
+      "typesModule": "types",
+      "methods": [
+        {
+          "name": "list",
+          "httpMethod": "get",
+          "path": "/api/where/stops-for-route/{routeID}.json",
+          "params": [
+            {
+              "pyName": "route_id",
+              "wireName": "routeID",
+              "required": true,
+              "location": "path",
+              "type": {
+                "kind": "primitive",
+                "name": "string"
+              }
+            },
+            {
+              "pyName": "include_polylines",
+              "wireName": "includePolylines",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "boolean"
+              }
+            },
+            {
+              "pyName": "time",
+              "wireName": "time",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "string"
+              }
+            }
+          ],
+          "response": {
+            "name": "StopsForRouteListResponse",
+            "module": "types.stops_for_route_list_response"
+          },
+          "paramsModule": "types.stops_for_route_list_params"
+        }
+      ],
+      "subresources": []
+    },
+    {
+      "name": "stops_for_agency",
+      "title": "StopsForAgency",
+      "variable": "stops_for_agency",
+      "module": "resources.stops_for_agency",
+      "types": ["StopsForAgencyListResponse"],
+      "typesModule": "types",
+      "methods": [
+        {
+          "name": "list",
+          "httpMethod": "get",
+          "path": "/api/where/stops-for-agency/{agencyID}.json",
+          "params": [
+            {
+              "pyName": "agency_id",
+              "wireName": "agencyID",
+              "required": true,
+              "location": "path",
+              "type": {
+                "kind": "primitive",
+                "name": "string"
+              }
+            }
+          ],
+          "response": {
+            "name": "StopsForAgencyListResponse",
+            "module": "types.stops_for_agency_list_response"
+          }
+        }
+      ],
+      "subresources": []
+    },
+    {
+      "name": "stop",
+      "title": "Stop",
+      "variable": "stop",
+      "module": "resources.stop",
+      "types": ["StopRetrieveResponse"],
+      "typesModule": "types",
+      "methods": [
+        {
+          "name": "retrieve",
+          "httpMethod": "get",
+          "path": "/api/where/stop/{stopID}.json",
+          "params": [
+            {
+              "pyName": "stop_id",
+              "wireName": "stopID",
+              "required": true,
+              "location": "path",
+              "type": {
+                "kind": "primitive",
+                "name": "string"
+              }
+            }
+          ],
+          "response": {
+            "name": "StopRetrieveResponse",
+            "module": "types.stop_retrieve_response"
+          }
+        }
+      ],
+      "subresources": []
+    },
+    {
+      "name": "stop_ids_for_agency",
+      "title": "StopIDsForAgency",
+      "variable": "stop_ids_for_agency",
+      "module": "resources.stop_ids_for_agency",
+      "types": ["StopIDsForAgencyListResponse"],
+      "typesModule": "types",
+      "methods": [
+        {
+          "name": "list",
+          "httpMethod": "get",
+          "path": "/api/where/stop-ids-for-agency/{agencyID}.json",
+          "params": [
+            {
+              "pyName": "agency_id",
+              "wireName": "agencyID",
+              "required": true,
+              "location": "path",
+              "type": {
+                "kind": "primitive",
+                "name": "string"
+              }
+            }
+          ],
+          "response": {
+            "name": "StopIDsForAgencyListResponse",
+            "module": "types.stop_ids_for_agency_list_response"
+          }
+        }
+      ],
+      "subresources": []
+    },
+    {
+      "name": "schedule_for_stop",
+      "title": "ScheduleForStop",
+      "variable": "schedule_for_stop",
+      "module": "resources.schedule_for_stop",
+      "types": ["ScheduleForStopRetrieveResponse"],
+      "typesModule": "types",
+      "methods": [
+        {
+          "name": "retrieve",
+          "httpMethod": "get",
+          "path": "/api/where/schedule-for-stop/{stopID}.json",
+          "params": [
+            {
+              "pyName": "stop_id",
+              "wireName": "stopID",
+              "required": true,
+              "location": "path",
+              "type": {
+                "kind": "primitive",
+                "name": "string"
+              }
+            },
+            {
+              "pyName": "date",
+              "wireName": "date",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "date"
+              }
+            }
+          ],
+          "response": {
+            "name": "ScheduleForStopRetrieveResponse",
+            "module": "types.schedule_for_stop_retrieve_response"
+          },
+          "paramsModule": "types.schedule_for_stop_retrieve_params"
+        }
+      ],
+      "subresources": []
+    },
+    {
+      "name": "route",
+      "title": "Route",
+      "variable": "route",
+      "module": "resources.route",
+      "types": ["RouteRetrieveResponse"],
+      "typesModule": "types",
+      "methods": [
+        {
+          "name": "retrieve",
+          "httpMethod": "get",
+          "path": "/api/where/route/{routeID}.json",
+          "params": [
+            {
+              "pyName": "route_id",
+              "wireName": "routeID",
+              "required": true,
+              "location": "path",
+              "type": {
+                "kind": "primitive",
+                "name": "string"
+              }
+            }
+          ],
+          "response": {
+            "name": "RouteRetrieveResponse",
+            "module": "types.route_retrieve_response"
+          }
+        }
+      ],
+      "subresources": []
+    },
+    {
+      "name": "route_ids_for_agency",
+      "title": "RouteIDsForAgency",
+      "variable": "route_ids_for_agency",
+      "module": "resources.route_ids_for_agency",
+      "types": ["RouteIDsForAgencyListResponse"],
+      "typesModule": "types",
+      "methods": [
+        {
+          "name": "list",
+          "httpMethod": "get",
+          "path": "/api/where/route-ids-for-agency/{agencyID}.json",
+          "params": [
+            {
+              "pyName": "agency_id",
+              "wireName": "agencyID",
+              "required": true,
+              "location": "path",
+              "type": {
+                "kind": "primitive",
+                "name": "string"
+              }
+            }
+          ],
+          "response": {
+            "name": "RouteIDsForAgencyListResponse",
+            "module": "types.route_ids_for_agency_list_response"
+          }
+        }
+      ],
+      "subresources": []
+    },
+    {
+      "name": "routes_for_location",
+      "title": "RoutesForLocation",
+      "variable": "routes_for_location",
+      "module": "resources.routes_for_location",
+      "types": ["RoutesForLocationListResponse"],
+      "typesModule": "types",
+      "methods": [
+        {
+          "name": "list",
+          "httpMethod": "get",
+          "path": "/api/where/routes-for-location.json",
+          "params": [
+            {
+              "pyName": "lat",
+              "wireName": "lat",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "number"
+              },
+              "example": 47.653435
+            },
+            {
+              "pyName": "lon",
+              "wireName": "lon",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "number"
+              },
+              "example": -122.305641
+            },
+            {
+              "pyName": "radius",
+              "wireName": "radius",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "number"
+              }
+            },
+            {
+              "pyName": "lat_span",
+              "wireName": "latSpan",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "number"
+              }
+            },
+            {
+              "pyName": "lon_span",
+              "wireName": "lonSpan",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "number"
+              }
+            },
+            {
+              "pyName": "query",
+              "wireName": "query",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "string"
+              }
+            }
+          ],
+          "response": {
+            "name": "RoutesForLocationListResponse",
+            "module": "types.routes_for_location_list_response"
+          },
+          "paramsModule": "types.routes_for_location_list_params"
+        }
+      ],
+      "subresources": []
+    },
+    {
+      "name": "routes_for_agency",
+      "title": "RoutesForAgency",
+      "variable": "routes_for_agency",
+      "module": "resources.routes_for_agency",
+      "types": ["RoutesForAgencyListResponse"],
+      "typesModule": "types",
+      "methods": [
+        {
+          "name": "list",
+          "httpMethod": "get",
+          "path": "/api/where/routes-for-agency/{agencyID}.json",
+          "params": [
+            {
+              "pyName": "agency_id",
+              "wireName": "agencyID",
+              "required": true,
+              "location": "path",
+              "type": {
+                "kind": "primitive",
+                "name": "string"
+              },
+              "example": "40"
+            }
+          ],
+          "response": {
+            "name": "RoutesForAgencyListResponse",
+            "module": "types.routes_for_agency_list_response"
+          }
+        }
+      ],
+      "subresources": []
+    },
+    {
+      "name": "schedule_for_route",
+      "title": "ScheduleForRoute",
+      "variable": "schedule_for_route",
+      "module": "resources.schedule_for_route",
+      "types": ["ScheduleForRouteRetrieveResponse"],
+      "typesModule": "types",
+      "methods": [
+        {
+          "name": "retrieve",
+          "httpMethod": "get",
+          "path": "/api/where/schedule-for-route/{routeID}.json",
+          "params": [
+            {
+              "pyName": "route_id",
+              "wireName": "routeID",
+              "required": true,
+              "location": "path",
+              "type": {
+                "kind": "primitive",
+                "name": "string"
+              },
+              "example": "1_100223"
+            },
+            {
+              "pyName": "date",
+              "wireName": "date",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "date"
+              },
+              "example": "2024-08-12"
+            }
+          ],
+          "response": {
+            "name": "ScheduleForRouteRetrieveResponse",
+            "module": "types.schedule_for_route_retrieve_response"
+          },
+          "paramsModule": "types.schedule_for_route_retrieve_params"
+        }
+      ],
+      "subresources": []
+    },
+    {
+      "name": "arrivals_and_departures_for_location",
+      "title": "ArrivalsAndDeparturesForLocation",
+      "variable": "arrivals_and_departures_for_location",
+      "module": "resources.arrivals_and_departures_for_location",
+      "types": ["ArrivalsAndDeparturesForLocationListResponse"],
+      "typesModule": "types",
+      "methods": [
+        {
+          "name": "list",
+          "httpMethod": "get",
+          "path": "/api/where/arrivals-and-departures-for-location.json",
+          "params": [
+            {
+              "pyName": "lat",
+              "wireName": "lat",
+              "required": true,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "number"
+              }
+            },
+            {
+              "pyName": "lon",
+              "wireName": "lon",
+              "required": true,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "number"
+              }
+            },
+            {
+              "pyName": "radius",
+              "wireName": "radius",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "number"
+              }
+            },
+            {
+              "pyName": "lat_span",
+              "wireName": "latSpan",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "number"
+              }
+            },
+            {
+              "pyName": "lon_span",
+              "wireName": "lonSpan",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "number"
+              }
+            },
+            {
+              "pyName": "time",
+              "wireName": "time",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "integer"
+              }
+            },
+            {
+              "pyName": "minutes_before",
+              "wireName": "minutesBefore",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "integer"
+              }
+            },
+            {
+              "pyName": "minutes_after",
+              "wireName": "minutesAfter",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "integer"
+              }
+            },
+            {
+              "pyName": "max_count",
+              "wireName": "maxCount",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "integer"
+              },
+              "maximum": 1000
+            },
+            {
+              "pyName": "route_type",
+              "wireName": "routeType",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "string"
+              }
+            },
+            {
+              "pyName": "empty_returns_not_found",
+              "wireName": "emptyReturnsNotFound",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "boolean"
+              }
+            }
+          ],
+          "response": {
+            "name": "ArrivalsAndDeparturesForLocationListResponse",
+            "module": "types.arrivals_and_departures_for_location_list_response"
+          },
+          "paramsModule": "types.arrivals_and_departures_for_location_list_params"
+        }
+      ],
+      "subresources": []
+    },
+    {
+      "name": "arrival_and_departure",
+      "title": "ArrivalAndDeparture",
+      "variable": "arrival_and_departure",
+      "module": "resources.arrival_and_departure",
+      "types": ["ArrivalAndDepartureRetrieveResponse", "ArrivalAndDepartureListResponse"],
+      "typesModule": "types",
+      "methods": [
+        {
+          "name": "retrieve",
+          "httpMethod": "get",
+          "path": "/api/where/arrival-and-departure-for-stop/{stopID}.json",
+          "params": [
+            {
+              "pyName": "stop_id",
+              "wireName": "stopID",
+              "required": true,
+              "location": "path",
+              "type": {
+                "kind": "primitive",
+                "name": "string"
+              },
+              "example": "1_75403"
+            },
+            {
+              "pyName": "trip_id",
+              "wireName": "tripId",
+              "required": true,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "string"
+              },
+              "example": "1_604670535"
+            },
+            {
+              "pyName": "service_date",
+              "wireName": "serviceDate",
+              "required": true,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "integer"
+              },
+              "example": 1710918000000
+            },
+            {
+              "pyName": "vehicle_id",
+              "wireName": "vehicleId",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "string"
+              },
+              "example": "1_6936"
+            },
+            {
+              "pyName": "stop_sequence",
+              "wireName": "stopSequence",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "integer"
+              },
+              "example": 39
+            },
+            {
+              "pyName": "time",
+              "wireName": "time",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "integer"
+              },
+              "example": 1710979086000
+            }
+          ],
+          "response": {
+            "name": "ArrivalAndDepartureRetrieveResponse",
+            "module": "types.arrival_and_departure_retrieve_response"
+          },
+          "paramsModule": "types.arrival_and_departure_retrieve_params"
+        },
+        {
+          "name": "list",
+          "httpMethod": "get",
+          "path": "/api/where/arrivals-and-departures-for-stop/{stopID}.json",
+          "params": [
+            {
+              "pyName": "stop_id",
+              "wireName": "stopID",
+              "required": true,
+              "location": "path",
+              "type": {
+                "kind": "primitive",
+                "name": "string"
+              },
+              "example": "1_75403"
+            },
+            {
+              "pyName": "minutes_before",
+              "wireName": "minutesBefore",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "integer"
+              }
+            },
+            {
+              "pyName": "minutes_after",
+              "wireName": "minutesAfter",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "integer"
+              }
+            },
+            {
+              "pyName": "time",
+              "wireName": "time",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "datetime"
+              }
+            }
+          ],
+          "response": {
+            "name": "ArrivalAndDepartureListResponse",
+            "module": "types.arrival_and_departure_list_response"
+          },
+          "paramsModule": "types.arrival_and_departure_list_params"
+        }
+      ],
+      "subresources": []
+    },
+    {
+      "name": "trip",
+      "title": "Trip",
+      "variable": "trip",
+      "module": "resources.trip",
+      "types": ["TripRetrieveResponse"],
+      "typesModule": "types",
+      "methods": [
+        {
+          "name": "retrieve",
+          "httpMethod": "get",
+          "path": "/api/where/trip/{tripID}.json",
+          "params": [
+            {
+              "pyName": "trip_id",
+              "wireName": "tripID",
+              "required": true,
+              "location": "path",
+              "type": {
+                "kind": "primitive",
+                "name": "string"
+              }
+            }
+          ],
+          "response": {
+            "name": "TripRetrieveResponse",
+            "module": "types.trip_retrieve_response"
+          }
+        }
+      ],
+      "subresources": []
+    },
+    {
+      "name": "trips_for_location",
+      "title": "TripsForLocation",
+      "variable": "trips_for_location",
+      "module": "resources.trips_for_location",
+      "types": ["TripsForLocationListResponse"],
+      "typesModule": "types",
+      "methods": [
+        {
+          "name": "list",
+          "httpMethod": "get",
+          "path": "/api/where/trips-for-location.json",
+          "params": [
+            {
+              "pyName": "lat",
+              "wireName": "lat",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "number"
+              }
+            },
+            {
+              "pyName": "lon",
+              "wireName": "lon",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "number"
+              }
+            },
+            {
+              "pyName": "lat_span",
+              "wireName": "latSpan",
+              "required": true,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "number"
+              }
+            },
+            {
+              "pyName": "lon_span",
+              "wireName": "lonSpan",
+              "required": true,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "number"
+              }
+            },
+            {
+              "pyName": "include_trip",
+              "wireName": "includeTrip",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "boolean"
+              }
+            },
+            {
+              "pyName": "include_schedule",
+              "wireName": "includeSchedule",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "boolean"
+              }
+            },
+            {
+              "pyName": "time",
+              "wireName": "time",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "integer"
+              }
+            }
+          ],
+          "response": {
+            "name": "TripsForLocationListResponse",
+            "module": "types.trips_for_location_list_response"
+          },
+          "paramsModule": "types.trips_for_location_list_params"
+        }
+      ],
+      "subresources": []
+    },
+    {
+      "name": "trip_details",
+      "title": "TripDetails",
+      "variable": "trip_detail",
+      "module": "resources.trip_details",
+      "types": ["TripDetailRetrieveResponse"],
+      "typesModule": "types",
+      "methods": [
+        {
+          "name": "retrieve",
+          "httpMethod": "get",
+          "path": "/api/where/trip-details/{tripID}.json",
+          "params": [
+            {
+              "pyName": "trip_id",
+              "wireName": "tripID",
+              "required": true,
+              "location": "path",
+              "type": {
+                "kind": "primitive",
+                "name": "string"
+              }
+            },
+            {
+              "pyName": "service_date",
+              "wireName": "serviceDate",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "integer"
+              }
+            },
+            {
+              "pyName": "include_trip",
+              "wireName": "includeTrip",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "boolean"
+              }
+            },
+            {
+              "pyName": "include_schedule",
+              "wireName": "includeSchedule",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "boolean"
+              }
+            },
+            {
+              "pyName": "include_status",
+              "wireName": "includeStatus",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "boolean"
+              }
+            },
+            {
+              "pyName": "time",
+              "wireName": "time",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "integer"
+              }
+            }
+          ],
+          "response": {
+            "name": "TripDetailRetrieveResponse",
+            "module": "types.trip_detail_retrieve_response"
+          },
+          "paramsModule": "types.trip_detail_retrieve_params"
+        }
+      ],
+      "subresources": []
+    },
+    {
+      "name": "trip_for_vehicle",
+      "title": "TripForVehicle",
+      "variable": "trip_for_vehicle",
+      "module": "resources.trip_for_vehicle",
+      "types": ["TripForVehicleRetrieveResponse"],
+      "typesModule": "types",
+      "methods": [
+        {
+          "name": "retrieve",
+          "httpMethod": "get",
+          "path": "/api/where/trip-for-vehicle/{vehicleID}.json",
+          "params": [
+            {
+              "pyName": "vehicle_id",
+              "wireName": "vehicleID",
+              "required": true,
+              "location": "path",
+              "type": {
+                "kind": "primitive",
+                "name": "string"
+              }
+            },
+            {
+              "pyName": "time",
+              "wireName": "time",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "integer"
+              }
+            },
+            {
+              "pyName": "include_trip",
+              "wireName": "includeTrip",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "boolean"
+              }
+            },
+            {
+              "pyName": "include_schedule",
+              "wireName": "includeSchedule",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "boolean"
+              }
+            },
+            {
+              "pyName": "include_status",
+              "wireName": "includeStatus",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "boolean"
+              }
+            }
+          ],
+          "response": {
+            "name": "TripForVehicleRetrieveResponse",
+            "module": "types.trip_for_vehicle_retrieve_response"
+          },
+          "paramsModule": "types.trip_for_vehicle_retrieve_params"
+        }
+      ],
+      "subresources": []
+    },
+    {
+      "name": "trips_for_route",
+      "title": "TripsForRoute",
+      "variable": "trips_for_route",
+      "module": "resources.trips_for_route",
+      "types": ["TripsForRouteListResponse"],
+      "typesModule": "types",
+      "methods": [
+        {
+          "name": "list",
+          "httpMethod": "get",
+          "path": "/api/where/trips-for-route/{routeID}.json",
+          "params": [
+            {
+              "pyName": "route_id",
+              "wireName": "routeID",
+              "required": true,
+              "location": "path",
+              "type": {
+                "kind": "primitive",
+                "name": "string"
+              }
+            },
+            {
+              "pyName": "include_status",
+              "wireName": "includeStatus",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "boolean"
+              }
+            },
+            {
+              "pyName": "include_schedule",
+              "wireName": "includeSchedule",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "boolean"
+              }
+            },
+            {
+              "pyName": "time",
+              "wireName": "time",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "integer"
+              }
+            }
+          ],
+          "response": {
+            "name": "TripsForRouteListResponse",
+            "module": "types.trips_for_route_list_response"
+          },
+          "paramsModule": "types.trips_for_route_list_params"
+        }
+      ],
+      "subresources": []
+    },
+    {
+      "name": "report_problem_with_stop",
+      "title": "ReportProblemWithStop",
+      "variable": "report_problem_with_stop",
+      "module": "resources.report_problem_with_stop",
+      "types": [],
+      "typesModule": "types",
+      "methods": [
+        {
+          "name": "retrieve",
+          "httpMethod": "get",
+          "path": "/api/where/report-problem-with-stop/{stopID}.json",
+          "params": [
+            {
+              "pyName": "stop_id",
+              "wireName": "stopID",
+              "required": true,
+              "location": "path",
+              "type": {
+                "kind": "primitive",
+                "name": "string"
+              }
+            },
+            {
+              "pyName": "code",
+              "wireName": "code",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "literal",
+                "values": [
+                  "stop_name_wrong",
+                  "stop_number_wrong",
+                  "stop_location_wrong",
+                  "route_or_trip_missing",
+                  "other"
+                ]
+              }
+            },
+            {
+              "pyName": "user_comment",
+              "wireName": "userComment",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "string"
+              }
+            },
+            {
+              "pyName": "user_lat",
+              "wireName": "userLat",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "number"
+              }
+            },
+            {
+              "pyName": "user_lon",
+              "wireName": "userLon",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "number"
+              }
+            },
+            {
+              "pyName": "user_location_accuracy",
+              "wireName": "userLocationAccuracy",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "number"
+              }
+            }
+          ],
+          "response": {
+            "name": "ResponseWrapper",
+            "module": "types.shared.response_wrapper"
+          },
+          "paramsModule": "types.report_problem_with_stop_retrieve_params"
+        }
+      ],
+      "subresources": []
+    },
+    {
+      "name": "report_problem_with_trip",
+      "title": "ReportProblemWithTrip",
+      "variable": "report_problem_with_trip",
+      "module": "resources.report_problem_with_trip",
+      "types": [],
+      "typesModule": "types",
+      "methods": [
+        {
+          "name": "retrieve",
+          "httpMethod": "get",
+          "path": "/api/where/report-problem-with-trip/{tripID}.json",
+          "params": [
+            {
+              "pyName": "trip_id",
+              "wireName": "tripID",
+              "required": true,
+              "location": "path",
+              "type": {
+                "kind": "primitive",
+                "name": "string"
+              }
+            },
+            {
+              "pyName": "service_date",
+              "wireName": "serviceDate",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "integer"
+              }
+            },
+            {
+              "pyName": "vehicle_id",
+              "wireName": "vehicleID",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "string"
+              }
+            },
+            {
+              "pyName": "stop_id",
+              "wireName": "stopID",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "string"
+              }
+            },
+            {
+              "pyName": "code",
+              "wireName": "code",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "literal",
+                "values": [
+                  "vehicle_never_came",
+                  "vehicle_came_early",
+                  "vehicle_came_late",
+                  "wrong_headsign",
+                  "vehicle_does_not_stop_here",
+                  "other"
+                ]
+              }
+            },
+            {
+              "pyName": "user_comment",
+              "wireName": "userComment",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "string"
+              }
+            },
+            {
+              "pyName": "user_on_vehicle",
+              "wireName": "userOnVehicle",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "boolean"
+              }
+            },
+            {
+              "pyName": "user_vehicle_number",
+              "wireName": "userVehicleNumber",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "string"
+              }
+            },
+            {
+              "pyName": "user_lat",
+              "wireName": "userLat",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "number"
+              }
+            },
+            {
+              "pyName": "user_lon",
+              "wireName": "userLon",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "number"
+              }
+            },
+            {
+              "pyName": "user_location_accuracy",
+              "wireName": "userLocationAccuracy",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "number"
+              }
+            }
+          ],
+          "response": {
+            "name": "ResponseWrapper",
+            "module": "types.shared.response_wrapper"
+          },
+          "paramsModule": "types.report_problem_with_trip_retrieve_params"
+        }
+      ],
+      "subresources": []
+    },
+    {
+      "name": "search_for_stop",
+      "title": "SearchForStop",
+      "variable": "search_for_stop",
+      "module": "resources.search_for_stop",
+      "types": ["SearchForStopListResponse"],
+      "typesModule": "types",
+      "methods": [
+        {
+          "name": "list",
+          "httpMethod": "get",
+          "path": "/api/where/search/stop.json",
+          "params": [
+            {
+              "pyName": "input",
+              "wireName": "input",
+              "required": true,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "string"
+              }
+            },
+            {
+              "pyName": "max_count",
+              "wireName": "maxCount",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "integer"
+              }
+            }
+          ],
+          "response": {
+            "name": "SearchForStopListResponse",
+            "module": "types.search_for_stop_list_response"
+          },
+          "paramsModule": "types.search_for_stop_list_params"
+        }
+      ],
+      "subresources": []
+    },
+    {
+      "name": "search_for_route",
+      "title": "SearchForRoute",
+      "variable": "search_for_route",
+      "module": "resources.search_for_route",
+      "types": ["SearchForRouteListResponse"],
+      "typesModule": "types",
+      "methods": [
+        {
+          "name": "list",
+          "httpMethod": "get",
+          "path": "/api/where/search/route.json",
+          "params": [
+            {
+              "pyName": "input",
+              "wireName": "input",
+              "required": true,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "string"
+              }
+            },
+            {
+              "pyName": "max_count",
+              "wireName": "maxCount",
+              "required": false,
+              "location": "query",
+              "type": {
+                "kind": "primitive",
+                "name": "integer"
+              }
+            }
+          ],
+          "response": {
+            "name": "SearchForRouteListResponse",
+            "module": "types.search_for_route_list_response"
+          },
+          "paramsModule": "types.search_for_route_list_params"
+        }
+      ],
+      "subresources": []
+    },
+    {
+      "name": "block",
+      "title": "Block",
+      "variable": "block",
+      "module": "resources.block",
+      "types": ["BlockRetrieveResponse"],
+      "typesModule": "types",
+      "methods": [
+        {
+          "name": "retrieve",
+          "httpMethod": "get",
+          "path": "/api/where/block/{blockID}.json",
+          "params": [
+            {
+              "pyName": "block_id",
+              "wireName": "blockID",
+              "required": true,
+              "location": "path",
+              "type": {
+                "kind": "primitive",
+                "name": "string"
+              }
+            }
+          ],
+          "response": {
+            "name": "BlockRetrieveResponse",
+            "module": "types.block_retrieve_response"
+          }
+        }
+      ],
+      "subresources": []
+    },
+    {
+      "name": "shape",
+      "title": "Shape",
+      "variable": "shape",
+      "module": "resources.shape",
+      "types": ["ShapeRetrieveResponse"],
+      "typesModule": "types",
+      "methods": [
+        {
+          "name": "retrieve",
+          "httpMethod": "get",
+          "path": "/api/where/shape/{shapeID}.json",
+          "params": [
+            {
+              "pyName": "shape_id",
+              "wireName": "shapeID",
+              "required": true,
+              "location": "path",
+              "type": {
+                "kind": "primitive",
+                "name": "string"
+              }
+            }
+          ],
+          "response": {
+            "name": "ShapeRetrieveResponse",
+            "module": "types.shape_retrieve_response"
+          }
+        }
+      ],
+      "subresources": []
+    }
+  ]
+}
