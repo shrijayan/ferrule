@@ -145,8 +145,19 @@ def sdk_entry(**overrides: object) -> dict[str, object]:
 def test_real_manifest_config_entries() -> None:
     oracles = fetch.parse_manifest(fetch.MANIFEST.read_text(encoding="utf-8"))
     configs = fetch.select(oracles, [], "config")
-    assert configs
-    assert "onebusaway-config" in {o.name for o in configs}
+    assert {o.name for o in configs} >= {
+        "onebusaway-config",
+        "opencode-config",
+        "isaacus-config",
+        "lumaai-config",
+        "honcho-config",
+        "stagehand-config",
+        "ogx-config",
+        "imagekit-config",
+        "knock-config",
+        "knock-mgmt-config",
+        "papr-config",
+    }
     by_name = {o.name: o for o in oracles}
     for config in configs:
         assert config.paired in fetch.PAIRED
