@@ -14,4 +14,4 @@ commit-msg:
     commitlint:
       run: pnpm exec commitlint --edit {1}
     dco:
-      run: grep -q '^Signed-off-by:' {1} || (echo "DCO: commit with -s" && exit 1)
+      run: grep -q '^Signed-off-by:' {1} || (echo "DCO sign-off missing, commit with -s" && exit 1)
