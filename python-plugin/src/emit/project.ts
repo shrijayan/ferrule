@@ -17,6 +17,7 @@ import {
 import { emitProjectFiles } from './files/index.ts';
 import { type ProjectMeta, toProjectFilesInput } from './files-input.ts';
 import { emitAliasFile, emitModelFile } from './models.ts';
+import { emitPackageInit, emitVersion } from './package-init.ts';
 import { emitParamsFile } from './params.ts';
 import { className, emitResourceFile } from './resources.ts';
 
@@ -153,7 +154,11 @@ export function emitRootFiles(client: SdkClient, meta?: ProjectMeta): FileTree {
     files.set(modulePath(pkg, init), p.toString());
   }
 
-  if (client.settings !== undefined) files.set(modulePath(pkg, '_client'), emitClientFile(client));
+  if (client.settings !== undefined) {
+    files.set(modulePath(pkg, '_client'), emitClientFile(client));
+    files.set(modulePath(pkg, '__init__'), emitPackageInit(pkg, client.settings.className));
+    files.set(modulePath(pkg, '_version'), emitVersion(pkg, meta?.version ?? '0.0.1'));
+  }
   if (meta !== undefined) {
     const input = toProjectFilesInput(client, meta);
     if (input !== undefined)
