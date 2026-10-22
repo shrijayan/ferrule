@@ -69,6 +69,105 @@ operation it annotates:
 `x-stainless-pagination-property.purpose`, else the field name); the items field
 has purpose `items`.
 
+### Amendment 2026-10-23 (Phase 2): client, streaming, pagination, order, `$client`
+
+This amendment replaces the `x-ferrule-client`, `x-ferrule-pagination` and
+`x-ferrule-streaming` rows of the initial table (nothing read them yet, so `version` stays 1;
+an incompatible change to a shape a released plugin reads still bumps it). Code lives in
+`converter/src/extensions/`. Objects whose order matters are arrays, because the annotated spec
+is written with sorted keys.
+
+**`x-ferrule-config`** (root) gains `pythonEdition`. `edition` and `pythonEdition` are the
+editions whose defaults were applied: a config without `edition` gets the first ones,
+`2025-10-08` and `python.2025-10-08` (OneBusAway; its SDK ships Rye files).
+
+**`x-ferrule-client`** (root, and mirrored onto every annotated operation per gap G2). Written
+only when `targets.python.package_name` is set, like `x-ferrule-config`:
+
+```ts
+{
+  name: string,        // client_settings.default_client_name ?? organization.name (as written)
+  envPrefix: string,   // client_settings.default_env_prefix ?? UPPER_SNAKE(organization.name)
+  opts: {              // client_settings.opts, config order
+    name: string, type: "string" | "number" | "integer" | "boolean",
+    nullable: boolean, default?: unknown, readEnv?: string, description?: string,
+    auth?: { securityScheme: string, role: "value" | "username" | "password" | "client_id" | "client_secret" },
+    send?: { in: "header" | "query" | "body" | "path", name: string },
+    serverVariable?: string,
+  }[],
+  environments: { name: string, url: string }[],  // config order; else the spec's first server as "production"
+  defaultEnvironment?: string,                     // the first environment
+  securitySchemes: Record<string,                  // spec components.securitySchemes, overlaid by config security_schemes
+    | { type: "http", scheme: "bearer" | "digest", keyword?: string }
+    | { type: "http", scheme: "basic", keyword?: string, disableBase64: boolean }
+    | { type: "apiKey", in: "header" | "query" | "cookie", name: string }
+    | { type: "oauth2", flows: object }
+    | { type: "openIdConnect", url: string }>,
+  security: Record<string, string[]>[],            // config security ?? spec security
+  timeoutSeconds: number,                          // default_timeout (ms or ISO 8601); default 60
+  retries: { maxRetries: number, initialDelaySeconds: number, maxDelaySeconds: number }, // default 2, 0.5, 8
+  idempotencyHeader?: string,                      // client_settings.idempotency.header
+  defaultHeaders: Record<string, string>,
+  omitPlatformHeaders: boolean,                    // client_settings.omit_stainless_headers
+  query: { nestedFormat: "brackets" | "dots", arrayFormat: "comma" | "repeat" | "indices" | "brackets" },
+  httpLimits?: { maxConnections?: number, maxKeepaliveConnections?: number, keepaliveExpiry?: number },
+}
+```
+
+**`x-ferrule-streaming`** (operation), from a method's `streaming:` block unless its `skip`
+lists `python`:
+
+```ts
+{
+  format: "sse" | "jsonl",           // streaming.type, else from the 2xx content type, else "sse"
+  paramDiscriminator: string | null, // null: the method always streams
+  eventModel?: string,               // stream_event_model as written ("$resource.$model")
+  eventSchema?: string,              // the components.schemas name it resolves to
+  paramsTypeName?: string, methodName?: string,
+  synthesizeEventAndData: boolean,
+  onEvent: { kind: "event" | "fallthrough" | "data", handle: "break" | "continue" | "done" | "yield" | "error",
+             eventType?: string | string[] | null, errorProperty?: string, dataStartsWith?: string }[],
+}                                    // onEvent: top-level streaming.on_event, config order
+```
+
+**`x-ferrule-pagination`** (operation):
+
+```ts
+{ scheme: "cursor" | "cursor_id" | "cursor_url" | "fake_page" | "offset" | "page_number",
+  page: string, paramLocation: "query" | "body", continueOnEmptyItems: boolean,
+  request: Record<string, string>, response: Record<string, string>,
+  headers?: Record<string, string> }  // header name -> purpose, for from_header properties
+```
+
+Field maps run spec field path → purpose. A field with nested annotated properties is listed by
+dotted path (`meta.next_cursor`), and `.[].` steps into array items (`data.[].id` for
+`cursor_item_id`); un-annotated leaves keep their name as purpose. The single-object
+`pagination:` form is named `page`. Matching (methods named `list` / `list_*`, or
+`paginated: true`): every request field is a param in `param_location`, every response path
+exists in the 2xx JSON response, and the `items` field is an array; of several matches the
+one with the most fields wins, then config order. `paginated: <name>` and `false` behave as
+before.
+
+**Order (gap G11).** `x-ferrule-resource` gains `order: number[]`, the index of each path
+segment among its siblings in stainless.yml (`resources`, then `subresources`), and each
+operation gets `x-ferrule-method-order: number`, the method's index in its resource's
+`methods`. The plugin sorts client attributes, sub-resources and methods by these.
+
+**`$client` methods.** Forge drops an operation whose `x-fern-sdk-group-name` is empty, and
+turns `["$client"]` into the group `client`, merging it with a real `client` resource (checked
+against the pinned Forge CLI). So `$client` methods get
+`x-fern-sdk-group-name: ["$ferrule_client"]` (Forge words `ferrule client`); a top-level
+resource whose words are the same is FER1006. `x-ferrule-resource.path` stays `["$client"]`,
+and the plugin emits those methods on the client class.
+
+**`x-fern-type-name`** is now written on every `components.schemas` entry a `models:` key
+names (the Python class name, e.g. `References`); a model naming a missing schema is FER1005.
+Forge keeps `model-info.schema-name` as the component key, so `x-ferrule-models` lookups are
+unchanged.
+
+**Diagnostic ranges.** FER10xx annotate, FER11xx config validation and editions, FER12xx
+`openapi.transforms`, FER13xx client settings, FER14xx streaming, FER15xx pagination.
+
 ### Consequences
 
 - Good: one place defines the contract between converter and plugin; both sides test against it.
