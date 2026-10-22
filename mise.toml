@@ -53,3 +53,7 @@ run = "python3 corpus/fetch.py"
 
 [tasks.golden]
 run = ["pnpm --filter @ferrule/python-plugin build", "pnpm --filter @ferrule/python-plugin golden"]
+
+[tasks.spike]
+description = "Phase 1 gate: OneBusAway agencies_with_coverage through converter, Forge and plugin"
+run = "bash scripts/spike.sh"
