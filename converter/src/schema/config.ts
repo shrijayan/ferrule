@@ -57,7 +57,11 @@ export const ConfigSchema = z.looseObject({
   targets: z
     .looseObject({
       python: z
-        .looseObject({ package_name: z.string().optional(), project_name: z.string().optional() })
+        .looseObject({
+          package_name: z.string().optional(),
+          project_name: z.string().optional(),
+          production_repo: z.string().optional(),
+        })
         .optional(),
     })
     .optional(),

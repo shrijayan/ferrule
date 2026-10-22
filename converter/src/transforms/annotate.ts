@@ -102,6 +102,8 @@ interface Ctx {
   readonly spec: Json;
   readonly config: Config;
   readonly diagnostics: Diagnostic[];
+  readonly models: Record<string, FerruleModel>;
+  readonly operations: Json[];
 }
 
 function methodPointer(path: readonly string[], name: string): string {
@@ -137,6 +139,7 @@ function annotateMethod(ctx: Ctx, path: readonly string[], name: string, method:
   op['x-fern-sdk-method-name'] = name;
   op['x-ferrule-resource'] = { path: [...path] };
   op['x-ferrule-method-name'] = name;
+  ctx.operations.push(op);
   const pagination = resolvePagination(ctx, pointer, name, method, pathItem, op);
   if (pagination !== undefined) op['x-ferrule-pagination'] = pagination;
 }
@@ -184,6 +187,47 @@ function resolvePagination(
   return undefined;
 }
 
+/** `x-ferrule-models` entry (ADR 0003, gap G3): Python class name and dotted module under `types`. */
+export interface FerruleModel {
+  readonly name: string;
+  readonly module: string;
+}
+
+const pascal = (snake: string): string =>
+  snake
+    .split('_')
+    .filter((w) => w !== '')
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join('');
+
+/** Models of a resource: `$shared` ones live in `types/shared/`, others under their resource path. */
+function collectModels(ctx: Ctx, path: readonly string[], resource: Resource): void {
+  for (const [key, model] of Object.entries(resource.models ?? {})) {
+    if (typeof model !== 'string') {
+      ctx.diagnostics.push({
+        code: 'FER1004',
+        severity: 'warning',
+        message: `Model ${[...path, key].join('.')} uses the object form, which is not supported yet.`,
+        pointer: toJsonPointer([
+          'resources',
+          ...path.flatMap((p, i) => (i === 0 ? [p] : ['subresources', p])),
+          'models',
+          key,
+        ]),
+        suggestion: 'Write the model as a schema name, e.g. `references: Reference`.',
+      });
+      continue;
+    }
+    const schema = model.replace(/^#\/components\/schemas\//, '');
+    // types/<parent dirs>/<key>.py: a resource's models sit in its parent's directory.
+    const dirs = path[0] === '$shared' ? ['shared'] : path.slice(0, -1);
+    ctx.models[schema] = { name: pascal(key), module: [...dirs, key].join('.') };
+  }
+  for (const [name, sub] of Object.entries(resource.subresources ?? {})) {
+    collectModels(ctx, [...path, name], sub);
+  }
+}
+
 function walk(ctx: Ctx, path: readonly string[], resource: Resource): void {
   for (const [name, method] of Object.entries(resource.methods ?? {})) {
     annotateMethod(ctx, path, name, method);
@@ -199,11 +243,23 @@ export function annotate(
   config: Config,
 ): { spec: Json; diagnostics: Diagnostic[] } {
   const out = structuredClone(spec) as Json;
-  const ctx: Ctx = { spec: out, config, diagnostics: [] };
+  const ctx: Ctx = { spec: out, config, diagnostics: [], models: {}, operations: [] };
+  for (const [name, resource] of Object.entries(config.resources ?? {})) {
+    collectModels(ctx, [name], resource);
+  }
   for (const [name, resource] of Object.entries(config.resources ?? {})) {
     walk(ctx, [name], resource);
   }
   const python = config.targets?.python;
+  // Forge drops root and schema extensions (gaps G2, G3), so mirror them onto every operation.
+  const pkg =
+    python?.package_name === undefined
+      ? undefined
+      : { name: python.package_name, repo: python.production_repo ?? '' };
+  for (const op of ctx.operations) {
+    if (pkg !== undefined) op['x-ferrule-package'] = pkg;
+    op['x-ferrule-models'] = ctx.models;
+  }
   if (python?.package_name !== undefined) {
     out['x-ferrule-config'] = {
       version: 1,

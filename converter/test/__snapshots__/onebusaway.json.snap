@@ -2159,6 +2159,20 @@
         ],
         "x-fern-sdk-method-name": "list",
         "x-ferrule-method-name": "list",
+        "x-ferrule-models": {
+          "Reference": {
+            "module": "shared.references",
+            "name": "References"
+          },
+          "ResponseWrapper": {
+            "module": "shared.response_wrapper",
+            "name": "ResponseWrapper"
+          }
+        },
+        "x-ferrule-package": {
+          "name": "onebusaway",
+          "repo": "OneBusAway/python-sdk"
+        },
         "x-ferrule-resource": {
           "path": [
             "agencies_with_coverage"
@@ -2213,6 +2227,20 @@
         ],
         "x-fern-sdk-method-name": "retrieve",
         "x-ferrule-method-name": "retrieve",
+        "x-ferrule-models": {
+          "Reference": {
+            "module": "shared.references",
+            "name": "References"
+          },
+          "ResponseWrapper": {
+            "module": "shared.response_wrapper",
+            "name": "ResponseWrapper"
+          }
+        },
+        "x-ferrule-package": {
+          "name": "onebusaway",
+          "repo": "OneBusAway/python-sdk"
+        },
         "x-ferrule-resource": {
           "path": [
             "agency"
@@ -2311,6 +2339,20 @@
         ],
         "x-fern-sdk-method-name": "retrieve",
         "x-ferrule-method-name": "retrieve",
+        "x-ferrule-models": {
+          "Reference": {
+            "module": "shared.references",
+            "name": "References"
+          },
+          "ResponseWrapper": {
+            "module": "shared.response_wrapper",
+            "name": "ResponseWrapper"
+          }
+        },
+        "x-ferrule-package": {
+          "name": "onebusaway",
+          "repo": "OneBusAway/python-sdk"
+        },
         "x-ferrule-resource": {
           "path": [
             "arrival_and_departure"
@@ -2469,6 +2511,20 @@
         ],
         "x-fern-sdk-method-name": "list",
         "x-ferrule-method-name": "list",
+        "x-ferrule-models": {
+          "Reference": {
+            "module": "shared.references",
+            "name": "References"
+          },
+          "ResponseWrapper": {
+            "module": "shared.response_wrapper",
+            "name": "ResponseWrapper"
+          }
+        },
+        "x-ferrule-package": {
+          "name": "onebusaway",
+          "repo": "OneBusAway/python-sdk"
+        },
         "x-ferrule-resource": {
           "path": [
             "arrivals_and_departures_for_location"
@@ -2555,6 +2611,20 @@
         ],
         "x-fern-sdk-method-name": "list",
         "x-ferrule-method-name": "list",
+        "x-ferrule-models": {
+          "Reference": {
+            "module": "shared.references",
+            "name": "References"
+          },
+          "ResponseWrapper": {
+            "module": "shared.response_wrapper",
+            "name": "ResponseWrapper"
+          }
+        },
+        "x-ferrule-package": {
+          "name": "onebusaway",
+          "repo": "OneBusAway/python-sdk"
+        },
         "x-ferrule-resource": {
           "path": [
             "arrival_and_departure"
@@ -2597,6 +2667,20 @@
         ],
         "x-fern-sdk-method-name": "retrieve",
         "x-ferrule-method-name": "retrieve",
+        "x-ferrule-models": {
+          "Reference": {
+            "module": "shared.references",
+            "name": "References"
+          },
+          "ResponseWrapper": {
+            "module": "shared.response_wrapper",
+            "name": "ResponseWrapper"
+          }
+        },
+        "x-ferrule-package": {
+          "name": "onebusaway",
+          "repo": "OneBusAway/python-sdk"
+        },
         "x-ferrule-resource": {
           "path": [
             "block"
@@ -2653,6 +2737,20 @@
         ],
         "x-fern-sdk-method-name": "retrieve",
         "x-ferrule-method-name": "retrieve",
+        "x-ferrule-models": {
+          "Reference": {
+            "module": "shared.references",
+            "name": "References"
+          },
+          "ResponseWrapper": {
+            "module": "shared.response_wrapper",
+            "name": "ResponseWrapper"
+          }
+        },
+        "x-ferrule-package": {
+          "name": "onebusaway",
+          "repo": "OneBusAway/python-sdk"
+        },
         "x-ferrule-resource": {
           "path": [
             "config"
@@ -2698,6 +2796,20 @@
         ],
         "x-fern-sdk-method-name": "retrieve",
         "x-ferrule-method-name": "retrieve",
+        "x-ferrule-models": {
+          "Reference": {
+            "module": "shared.references",
+            "name": "References"
+          },
+          "ResponseWrapper": {
+            "module": "shared.response_wrapper",
+            "name": "ResponseWrapper"
+          }
+        },
+        "x-ferrule-package": {
+          "name": "onebusaway",
+          "repo": "OneBusAway/python-sdk"
+        },
         "x-ferrule-resource": {
           "path": [
             "current_time"
@@ -2792,6 +2904,20 @@
         ],
         "x-fern-sdk-method-name": "retrieve",
         "x-ferrule-method-name": "retrieve",
+        "x-ferrule-models": {
+          "Reference": {
+            "module": "shared.references",
+            "name": "References"
+          },
+          "ResponseWrapper": {
+            "module": "shared.response_wrapper",
+            "name": "ResponseWrapper"
+          }
+        },
+        "x-ferrule-package": {
+          "name": "onebusaway",
+          "repo": "OneBusAway/python-sdk"
+        },
         "x-ferrule-resource": {
           "path": [
             "report_problem_with_stop"
@@ -2933,6 +3059,20 @@
         ],
         "x-fern-sdk-method-name": "retrieve",
         "x-ferrule-method-name": "retrieve",
+        "x-ferrule-models": {
+          "Reference": {
+            "module": "shared.references",
+            "name": "References"
+          },
+          "ResponseWrapper": {
+            "module": "shared.response_wrapper",
+            "name": "ResponseWrapper"
+          }
+        },
+        "x-ferrule-package": {
+          "name": "onebusaway",
+          "repo": "OneBusAway/python-sdk"
+        },
         "x-ferrule-resource": {
           "path": [
             "report_problem_with_trip"
@@ -2975,6 +3115,20 @@
         ],
         "x-fern-sdk-method-name": "list",
         "x-ferrule-method-name": "list",
+        "x-ferrule-models": {
+          "Reference": {
+            "module": "shared.references",
+            "name": "References"
+          },
+          "ResponseWrapper": {
+            "module": "shared.response_wrapper",
+            "name": "ResponseWrapper"
+          }
+        },
+        "x-ferrule-package": {
+          "name": "onebusaway",
+          "repo": "OneBusAway/python-sdk"
+        },
         "x-ferrule-resource": {
           "path": [
             "route_ids_for_agency"
@@ -3041,6 +3195,20 @@
         ],
         "x-fern-sdk-method-name": "retrieve",
         "x-ferrule-method-name": "retrieve",
+        "x-ferrule-models": {
+          "Reference": {
+            "module": "shared.references",
+            "name": "References"
+          },
+          "ResponseWrapper": {
+            "module": "shared.response_wrapper",
+            "name": "ResponseWrapper"
+          }
+        },
+        "x-ferrule-package": {
+          "name": "onebusaway",
+          "repo": "OneBusAway/python-sdk"
+        },
         "x-ferrule-resource": {
           "path": [
             "route"
@@ -3098,6 +3266,20 @@
         ],
         "x-fern-sdk-method-name": "list",
         "x-ferrule-method-name": "list",
+        "x-ferrule-models": {
+          "Reference": {
+            "module": "shared.references",
+            "name": "References"
+          },
+          "ResponseWrapper": {
+            "module": "shared.response_wrapper",
+            "name": "ResponseWrapper"
+          }
+        },
+        "x-ferrule-package": {
+          "name": "onebusaway",
+          "repo": "OneBusAway/python-sdk"
+        },
         "x-ferrule-resource": {
           "path": [
             "routes_for_agency"
@@ -3199,6 +3381,20 @@
         ],
         "x-fern-sdk-method-name": "list",
         "x-ferrule-method-name": "list",
+        "x-ferrule-models": {
+          "Reference": {
+            "module": "shared.references",
+            "name": "References"
+          },
+          "ResponseWrapper": {
+            "module": "shared.response_wrapper",
+            "name": "ResponseWrapper"
+          }
+        },
+        "x-ferrule-package": {
+          "name": "onebusaway",
+          "repo": "OneBusAway/python-sdk"
+        },
         "x-ferrule-resource": {
           "path": [
             "routes_for_location"
@@ -3269,6 +3465,20 @@
         ],
         "x-fern-sdk-method-name": "retrieve",
         "x-ferrule-method-name": "retrieve",
+        "x-ferrule-models": {
+          "Reference": {
+            "module": "shared.references",
+            "name": "References"
+          },
+          "ResponseWrapper": {
+            "module": "shared.response_wrapper",
+            "name": "ResponseWrapper"
+          }
+        },
+        "x-ferrule-package": {
+          "name": "onebusaway",
+          "repo": "OneBusAway/python-sdk"
+        },
         "x-ferrule-resource": {
           "path": [
             "schedule_for_route"
@@ -3332,6 +3542,20 @@
         ],
         "x-fern-sdk-method-name": "retrieve",
         "x-ferrule-method-name": "retrieve",
+        "x-ferrule-models": {
+          "Reference": {
+            "module": "shared.references",
+            "name": "References"
+          },
+          "ResponseWrapper": {
+            "module": "shared.response_wrapper",
+            "name": "ResponseWrapper"
+          }
+        },
+        "x-ferrule-package": {
+          "name": "onebusaway",
+          "repo": "OneBusAway/python-sdk"
+        },
         "x-ferrule-resource": {
           "path": [
             "schedule_for_stop"
@@ -3395,6 +3619,20 @@
         ],
         "x-fern-sdk-method-name": "list",
         "x-ferrule-method-name": "list",
+        "x-ferrule-models": {
+          "Reference": {
+            "module": "shared.references",
+            "name": "References"
+          },
+          "ResponseWrapper": {
+            "module": "shared.response_wrapper",
+            "name": "ResponseWrapper"
+          }
+        },
+        "x-ferrule-package": {
+          "name": "onebusaway",
+          "repo": "OneBusAway/python-sdk"
+        },
         "x-ferrule-resource": {
           "path": [
             "search_for_route"
@@ -3458,6 +3696,20 @@
         ],
         "x-fern-sdk-method-name": "list",
         "x-ferrule-method-name": "list",
+        "x-ferrule-models": {
+          "Reference": {
+            "module": "shared.references",
+            "name": "References"
+          },
+          "ResponseWrapper": {
+            "module": "shared.response_wrapper",
+            "name": "ResponseWrapper"
+          }
+        },
+        "x-ferrule-package": {
+          "name": "onebusaway",
+          "repo": "OneBusAway/python-sdk"
+        },
         "x-ferrule-resource": {
           "path": [
             "search_for_stop"
@@ -3512,6 +3764,20 @@
         ],
         "x-fern-sdk-method-name": "retrieve",
         "x-ferrule-method-name": "retrieve",
+        "x-ferrule-models": {
+          "Reference": {
+            "module": "shared.references",
+            "name": "References"
+          },
+          "ResponseWrapper": {
+            "module": "shared.response_wrapper",
+            "name": "ResponseWrapper"
+          }
+        },
+        "x-ferrule-package": {
+          "name": "onebusaway",
+          "repo": "OneBusAway/python-sdk"
+        },
         "x-ferrule-resource": {
           "path": [
             "shape"
@@ -3554,6 +3820,20 @@
         ],
         "x-fern-sdk-method-name": "list",
         "x-ferrule-method-name": "list",
+        "x-ferrule-models": {
+          "Reference": {
+            "module": "shared.references",
+            "name": "References"
+          },
+          "ResponseWrapper": {
+            "module": "shared.response_wrapper",
+            "name": "ResponseWrapper"
+          }
+        },
+        "x-ferrule-package": {
+          "name": "onebusaway",
+          "repo": "OneBusAway/python-sdk"
+        },
         "x-ferrule-resource": {
           "path": [
             "stop_ids_for_agency"
@@ -3607,6 +3887,20 @@
         ],
         "x-fern-sdk-method-name": "retrieve",
         "x-ferrule-method-name": "retrieve",
+        "x-ferrule-models": {
+          "Reference": {
+            "module": "shared.references",
+            "name": "References"
+          },
+          "ResponseWrapper": {
+            "module": "shared.response_wrapper",
+            "name": "ResponseWrapper"
+          }
+        },
+        "x-ferrule-package": {
+          "name": "onebusaway",
+          "repo": "OneBusAway/python-sdk"
+        },
         "x-ferrule-resource": {
           "path": [
             "stop"
@@ -3660,6 +3954,20 @@
         ],
         "x-fern-sdk-method-name": "list",
         "x-ferrule-method-name": "list",
+        "x-ferrule-models": {
+          "Reference": {
+            "module": "shared.references",
+            "name": "References"
+          },
+          "ResponseWrapper": {
+            "module": "shared.response_wrapper",
+            "name": "ResponseWrapper"
+          }
+        },
+        "x-ferrule-package": {
+          "name": "onebusaway",
+          "repo": "OneBusAway/python-sdk"
+        },
         "x-ferrule-resource": {
           "path": [
             "stops_for_agency"
@@ -3779,6 +4087,20 @@
         ],
         "x-fern-sdk-method-name": "list",
         "x-ferrule-method-name": "list",
+        "x-ferrule-models": {
+          "Reference": {
+            "module": "shared.references",
+            "name": "References"
+          },
+          "ResponseWrapper": {
+            "module": "shared.response_wrapper",
+            "name": "ResponseWrapper"
+          }
+        },
+        "x-ferrule-package": {
+          "name": "onebusaway",
+          "repo": "OneBusAway/python-sdk"
+        },
         "x-ferrule-resource": {
           "path": [
             "stops_for_location"
@@ -3821,6 +4143,20 @@
         ],
         "x-fern-sdk-method-name": "list",
         "x-ferrule-method-name": "list",
+        "x-ferrule-models": {
+          "Reference": {
+            "module": "shared.references",
+            "name": "References"
+          },
+          "ResponseWrapper": {
+            "module": "shared.response_wrapper",
+            "name": "ResponseWrapper"
+          }
+        },
+        "x-ferrule-package": {
+          "name": "onebusaway",
+          "repo": "OneBusAway/python-sdk"
+        },
         "x-ferrule-resource": {
           "path": [
             "stops_for_route"
@@ -3953,6 +4289,20 @@
         ],
         "x-fern-sdk-method-name": "retrieve",
         "x-ferrule-method-name": "retrieve",
+        "x-ferrule-models": {
+          "Reference": {
+            "module": "shared.references",
+            "name": "References"
+          },
+          "ResponseWrapper": {
+            "module": "shared.response_wrapper",
+            "name": "ResponseWrapper"
+          }
+        },
+        "x-ferrule-package": {
+          "name": "onebusaway",
+          "repo": "OneBusAway/python-sdk"
+        },
         "x-ferrule-resource": {
           "path": [
             "trip-details"
@@ -4042,6 +4392,20 @@
         ],
         "x-fern-sdk-method-name": "retrieve",
         "x-ferrule-method-name": "retrieve",
+        "x-ferrule-models": {
+          "Reference": {
+            "module": "shared.references",
+            "name": "References"
+          },
+          "ResponseWrapper": {
+            "module": "shared.response_wrapper",
+            "name": "ResponseWrapper"
+          }
+        },
+        "x-ferrule-package": {
+          "name": "onebusaway",
+          "repo": "OneBusAway/python-sdk"
+        },
         "x-ferrule-resource": {
           "path": [
             "trip_for_vehicle"
@@ -4084,6 +4448,20 @@
         ],
         "x-fern-sdk-method-name": "retrieve",
         "x-ferrule-method-name": "retrieve",
+        "x-ferrule-models": {
+          "Reference": {
+            "module": "shared.references",
+            "name": "References"
+          },
+          "ResponseWrapper": {
+            "module": "shared.response_wrapper",
+            "name": "ResponseWrapper"
+          }
+        },
+        "x-ferrule-package": {
+          "name": "onebusaway",
+          "repo": "OneBusAway/python-sdk"
+        },
         "x-ferrule-resource": {
           "path": [
             "trip"
@@ -4210,6 +4588,20 @@
         ],
         "x-fern-sdk-method-name": "list",
         "x-ferrule-method-name": "list",
+        "x-ferrule-models": {
+          "Reference": {
+            "module": "shared.references",
+            "name": "References"
+          },
+          "ResponseWrapper": {
+            "module": "shared.response_wrapper",
+            "name": "ResponseWrapper"
+          }
+        },
+        "x-ferrule-package": {
+          "name": "onebusaway",
+          "repo": "OneBusAway/python-sdk"
+        },
         "x-ferrule-resource": {
           "path": [
             "trips_for_location"
@@ -4312,6 +4704,20 @@
         ],
         "x-fern-sdk-method-name": "list",
         "x-ferrule-method-name": "list",
+        "x-ferrule-models": {
+          "Reference": {
+            "module": "shared.references",
+            "name": "References"
+          },
+          "ResponseWrapper": {
+            "module": "shared.response_wrapper",
+            "name": "ResponseWrapper"
+          }
+        },
+        "x-ferrule-package": {
+          "name": "onebusaway",
+          "repo": "OneBusAway/python-sdk"
+        },
         "x-ferrule-resource": {
           "path": [
             "trips_for_route"
@@ -4354,6 +4760,20 @@
         ],
         "x-fern-sdk-method-name": "list",
         "x-ferrule-method-name": "list",
+        "x-ferrule-models": {
+          "Reference": {
+            "module": "shared.references",
+            "name": "References"
+          },
+          "ResponseWrapper": {
+            "module": "shared.response_wrapper",
+            "name": "ResponseWrapper"
+          }
+        },
+        "x-ferrule-package": {
+          "name": "onebusaway",
+          "repo": "OneBusAway/python-sdk"
+        },
         "x-ferrule-resource": {
           "path": [
             "vehicles_for_agency"
