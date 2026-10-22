@@ -2,7 +2,8 @@
 # SPDX-License-Identifier: Apache-2.0
 """``ferrule generate``: spec + stainless.yml -> a formatted Python SDK tree.
 
-Pipeline: converter CLI -> Forge with the Python plugin -> runtime -> ``ruff format``.
+Pipeline: converter CLI -> Forge with the Python plugin -> runtime -> ruff import sort and
+``ruff format``.
 
 The planning functions here are pure; :func:`generate` is the only place that touches the
 file system or runs processes, and it takes the process runner and the runtime renderer as
@@ -144,6 +145,28 @@ def plan_steps(request: GenerateRequest, work: Path) -> tuple[Step, Step]:
         (str(t.forge), str(annotated), "--target", f"wasm://{t.plugin}", "--out", str(request.out)),
     )
     return convert, forge
+
+
+def sort_imports_step(out: Path, tools: Tools) -> Step:
+    """``ruff check --select I --fix`` with the SDK's own isort settings (length-sort).
+
+    Emitters write imports in one fixed order; names differ per SDK, so the order the SDK's
+    isort config wants is restored here, as Stainless's own lint-fix step does.
+    """
+    return Step(
+        "sort-imports",
+        (
+            tools.ruff,
+            "check",
+            "--select",
+            "I",
+            "--fix",
+            "--no-cache",
+            "--quiet",
+            "--exit-zero",
+            str(out),
+        ),
+    )
 
 
 def format_step(out: Path, tools: Tools) -> Step:
@@ -349,6 +372,7 @@ def generate(
             "--runtime-from",
             "pass --runtime-from <existing SDK checkout> (adopt mode)",
         )
+    _run(sort_imports_step(request.out, request.tools), runner)
     _run(format_step(request.out, request.tools), runner)
     return GenerateResult(
         package=package,
