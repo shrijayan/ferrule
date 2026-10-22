@@ -12,4 +12,5 @@ Stainless output needs an ADR.
 | [0004](./0004-runtime-source.md)          | Runtime source: Apache-2.0 Stainless-generated SDK runtimes, with attribution          | Accepted | 2026-10-22 |
 | [0005](./0005-pin-forge-by-git-commit.md) | Pin Forge by git commit and build from source                                          | Accepted | 2026-10-22 |
 | [0006](./0006-forge-telemetry-check.md)   | Forge telemetry check                                                                  | Accepted | 2026-10-22 |
-| [0007](0007-phase-1-spike-resource.md) | Phase 1 spike resource and synthetic pagination | Accepted |
+| [0007](./0007-phase-1-spike-resource.md) | Phase 1 spike resource and synthetic pagination | Accepted | 2026-10-23 |
+| [0008](./0008-dependabot-instead-of-renovate.md) | Dependabot instead of Renovate | Accepted | 2026-10-23 |
