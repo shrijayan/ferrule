@@ -230,9 +230,14 @@ def closeness(old_tree: Path, new_tree: Path) -> tuple[float, list[FileScore]]:
 
 
 def verify(old_tree: Path, new_tree: Path, package: str | None = None) -> Report:
-    """Compare two SDK trees."""
+    """Compare two SDK trees; a missing new package counts as empty (all removed)."""
     name = package or detect_package(old_tree)
-    old, new = load(old_tree, name), load(new_tree, name)
+    old = load(old_tree, name)
+    new = (
+        load(new_tree, name)
+        if (package_root(new_tree, name) / name).is_dir()
+        else griffe.Module(name)
+    )
     pct, scores = closeness(old_tree, new_tree)
     return Report(name, breaking_changes(old, new), additive_changes(old, new), pct, scores)
 

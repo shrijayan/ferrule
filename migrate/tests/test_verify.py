@@ -158,3 +158,14 @@ def test_export_ref(trees: tuple[Path, Path], tmp_path: Path) -> None:
     git(old, "-c", "user.name=t", "-c", "user.email=t@example.com", "commit", "-qm", "init")
     dest = export_ref(old, "HEAD", tmp_path / "x")
     assert (dest / "src/acme/_client.py").read_text() == OLD_CLIENT
+
+
+def test_missing_new_package_is_empty(trees: tuple[Path, Path], tmp_path: Path) -> None:
+    old, _ = trees
+    (tmp_path / "empty").mkdir()
+    report = verify(old, tmp_path / "empty")
+    assert {(c.kind, c.path) for c in report.breaking} == {
+        ("OBJECT_REMOVED", "acme.Client"),
+        ("OBJECT_REMOVED", "acme.helper"),
+    }
+    assert report.additive == []

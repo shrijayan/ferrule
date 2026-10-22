@@ -255,7 +255,12 @@ def _run(step: Step, runner: Runner) -> None:
     if proc.returncode != 0:
         detail = (proc.stderr or proc.stdout).strip().splitlines()
         last = detail[-1] if detail else f"exit code {proc.returncode}"
-        raise fail(STEP_FAILED, f"{step.name} failed: {last}", step.name, "fix the reported error")
+        raise fail(
+            STEP_FAILED,
+            f"{step.name} failed: {last}",
+            step.name,
+            f"fix the error {step.name} reported",
+        )
 
 
 def _src_packages(root: Path) -> list[str]:
