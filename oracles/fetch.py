@@ -2,7 +2,10 @@
 # SPDX-License-Identifier: Apache-2.0
 """Clone Tier 0 oracle repos into oracles/cache/<name>, pinned to their last Stainless commit.
 
-Usage: python oracles/fetch.py [name-or-group ...]
+Usage: python oracles/fetch.py [--kind sdk|config] [name-or-group ...]
+
+`config` oracles also get their OpenAPI spec: from the checkout when the manifest gives a `path`,
+or downloaded into oracles/cache/specs/ when it gives a `url`. Both are checked by md5.
 
 Oracle checkouts are data. This script never runs code from them: git hooks, LFS filters and
 submodules are disabled, and nothing inside the checkout is installed or imported.
@@ -10,15 +13,21 @@ submodules are disabled, and nothing inside the checkout is installed or importe
 
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
 import os
 import re
 import subprocess
 import sys
+import urllib.parse
+import urllib.request
 from dataclasses import dataclass
-from pathlib import Path
-from typing import cast
+from pathlib import Path, PurePosixPath
+from typing import TYPE_CHECKING, cast
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 ROOT = Path(__file__).resolve().parent
 MANIFEST = ROOT / "manifest.yaml"
@@ -28,6 +37,11 @@ SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 MD5_RE = re.compile(r"^[0-9a-f]{32}$")
 NAME_RE = re.compile(r"^[a-z0-9][a-z0-9-]*$")
 STATS_KEYS = ("configured_endpoints", "openapi_spec_url", "openapi_spec_hash", "config_hash")
+KINDS = ("sdk", "config")
+PAIRED = ("proven", "nearest")
+LICENSES = ("Apache-2.0", "MIT")
+SPEC_EXTS = (".yml", ".yaml", ".json")
+MAX_SPEC_BYTES = 64 * 1024 * 1024
 
 # Every git call gets these: no hooks, no LFS smudge, no submodules, no local-file transports.
 GIT_SAFE = (
@@ -57,6 +71,15 @@ class VerifyError(RuntimeError):
 
 
 @dataclass(frozen=True, slots=True)
+class Spec:
+    """Where a config oracle's OpenAPI spec comes from: a file in the checkout or a URL."""
+
+    path: str | None
+    url: str | None
+    md5: str
+
+
+@dataclass(frozen=True, slots=True)
 class Oracle:
     """One pinned oracle repository."""
 
@@ -70,6 +93,10 @@ class Oracle:
     stats: dict[str, str] | None
     verify_md5: dict[str, str]
     pairs_with: str | None
+    license: str | None = None
+    config_path: str | None = None
+    spec: Spec | None = None
+    paired: str | None = None
 
 
 def strip_comments(text: str) -> str:
@@ -86,6 +113,11 @@ def _str(entry: dict[str, object], key: str) -> str:
         msg = f"{entry.get('name', '?')}: '{key}' must be a non-empty string"
         raise ManifestError(msg)
     return value
+
+
+def _is_relative(path: str) -> bool:
+    pure = PurePosixPath(path)
+    return bool(path) and not pure.is_absolute() and ".." not in pure.parts and "\\" not in path
 
 
 def _parse_stats(name: str, raw: object) -> dict[str, str] | None:
@@ -115,11 +147,70 @@ def _parse_md5_map(name: str, raw: object) -> dict[str, str]:
         raise ManifestError(msg)
     out: dict[str, str] = {}
     for path, digest in cast("dict[str, object]", raw).items():
-        if not isinstance(digest, str) or not MD5_RE.match(digest) or path.startswith(("/", "..")):
+        if not isinstance(digest, str) or not MD5_RE.match(digest) or not _is_relative(path):
             msg = f"{name}: verify_md5[{path!r}] must be a relative path -> md5 hex digest"
             raise ManifestError(msg)
         out[path] = digest
     return out
+
+
+def _parse_spec(name: str, raw: object, verify_md5: dict[str, str]) -> Spec:
+    if not isinstance(raw, dict):
+        msg = f"{name}: config oracles need 'spec' with either 'path' or 'url' + 'md5'"
+        raise ManifestError(msg)
+    spec = cast("dict[str, object]", raw)
+    if sorted(spec) == ["path"]:
+        path = spec["path"]
+        if not isinstance(path, str) or not _is_relative(path) or path not in verify_md5:
+            msg = f"{name}: spec.path must be a relative path that is also in verify_md5"
+            raise ManifestError(msg)
+        return Spec(path=path, url=None, md5=verify_md5[path])
+    if sorted(spec) == ["md5", "url"]:
+        url, digest = spec["url"], spec["md5"]
+        if not isinstance(url, str) or urllib.parse.urlsplit(url).scheme != "https":
+            msg = f"{name}: spec.url must be an https URL"
+            raise ManifestError(msg)
+        if PurePosixPath(urllib.parse.urlsplit(url).path).suffix not in SPEC_EXTS:
+            msg = f"{name}: spec.url must end in one of {', '.join(SPEC_EXTS)}"
+            raise ManifestError(msg)
+        if not isinstance(digest, str) or not MD5_RE.match(digest):
+            msg = f"{name}: spec.md5 must be a 32-char md5 hex digest"
+            raise ManifestError(msg)
+        return Spec(path=None, url=url, md5=digest)
+    msg = f"{name}: spec must have exactly 'path', or exactly 'url' and 'md5'"
+    raise ManifestError(msg)
+
+
+def _parse_config_fields(
+    name: str, entry: dict[str, object], verify_md5: dict[str, str]
+) -> tuple[str, Spec, str]:
+    config_path = _str(entry, "config_path")
+    if not _is_relative(config_path) or config_path not in verify_md5:
+        msg = f"{name}: config_path must be a relative path that is also in verify_md5"
+        raise ManifestError(msg)
+    paired = _str(entry, "paired")
+    if paired not in PAIRED:
+        msg = f"{name}: paired must be one of {', '.join(PAIRED)}"
+        raise ManifestError(msg)
+    if entry.get("pairs_with") is None:
+        msg = f"{name}: config oracles must name the sdk oracle they pair with"
+        raise ManifestError(msg)
+    return config_path, _parse_spec(name, entry.get("spec"), verify_md5), paired
+
+
+def _parse_links(name: str, entry: dict[str, object]) -> tuple[str | None, str | None]:
+    """Return (pairs_with, license)."""
+    pairs_with = entry.get("pairs_with")
+    if pairs_with is not None and not isinstance(pairs_with, str):
+        msg = f"{name}: pairs_with must be a string or null"
+        raise ManifestError(msg)
+    license_ = entry.get("license")
+    if license_ is None:
+        return pairs_with, None
+    if not isinstance(license_, str) or license_ not in LICENSES:
+        msg = f"{name}: license must be one of {', '.join(LICENSES)} (ADR 0009)"
+        raise ManifestError(msg)
+    return pairs_with, license_
 
 
 def parse_entry(raw: object) -> Oracle:
@@ -142,16 +233,22 @@ def parse_entry(raw: object) -> Oracle:
         msg = f"{name}: url must be https://github.com/{repo}.git"
         raise ManifestError(msg)
     kind = _str(entry, "kind")
-    if kind not in {"sdk", "config"}:
+    if kind not in KINDS:
         msg = f"{name}: kind must be 'sdk' or 'config'"
         raise ManifestError(msg)
     stats = _parse_stats(name, entry.get("stats"))
     if kind == "sdk" and stats is None:
         msg = f"{name}: sdk oracles must record .stats.yml values"
         raise ManifestError(msg)
-    pairs_with = entry.get("pairs_with")
-    if pairs_with is not None and not isinstance(pairs_with, str):
-        msg = f"{name}: pairs_with must be a string or null"
+    pairs_with, license_ = _parse_links(name, entry)
+    verify_md5 = _parse_md5_map(name, entry.get("verify_md5", {}))
+    config_path: str | None = None
+    spec: Spec | None = None
+    paired: str | None = None
+    if kind == "config":
+        config_path, spec, paired = _parse_config_fields(name, entry, verify_md5)
+    elif any(key in entry for key in ("config_path", "spec", "paired")):
+        msg = f"{name}: config_path, spec and paired are only for config oracles"
         raise ManifestError(msg)
     return Oracle(
         name=name,
@@ -162,9 +259,45 @@ def parse_entry(raw: object) -> Oracle:
         sha=sha,
         commit_date=_str(entry, "commit_date"),
         stats=stats,
-        verify_md5=_parse_md5_map(name, entry.get("verify_md5", {})),
+        verify_md5=verify_md5,
         pairs_with=pairs_with,
+        license=license_,
+        config_path=config_path,
+        spec=spec,
+        paired=paired,
     )
+
+
+def check_pair(config: Oracle, sdk: Oracle) -> None:
+    """Check a config oracle against the sdk oracle it pairs with (ADR 0009).
+
+    `proven` means md5(config) is the SDK's `config_hash` and md5(spec) its `openapi_spec_hash`.
+    `nearest` means the two are only close in time, so their hashes must not both match.
+    """
+    if sdk.kind != "sdk" or sdk.stats is None:
+        msg = f"{config.name}: pairs_with {sdk.name!r} must be an sdk oracle"
+        raise ManifestError(msg)
+    if sdk.license is None:
+        msg = f"{sdk.name}: sdk oracles paired with a config must record their license"
+        raise ManifestError(msg)
+    if config.config_path is None or config.spec is None:
+        msg = f"{config.name}: config oracles need config_path and spec"
+        raise ManifestError(msg)
+    config_md5 = config.verify_md5[config.config_path]
+    matches = (
+        config_md5 == sdk.stats["config_hash"],
+        config.spec.md5 == sdk.stats["openapi_spec_hash"],
+    )
+    if config.paired == "proven" and not all(matches):
+        msg = (
+            f"{config.name}: paired is 'proven' but md5(config), md5(spec) = "
+            f"{config_md5}, {config.spec.md5}; {sdk.name} has config_hash, openapi_spec_hash = "
+            f"{sdk.stats['config_hash']}, {sdk.stats['openapi_spec_hash']}"
+        )
+        raise ManifestError(msg)
+    if config.paired == "nearest" and all(matches):
+        msg = f"{config.name}: hashes match {sdk.name}, so paired should be 'proven'"
+        raise ManifestError(msg)
 
 
 def parse_manifest(text: str) -> list[Oracle]:
@@ -190,22 +323,24 @@ def parse_manifest(text: str) -> list[Oracle]:
     if len(set(names)) != len(names):
         msg = "oracle names must be unique"
         raise ManifestError(msg)
+    by_name = {o.name: o for o in oracles}
     for o in oracles:
-        if o.pairs_with is not None and o.pairs_with not in names:
+        if o.pairs_with is not None and o.pairs_with not in by_name:
             msg = f"{o.name}: pairs_with {o.pairs_with!r} is not an oracle"
             raise ManifestError(msg)
+        if o.kind == "config" and o.pairs_with is not None:
+            check_pair(o, by_name[o.pairs_with])
     return oracles
 
 
-def select(oracles: list[Oracle], wanted: list[str]) -> list[Oracle]:
-    """Pick oracles by name or group; no arguments selects all."""
-    if not wanted:
-        return oracles
+def select(oracles: list[Oracle], wanted: list[str], kind: str | None = None) -> list[Oracle]:
+    """Pick oracles by name or group (no names selects all), optionally only one kind."""
     unknown = [w for w in wanted if not any(w in {o.name, o.group} for o in oracles)]
     if unknown:
         msg = f"unknown oracle(s): {', '.join(unknown)}"
         raise ManifestError(msg)
-    return [o for o in oracles if o.name in wanted or o.group in wanted]
+    picked = [o for o in oracles if not wanted or o.name in wanted or o.group in wanted]
+    return [o for o in picked if kind is None or o.kind == kind]
 
 
 def parse_stats_yml(text: str) -> dict[str, str]:
@@ -260,6 +395,10 @@ def checkout(oracle: Oracle, cache: Path = CACHE) -> Path:
     return dest
 
 
+def _md5(data: bytes) -> str:
+    return hashlib.md5(data, usedforsecurity=False).hexdigest()
+
+
 def verify_files(oracle: Oracle, dest: Path) -> None:
     """Check .stats.yml and pinned file digests against the manifest."""
     if oracle.stats is not None:
@@ -269,16 +408,75 @@ def verify_files(oracle: Oracle, dest: Path) -> None:
                 msg = f"{oracle.name}: .stats.yml {key} is {found.get(key)!r}, want {expected!r}"
                 raise VerifyError(msg)
     for rel, expected in oracle.verify_md5.items():
-        digest = hashlib.md5((dest / rel).read_bytes(), usedforsecurity=False).hexdigest()
+        digest = _md5((dest / rel).read_bytes())
         if digest != expected:
             msg = f"{oracle.name}: md5({rel}) is {digest}, want {expected}"
             raise VerifyError(msg)
 
 
+def download(url: str) -> bytes:
+    """Fetch an https URL of at most MAX_SPEC_BYTES. The bytes are data, never executed."""
+    if urllib.parse.urlsplit(url).scheme != "https":
+        msg = f"refusing non-https URL {url}"
+        raise VerifyError(msg)
+    with urllib.request.urlopen(url, timeout=120) as response:  # noqa: S310 - https checked above
+        data = cast("bytes", response.read(MAX_SPEC_BYTES + 1))
+    if len(data) > MAX_SPEC_BYTES:
+        msg = f"{url} is larger than {MAX_SPEC_BYTES} bytes"
+        raise VerifyError(msg)
+    return data
+
+
+def spec_file(oracle: Oracle, dest: Path, cache: Path = CACHE) -> Path:
+    """Where a config oracle's spec lives: in its checkout, or cache/specs/<name>.<ext> (URL)."""
+    if oracle.spec is None:
+        msg = f"{oracle.name}: not a config oracle"
+        raise VerifyError(msg)
+    if oracle.spec.path is not None:
+        return dest / oracle.spec.path
+    suffix = PurePosixPath(urllib.parse.urlsplit(cast("str", oracle.spec.url)).path).suffix
+    return cache / "specs" / f"{oracle.name}{suffix}"
+
+
+def fetch_spec(
+    oracle: Oracle,
+    dest: Path,
+    cache: Path = CACHE,
+    fetch: Callable[[str], bytes] = download,
+) -> Path:
+    """Make sure a config oracle's spec is on disk with the manifest's md5; return its path."""
+    target = spec_file(oracle, dest, cache)
+    spec = cast("Spec", oracle.spec)
+    if spec.url is not None and not (target.is_file() and _md5(target.read_bytes()) == spec.md5):
+        data = fetch(spec.url)
+        if _md5(data) != spec.md5:
+            msg = f"{oracle.name}: md5({spec.url}) is {_md5(data)}, want {spec.md5}"
+            raise VerifyError(msg)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        partial = target.with_name(target.name + ".part")
+        partial.write_bytes(data)
+        partial.replace(target)
+    digest = _md5(target.read_bytes())
+    if digest != spec.md5:
+        msg = f"{oracle.name}: md5({target}) is {digest}, want {spec.md5}"
+        raise VerifyError(msg)
+    return target
+
+
+def parse_args(argv: list[str]) -> tuple[list[str], str | None]:
+    """Parse the command line into (names or groups, kind)."""
+    parser = argparse.ArgumentParser(description="Fetch and verify pinned oracle repos.")
+    parser.add_argument("--kind", choices=KINDS, help="only oracles of this kind")
+    parser.add_argument("names", nargs="*", help="oracle names or groups (default: all)")
+    args = parser.parse_args(argv)
+    return cast("list[str]", args.names), cast("str | None", args.kind)
+
+
 def main(argv: list[str]) -> int:
     """Entry point."""
+    names, kind = parse_args(argv)
     try:
-        oracles = select(parse_manifest(MANIFEST.read_text(encoding="utf-8")), argv)
+        oracles = select(parse_manifest(MANIFEST.read_text(encoding="utf-8")), names, kind)
     except ManifestError as exc:
         sys.stderr.write(f"error: {exc}\n")
         return 2
@@ -287,12 +485,16 @@ def main(argv: list[str]) -> int:
         try:
             dest = checkout(oracle)
             verify_files(oracle, dest)
+            extra = ""
+            if oracle.kind == "config":
+                spec = fetch_spec(oracle, dest)
+                extra = f" ({oracle.paired}; config {oracle.config_path}; spec {spec})"
         except (VerifyError, OSError, subprocess.CalledProcessError) as exc:
             detail = exc.stderr if isinstance(exc, subprocess.CalledProcessError) else exc
             sys.stderr.write(f"FAIL {oracle.name}: {detail}\n")
             failed += 1
         else:
-            sys.stdout.write(f"ok   {oracle.name} {oracle.sha[:12]} -> {dest}\n")
+            sys.stdout.write(f"ok   {oracle.name} {oracle.sha[:12]} -> {dest}{extra}\n")
     return 1 if failed else 0
 
 

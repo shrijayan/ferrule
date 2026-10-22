@@ -16,6 +16,9 @@
       "commit_date": "2026-07-11T07:08:58Z",
       "commit_message": "Merge pull request #19 from OneBusAway/feat/openapi-location-params-optional",
       "pairs_with": "onebusaway-python",
+      "paired": "proven",
+      "config_path": "stainless-config.yml",
+      "spec": {"path": "openapi.yml"},
       "stats": null,
       "verify_md5": {
         "openapi.yml": "8df6b1871782bcd2bd8fb1fb2bbc2694",
@@ -33,6 +36,7 @@
       "commit_date": "2026-07-18T02:13:27Z",
       "commit_message": "release: 1.30.0",
       "pairs_with": "onebusaway-config",
+      "license": "Apache-2.0",
       "stats": {
         "configured_endpoints": 30,
         "openapi_spec_url": "https://storage.googleapis.com/stainless-sdk-openapi-specs/open-transit/open-transit-da4eecc88401fd486b0b8ac2a7b3f442748713e3128d878c7f3e24ea7f65f31d.yml",
