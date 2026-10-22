@@ -4,7 +4,7 @@ import { convertText } from '../src/index.ts';
 // Minimal reductions of config oracles that failed `mise run converter:oracles` (Phase 2).
 const HEAD = `organization: { name: acme }
 environments: { production: https://api.acme.test }
-targets: { python: { package_name: acme } }
+targets: { python: { package_name: acme, publish: { pypi: false } } }
 readme:
   example_requests:
     default: { type: request, endpoint: get /a, params: {} }
