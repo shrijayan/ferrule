@@ -15,6 +15,8 @@ concurrency:
 jobs:
   release-please:
     name: release-please
+    # workflow_dispatch can target any branch; only main may release.
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -23,10 +25,13 @@ jobs:
     outputs:
       migrate: ${{ steps.rp.outputs['migrate--release_created'] }}
       migrate_tag: ${{ steps.rp.outputs['migrate--tag_name'] }}
+      migrate_sha: ${{ steps.rp.outputs['migrate--sha'] }}
       runtime: ${{ steps.rp.outputs['runtime--release_created'] }}
       runtime_tag: ${{ steps.rp.outputs['runtime--tag_name'] }}
+      runtime_sha: ${{ steps.rp.outputs['runtime--sha'] }}
       plugin: ${{ steps.rp.outputs['python-plugin--release_created'] }}
       plugin_tag: ${{ steps.rp.outputs['python-plugin--tag_name'] }}
+      plugin_sha: ${{ steps.rp.outputs['python-plugin--sha'] }}
     steps:
       - id: rp
         uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
@@ -64,6 +69,8 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          # Build exactly the commit release-please tagged.
+          ref: ${{ matrix.package == 'migrate' && needs.release-please.outputs.migrate_sha || needs.release-please.outputs.runtime_sha }}
       - if: steps.gate.outputs.go == 'true'
         uses: ./.github/actions/setup
         with:
@@ -164,6 +171,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          ref: ${{ needs.release-please.outputs.plugin_sha }}
       - uses: ./.github/actions/setup
       - name: Build
         run: pnpm --filter @ferrule/python-plugin --if-present run build
