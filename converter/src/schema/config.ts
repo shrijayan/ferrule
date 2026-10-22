@@ -48,12 +48,15 @@ export const PaginationSchema = z.looseObject({
 
 export type Pagination = z.infer<typeof PaginationSchema>;
 
+/** The public schema also allows one unnamed scheme instead of a list (annotate names it `page`). */
+export const SinglePaginationSchema = PaginationSchema.extend({ name: z.string().optional() });
+
 /** The subset of a stainless.yml Ferrule reads today; the full JSON Schema lives in ../../schema. */
 export const ConfigSchema = z.looseObject({
   edition: z.string().optional(),
   organization: z.looseObject({ name: z.string() }).optional(),
   resources: z.record(z.string(), ResourceSchema).optional(),
-  pagination: z.array(PaginationSchema).optional(),
+  pagination: z.union([z.array(PaginationSchema), SinglePaginationSchema]).optional(),
   targets: z
     .looseObject({
       python: z

@@ -10,7 +10,15 @@ const dir = mkdtempSync(join(tmpdir(), 'ferrule-convert-'));
 const spec = join(dir, 'openapi.yml');
 const config = join(dir, 'stainless.yml');
 writeFileSync(spec, 'paths:\n  /a:\n    get: { responses: {} }\n');
-writeFileSync(config, 'resources:\n  a:\n    methods:\n      list: get /a\n');
+/** Keys the public schema requires, before `resources`. */
+const HEAD = `organization: { name: acme }
+environments: { production: https://api.acme.test }
+readme:
+  example_requests:
+    default: { type: request, endpoint: get /a, params: {} }
+    headline: { type: request, endpoint: get /a, params: {} }
+`;
+writeFileSync(config, `${HEAD}resources:\n  a:\n    methods:\n      list: get /a\n`);
 
 function run(argv: string[]): { code: number; out: string[]; err: string[] } {
   const out: string[] = [];
@@ -43,12 +51,22 @@ describe('ferrule-convert', () => {
 
   it('exits 1 and writes nothing on error diagnostics', () => {
     const bad = join(dir, 'bad.yml');
-    writeFileSync(bad, 'resources:\n  a:\n    methods:\n      list: get /zzz\n');
+    writeFileSync(bad, `${HEAD}resources:\n  a:\n    methods:\n      list: get /zzz\n`);
     const target = join(dir, 'bad.json');
     const r = run([spec, bad, '-o', target]);
     expect(r.code).toBe(1);
     expect(r.err[0]).toContain('FER1001');
     expect(r.err[0]).toContain('#/resources/a/methods/list');
+    expect(existsSync(target)).toBe(false);
+  });
+
+  it('exits 1 with located diagnostics on an invalid config', () => {
+    const invalid = join(dir, 'invalid.yml');
+    writeFileSync(invalid, 'resources: {}\n');
+    const target = join(dir, 'invalid.json');
+    const r = run([spec, invalid, '-o', target]);
+    expect(r.code).toBe(1);
+    expect(r.err[0]).toMatch(/^error FER1111 /);
     expect(existsSync(target)).toBe(false);
   });
 

@@ -1,14 +1,36 @@
 import { parse } from 'yaml';
 import type { Diagnostic } from './diagnostic.ts';
+import { applyEdition } from './editions/index.ts';
 import type { Config } from './schema/config.ts';
-import { parseConfig } from './schema/config.ts';
+import { validateConfig } from './schema/validate.ts';
 import { stableStringify } from './serialize.ts';
 import { annotate } from './transforms/annotate.ts';
+import { applyConfigTransforms } from './transforms/openapi-transforms.ts';
 import type { OpenApiSpec } from './transforms/pipeline.ts';
 
 export type { Diagnostic, FerCode, Severity } from './diagnostic.ts';
 export { toJsonPointer } from './diagnostic.ts';
-export { DEFAULT_EDITION, EDITIONS, type Edition, isEdition } from './editions/index.ts';
+export {
+  applyEdition,
+  DEFAULT_EDITION,
+  EDITION_NAMES,
+  EDITIONS,
+  type Edition,
+  type EditionResult,
+  IMPLICIT_EDITION,
+  isEdition,
+  isPythonEdition,
+  PYTHON_EDITIONS,
+  type PythonEdition,
+} from './editions/index.ts';
+export type {
+  FerruleClient,
+  FerruleClientOpt,
+  FerruleSecurityScheme,
+} from './extensions/client.ts';
+export { CLIENT_GROUP } from './extensions/groups.ts';
+export { PAGINATION_SCHEMES, type PaginationScheme } from './extensions/pagination.ts';
+export type { FerruleOnEvent, FerruleStreaming } from './extensions/streaming.ts';
 export {
   type Config,
   ConfigSchema,
@@ -17,8 +39,21 @@ export {
   parseConfig,
   type Resource,
 } from './schema/config.ts';
+export {
+  CONFIG_CODES,
+  type ConfigValidation,
+  validateConfig,
+  validateConfigValue,
+} from './schema/validate.ts';
 export { sortKeys, stableStringify } from './serialize.ts';
-export { annotate, type FerrulePagination } from './transforms/annotate.ts';
+export { annotate, type FerruleModel, type FerrulePagination } from './transforms/annotate.ts';
+export {
+  type ApplyTransformsOptions,
+  type ApplyTransformsResult,
+  applyConfigTransforms,
+  applyTransforms,
+  TRANSFORM_COMMANDS,
+} from './transforms/openapi-transforms.ts';
 export { type OpenApiSpec, pipeline, type Transform } from './transforms/pipeline.ts';
 
 export interface ConvertResult {
@@ -26,9 +61,18 @@ export interface ConvertResult {
   readonly diagnostics: readonly Diagnostic[];
 }
 
-/** Annotate a deep copy of `spec` with Fern and x-ferrule-* extensions from `config`. Pure. */
+/**
+ * Apply `openapi.transforms`, then annotate the result with Fern and x-ferrule-* extensions from
+ * `config`. Pure; the inputs are never mutated.
+ */
 export function convert(spec: OpenApiSpec, config: Config): ConvertResult {
-  return annotate(spec, config);
+  // Config's index signature defeats TypeScript's weak-type check, hence the widening.
+  const transformed = applyConfigTransforms(spec, config as { readonly openapi?: unknown });
+  const annotated = annotate(transformed.spec, config);
+  return {
+    spec: annotated.spec,
+    diagnostics: [...transformed.diagnostics, ...annotated.diagnostics],
+  };
 }
 
 /** Parse OpenAPI text (JSON or YAML) into an object. Throws if it is not an object. */
@@ -40,11 +84,20 @@ export function parseSpec(text: string): OpenApiSpec {
   return value as OpenApiSpec;
 }
 
-/** Text in, deterministic JSON text out. Pure; the CLI only adds file I/O. */
+/**
+ * Text in, deterministic JSON text out: validate the config, apply its edition, convert. Pure; the
+ * CLI only adds file I/O. A config that fails validation yields no output, only diagnostics.
+ */
 export function convertText(
   specText: string,
   configText: string,
 ): { output: string; diagnostics: readonly Diagnostic[] } {
-  const { spec, diagnostics } = convert(parseSpec(specText), parseConfig(configText));
-  return { output: stableStringify(spec), diagnostics };
+  const v = validateConfig(configText);
+  if (v.config === undefined) return { output: '', diagnostics: v.diagnostics };
+  const ed = applyEdition(v.config);
+  const { spec, diagnostics } = convert(parseSpec(specText), ed.config);
+  return {
+    output: stableStringify(spec),
+    diagnostics: [...v.diagnostics, ...ed.diagnostics, ...diagnostics],
+  };
 }

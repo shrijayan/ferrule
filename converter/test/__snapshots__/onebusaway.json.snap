@@ -6516,9 +6516,10 @@
     "timeoutSeconds": 60
   },
   "x-ferrule-config": {
-    "edition": "2025-10-10",
+    "edition": "2025-10-08",
     "packageName": "onebusaway",
     "projectName": "onebusaway",
+    "pythonEdition": "python.2025-10-08",
     "version": 1
   }
 }

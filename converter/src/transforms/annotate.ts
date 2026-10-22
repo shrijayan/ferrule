@@ -1,8 +1,8 @@
 import { type Diagnostic, toJsonPointer } from '../diagnostic.ts';
-import { DEFAULT_EDITION } from '../editions/index.ts';
+import { applyEdition } from '../editions/index.ts';
 import { buildClient, type FerruleClient } from '../extensions/client.ts';
 import { CLIENT_GROUP, collidesWithClientGroup, forgeGroupPath } from '../extensions/groups.ts';
-import { at, deref, isObject, type Json, obj, str } from '../extensions/json.ts';
+import { at, deref, isObject, type Json, obj } from '../extensions/json.ts';
 import {
   bestMatch,
   type FerrulePagination,
@@ -253,9 +253,12 @@ export function annotate(
     const built = buildClient(out, raw);
     ctx.diagnostics.push(...built.diagnostics);
     client = built.client;
+    // The editions whose defaults apply (the first ones when the config names none).
+    const { edition, pythonEdition } = applyEdition(config);
     out['x-ferrule-config'] = {
       version: 1,
-      edition: str(raw, 'edition') ?? DEFAULT_EDITION,
+      edition,
+      pythonEdition,
       packageName: pkg.name,
       projectName: python?.project_name ?? pkg.name,
     };

@@ -200,9 +200,15 @@ describe('validateConfig', () => {
   });
 
   it('reports shapes the typed reader rejects as FER1119', () => {
-    const r = validateConfig(`${BASE}pagination:\n  type: cursor\n  request: {}\n  response: {}\n`);
+    // A webhook_unwrap method (no `endpoint`) is schema-valid but not readable by MethodSchema yet.
+    const r = validateConfig(
+      BASE.replace(
+        'resources: {}',
+        'resources: { a: { methods: { hook: { type: webhook_unwrap } } } }',
+      ),
+    );
     expect(r.diagnostics.map((d) => [d.code, d.severity])).toEqual([['FER1119', 'error']]);
-    expect(r.diagnostics[0]?.pointer).toBe('/pagination');
+    expect(r.diagnostics[0]?.pointer).toBe('/resources/a/methods/hook');
     expect(r.config).toBeUndefined();
   });
 });

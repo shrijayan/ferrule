@@ -262,15 +262,25 @@ describe('convert: x-ferrule-config', () => {
     const { spec } = convert({}, { targets: { python: { package_name: 'acme' } } });
     expect(spec['x-ferrule-config']).toEqual({
       version: 1,
-      edition: '2025-10-10',
+      edition: '2025-10-08',
+      pythonEdition: 'python.2025-10-08',
       packageName: 'acme',
       projectName: 'acme',
     });
     const named = convert(
       {},
-      { edition: 'e', targets: { python: { package_name: 'acme', project_name: 'acme-sdk' } } },
+      {
+        edition: '2026-05-06',
+        targets: {
+          python: { package_name: 'acme', project_name: 'acme-sdk', edition: 'python.2025-11-20' },
+        },
+      },
     );
-    expect(named.spec['x-ferrule-config']).toMatchObject({ edition: 'e', projectName: 'acme-sdk' });
+    expect(named.spec['x-ferrule-config']).toMatchObject({
+      edition: '2026-05-06',
+      pythonEdition: 'python.2025-11-20',
+      projectName: 'acme-sdk',
+    });
   });
 
   it('is omitted without a python package name', () => {
@@ -319,7 +329,39 @@ client_settings: { anything: true }
   });
 });
 
+/** The smallest config the public schema accepts. */
+const VALID_CONFIG = `organization: { name: acme }
+environments: { production: https://api.acme.test }
+resources: {}
+readme:
+  example_requests:
+    default: { type: request, endpoint: get /x, params: {} }
+    headline: { type: request, endpoint: get /x, params: {} }
+`;
+
 describe('parseSpec and convertText', () => {
+  it('returns only diagnostics for a config that fails validation', () => {
+    const { output, diagnostics } = convertText('{}', 'resources: {}');
+    expect(output).toBe('');
+    expect(diagnostics.length).toBeGreaterThan(0);
+    expect(diagnostics.every((d) => d.code.startsWith('FER11'))).toBe(true);
+  });
+
+  it('applies openapi.transforms before annotating, and reports edition errors', () => {
+    const { output, diagnostics } = convertText(
+      '{"paths":{"/x":{"get":{"responses":{}}}}}',
+      `${VALID_CONFIG}edition: 2099-01-01
+openapi:
+  transforms:
+    - command: update
+      reason: rename
+      args: { target: '$.paths["/x"].get', value: { summary: hi } }
+`,
+    );
+    expect(diagnostics.map((d) => d.code)).toContain('FER1101');
+    expect(JSON.parse(output).paths['/x'].get.summary).toBe('hi');
+  });
+
   it('parses JSON and YAML objects and rejects others', () => {
     expect(parseSpec('{"openapi":"3.1.0"}')).toEqual({ openapi: '3.1.0' });
     expect(parseSpec('openapi: 3.1.0')).toEqual({ openapi: '3.1.0' });
@@ -328,7 +370,7 @@ describe('parseSpec and convertText', () => {
   });
 
   it('emits sorted, indented JSON with a trailing newline', () => {
-    const { output } = convertText('{"b":1,"a":{"d":[{"z":1,"y":2}],"c":null}}', '');
+    const { output } = convertText('{"b":1,"a":{"d":[{"z":1,"y":2}],"c":null}}', VALID_CONFIG);
     expect(output).toBe(
       '{\n  "a": {\n    "c": null,\n    "d": [\n      {\n        "y": 2,\n        "z": 1\n      }\n    ]\n  },\n  "b": 1\n}\n',
     );
