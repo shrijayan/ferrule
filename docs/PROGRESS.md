@@ -82,3 +82,12 @@ Gate: `mise run check && mise run golden && mise run parity -- onebusaway` — g
 ## Phase 4 — Adopt, verify, keep regenerating: NEXT
 
 See [phases/phase-4.md](phases/phase-4.md).
+
+### Phase 4 status (2026-10-23, paused at usage limit)
+- Baseline (`--skip-tests`): onebusaway 0 breaking; isaacus 0 breaking / 24 additive; lumaai
+  9 breaking; honcho, stagehand, ogx, imagekit, knock, knock-mgmt, opencode, papr fail before
+  output (contract mismatches, union models, non-object bodies, Forge parse errors).
+- Agents dispatched in worktrees (branches `worktree-agent-*`, unmerged): A rescue/adopt,
+  B three-way merge, C GitHub Action, D1 plugin gaps, D2 Forge-parse normalisation.
+- Next on resume: cherry-pick each finished branch (linear history), wire `adopt:gate` in
+  mise.toml, pick five targets with breaking 0, run the Phase 4 gate.
