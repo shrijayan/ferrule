@@ -1,0 +1,6 @@
+# zizmor configuration (https://docs.zizmor.sh/configuration/)
+rules:
+  # We keep `uses: ./.github/actions/setup` until the `$/` self-repository syntax is
+  # supported everywhere we run these workflows (GHES mirrors, act, actionlint).
+  self-repository:
+    disable: true

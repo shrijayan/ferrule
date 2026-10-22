@@ -1,0 +1,31 @@
+name: Setup toolchain
+description: Install the mise toolchain and, optionally, build the pinned Forge commit (cached on scripts/forge-setup.sh).
+inputs:
+  forge:
+    description: Build the pinned Forge commit into .cache/forge
+    required: false
+    default: "true"
+  install:
+    description: Run `mise run install` (pnpm + uv workspace deps)
+    required: false
+    default: "true"
+runs:
+  using: composite
+  steps:
+    - uses: jdx/mise-action@8418fedb1110381a0d3ba51a7a415d7c1b884550 # v5.2.2
+      with:
+        cache: true
+    - name: Cache Forge build
+      if: inputs.forge == 'true' && hashFiles('scripts/forge-setup.sh') != ''
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: .cache/forge
+        key: forge-${{ runner.os }}-${{ hashFiles('scripts/forge-setup.sh') }}
+    - name: Build Forge
+      if: inputs.forge == 'true' && hashFiles('scripts/forge-setup.sh') != ''
+      shell: bash
+      run: mise run forge:setup
+    - name: Install workspace dependencies
+      if: inputs.install == 'true'
+      shell: bash
+      run: mise run install

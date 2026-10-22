@@ -1,0 +1,48 @@
+name: forge-canary
+
+# Weekly: run the full gate set against Forge's latest release instead of the pinned commit,
+# so breakage shows up before anyone bumps the pin in scripts/forge-setup.sh.
+on:
+  schedule:
+    - cron: "23 5 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  canary:
+    name: canary (Forge latest)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      issues: write
+    env:
+      # Honoured by scripts/forge-setup.sh: overrides the pinned commit.
+      FORGE_REF: latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # No Forge cache here: the cache key is the pinned commit, and we want latest.
+      - uses: ./.github/actions/setup
+        with:
+          forge: "false"
+      - name: Build Forge latest
+        if: hashFiles('scripts/forge-setup.sh') != ''
+        run: mise run forge:setup
+      - run: mise run check
+      - run: bash scripts/ci/run-if-present.sh golden
+      - run: bash scripts/ci/run-if-present.sh determinism
+      - run: bash scripts/ci/run-if-present.sh parity
+      - name: Open issue on failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: bash scripts/ci/open-issue.sh "Forge canary failed against latest release" "forge-canary" "$RUN_URL"

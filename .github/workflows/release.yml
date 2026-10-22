@@ -1,0 +1,183 @@
+name: release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  release-please:
+    name: release-please
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      migrate: ${{ steps.rp.outputs['migrate--release_created'] }}
+      migrate_tag: ${{ steps.rp.outputs['migrate--tag_name'] }}
+      runtime: ${{ steps.rp.outputs['runtime--release_created'] }}
+      runtime_tag: ${{ steps.rp.outputs['runtime--tag_name'] }}
+      plugin: ${{ steps.rp.outputs['python-plugin--release_created'] }}
+      plugin_tag: ${{ steps.rp.outputs['python-plugin--tag_name'] }}
+    steps:
+      - id: rp
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  build-python:
+    name: build python (${{ matrix.package }})
+    needs: release-please
+    if: needs.release-please.outputs.migrate == 'true' || needs.release-please.outputs.runtime == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      matrix:
+        include:
+          - package: migrate
+            dist: ferrule
+          - package: runtime
+            dist: ferrule-runtime
+    steps:
+      - name: Skip unreleased package
+        id: gate
+        env:
+          MIGRATE: ${{ needs.release-please.outputs.migrate }}
+          RUNTIME: ${{ needs.release-please.outputs.runtime }}
+          PACKAGE: ${{ matrix.package }}
+        run: |
+          if { [ "$PACKAGE" = migrate ] && [ "$MIGRATE" = true ]; } || { [ "$PACKAGE" = runtime ] && [ "$RUNTIME" = true ]; }; then
+            echo "go=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "go=false" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.gate.outputs.go == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - if: steps.gate.outputs.go == 'true'
+        uses: ./.github/actions/setup
+        with:
+          forge: "false"
+          install: "false"
+      - name: Build sdist and wheel
+        if: steps.gate.outputs.go == 'true'
+        env:
+          DIST: ${{ matrix.dist }}
+        run: uv build --package "$DIST" --out-dir dist/
+      - name: CycloneDX SBOM
+        if: steps.gate.outputs.go == 'true'
+        env:
+          PACKAGE: ${{ matrix.package }}
+        run: |
+          uv venv .sbom-venv
+          uv pip install --python .sbom-venv dist/*.whl
+          uvx cyclonedx-py environment --output-format JSON --output-file "dist/${PACKAGE}.cdx.json" .sbom-venv
+      - if: steps.gate.outputs.go == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: dist-${{ matrix.package }}
+          path: dist/
+
+  publish-pypi:
+    name: publish ${{ matrix.package }} to PyPI
+    needs: [release-please, build-python]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: release
+    strategy:
+      matrix:
+        package: [migrate, runtime]
+    permissions:
+      contents: write # upload signatures + SBOM to the GitHub release
+      id-token: write # PyPI trusted publishing, Sigstore
+      attestations: write
+    steps:
+      - name: Skip unreleased package
+        id: gate
+        env:
+          MIGRATE: ${{ needs.release-please.outputs.migrate }}
+          RUNTIME: ${{ needs.release-please.outputs.runtime }}
+          MIGRATE_TAG: ${{ needs.release-please.outputs.migrate_tag }}
+          RUNTIME_TAG: ${{ needs.release-please.outputs.runtime_tag }}
+          PACKAGE: ${{ matrix.package }}
+        run: |
+          if [ "$PACKAGE" = migrate ] && [ "$MIGRATE" = true ]; then echo "tag=$MIGRATE_TAG" >> "$GITHUB_OUTPUT"
+          elif [ "$PACKAGE" = runtime ] && [ "$RUNTIME" = true ]; then echo "tag=$RUNTIME_TAG" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.gate.outputs.tag != ''
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: dist-${{ matrix.package }}
+          path: artifacts/
+      - name: Separate SBOM from distributions
+        if: steps.gate.outputs.tag != ''
+        run: |
+          mkdir -p dist sbom
+          mv artifacts/*.cdx.json sbom/
+          mv artifacts/* dist/
+      - name: Build provenance attestation
+        if: steps.gate.outputs.tag != ''
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: dist/*
+      - name: Publish to PyPI (trusted publishing, PEP 740 attestations)
+        if: steps.gate.outputs.tag != ''
+        uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # v1.14.3
+        with:
+          attestations: true
+      - name: Sigstore sign
+        if: steps.gate.outputs.tag != ''
+        uses: sigstore/gh-action-sigstore-python@790bc6befb9d733738f18d8f895854b453640ec9 # v3.5.0
+        with:
+          inputs: ./dist/*.tar.gz ./dist/*.whl
+      - name: Attach signatures and SBOM to the GitHub release
+        if: steps.gate.outputs.tag != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.gate.outputs.tag }}
+          REPO: ${{ github.repository }}
+        run: gh release upload "$TAG" dist/*.sigstore.json sbom/*.cdx.json --repo "$REPO" --clobber
+
+  publish-npm:
+    name: publish @ferrule/python-plugin to npm
+    needs: release-please
+    if: needs.release-please.outputs.plugin == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: release
+    permissions:
+      contents: write # attach SBOM to the GitHub release
+      id-token: write # npm provenance / trusted publishing
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+      - name: Build
+        run: pnpm --filter @ferrule/python-plugin --if-present run build
+      - name: CycloneDX SBOM
+        working-directory: python-plugin
+        run: pnpm dlx @cyclonedx/cyclonedx-npm@4 --output-format JSON --output-file python-plugin.cdx.json --omit dev
+      - name: Publish with provenance
+        working-directory: python-plugin
+        env:
+          NPM_CONFIG_PROVENANCE: "true"
+        run: pnpm publish --access public --provenance --no-git-checks
+      - name: Attach SBOM to the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.release-please.outputs.plugin_tag }}
+          REPO: ${{ github.repository }}
+        run: gh release upload "$TAG" python-plugin/python-plugin.cdx.json --repo "$REPO" --clobber
