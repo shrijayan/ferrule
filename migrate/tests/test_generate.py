@@ -1,5 +1,6 @@
 # Copyright 2026 Ferrule contributors
 # SPDX-License-Identifier: Apache-2.0
+import shutil
 import subprocess
 import sys
 from collections.abc import Sequence
@@ -274,3 +275,23 @@ def test_cli_generate_error(tmp_path: Path, capsys: pytest.CaptureFixture[str]) 
     argv = ["generate", "--spec", "nope.yml", "--config", "c.yml", "--out", str(tmp_path / "o")]
     assert cli.main(argv) == 1
     assert "FER4001 at --spec" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize("kind", ["file", "dir"])
+def test_runtime_from_refuses_symlinks(inputs: tuple[GenerateRequest, Path], kind: str) -> None:
+    request, tmp = inputs
+    secret = write(tmp / "outside/secret/id_rsa", "PRIVATE\n")
+    pkg = tmp / "sdk/src/acme"
+    if kind == "file":
+        (pkg / "_qs.py").unlink()
+        (pkg / "_qs.py").symlink_to(secret)
+    else:
+        for f in (pkg / "_utils").rglob("*"):
+            if f.is_file():
+                f.unlink()
+        shutil.rmtree(pkg / "_utils")
+        (pkg / "_utils").symlink_to(secret.parent, target_is_directory=True)
+    with pytest.raises(FerruleError, match="FER4007"):
+        generate(request, runner=fake_runner([]))
+    copied = [p for p in request.out.rglob("*") if p.is_file()]
+    assert all("PRIVATE" not in p.read_text() for p in copied)
