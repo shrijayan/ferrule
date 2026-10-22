@@ -1,0 +1,32 @@
+name: Bug report
+description: Ferrule crashed, produced wrong output, or a command misbehaved.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you ran, what you expected, what you got.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Reproduction
+      description: Commands and a minimal spec or config. Remove secrets.
+      render: shell
+    validations:
+      required: true
+  - type: input
+    id: fer-code
+    attributes:
+      label: FER code
+      description: The FER code from the error output, if any (e.g. FER1203).
+  - type: textarea
+    id: versions
+    attributes:
+      label: Versions
+      description: Output of `ferrule --version`, `python --version`, `node --version`, OS.
+      render: text
+    validations:
+      required: true
