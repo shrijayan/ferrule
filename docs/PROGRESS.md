@@ -29,6 +29,27 @@ to the oracle except the header line.
   patch needed. G2/G3 upstream issues queued in HUMAN-ACTIONS.
 - ADR 0008: Dependabot instead of Renovate (maintainer's choice at repo setup).
 
-## Phase 2 — Converter: IN PROGRESS
+## Phase 2 — Converter: DONE (local gate passed 2026-10-23)
 
-See [phases/phase-2.md](phases/phase-2.md).
+Gate: `mise run check && mise run converter:oracles` — green on all 11 config oracles
+(OneBusAway + 10 public config/SDK pairs, 8 md5-proven, ADR 0009); `mise run spike` still green.
+
+- Validation against the public JSON schema (own validator, FER11xx with line/column), editions
+  and defaults (`applyEdition`).
+- `openapi.transforms` (update, append, merge, remove, copy, move; JSONPath Plus subset, FER12xx)
+  plus legacy `oneOfToAnyOf` in deprecated `transformations`.
+- Extensions: `x-ferrule-client` (FER13xx), `x-ferrule-streaming` (FER14xx), all six pagination
+  schemes with nested/header fields (FER15xx), resource/method order (gap G11), `x-fern-type-name`,
+  `$client` methods via the reserved Forge group `$ferrule_client`. Shapes in ADR 0003.
+- Oracle snapshots store digests of our output only (ADR 0010).
+- Fixed from oracle runs (test-first): missing model schemas warn (opencode), endpointless
+  `webhook_unwrap` methods accepted (imagekit), legacy `oneOfToAnyOf` (ogx).
+- Security fix: generated docstrings escape spec text; repo slug validated.
+
+### Carried into Phase 3
+- `webhook_unwrap` methods are accepted but not yet emitted (`client.webhooks.unwrap`).
+- Plugin must read `x-ferrule-client`, order, streaming, all pagination schemes, `$client`.
+
+## Phase 3 — Python parity: NEXT
+
+See [phases/phase-3.md](phases/phase-3.md).
