@@ -77,7 +77,14 @@ MYPYPATH=src uvx mypy@2.4.0 --strict --python-executable "$out/venv/bin/python" 
 
 # 5. Diff against the oracle, ignoring only the generated-by header line.
 echo "== diff vs oracle (header line excluded)"
+# The slice's client and package files list one resource, so they differ from the full SDK by
+# design; `mise run parity -- onebusaway` checks the whole tree. Compare the spike's files only.
 for rel in "${generated[@]}"; do
+  case "$rel" in
+    */resources/__init__.py | */types/__init__.py) continue ;;
+    src/*/resources/*.py | src/*/types/*) ;;
+    *) continue ;;
+  esac
   if diff -q <(tail -n +2 "$sdk_dir/$rel") <(tail -n +2 "$out/generated/$rel") >/dev/null; then
     echo "identical  $rel"
   else
