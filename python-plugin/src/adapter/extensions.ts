@@ -38,6 +38,9 @@ const KNOWN = new Set([
   'x-ferrule-models',
   'x-ferrule-pagination',
   'x-ferrule-streaming',
+  // Read in Phase 3 (client class, method order); accepted now so converter output loads.
+  'x-ferrule-client',
+  'x-ferrule-method-order',
 ]);
 
 const SCHEMES: readonly PaginationScheme[] = [
