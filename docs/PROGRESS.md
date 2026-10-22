@@ -50,6 +50,35 @@ Gate: `mise run check && mise run converter:oracles` — green on all 11 config 
 - `webhook_unwrap` methods are accepted but not yet emitted (`client.webhooks.unwrap`).
 - Plugin must read `x-ferrule-client`, order, streaming, all pagination schemes, `$client`.
 
-## Phase 3 — Python parity: NEXT
+## Phase 3 — Python parity: DONE (local gate passed 2026-10-23)
 
-See [phases/phase-3.md](phases/phase-3.md).
+Gate: `mise run check && mise run golden && mise run parity -- onebusaway` — green.
+
+**OneBusAway: public API 0 breaking · 0 additive; its own test suite 1110 passed, 0 failed**
+(against a Steady mock, as its `scripts/mock` uses); deterministic; text closeness 93.67%.
+
+- Runtime (`runtime/`): Stainless-generated runtime (Apache-2.0, OneBusAway 1.30.0) as a
+  tokenised template; renders byte-identical runtimes for onebusaway, groq, lithic, isaacus,
+  perplexity, knock-mgmt, imagekit; `pagination.py` for all six schemes (offset, cursor_url and
+  page_number-without-total have no oracle yet: behaviour-tested only). Fault-injection tests.
+- Plugin: whole SDK code (client, resources incl. nested/paths/bodies/streaming/pagination,
+  types, `__init__`/`_version`); OneBusAway 80/80 generatable files identical; lumaai 21/25.
+- Project files: README, api.md, .stats.yml, pyproject, tests, scripts; 77/78 identical,
+  branding swaps listed in `python-plugin/src/emit/files/BRANDING.md`.
+- `ferrule generate` (convert → Forge → plugin → runtime → ruff isort → ruff format) and
+  `ferrule verify` (griffe, never imports the SDK); parity harness writes `reports/parity/`.
+- ADR 0011 (keep files the generator no longer writes), ADR 0012 (type-check generated SDKs
+  with their own config).
+- Security: four code-injection paths in emitters closed (identifiers validated, literals
+  escaped); runtime copy refuses symlinks.
+
+### Known gaps carried forward
+- `custom_casings` not carried (lumaai `LumaAI`); Forge can't put one endpoint in two methods
+  (G19); spec `example`/`minimum`/`maximum` not exposed by Forge (G18), so generated test
+  examples use defaults; several environments and param-switched streaming are FER201.
+- Placeholders: version (0.0.1 unless adopted), README example heuristic, readme title.
+- `webhook_unwrap` not emitted.
+
+## Phase 4 — Adopt, verify, keep regenerating: NEXT
+
+See [phases/phase-4.md](phases/phase-4.md).

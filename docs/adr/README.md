@@ -16,3 +16,5 @@ Stainless output needs an ADR.
 | [0008](./0008-dependabot-instead-of-renovate.md) | Dependabot instead of Renovate | Accepted | 2026-10-23 |
 | [0009](./0009-oracle-configs.md) | Which oracle configs Phase 2 converts | Accepted | 2026-10-23 |
 | [0010](./0010-oracle-snapshot-digests.md) | Converter oracle snapshots store digests, not specs | Accepted | 2026-10-23 |
+| [0011](./0011-keep-files-the-generator-no-longer-writes.md) | Keep files the generator no longer writes | Accepted | 2026-10-23 |
+| [0012](./0012-generated-sdk-type-checks-use-the-sdk-config.md) | Generated SDKs are type-checked with their own configuration | Accepted | 2026-10-23 |
