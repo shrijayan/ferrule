@@ -1,0 +1,17 @@
+{
+  "additive": [
+    { "detail": "added widgets.create", "kind": "added", "path": "acme.resources.widgets" }
+  ],
+  "additive_count": 1,
+  "breaking": [
+    {
+      "detail": "removed parameter limit",
+      "kind": "parameter_removed",
+      "path": "acme.resources.widgets.list"
+    }
+  ],
+  "breaking_count": 1,
+  "closeness": 97.5,
+  "files": [],
+  "package": "acme"
+}

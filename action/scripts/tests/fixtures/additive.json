@@ -1,0 +1,11 @@
+{
+  "additive": [
+    { "detail": "added widgets.create", "kind": "added", "path": "acme.resources.widgets" }
+  ],
+  "additive_count": 1,
+  "breaking": [],
+  "breaking_count": 0,
+  "closeness": 99.1,
+  "files": [],
+  "package": "acme"
+}
