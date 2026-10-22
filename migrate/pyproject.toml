@@ -1,0 +1,23 @@
+[project]
+name = "ferrule"
+version = "0.0.0"
+description = "Ferrule: generate, adopt and migrate Stainless-style SDKs."
+license = "Apache-2.0"
+requires-python = ">=3.12"
+dependencies = [
+  "griffe==2.4.1",
+  "libcst==1.9.0",
+]
+
+[project.scripts]
+ferrule = "ferrule.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ferrule"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
