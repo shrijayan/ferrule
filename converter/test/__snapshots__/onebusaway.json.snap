@@ -776,7 +776,8 @@
           "stops",
           "trips"
         ],
-        "type": "object"
+        "type": "object",
+        "x-fern-type-name": "References"
       },
       "ResponseWrapper": {
         "properties": {
@@ -799,7 +800,8 @@
           "text",
           "version"
         ],
-        "type": "object"
+        "type": "object",
+        "x-fern-type-name": "ResponseWrapper"
       },
       "Route": {
         "properties": {
@@ -2158,7 +2160,59 @@
           "agencies_with_coverage"
         ],
         "x-fern-sdk-method-name": "list",
+        "x-ferrule-client": {
+          "defaultEnvironment": "production",
+          "defaultHeaders": {},
+          "envPrefix": "ONEBUSAWAY_SDK",
+          "environments": [
+            {
+              "name": "production",
+              "url": "https://api.pugetsound.onebusaway.org"
+            }
+          ],
+          "name": "onebusaway-sdk",
+          "omitPlatformHeaders": false,
+          "opts": [
+            {
+              "auth": {
+                "role": "value",
+                "securityScheme": "ApiKeyAuth"
+              },
+              "name": "api_key",
+              "nullable": false,
+              "readEnv": "ONEBUSAWAY_API_KEY",
+              "send": {
+                "in": "query",
+                "name": "key"
+              },
+              "type": "string"
+            }
+          ],
+          "query": {
+            "arrayFormat": "repeat",
+            "nestedFormat": "brackets"
+          },
+          "retries": {
+            "initialDelaySeconds": 0.5,
+            "maxDelaySeconds": 8,
+            "maxRetries": 2
+          },
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ],
+          "securitySchemes": {
+            "ApiKeyAuth": {
+              "in": "query",
+              "name": "key",
+              "type": "apiKey"
+            }
+          },
+          "timeoutSeconds": 60
+        },
         "x-ferrule-method-name": "list",
+        "x-ferrule-method-order": 0,
         "x-ferrule-models": {
           "Reference": {
             "module": "shared.references",
@@ -2174,6 +2228,9 @@
           "repo": "OneBusAway/python-sdk"
         },
         "x-ferrule-resource": {
+          "order": [
+            0
+          ],
           "path": [
             "agencies_with_coverage"
           ]
@@ -2226,7 +2283,59 @@
           "agency"
         ],
         "x-fern-sdk-method-name": "retrieve",
+        "x-ferrule-client": {
+          "defaultEnvironment": "production",
+          "defaultHeaders": {},
+          "envPrefix": "ONEBUSAWAY_SDK",
+          "environments": [
+            {
+              "name": "production",
+              "url": "https://api.pugetsound.onebusaway.org"
+            }
+          ],
+          "name": "onebusaway-sdk",
+          "omitPlatformHeaders": false,
+          "opts": [
+            {
+              "auth": {
+                "role": "value",
+                "securityScheme": "ApiKeyAuth"
+              },
+              "name": "api_key",
+              "nullable": false,
+              "readEnv": "ONEBUSAWAY_API_KEY",
+              "send": {
+                "in": "query",
+                "name": "key"
+              },
+              "type": "string"
+            }
+          ],
+          "query": {
+            "arrayFormat": "repeat",
+            "nestedFormat": "brackets"
+          },
+          "retries": {
+            "initialDelaySeconds": 0.5,
+            "maxDelaySeconds": 8,
+            "maxRetries": 2
+          },
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ],
+          "securitySchemes": {
+            "ApiKeyAuth": {
+              "in": "query",
+              "name": "key",
+              "type": "apiKey"
+            }
+          },
+          "timeoutSeconds": 60
+        },
         "x-ferrule-method-name": "retrieve",
+        "x-ferrule-method-order": 0,
         "x-ferrule-models": {
           "Reference": {
             "module": "shared.references",
@@ -2242,6 +2351,9 @@
           "repo": "OneBusAway/python-sdk"
         },
         "x-ferrule-resource": {
+          "order": [
+            1
+          ],
           "path": [
             "agency"
           ]
@@ -2338,7 +2450,59 @@
           "arrival_and_departure"
         ],
         "x-fern-sdk-method-name": "retrieve",
+        "x-ferrule-client": {
+          "defaultEnvironment": "production",
+          "defaultHeaders": {},
+          "envPrefix": "ONEBUSAWAY_SDK",
+          "environments": [
+            {
+              "name": "production",
+              "url": "https://api.pugetsound.onebusaway.org"
+            }
+          ],
+          "name": "onebusaway-sdk",
+          "omitPlatformHeaders": false,
+          "opts": [
+            {
+              "auth": {
+                "role": "value",
+                "securityScheme": "ApiKeyAuth"
+              },
+              "name": "api_key",
+              "nullable": false,
+              "readEnv": "ONEBUSAWAY_API_KEY",
+              "send": {
+                "in": "query",
+                "name": "key"
+              },
+              "type": "string"
+            }
+          ],
+          "query": {
+            "arrayFormat": "repeat",
+            "nestedFormat": "brackets"
+          },
+          "retries": {
+            "initialDelaySeconds": 0.5,
+            "maxDelaySeconds": 8,
+            "maxRetries": 2
+          },
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ],
+          "securitySchemes": {
+            "ApiKeyAuth": {
+              "in": "query",
+              "name": "key",
+              "type": "apiKey"
+            }
+          },
+          "timeoutSeconds": 60
+        },
         "x-ferrule-method-name": "retrieve",
+        "x-ferrule-method-order": 1,
         "x-ferrule-models": {
           "Reference": {
             "module": "shared.references",
@@ -2354,6 +2518,9 @@
           "repo": "OneBusAway/python-sdk"
         },
         "x-ferrule-resource": {
+          "order": [
+            17
+          ],
           "path": [
             "arrival_and_departure"
           ]
@@ -2510,7 +2677,59 @@
           "arrivals_and_departures_for_location"
         ],
         "x-fern-sdk-method-name": "list",
+        "x-ferrule-client": {
+          "defaultEnvironment": "production",
+          "defaultHeaders": {},
+          "envPrefix": "ONEBUSAWAY_SDK",
+          "environments": [
+            {
+              "name": "production",
+              "url": "https://api.pugetsound.onebusaway.org"
+            }
+          ],
+          "name": "onebusaway-sdk",
+          "omitPlatformHeaders": false,
+          "opts": [
+            {
+              "auth": {
+                "role": "value",
+                "securityScheme": "ApiKeyAuth"
+              },
+              "name": "api_key",
+              "nullable": false,
+              "readEnv": "ONEBUSAWAY_API_KEY",
+              "send": {
+                "in": "query",
+                "name": "key"
+              },
+              "type": "string"
+            }
+          ],
+          "query": {
+            "arrayFormat": "repeat",
+            "nestedFormat": "brackets"
+          },
+          "retries": {
+            "initialDelaySeconds": 0.5,
+            "maxDelaySeconds": 8,
+            "maxRetries": 2
+          },
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ],
+          "securitySchemes": {
+            "ApiKeyAuth": {
+              "in": "query",
+              "name": "key",
+              "type": "apiKey"
+            }
+          },
+          "timeoutSeconds": 60
+        },
         "x-ferrule-method-name": "list",
+        "x-ferrule-method-order": 0,
         "x-ferrule-models": {
           "Reference": {
             "module": "shared.references",
@@ -2526,6 +2745,9 @@
           "repo": "OneBusAway/python-sdk"
         },
         "x-ferrule-resource": {
+          "order": [
+            16
+          ],
           "path": [
             "arrivals_and_departures_for_location"
           ]
@@ -2610,7 +2832,59 @@
           "arrival_and_departure"
         ],
         "x-fern-sdk-method-name": "list",
+        "x-ferrule-client": {
+          "defaultEnvironment": "production",
+          "defaultHeaders": {},
+          "envPrefix": "ONEBUSAWAY_SDK",
+          "environments": [
+            {
+              "name": "production",
+              "url": "https://api.pugetsound.onebusaway.org"
+            }
+          ],
+          "name": "onebusaway-sdk",
+          "omitPlatformHeaders": false,
+          "opts": [
+            {
+              "auth": {
+                "role": "value",
+                "securityScheme": "ApiKeyAuth"
+              },
+              "name": "api_key",
+              "nullable": false,
+              "readEnv": "ONEBUSAWAY_API_KEY",
+              "send": {
+                "in": "query",
+                "name": "key"
+              },
+              "type": "string"
+            }
+          ],
+          "query": {
+            "arrayFormat": "repeat",
+            "nestedFormat": "brackets"
+          },
+          "retries": {
+            "initialDelaySeconds": 0.5,
+            "maxDelaySeconds": 8,
+            "maxRetries": 2
+          },
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ],
+          "securitySchemes": {
+            "ApiKeyAuth": {
+              "in": "query",
+              "name": "key",
+              "type": "apiKey"
+            }
+          },
+          "timeoutSeconds": 60
+        },
         "x-ferrule-method-name": "list",
+        "x-ferrule-method-order": 0,
         "x-ferrule-models": {
           "Reference": {
             "module": "shared.references",
@@ -2626,6 +2900,9 @@
           "repo": "OneBusAway/python-sdk"
         },
         "x-ferrule-resource": {
+          "order": [
+            17
+          ],
           "path": [
             "arrival_and_departure"
           ]
@@ -2666,7 +2943,59 @@
           "block"
         ],
         "x-fern-sdk-method-name": "retrieve",
+        "x-ferrule-client": {
+          "defaultEnvironment": "production",
+          "defaultHeaders": {},
+          "envPrefix": "ONEBUSAWAY_SDK",
+          "environments": [
+            {
+              "name": "production",
+              "url": "https://api.pugetsound.onebusaway.org"
+            }
+          ],
+          "name": "onebusaway-sdk",
+          "omitPlatformHeaders": false,
+          "opts": [
+            {
+              "auth": {
+                "role": "value",
+                "securityScheme": "ApiKeyAuth"
+              },
+              "name": "api_key",
+              "nullable": false,
+              "readEnv": "ONEBUSAWAY_API_KEY",
+              "send": {
+                "in": "query",
+                "name": "key"
+              },
+              "type": "string"
+            }
+          ],
+          "query": {
+            "arrayFormat": "repeat",
+            "nestedFormat": "brackets"
+          },
+          "retries": {
+            "initialDelaySeconds": 0.5,
+            "maxDelaySeconds": 8,
+            "maxRetries": 2
+          },
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ],
+          "securitySchemes": {
+            "ApiKeyAuth": {
+              "in": "query",
+              "name": "key",
+              "type": "apiKey"
+            }
+          },
+          "timeoutSeconds": 60
+        },
         "x-ferrule-method-name": "retrieve",
+        "x-ferrule-method-order": 0,
         "x-ferrule-models": {
           "Reference": {
             "module": "shared.references",
@@ -2682,6 +3011,9 @@
           "repo": "OneBusAway/python-sdk"
         },
         "x-ferrule-resource": {
+          "order": [
+            27
+          ],
           "path": [
             "block"
           ]
@@ -2736,7 +3068,59 @@
           "config"
         ],
         "x-fern-sdk-method-name": "retrieve",
+        "x-ferrule-client": {
+          "defaultEnvironment": "production",
+          "defaultHeaders": {},
+          "envPrefix": "ONEBUSAWAY_SDK",
+          "environments": [
+            {
+              "name": "production",
+              "url": "https://api.pugetsound.onebusaway.org"
+            }
+          ],
+          "name": "onebusaway-sdk",
+          "omitPlatformHeaders": false,
+          "opts": [
+            {
+              "auth": {
+                "role": "value",
+                "securityScheme": "ApiKeyAuth"
+              },
+              "name": "api_key",
+              "nullable": false,
+              "readEnv": "ONEBUSAWAY_API_KEY",
+              "send": {
+                "in": "query",
+                "name": "key"
+              },
+              "type": "string"
+            }
+          ],
+          "query": {
+            "arrayFormat": "repeat",
+            "nestedFormat": "brackets"
+          },
+          "retries": {
+            "initialDelaySeconds": 0.5,
+            "maxDelaySeconds": 8,
+            "maxRetries": 2
+          },
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ],
+          "securitySchemes": {
+            "ApiKeyAuth": {
+              "in": "query",
+              "name": "key",
+              "type": "apiKey"
+            }
+          },
+          "timeoutSeconds": 60
+        },
         "x-ferrule-method-name": "retrieve",
+        "x-ferrule-method-order": 0,
         "x-ferrule-models": {
           "Reference": {
             "module": "shared.references",
@@ -2752,6 +3136,9 @@
           "repo": "OneBusAway/python-sdk"
         },
         "x-ferrule-resource": {
+          "order": [
+            3
+          ],
           "path": [
             "config"
           ]
@@ -2795,7 +3182,59 @@
           "current_time"
         ],
         "x-fern-sdk-method-name": "retrieve",
+        "x-ferrule-client": {
+          "defaultEnvironment": "production",
+          "defaultHeaders": {},
+          "envPrefix": "ONEBUSAWAY_SDK",
+          "environments": [
+            {
+              "name": "production",
+              "url": "https://api.pugetsound.onebusaway.org"
+            }
+          ],
+          "name": "onebusaway-sdk",
+          "omitPlatformHeaders": false,
+          "opts": [
+            {
+              "auth": {
+                "role": "value",
+                "securityScheme": "ApiKeyAuth"
+              },
+              "name": "api_key",
+              "nullable": false,
+              "readEnv": "ONEBUSAWAY_API_KEY",
+              "send": {
+                "in": "query",
+                "name": "key"
+              },
+              "type": "string"
+            }
+          ],
+          "query": {
+            "arrayFormat": "repeat",
+            "nestedFormat": "brackets"
+          },
+          "retries": {
+            "initialDelaySeconds": 0.5,
+            "maxDelaySeconds": 8,
+            "maxRetries": 2
+          },
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ],
+          "securitySchemes": {
+            "ApiKeyAuth": {
+              "in": "query",
+              "name": "key",
+              "type": "apiKey"
+            }
+          },
+          "timeoutSeconds": 60
+        },
         "x-ferrule-method-name": "retrieve",
+        "x-ferrule-method-order": 0,
         "x-ferrule-models": {
           "Reference": {
             "module": "shared.references",
@@ -2811,6 +3250,9 @@
           "repo": "OneBusAway/python-sdk"
         },
         "x-ferrule-resource": {
+          "order": [
+            4
+          ],
           "path": [
             "current_time"
           ]
@@ -2903,7 +3345,59 @@
           "report_problem_with_stop"
         ],
         "x-fern-sdk-method-name": "retrieve",
+        "x-ferrule-client": {
+          "defaultEnvironment": "production",
+          "defaultHeaders": {},
+          "envPrefix": "ONEBUSAWAY_SDK",
+          "environments": [
+            {
+              "name": "production",
+              "url": "https://api.pugetsound.onebusaway.org"
+            }
+          ],
+          "name": "onebusaway-sdk",
+          "omitPlatformHeaders": false,
+          "opts": [
+            {
+              "auth": {
+                "role": "value",
+                "securityScheme": "ApiKeyAuth"
+              },
+              "name": "api_key",
+              "nullable": false,
+              "readEnv": "ONEBUSAWAY_API_KEY",
+              "send": {
+                "in": "query",
+                "name": "key"
+              },
+              "type": "string"
+            }
+          ],
+          "query": {
+            "arrayFormat": "repeat",
+            "nestedFormat": "brackets"
+          },
+          "retries": {
+            "initialDelaySeconds": 0.5,
+            "maxDelaySeconds": 8,
+            "maxRetries": 2
+          },
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ],
+          "securitySchemes": {
+            "ApiKeyAuth": {
+              "in": "query",
+              "name": "key",
+              "type": "apiKey"
+            }
+          },
+          "timeoutSeconds": 60
+        },
         "x-ferrule-method-name": "retrieve",
+        "x-ferrule-method-order": 0,
         "x-ferrule-models": {
           "Reference": {
             "module": "shared.references",
@@ -2919,6 +3413,9 @@
           "repo": "OneBusAway/python-sdk"
         },
         "x-ferrule-resource": {
+          "order": [
+            23
+          ],
           "path": [
             "report_problem_with_stop"
           ]
@@ -3058,7 +3555,59 @@
           "report_problem_with_trip"
         ],
         "x-fern-sdk-method-name": "retrieve",
+        "x-ferrule-client": {
+          "defaultEnvironment": "production",
+          "defaultHeaders": {},
+          "envPrefix": "ONEBUSAWAY_SDK",
+          "environments": [
+            {
+              "name": "production",
+              "url": "https://api.pugetsound.onebusaway.org"
+            }
+          ],
+          "name": "onebusaway-sdk",
+          "omitPlatformHeaders": false,
+          "opts": [
+            {
+              "auth": {
+                "role": "value",
+                "securityScheme": "ApiKeyAuth"
+              },
+              "name": "api_key",
+              "nullable": false,
+              "readEnv": "ONEBUSAWAY_API_KEY",
+              "send": {
+                "in": "query",
+                "name": "key"
+              },
+              "type": "string"
+            }
+          ],
+          "query": {
+            "arrayFormat": "repeat",
+            "nestedFormat": "brackets"
+          },
+          "retries": {
+            "initialDelaySeconds": 0.5,
+            "maxDelaySeconds": 8,
+            "maxRetries": 2
+          },
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ],
+          "securitySchemes": {
+            "ApiKeyAuth": {
+              "in": "query",
+              "name": "key",
+              "type": "apiKey"
+            }
+          },
+          "timeoutSeconds": 60
+        },
         "x-ferrule-method-name": "retrieve",
+        "x-ferrule-method-order": 0,
         "x-ferrule-models": {
           "Reference": {
             "module": "shared.references",
@@ -3074,6 +3623,9 @@
           "repo": "OneBusAway/python-sdk"
         },
         "x-ferrule-resource": {
+          "order": [
+            24
+          ],
           "path": [
             "report_problem_with_trip"
           ]
@@ -3114,7 +3666,59 @@
           "route_ids_for_agency"
         ],
         "x-fern-sdk-method-name": "list",
+        "x-ferrule-client": {
+          "defaultEnvironment": "production",
+          "defaultHeaders": {},
+          "envPrefix": "ONEBUSAWAY_SDK",
+          "environments": [
+            {
+              "name": "production",
+              "url": "https://api.pugetsound.onebusaway.org"
+            }
+          ],
+          "name": "onebusaway-sdk",
+          "omitPlatformHeaders": false,
+          "opts": [
+            {
+              "auth": {
+                "role": "value",
+                "securityScheme": "ApiKeyAuth"
+              },
+              "name": "api_key",
+              "nullable": false,
+              "readEnv": "ONEBUSAWAY_API_KEY",
+              "send": {
+                "in": "query",
+                "name": "key"
+              },
+              "type": "string"
+            }
+          ],
+          "query": {
+            "arrayFormat": "repeat",
+            "nestedFormat": "brackets"
+          },
+          "retries": {
+            "initialDelaySeconds": 0.5,
+            "maxDelaySeconds": 8,
+            "maxRetries": 2
+          },
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ],
+          "securitySchemes": {
+            "ApiKeyAuth": {
+              "in": "query",
+              "name": "key",
+              "type": "apiKey"
+            }
+          },
+          "timeoutSeconds": 60
+        },
         "x-ferrule-method-name": "list",
+        "x-ferrule-method-order": 0,
         "x-ferrule-models": {
           "Reference": {
             "module": "shared.references",
@@ -3130,6 +3734,9 @@
           "repo": "OneBusAway/python-sdk"
         },
         "x-ferrule-resource": {
+          "order": [
+            12
+          ],
           "path": [
             "route_ids_for_agency"
           ]
@@ -3194,7 +3801,59 @@
           "route"
         ],
         "x-fern-sdk-method-name": "retrieve",
+        "x-ferrule-client": {
+          "defaultEnvironment": "production",
+          "defaultHeaders": {},
+          "envPrefix": "ONEBUSAWAY_SDK",
+          "environments": [
+            {
+              "name": "production",
+              "url": "https://api.pugetsound.onebusaway.org"
+            }
+          ],
+          "name": "onebusaway-sdk",
+          "omitPlatformHeaders": false,
+          "opts": [
+            {
+              "auth": {
+                "role": "value",
+                "securityScheme": "ApiKeyAuth"
+              },
+              "name": "api_key",
+              "nullable": false,
+              "readEnv": "ONEBUSAWAY_API_KEY",
+              "send": {
+                "in": "query",
+                "name": "key"
+              },
+              "type": "string"
+            }
+          ],
+          "query": {
+            "arrayFormat": "repeat",
+            "nestedFormat": "brackets"
+          },
+          "retries": {
+            "initialDelaySeconds": 0.5,
+            "maxDelaySeconds": 8,
+            "maxRetries": 2
+          },
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ],
+          "securitySchemes": {
+            "ApiKeyAuth": {
+              "in": "query",
+              "name": "key",
+              "type": "apiKey"
+            }
+          },
+          "timeoutSeconds": 60
+        },
         "x-ferrule-method-name": "retrieve",
+        "x-ferrule-method-order": 0,
         "x-ferrule-models": {
           "Reference": {
             "module": "shared.references",
@@ -3210,6 +3869,9 @@
           "repo": "OneBusAway/python-sdk"
         },
         "x-ferrule-resource": {
+          "order": [
+            11
+          ],
           "path": [
             "route"
           ]
@@ -3265,7 +3927,59 @@
           "routes_for_agency"
         ],
         "x-fern-sdk-method-name": "list",
+        "x-ferrule-client": {
+          "defaultEnvironment": "production",
+          "defaultHeaders": {},
+          "envPrefix": "ONEBUSAWAY_SDK",
+          "environments": [
+            {
+              "name": "production",
+              "url": "https://api.pugetsound.onebusaway.org"
+            }
+          ],
+          "name": "onebusaway-sdk",
+          "omitPlatformHeaders": false,
+          "opts": [
+            {
+              "auth": {
+                "role": "value",
+                "securityScheme": "ApiKeyAuth"
+              },
+              "name": "api_key",
+              "nullable": false,
+              "readEnv": "ONEBUSAWAY_API_KEY",
+              "send": {
+                "in": "query",
+                "name": "key"
+              },
+              "type": "string"
+            }
+          ],
+          "query": {
+            "arrayFormat": "repeat",
+            "nestedFormat": "brackets"
+          },
+          "retries": {
+            "initialDelaySeconds": 0.5,
+            "maxDelaySeconds": 8,
+            "maxRetries": 2
+          },
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ],
+          "securitySchemes": {
+            "ApiKeyAuth": {
+              "in": "query",
+              "name": "key",
+              "type": "apiKey"
+            }
+          },
+          "timeoutSeconds": 60
+        },
         "x-ferrule-method-name": "list",
+        "x-ferrule-method-order": 0,
         "x-ferrule-models": {
           "Reference": {
             "module": "shared.references",
@@ -3281,6 +3995,9 @@
           "repo": "OneBusAway/python-sdk"
         },
         "x-ferrule-resource": {
+          "order": [
+            14
+          ],
           "path": [
             "routes_for_agency"
           ]
@@ -3380,7 +4097,59 @@
           "routes_for_location"
         ],
         "x-fern-sdk-method-name": "list",
+        "x-ferrule-client": {
+          "defaultEnvironment": "production",
+          "defaultHeaders": {},
+          "envPrefix": "ONEBUSAWAY_SDK",
+          "environments": [
+            {
+              "name": "production",
+              "url": "https://api.pugetsound.onebusaway.org"
+            }
+          ],
+          "name": "onebusaway-sdk",
+          "omitPlatformHeaders": false,
+          "opts": [
+            {
+              "auth": {
+                "role": "value",
+                "securityScheme": "ApiKeyAuth"
+              },
+              "name": "api_key",
+              "nullable": false,
+              "readEnv": "ONEBUSAWAY_API_KEY",
+              "send": {
+                "in": "query",
+                "name": "key"
+              },
+              "type": "string"
+            }
+          ],
+          "query": {
+            "arrayFormat": "repeat",
+            "nestedFormat": "brackets"
+          },
+          "retries": {
+            "initialDelaySeconds": 0.5,
+            "maxDelaySeconds": 8,
+            "maxRetries": 2
+          },
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ],
+          "securitySchemes": {
+            "ApiKeyAuth": {
+              "in": "query",
+              "name": "key",
+              "type": "apiKey"
+            }
+          },
+          "timeoutSeconds": 60
+        },
         "x-ferrule-method-name": "list",
+        "x-ferrule-method-order": 0,
         "x-ferrule-models": {
           "Reference": {
             "module": "shared.references",
@@ -3396,6 +4165,9 @@
           "repo": "OneBusAway/python-sdk"
         },
         "x-ferrule-resource": {
+          "order": [
+            13
+          ],
           "path": [
             "routes_for_location"
           ]
@@ -3464,7 +4236,59 @@
           "schedule_for_route"
         ],
         "x-fern-sdk-method-name": "retrieve",
+        "x-ferrule-client": {
+          "defaultEnvironment": "production",
+          "defaultHeaders": {},
+          "envPrefix": "ONEBUSAWAY_SDK",
+          "environments": [
+            {
+              "name": "production",
+              "url": "https://api.pugetsound.onebusaway.org"
+            }
+          ],
+          "name": "onebusaway-sdk",
+          "omitPlatformHeaders": false,
+          "opts": [
+            {
+              "auth": {
+                "role": "value",
+                "securityScheme": "ApiKeyAuth"
+              },
+              "name": "api_key",
+              "nullable": false,
+              "readEnv": "ONEBUSAWAY_API_KEY",
+              "send": {
+                "in": "query",
+                "name": "key"
+              },
+              "type": "string"
+            }
+          ],
+          "query": {
+            "arrayFormat": "repeat",
+            "nestedFormat": "brackets"
+          },
+          "retries": {
+            "initialDelaySeconds": 0.5,
+            "maxDelaySeconds": 8,
+            "maxRetries": 2
+          },
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ],
+          "securitySchemes": {
+            "ApiKeyAuth": {
+              "in": "query",
+              "name": "key",
+              "type": "apiKey"
+            }
+          },
+          "timeoutSeconds": 60
+        },
         "x-ferrule-method-name": "retrieve",
+        "x-ferrule-method-order": 0,
         "x-ferrule-models": {
           "Reference": {
             "module": "shared.references",
@@ -3480,6 +4304,9 @@
           "repo": "OneBusAway/python-sdk"
         },
         "x-ferrule-resource": {
+          "order": [
+            15
+          ],
           "path": [
             "schedule_for_route"
           ]
@@ -3541,7 +4368,59 @@
           "schedule_for_stop"
         ],
         "x-fern-sdk-method-name": "retrieve",
+        "x-ferrule-client": {
+          "defaultEnvironment": "production",
+          "defaultHeaders": {},
+          "envPrefix": "ONEBUSAWAY_SDK",
+          "environments": [
+            {
+              "name": "production",
+              "url": "https://api.pugetsound.onebusaway.org"
+            }
+          ],
+          "name": "onebusaway-sdk",
+          "omitPlatformHeaders": false,
+          "opts": [
+            {
+              "auth": {
+                "role": "value",
+                "securityScheme": "ApiKeyAuth"
+              },
+              "name": "api_key",
+              "nullable": false,
+              "readEnv": "ONEBUSAWAY_API_KEY",
+              "send": {
+                "in": "query",
+                "name": "key"
+              },
+              "type": "string"
+            }
+          ],
+          "query": {
+            "arrayFormat": "repeat",
+            "nestedFormat": "brackets"
+          },
+          "retries": {
+            "initialDelaySeconds": 0.5,
+            "maxDelaySeconds": 8,
+            "maxRetries": 2
+          },
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ],
+          "securitySchemes": {
+            "ApiKeyAuth": {
+              "in": "query",
+              "name": "key",
+              "type": "apiKey"
+            }
+          },
+          "timeoutSeconds": 60
+        },
         "x-ferrule-method-name": "retrieve",
+        "x-ferrule-method-order": 0,
         "x-ferrule-models": {
           "Reference": {
             "module": "shared.references",
@@ -3557,6 +4436,9 @@
           "repo": "OneBusAway/python-sdk"
         },
         "x-ferrule-resource": {
+          "order": [
+            10
+          ],
           "path": [
             "schedule_for_stop"
           ]
@@ -3618,7 +4500,59 @@
           "search_for_route"
         ],
         "x-fern-sdk-method-name": "list",
+        "x-ferrule-client": {
+          "defaultEnvironment": "production",
+          "defaultHeaders": {},
+          "envPrefix": "ONEBUSAWAY_SDK",
+          "environments": [
+            {
+              "name": "production",
+              "url": "https://api.pugetsound.onebusaway.org"
+            }
+          ],
+          "name": "onebusaway-sdk",
+          "omitPlatformHeaders": false,
+          "opts": [
+            {
+              "auth": {
+                "role": "value",
+                "securityScheme": "ApiKeyAuth"
+              },
+              "name": "api_key",
+              "nullable": false,
+              "readEnv": "ONEBUSAWAY_API_KEY",
+              "send": {
+                "in": "query",
+                "name": "key"
+              },
+              "type": "string"
+            }
+          ],
+          "query": {
+            "arrayFormat": "repeat",
+            "nestedFormat": "brackets"
+          },
+          "retries": {
+            "initialDelaySeconds": 0.5,
+            "maxDelaySeconds": 8,
+            "maxRetries": 2
+          },
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ],
+          "securitySchemes": {
+            "ApiKeyAuth": {
+              "in": "query",
+              "name": "key",
+              "type": "apiKey"
+            }
+          },
+          "timeoutSeconds": 60
+        },
         "x-ferrule-method-name": "list",
+        "x-ferrule-method-order": 0,
         "x-ferrule-models": {
           "Reference": {
             "module": "shared.references",
@@ -3634,6 +4568,9 @@
           "repo": "OneBusAway/python-sdk"
         },
         "x-ferrule-resource": {
+          "order": [
+            26
+          ],
           "path": [
             "search_for_route"
           ]
@@ -3695,7 +4632,59 @@
           "search_for_stop"
         ],
         "x-fern-sdk-method-name": "list",
+        "x-ferrule-client": {
+          "defaultEnvironment": "production",
+          "defaultHeaders": {},
+          "envPrefix": "ONEBUSAWAY_SDK",
+          "environments": [
+            {
+              "name": "production",
+              "url": "https://api.pugetsound.onebusaway.org"
+            }
+          ],
+          "name": "onebusaway-sdk",
+          "omitPlatformHeaders": false,
+          "opts": [
+            {
+              "auth": {
+                "role": "value",
+                "securityScheme": "ApiKeyAuth"
+              },
+              "name": "api_key",
+              "nullable": false,
+              "readEnv": "ONEBUSAWAY_API_KEY",
+              "send": {
+                "in": "query",
+                "name": "key"
+              },
+              "type": "string"
+            }
+          ],
+          "query": {
+            "arrayFormat": "repeat",
+            "nestedFormat": "brackets"
+          },
+          "retries": {
+            "initialDelaySeconds": 0.5,
+            "maxDelaySeconds": 8,
+            "maxRetries": 2
+          },
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ],
+          "securitySchemes": {
+            "ApiKeyAuth": {
+              "in": "query",
+              "name": "key",
+              "type": "apiKey"
+            }
+          },
+          "timeoutSeconds": 60
+        },
         "x-ferrule-method-name": "list",
+        "x-ferrule-method-order": 0,
         "x-ferrule-models": {
           "Reference": {
             "module": "shared.references",
@@ -3711,6 +4700,9 @@
           "repo": "OneBusAway/python-sdk"
         },
         "x-ferrule-resource": {
+          "order": [
+            25
+          ],
           "path": [
             "search_for_stop"
           ]
@@ -3763,7 +4755,59 @@
           "shape"
         ],
         "x-fern-sdk-method-name": "retrieve",
+        "x-ferrule-client": {
+          "defaultEnvironment": "production",
+          "defaultHeaders": {},
+          "envPrefix": "ONEBUSAWAY_SDK",
+          "environments": [
+            {
+              "name": "production",
+              "url": "https://api.pugetsound.onebusaway.org"
+            }
+          ],
+          "name": "onebusaway-sdk",
+          "omitPlatformHeaders": false,
+          "opts": [
+            {
+              "auth": {
+                "role": "value",
+                "securityScheme": "ApiKeyAuth"
+              },
+              "name": "api_key",
+              "nullable": false,
+              "readEnv": "ONEBUSAWAY_API_KEY",
+              "send": {
+                "in": "query",
+                "name": "key"
+              },
+              "type": "string"
+            }
+          ],
+          "query": {
+            "arrayFormat": "repeat",
+            "nestedFormat": "brackets"
+          },
+          "retries": {
+            "initialDelaySeconds": 0.5,
+            "maxDelaySeconds": 8,
+            "maxRetries": 2
+          },
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ],
+          "securitySchemes": {
+            "ApiKeyAuth": {
+              "in": "query",
+              "name": "key",
+              "type": "apiKey"
+            }
+          },
+          "timeoutSeconds": 60
+        },
         "x-ferrule-method-name": "retrieve",
+        "x-ferrule-method-order": 0,
         "x-ferrule-models": {
           "Reference": {
             "module": "shared.references",
@@ -3779,6 +4823,9 @@
           "repo": "OneBusAway/python-sdk"
         },
         "x-ferrule-resource": {
+          "order": [
+            28
+          ],
           "path": [
             "shape"
           ]
@@ -3819,7 +4866,59 @@
           "stop_ids_for_agency"
         ],
         "x-fern-sdk-method-name": "list",
+        "x-ferrule-client": {
+          "defaultEnvironment": "production",
+          "defaultHeaders": {},
+          "envPrefix": "ONEBUSAWAY_SDK",
+          "environments": [
+            {
+              "name": "production",
+              "url": "https://api.pugetsound.onebusaway.org"
+            }
+          ],
+          "name": "onebusaway-sdk",
+          "omitPlatformHeaders": false,
+          "opts": [
+            {
+              "auth": {
+                "role": "value",
+                "securityScheme": "ApiKeyAuth"
+              },
+              "name": "api_key",
+              "nullable": false,
+              "readEnv": "ONEBUSAWAY_API_KEY",
+              "send": {
+                "in": "query",
+                "name": "key"
+              },
+              "type": "string"
+            }
+          ],
+          "query": {
+            "arrayFormat": "repeat",
+            "nestedFormat": "brackets"
+          },
+          "retries": {
+            "initialDelaySeconds": 0.5,
+            "maxDelaySeconds": 8,
+            "maxRetries": 2
+          },
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ],
+          "securitySchemes": {
+            "ApiKeyAuth": {
+              "in": "query",
+              "name": "key",
+              "type": "apiKey"
+            }
+          },
+          "timeoutSeconds": 60
+        },
         "x-ferrule-method-name": "list",
+        "x-ferrule-method-order": 0,
         "x-ferrule-models": {
           "Reference": {
             "module": "shared.references",
@@ -3835,6 +4934,9 @@
           "repo": "OneBusAway/python-sdk"
         },
         "x-ferrule-resource": {
+          "order": [
+            9
+          ],
           "path": [
             "stop_ids_for_agency"
           ]
@@ -3886,7 +4988,59 @@
           "stop"
         ],
         "x-fern-sdk-method-name": "retrieve",
+        "x-ferrule-client": {
+          "defaultEnvironment": "production",
+          "defaultHeaders": {},
+          "envPrefix": "ONEBUSAWAY_SDK",
+          "environments": [
+            {
+              "name": "production",
+              "url": "https://api.pugetsound.onebusaway.org"
+            }
+          ],
+          "name": "onebusaway-sdk",
+          "omitPlatformHeaders": false,
+          "opts": [
+            {
+              "auth": {
+                "role": "value",
+                "securityScheme": "ApiKeyAuth"
+              },
+              "name": "api_key",
+              "nullable": false,
+              "readEnv": "ONEBUSAWAY_API_KEY",
+              "send": {
+                "in": "query",
+                "name": "key"
+              },
+              "type": "string"
+            }
+          ],
+          "query": {
+            "arrayFormat": "repeat",
+            "nestedFormat": "brackets"
+          },
+          "retries": {
+            "initialDelaySeconds": 0.5,
+            "maxDelaySeconds": 8,
+            "maxRetries": 2
+          },
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ],
+          "securitySchemes": {
+            "ApiKeyAuth": {
+              "in": "query",
+              "name": "key",
+              "type": "apiKey"
+            }
+          },
+          "timeoutSeconds": 60
+        },
         "x-ferrule-method-name": "retrieve",
+        "x-ferrule-method-order": 0,
         "x-ferrule-models": {
           "Reference": {
             "module": "shared.references",
@@ -3902,6 +5056,9 @@
           "repo": "OneBusAway/python-sdk"
         },
         "x-ferrule-resource": {
+          "order": [
+            8
+          ],
           "path": [
             "stop"
           ]
@@ -3953,7 +5110,59 @@
           "stops_for_agency"
         ],
         "x-fern-sdk-method-name": "list",
+        "x-ferrule-client": {
+          "defaultEnvironment": "production",
+          "defaultHeaders": {},
+          "envPrefix": "ONEBUSAWAY_SDK",
+          "environments": [
+            {
+              "name": "production",
+              "url": "https://api.pugetsound.onebusaway.org"
+            }
+          ],
+          "name": "onebusaway-sdk",
+          "omitPlatformHeaders": false,
+          "opts": [
+            {
+              "auth": {
+                "role": "value",
+                "securityScheme": "ApiKeyAuth"
+              },
+              "name": "api_key",
+              "nullable": false,
+              "readEnv": "ONEBUSAWAY_API_KEY",
+              "send": {
+                "in": "query",
+                "name": "key"
+              },
+              "type": "string"
+            }
+          ],
+          "query": {
+            "arrayFormat": "repeat",
+            "nestedFormat": "brackets"
+          },
+          "retries": {
+            "initialDelaySeconds": 0.5,
+            "maxDelaySeconds": 8,
+            "maxRetries": 2
+          },
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ],
+          "securitySchemes": {
+            "ApiKeyAuth": {
+              "in": "query",
+              "name": "key",
+              "type": "apiKey"
+            }
+          },
+          "timeoutSeconds": 60
+        },
         "x-ferrule-method-name": "list",
+        "x-ferrule-method-order": 0,
         "x-ferrule-models": {
           "Reference": {
             "module": "shared.references",
@@ -3969,6 +5178,9 @@
           "repo": "OneBusAway/python-sdk"
         },
         "x-ferrule-resource": {
+          "order": [
+            7
+          ],
           "path": [
             "stops_for_agency"
           ]
@@ -4086,7 +5298,59 @@
           "stops_for_location"
         ],
         "x-fern-sdk-method-name": "list",
+        "x-ferrule-client": {
+          "defaultEnvironment": "production",
+          "defaultHeaders": {},
+          "envPrefix": "ONEBUSAWAY_SDK",
+          "environments": [
+            {
+              "name": "production",
+              "url": "https://api.pugetsound.onebusaway.org"
+            }
+          ],
+          "name": "onebusaway-sdk",
+          "omitPlatformHeaders": false,
+          "opts": [
+            {
+              "auth": {
+                "role": "value",
+                "securityScheme": "ApiKeyAuth"
+              },
+              "name": "api_key",
+              "nullable": false,
+              "readEnv": "ONEBUSAWAY_API_KEY",
+              "send": {
+                "in": "query",
+                "name": "key"
+              },
+              "type": "string"
+            }
+          ],
+          "query": {
+            "arrayFormat": "repeat",
+            "nestedFormat": "brackets"
+          },
+          "retries": {
+            "initialDelaySeconds": 0.5,
+            "maxDelaySeconds": 8,
+            "maxRetries": 2
+          },
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ],
+          "securitySchemes": {
+            "ApiKeyAuth": {
+              "in": "query",
+              "name": "key",
+              "type": "apiKey"
+            }
+          },
+          "timeoutSeconds": 60
+        },
         "x-ferrule-method-name": "list",
+        "x-ferrule-method-order": 0,
         "x-ferrule-models": {
           "Reference": {
             "module": "shared.references",
@@ -4102,6 +5366,9 @@
           "repo": "OneBusAway/python-sdk"
         },
         "x-ferrule-resource": {
+          "order": [
+            5
+          ],
           "path": [
             "stops_for_location"
           ]
@@ -4142,7 +5409,59 @@
           "stops_for_route"
         ],
         "x-fern-sdk-method-name": "list",
+        "x-ferrule-client": {
+          "defaultEnvironment": "production",
+          "defaultHeaders": {},
+          "envPrefix": "ONEBUSAWAY_SDK",
+          "environments": [
+            {
+              "name": "production",
+              "url": "https://api.pugetsound.onebusaway.org"
+            }
+          ],
+          "name": "onebusaway-sdk",
+          "omitPlatformHeaders": false,
+          "opts": [
+            {
+              "auth": {
+                "role": "value",
+                "securityScheme": "ApiKeyAuth"
+              },
+              "name": "api_key",
+              "nullable": false,
+              "readEnv": "ONEBUSAWAY_API_KEY",
+              "send": {
+                "in": "query",
+                "name": "key"
+              },
+              "type": "string"
+            }
+          ],
+          "query": {
+            "arrayFormat": "repeat",
+            "nestedFormat": "brackets"
+          },
+          "retries": {
+            "initialDelaySeconds": 0.5,
+            "maxDelaySeconds": 8,
+            "maxRetries": 2
+          },
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ],
+          "securitySchemes": {
+            "ApiKeyAuth": {
+              "in": "query",
+              "name": "key",
+              "type": "apiKey"
+            }
+          },
+          "timeoutSeconds": 60
+        },
         "x-ferrule-method-name": "list",
+        "x-ferrule-method-order": 0,
         "x-ferrule-models": {
           "Reference": {
             "module": "shared.references",
@@ -4158,6 +5477,9 @@
           "repo": "OneBusAway/python-sdk"
         },
         "x-ferrule-resource": {
+          "order": [
+            6
+          ],
           "path": [
             "stops_for_route"
           ]
@@ -4288,7 +5610,59 @@
           "trip-details"
         ],
         "x-fern-sdk-method-name": "retrieve",
+        "x-ferrule-client": {
+          "defaultEnvironment": "production",
+          "defaultHeaders": {},
+          "envPrefix": "ONEBUSAWAY_SDK",
+          "environments": [
+            {
+              "name": "production",
+              "url": "https://api.pugetsound.onebusaway.org"
+            }
+          ],
+          "name": "onebusaway-sdk",
+          "omitPlatformHeaders": false,
+          "opts": [
+            {
+              "auth": {
+                "role": "value",
+                "securityScheme": "ApiKeyAuth"
+              },
+              "name": "api_key",
+              "nullable": false,
+              "readEnv": "ONEBUSAWAY_API_KEY",
+              "send": {
+                "in": "query",
+                "name": "key"
+              },
+              "type": "string"
+            }
+          ],
+          "query": {
+            "arrayFormat": "repeat",
+            "nestedFormat": "brackets"
+          },
+          "retries": {
+            "initialDelaySeconds": 0.5,
+            "maxDelaySeconds": 8,
+            "maxRetries": 2
+          },
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ],
+          "securitySchemes": {
+            "ApiKeyAuth": {
+              "in": "query",
+              "name": "key",
+              "type": "apiKey"
+            }
+          },
+          "timeoutSeconds": 60
+        },
         "x-ferrule-method-name": "retrieve",
+        "x-ferrule-method-order": 0,
         "x-ferrule-models": {
           "Reference": {
             "module": "shared.references",
@@ -4304,6 +5678,9 @@
           "repo": "OneBusAway/python-sdk"
         },
         "x-ferrule-resource": {
+          "order": [
+            20
+          ],
           "path": [
             "trip-details"
           ]
@@ -4391,7 +5768,59 @@
           "trip_for_vehicle"
         ],
         "x-fern-sdk-method-name": "retrieve",
+        "x-ferrule-client": {
+          "defaultEnvironment": "production",
+          "defaultHeaders": {},
+          "envPrefix": "ONEBUSAWAY_SDK",
+          "environments": [
+            {
+              "name": "production",
+              "url": "https://api.pugetsound.onebusaway.org"
+            }
+          ],
+          "name": "onebusaway-sdk",
+          "omitPlatformHeaders": false,
+          "opts": [
+            {
+              "auth": {
+                "role": "value",
+                "securityScheme": "ApiKeyAuth"
+              },
+              "name": "api_key",
+              "nullable": false,
+              "readEnv": "ONEBUSAWAY_API_KEY",
+              "send": {
+                "in": "query",
+                "name": "key"
+              },
+              "type": "string"
+            }
+          ],
+          "query": {
+            "arrayFormat": "repeat",
+            "nestedFormat": "brackets"
+          },
+          "retries": {
+            "initialDelaySeconds": 0.5,
+            "maxDelaySeconds": 8,
+            "maxRetries": 2
+          },
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ],
+          "securitySchemes": {
+            "ApiKeyAuth": {
+              "in": "query",
+              "name": "key",
+              "type": "apiKey"
+            }
+          },
+          "timeoutSeconds": 60
+        },
         "x-ferrule-method-name": "retrieve",
+        "x-ferrule-method-order": 0,
         "x-ferrule-models": {
           "Reference": {
             "module": "shared.references",
@@ -4407,6 +5836,9 @@
           "repo": "OneBusAway/python-sdk"
         },
         "x-ferrule-resource": {
+          "order": [
+            21
+          ],
           "path": [
             "trip_for_vehicle"
           ]
@@ -4447,7 +5879,59 @@
           "trip"
         ],
         "x-fern-sdk-method-name": "retrieve",
+        "x-ferrule-client": {
+          "defaultEnvironment": "production",
+          "defaultHeaders": {},
+          "envPrefix": "ONEBUSAWAY_SDK",
+          "environments": [
+            {
+              "name": "production",
+              "url": "https://api.pugetsound.onebusaway.org"
+            }
+          ],
+          "name": "onebusaway-sdk",
+          "omitPlatformHeaders": false,
+          "opts": [
+            {
+              "auth": {
+                "role": "value",
+                "securityScheme": "ApiKeyAuth"
+              },
+              "name": "api_key",
+              "nullable": false,
+              "readEnv": "ONEBUSAWAY_API_KEY",
+              "send": {
+                "in": "query",
+                "name": "key"
+              },
+              "type": "string"
+            }
+          ],
+          "query": {
+            "arrayFormat": "repeat",
+            "nestedFormat": "brackets"
+          },
+          "retries": {
+            "initialDelaySeconds": 0.5,
+            "maxDelaySeconds": 8,
+            "maxRetries": 2
+          },
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ],
+          "securitySchemes": {
+            "ApiKeyAuth": {
+              "in": "query",
+              "name": "key",
+              "type": "apiKey"
+            }
+          },
+          "timeoutSeconds": 60
+        },
         "x-ferrule-method-name": "retrieve",
+        "x-ferrule-method-order": 0,
         "x-ferrule-models": {
           "Reference": {
             "module": "shared.references",
@@ -4463,6 +5947,9 @@
           "repo": "OneBusAway/python-sdk"
         },
         "x-ferrule-resource": {
+          "order": [
+            18
+          ],
           "path": [
             "trip"
           ]
@@ -4587,7 +6074,59 @@
           "trips_for_location"
         ],
         "x-fern-sdk-method-name": "list",
+        "x-ferrule-client": {
+          "defaultEnvironment": "production",
+          "defaultHeaders": {},
+          "envPrefix": "ONEBUSAWAY_SDK",
+          "environments": [
+            {
+              "name": "production",
+              "url": "https://api.pugetsound.onebusaway.org"
+            }
+          ],
+          "name": "onebusaway-sdk",
+          "omitPlatformHeaders": false,
+          "opts": [
+            {
+              "auth": {
+                "role": "value",
+                "securityScheme": "ApiKeyAuth"
+              },
+              "name": "api_key",
+              "nullable": false,
+              "readEnv": "ONEBUSAWAY_API_KEY",
+              "send": {
+                "in": "query",
+                "name": "key"
+              },
+              "type": "string"
+            }
+          ],
+          "query": {
+            "arrayFormat": "repeat",
+            "nestedFormat": "brackets"
+          },
+          "retries": {
+            "initialDelaySeconds": 0.5,
+            "maxDelaySeconds": 8,
+            "maxRetries": 2
+          },
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ],
+          "securitySchemes": {
+            "ApiKeyAuth": {
+              "in": "query",
+              "name": "key",
+              "type": "apiKey"
+            }
+          },
+          "timeoutSeconds": 60
+        },
         "x-ferrule-method-name": "list",
+        "x-ferrule-method-order": 0,
         "x-ferrule-models": {
           "Reference": {
             "module": "shared.references",
@@ -4603,6 +6142,9 @@
           "repo": "OneBusAway/python-sdk"
         },
         "x-ferrule-resource": {
+          "order": [
+            19
+          ],
           "path": [
             "trips_for_location"
           ]
@@ -4703,7 +6245,59 @@
           "trips_for_route"
         ],
         "x-fern-sdk-method-name": "list",
+        "x-ferrule-client": {
+          "defaultEnvironment": "production",
+          "defaultHeaders": {},
+          "envPrefix": "ONEBUSAWAY_SDK",
+          "environments": [
+            {
+              "name": "production",
+              "url": "https://api.pugetsound.onebusaway.org"
+            }
+          ],
+          "name": "onebusaway-sdk",
+          "omitPlatformHeaders": false,
+          "opts": [
+            {
+              "auth": {
+                "role": "value",
+                "securityScheme": "ApiKeyAuth"
+              },
+              "name": "api_key",
+              "nullable": false,
+              "readEnv": "ONEBUSAWAY_API_KEY",
+              "send": {
+                "in": "query",
+                "name": "key"
+              },
+              "type": "string"
+            }
+          ],
+          "query": {
+            "arrayFormat": "repeat",
+            "nestedFormat": "brackets"
+          },
+          "retries": {
+            "initialDelaySeconds": 0.5,
+            "maxDelaySeconds": 8,
+            "maxRetries": 2
+          },
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ],
+          "securitySchemes": {
+            "ApiKeyAuth": {
+              "in": "query",
+              "name": "key",
+              "type": "apiKey"
+            }
+          },
+          "timeoutSeconds": 60
+        },
         "x-ferrule-method-name": "list",
+        "x-ferrule-method-order": 0,
         "x-ferrule-models": {
           "Reference": {
             "module": "shared.references",
@@ -4719,6 +6313,9 @@
           "repo": "OneBusAway/python-sdk"
         },
         "x-ferrule-resource": {
+          "order": [
+            22
+          ],
           "path": [
             "trips_for_route"
           ]
@@ -4759,7 +6356,59 @@
           "vehicles_for_agency"
         ],
         "x-fern-sdk-method-name": "list",
+        "x-ferrule-client": {
+          "defaultEnvironment": "production",
+          "defaultHeaders": {},
+          "envPrefix": "ONEBUSAWAY_SDK",
+          "environments": [
+            {
+              "name": "production",
+              "url": "https://api.pugetsound.onebusaway.org"
+            }
+          ],
+          "name": "onebusaway-sdk",
+          "omitPlatformHeaders": false,
+          "opts": [
+            {
+              "auth": {
+                "role": "value",
+                "securityScheme": "ApiKeyAuth"
+              },
+              "name": "api_key",
+              "nullable": false,
+              "readEnv": "ONEBUSAWAY_API_KEY",
+              "send": {
+                "in": "query",
+                "name": "key"
+              },
+              "type": "string"
+            }
+          ],
+          "query": {
+            "arrayFormat": "repeat",
+            "nestedFormat": "brackets"
+          },
+          "retries": {
+            "initialDelaySeconds": 0.5,
+            "maxDelaySeconds": 8,
+            "maxRetries": 2
+          },
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ],
+          "securitySchemes": {
+            "ApiKeyAuth": {
+              "in": "query",
+              "name": "key",
+              "type": "apiKey"
+            }
+          },
+          "timeoutSeconds": 60
+        },
         "x-ferrule-method-name": "list",
+        "x-ferrule-method-order": 0,
         "x-ferrule-models": {
           "Reference": {
             "module": "shared.references",
@@ -4775,6 +6424,9 @@
           "repo": "OneBusAway/python-sdk"
         },
         "x-ferrule-resource": {
+          "order": [
+            2
+          ],
           "path": [
             "vehicles_for_agency"
           ]
@@ -4812,6 +6464,57 @@
       "url": "https://api.pugetsound.onebusaway.org"
     }
   ],
+  "x-ferrule-client": {
+    "defaultEnvironment": "production",
+    "defaultHeaders": {},
+    "envPrefix": "ONEBUSAWAY_SDK",
+    "environments": [
+      {
+        "name": "production",
+        "url": "https://api.pugetsound.onebusaway.org"
+      }
+    ],
+    "name": "onebusaway-sdk",
+    "omitPlatformHeaders": false,
+    "opts": [
+      {
+        "auth": {
+          "role": "value",
+          "securityScheme": "ApiKeyAuth"
+        },
+        "name": "api_key",
+        "nullable": false,
+        "readEnv": "ONEBUSAWAY_API_KEY",
+        "send": {
+          "in": "query",
+          "name": "key"
+        },
+        "type": "string"
+      }
+    ],
+    "query": {
+      "arrayFormat": "repeat",
+      "nestedFormat": "brackets"
+    },
+    "retries": {
+      "initialDelaySeconds": 0.5,
+      "maxDelaySeconds": 8,
+      "maxRetries": 2
+    },
+    "security": [
+      {
+        "ApiKeyAuth": []
+      }
+    ],
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "in": "query",
+        "name": "key",
+        "type": "apiKey"
+      }
+    },
+    "timeoutSeconds": 60
+  },
   "x-ferrule-config": {
     "edition": "2025-10-10",
     "packageName": "onebusaway",

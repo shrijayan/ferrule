@@ -64,3 +64,31 @@ resources: { a: { models: { thing: { type: { $ref: "#/components/schemas/Thing" 
     ]);
   });
 });
+
+describe('x-fern-type-name (gap G3)', () => {
+  it('names every schema models: points at, with the last name winning', () => {
+    const config = parseConfig(`
+resources:
+  $shared: { models: { references: Ref } }
+  a: { models: { thing: Thing, other_ref: Ref }, methods: { list: get /a } }
+`);
+    const { spec: out, diagnostics } = convert(spec, config);
+    expect(diagnostics).toEqual([]);
+    const schemas = (out as { components: { schemas: Record<string, Record<string, unknown>> } })
+      .components.schemas;
+    expect(schemas).toMatchObject({
+      Thing: { 'x-fern-type-name': 'Thing' },
+      Ref: { 'x-fern-type-name': 'OtherRef' },
+    });
+    expect(spec.components.schemas.Ref).not.toHaveProperty('x-fern-type-name');
+  });
+
+  it('reports FER1005 for a model whose schema is not in the spec', () => {
+    const config = parseConfig('resources: { a: { models: { ghost: Ghost } } }');
+    const { spec: out, diagnostics } = convert(spec, config);
+    expect(diagnostics.map((d) => [d.code, d.severity, d.pointer])).toEqual([
+      ['FER1005', 'error', '/resources/a/models/ghost'],
+    ]);
+    expect(out).toEqual(spec);
+  });
+});

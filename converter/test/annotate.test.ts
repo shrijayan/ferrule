@@ -21,6 +21,8 @@ const cursorPage = {
 const expectedPagination = {
   scheme: 'cursor',
   page: 'cursor_page',
+  paramLocation: 'query',
+  continueOnEmptyItems: false,
   request: { after: 'next_cursor_param', limit: 'limit' },
   response: { data: 'items', next_cursor: 'next_cursor_field' },
 };
@@ -104,18 +106,23 @@ describe('convert: resources and methods', () => {
     expect(op(spec, '/users', 'post')).toMatchObject({
       'x-fern-sdk-group-name': ['users'],
       'x-fern-sdk-method-name': 'create',
-      'x-ferrule-resource': { path: ['users'] },
+      'x-ferrule-resource': { path: ['users'], order: [0] },
       'x-ferrule-method-name': 'create',
+      'x-ferrule-method-order': 1,
     });
     expect(op(spec, '/users/{id}/posts', 'get')).toMatchObject({
       'x-fern-sdk-group-name': ['users', 'posts'],
-      'x-ferrule-resource': { path: ['users', 'posts'] },
+      'x-ferrule-resource': { path: ['users', 'posts'], order: [0, 0] },
       'x-ferrule-method-name': 'list_posts',
+      'x-ferrule-method-order': 0,
     });
     // `$client` is kept verbatim; the verb is case-insensitive; later methods win on shared operations.
+    // Forge needs a non-empty group, so `$client` methods go to a reserved one.
     expect(op(spec, '/users/{id}', 'get')).toMatchObject({
-      'x-ferrule-resource': { path: ['$client'] },
+      'x-fern-sdk-group-name': ['$ferrule_client'],
+      'x-ferrule-resource': { path: ['$client'], order: [1] },
       'x-ferrule-method-name': 'ping',
+      'x-ferrule-method-order': 0,
     });
   });
 
@@ -177,6 +184,8 @@ describe('convert: pagination', () => {
     expect(op(spec, '/users/{id}/posts', 'get')['x-ferrule-pagination']).toEqual({
       scheme: 'cursor',
       page: 'p',
+      paramLocation: 'query',
+      continueOnEmptyItems: false,
       request: {},
       response: { data: 'data' },
     });
@@ -367,5 +376,104 @@ describe('properties', () => {
         expect(convertText(text, yaml)).toEqual(convertText(text, yaml));
       }),
     );
+  });
+});
+
+describe('convert: client, order, streaming and $client', () => {
+  it('records stainless.yml order of resources and methods (gap G11)', () => {
+    const { spec } = convert(makeSpec(), {
+      resources: {
+        z: { methods: { second: 'get /users/{id}/posts', first: 'post /users' } },
+        a: { subresources: { x: {}, y: { methods: { only: 'get /users' } } } },
+      },
+    });
+    expect(op(spec, '/users', 'post')).toMatchObject({
+      'x-ferrule-resource': { path: ['z'], order: [0] },
+      'x-ferrule-method-order': 1,
+    });
+    expect(op(spec, '/users/{id}/posts', 'get')).toMatchObject({ 'x-ferrule-method-order': 0 });
+    expect(op(spec, '/users', 'get')).toMatchObject({
+      'x-fern-sdk-group-name': ['a', 'y'],
+      'x-ferrule-resource': { path: ['a', 'y'], order: [1, 1] },
+      'x-ferrule-method-order': 0,
+    });
+  });
+
+  it('writes x-ferrule-client at the root and on every operation for a python target', () => {
+    const { spec, diagnostics } = convert(makeSpec(), {
+      organization: { name: 'acme' },
+      targets: { python: { package_name: 'acme' } },
+      client_settings: { idempotency: { header: 'Idempotency-Key' } },
+      resources: { users: { methods: { create: 'post /users', retrieve: 'get /users/{id}' } } },
+    });
+    expect(diagnostics).toEqual([]);
+    const root = spec['x-ferrule-client'];
+    expect(root).toMatchObject({
+      name: 'acme',
+      envPrefix: 'ACME',
+      idempotencyHeader: 'Idempotency-Key',
+    });
+    expect(op(spec, '/users', 'post')['x-ferrule-client']).toEqual(root);
+    expect(op(spec, '/users/{id}', 'get')['x-ferrule-client']).toEqual(root);
+    const none = convert(makeSpec(), {
+      resources: { users: { methods: { create: 'post /users' } } },
+    });
+    expect(none.spec).not.toHaveProperty('x-ferrule-client');
+    expect(op(none.spec, '/users', 'post')).not.toHaveProperty('x-ferrule-client');
+  });
+
+  it('passes client diagnostics through', () => {
+    const { diagnostics } = convert(makeSpec(), {
+      targets: { python: { package_name: 'acme' } },
+      client_settings: { default_timeout: 'never' },
+    });
+    expect(diagnostics.map((d) => d.code)).toEqual(['FER1105']);
+  });
+
+  it('writes x-ferrule-streaming with the top-level on_event handlers', () => {
+    const { spec, diagnostics } = convert(makeSpec(), {
+      streaming: { on_event: [{ data_starts_with: '[DONE]', handle: 'done' }] },
+      resources: {
+        users: {
+          methods: {
+            create: { endpoint: 'post /users', streaming: { param_discriminator: null } },
+            retrieve: { endpoint: 'get /users/{id}', streaming: { type: 'jsonl' } },
+          },
+        },
+      },
+    });
+    expect(op(spec, '/users', 'post')['x-ferrule-streaming']).toEqual({
+      format: 'sse',
+      paramDiscriminator: null,
+      synthesizeEventAndData: false,
+      onEvent: [{ kind: 'data', handle: 'done', dataStartsWith: '[DONE]' }],
+    });
+    expect(op(spec, '/users/{id}', 'get')['x-ferrule-streaming']).toMatchObject({
+      format: 'jsonl',
+    });
+    expect(diagnostics.map((d) => [d.code, d.pointer])).toEqual([
+      ['FER1201', '/resources/users/methods/retrieve/streaming'],
+    ]);
+  });
+
+  it('reports FER1401 for a resource sharing the $client Forge group', () => {
+    const { diagnostics } = convert(makeSpec(), {
+      resources: { ferrule_client: {}, $client: { methods: { ping: 'get /users' } } },
+    });
+    expect(diagnostics.map((d) => [d.code, d.severity, d.pointer])).toEqual([
+      ['FER1401', 'error', '/resources/ferrule_client'],
+    ]);
+  });
+
+  it('reports pagination config errors and names the defined schemes', () => {
+    const { diagnostics } = convert(makeSpec(), {
+      pagination: [cursorPage, { name: 'bad', type: 'token', request: {}, response: {} }],
+      resources: { u: { methods: { get: { endpoint: 'get /users/{id}', paginated: 'nope' } } } },
+    } as unknown as Config);
+    expect(diagnostics.map((d) => [d.code, d.pointer])).toEqual([
+      ['FER1301', '/pagination/1/type'],
+      ['FER1002', '/resources/u/methods/get/paginated'],
+    ]);
+    expect(diagnostics[1]?.suggestion).toContain('cursor_page');
   });
 });
