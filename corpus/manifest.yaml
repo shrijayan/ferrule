@@ -1,0 +1,199 @@
+# Spec corpus (plan §13). Everything is pinned by commit SHA and sha256.
+# Tier 1: messy real-world specs, run nightly. Tier 2: long tail, run weekly.
+#
+# Format: leading `#` comment lines, then one JSON document (valid YAML 1.2), read by
+# corpus/fetch.py with the stdlib json module. Don't add YAML-only syntax.
+{
+  "version": 1,
+  "tier1": [
+    {
+      "name": "stripe",
+      "url": "https://raw.githubusercontent.com/stripe/openapi/b339867409bf2fb41b6c3411804de1ec4ebf6a49/openapi/spec3.json",
+      "format": "json",
+      "source": {
+        "repo": "stripe/openapi",
+        "sha": "b339867409bf2fb41b6c3411804de1ec4ebf6a49",
+        "path": "openapi/spec3.json"
+      },
+      "sha256": "7cff4cc46d0654101a36a3302f7544640f5f73e4f3cad6f264f0e23c19fa1776",
+      "size": 8317513,
+      "notes": ""
+    },
+    {
+      "name": "github",
+      "url": "https://raw.githubusercontent.com/github/rest-api-description/755ee33b4a81d51f6f07a902cce26cbec3b822f2/descriptions/api.github.com/api.github.com.json",
+      "format": "json",
+      "source": {
+        "repo": "github/rest-api-description",
+        "sha": "755ee33b4a81d51f6f07a902cce26cbec3b822f2",
+        "path": "descriptions/api.github.com/api.github.com.json"
+      },
+      "sha256": "3177ad6a86ca04c57a9bef3fc24e28a339efb8eb040c6f950af3d3ed2fee7fa3",
+      "size": 13502446,
+      "notes": ""
+    },
+    {
+      "name": "openai",
+      "url": "https://raw.githubusercontent.com/openai/openai-openapi/290bd01b67ff8fc8f87545794197c1413fb740d1/openapi.yaml",
+      "format": "yaml",
+      "source": {
+        "repo": "openai/openai-openapi",
+        "sha": "290bd01b67ff8fc8f87545794197c1413fb740d1",
+        "path": "openapi.yaml"
+      },
+      "sha256": "9e6a6c528ad39fb9544cae241178bd01362b690952bea6b65bce8ab9c9d69898",
+      "size": 4130012,
+      "notes": ""
+    },
+    {
+      "name": "kubernetes",
+      "url": "https://raw.githubusercontent.com/kubernetes/kubernetes/fe7019ffeefc6a40714d56a9f16c72a0faec5151/api/openapi-spec/swagger.json",
+      "format": "json",
+      "source": {
+        "repo": "kubernetes/kubernetes",
+        "sha": "fe7019ffeefc6a40714d56a9f16c72a0faec5151",
+        "path": "api/openapi-spec/swagger.json"
+      },
+      "sha256": "1cd8928592840c5a1add46382a56f53f0d3289b056adc98f02e12bb20adc85ac",
+      "size": 4293433,
+      "notes": ""
+    },
+    {
+      "name": "twilio",
+      "url": "https://raw.githubusercontent.com/twilio/twilio-oai/d9775142962ea67d5f3d50c5021a23ae6d330c5b/spec/json/twilio_api_v2010.json",
+      "format": "json",
+      "source": {
+        "repo": "twilio/twilio-oai",
+        "sha": "d9775142962ea67d5f3d50c5021a23ae6d330c5b",
+        "path": "spec/json/twilio_api_v2010.json"
+      },
+      "sha256": "bfdf249a129819af274d6bdc7672156ea3416ad48670a6f0544def6ef386ba87",
+      "size": 1878657,
+      "notes": ""
+    },
+    {
+      "name": "cloudflare",
+      "url": "https://raw.githubusercontent.com/cloudflare/api-schemas/81cb007b0c4d2390574ee48d6bc21dbbad61afb2/openapi.json",
+      "format": "json",
+      "source": {
+        "repo": "cloudflare/api-schemas",
+        "sha": "81cb007b0c4d2390574ee48d6bc21dbbad61afb2",
+        "path": "openapi.json"
+      },
+      "sha256": "aa6bdbad8612a41f302ee214f20f0a1ece5f821068dfb56ef7558e27908de4b3",
+      "size": 27485719,
+      "notes": ""
+    },
+    {
+      "name": "azure-storage",
+      "url": "https://raw.githubusercontent.com/Azure/azure-rest-api-specs/5e1aa0afb98f3db8f8ca5c41e3291a2807f504e7/specification/storage/resource-manager/Microsoft.Storage/Storage/stable/2026-09-01/openapi.json",
+      "format": "json",
+      "source": {
+        "repo": "Azure/azure-rest-api-specs",
+        "sha": "5e1aa0afb98f3db8f8ca5c41e3291a2807f504e7",
+        "path": "specification/storage/resource-manager/Microsoft.Storage/Storage/stable/2026-09-01/openapi.json"
+      },
+      "sha256": "9b3aeac07a8682e7adc3055adbde5da2d5cfb3670891856b7733535ce4d0eef0",
+      "size": 732126,
+      "notes": "Azure Storage resource-manager (Microsoft.Storage) 2026-09-01, emitted from TypeSpec."
+    },
+    {
+      "name": "slack",
+      "url": "https://raw.githubusercontent.com/slackapi/slack-api-specs/bc08db49625630e3585bf2f1322128ea04f2a7f3/web-api/slack_web_openapi_v2.json",
+      "format": "json",
+      "source": {
+        "repo": "slackapi/slack-api-specs",
+        "sha": "bc08db49625630e3585bf2f1322128ea04f2a7f3",
+        "path": "web-api/slack_web_openapi_v2.json"
+      },
+      "sha256": "742a5c977180a829df8767cf57bc417d99b3713583aee83741efb9c08ca731e7",
+      "size": 1237332,
+      "notes": ""
+    },
+    {
+      "name": "plaid",
+      "url": "https://raw.githubusercontent.com/plaid/plaid-openapi/abdd466c34798e9d71663dcb6a3aa9ba78d74959/2020-09-14.yml",
+      "format": "yaml",
+      "source": {
+        "repo": "plaid/plaid-openapi",
+        "sha": "abdd466c34798e9d71663dcb6a3aa9ba78d74959",
+        "path": "2020-09-14.yml"
+      },
+      "sha256": "ea443cd78f6f6bb648c6f0c13f4b00095c3520dcaf45fc7930c36594227a43ee",
+      "size": 3287800,
+      "notes": ""
+    },
+    {
+      "name": "square",
+      "url": "https://raw.githubusercontent.com/square/connect-api-specification/0689c901bdfe1ff73f47aa28b17ccd6e0c40bf2d/api.json",
+      "format": "json",
+      "source": {
+        "repo": "square/connect-api-specification",
+        "sha": "0689c901bdfe1ff73f47aa28b17ccd6e0c40bf2d",
+        "path": "api.json"
+      },
+      "sha256": "8f65460732e19d7445f7a34d8a9df09163db45273df5176a1cc794890ef591fb",
+      "size": 3273134,
+      "notes": ""
+    },
+    {
+      "name": "digitalocean",
+      "url": "https://raw.githubusercontent.com/digitalocean/openapi/b4cdd05c25b9903e70d357b6179baba93c58ecdf/specification/DigitalOcean-public.v2.yaml",
+      "format": "yaml",
+      "source": {
+        "repo": "digitalocean/openapi",
+        "sha": "b4cdd05c25b9903e70d357b6179baba93c58ecdf",
+        "path": "specification/DigitalOcean-public.v2.yaml"
+      },
+      "sha256": "3b6d440549faf18c731fe22570fbaca02462cf61be9128b9f59e9672d5e76d39",
+      "size": 141082,
+      "notes": "Multi-file spec: the root document $refs sibling files at the same commit; fetch.py downloads only the root."
+    },
+    {
+      "name": "discord",
+      "url": "https://raw.githubusercontent.com/discord/discord-api-spec/bf93257f85d62054a0a6982d32f6bcb724abd015/specs/openapi.json",
+      "format": "json",
+      "source": {
+        "repo": "discord/discord-api-spec",
+        "sha": "bf93257f85d62054a0a6982d32f6bcb724abd015",
+        "path": "specs/openapi.json"
+      },
+      "sha256": "8ce3450e18f3381dd6b2936db2172ecb5bf8a7f6549ecb51ec3cd01b7c30fa3b",
+      "size": 1194330,
+      "notes": ""
+    },
+    {
+      "name": "docker",
+      "url": "https://raw.githubusercontent.com/moby/moby/b711d21792db6db488de976eb3c4a653c92c3bc3/api/swagger.yaml",
+      "format": "yaml",
+      "source": {
+        "repo": "moby/moby",
+        "sha": "b711d21792db6db488de976eb3c4a653c92c3bc3",
+        "path": "api/swagger.yaml"
+      },
+      "sha256": "65be7f5d09afed6c4af003304c086edf92067bdd7a29c71a591dce806c34d56d",
+      "size": 475262,
+      "notes": ""
+    },
+    {
+      "name": "jira",
+      "url": "https://developer.atlassian.com/cloud/jira/platform/swagger-v3.v3.json",
+      "format": "json",
+      "source": null,
+      "sha256": "e30922c95a8e036084ce5da6a244e247cb527f3f0eb398f1ba2c973fe4d9e59b",
+      "size": 2510000,
+      "notes": "Not on GitHub; pinned by sha256 only. Atlassian replaces this file in place, so a hash mismatch means re-pin (see corpus/README.md)."
+    }
+  ],
+  "tier2": [
+    {
+      "name": "apis-guru",
+      "kind": "git",
+      "repo": "APIs-guru/openapi-directory",
+      "url": "https://github.com/APIs-guru/openapi-directory.git",
+      "sha": "f04b8d0bcd39c52e1cf3ad7a5fe744709832ae49",
+      "commit_date": "2026-04-20T12:54:01Z",
+      "notes": "Long-tail directory (~780 MB). fetch.py --tier 2 makes a blobless, no-checkout clone and verifies the commit; consumers sparse-checkout what they need."
+    }
+  ]
+}

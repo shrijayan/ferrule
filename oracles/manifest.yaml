@@ -1,0 +1,122 @@
+# Tier 0 oracles (plan §4, §13). Each repo is pinned at its last Stainless-generated commit.
+#
+# Format: leading `#` comment lines, then a single JSON document. JSON is valid YAML 1.2, so this
+# is a YAML file, but fetch.py reads it with the stdlib json module (no PyYAML). Keep it that way.
+# How the SHAs were chosen: see oracles/README.md.
+{
+  "version": 1,
+  "oracles": [
+    {
+      "name": "onebusaway-config",
+      "group": "onebusaway",
+      "kind": "config",
+      "repo": "OneBusAway/sdk-config",
+      "url": "https://github.com/OneBusAway/sdk-config.git",
+      "sha": "27cdbb11faf296d3eed63aa19148dd006e05b934",
+      "commit_date": "2026-07-11T07:08:58Z",
+      "commit_message": "Merge pull request #19 from OneBusAway/feat/openapi-location-params-optional",
+      "pairs_with": "onebusaway-python",
+      "stats": null,
+      "verify_md5": {
+        "openapi.yml": "8df6b1871782bcd2bd8fb1fb2bbc2694",
+        "stainless-config.yml": "c28ddf5b7754155603d9fd1c5fcaeeff"
+      },
+      "notes": "Last sdk-config commit before python-sdk release 1.30.0 (4c20fa83). md5(openapi.yml) equals python-sdk openapi_spec_hash and md5(stainless-config.yml) equals its config_hash, so this is the exact input of that generation. Upstream HEAD 6894347048548b3cf1393a10527858ac8151f930 (2026-09-01) has migrated off Stainless (stlc workspace, stainless-config.yml removed) and is not used."
+    },
+    {
+      "name": "onebusaway-python",
+      "group": "onebusaway",
+      "kind": "sdk",
+      "repo": "OneBusAway/python-sdk",
+      "url": "https://github.com/OneBusAway/python-sdk.git",
+      "sha": "4c20fa834c2a1237ef046e4894af60cd02fb3bcf",
+      "commit_date": "2026-07-18T02:13:27Z",
+      "commit_message": "release: 1.30.0",
+      "pairs_with": "onebusaway-config",
+      "stats": {
+        "configured_endpoints": 30,
+        "openapi_spec_url": "https://storage.googleapis.com/stainless-sdk-openapi-specs/open-transit/open-transit-da4eecc88401fd486b0b8ac2a7b3f442748713e3128d878c7f3e24ea7f65f31d.yml",
+        "openapi_spec_hash": "8df6b1871782bcd2bd8fb1fb2bbc2694",
+        "config_hash": "c28ddf5b7754155603d9fd1c5fcaeeff"
+      },
+      "verify_md5": {},
+      "notes": "Later commits (from c91ec677 'feat: initial stlc build', 2026-08-11) are produced by a different generator."
+    },
+    {
+      "name": "groq-python",
+      "group": "groq",
+      "kind": "sdk",
+      "repo": "groq/groq-python",
+      "url": "https://github.com/groq/groq-python.git",
+      "sha": "ac18a8cdffdd4189b3f9a7d7c083e15e8e67ce58",
+      "commit_date": "2026-08-26T02:35:55Z",
+      "commit_message": "release: 1.7.0 (#283)",
+      "pairs_with": null,
+      "stats": {
+        "configured_endpoints": 17,
+        "openapi_spec_url": "https://storage.googleapis.com/stainless-sdk-openapi-specs/groqcloud/groqcloud-debd965baa031e12228c41e538741fa6055bf2813bcd062840a19f84a17cea95.yml",
+        "openapi_spec_hash": "b4fffde1e729f8b7caaa22ee20257ce7",
+        "config_hash": "6468f67ad7c0d0333daea97b2f5403a4"
+      },
+      "verify_md5": {},
+      "notes": "Later commits come from an stlc pipeline."
+    },
+    {
+      "name": "lithic-python",
+      "group": "lithic",
+      "kind": "sdk",
+      "repo": "lithic-com/lithic-python",
+      "url": "https://github.com/lithic-com/lithic-python.git",
+      "sha": "a1e8c1861ecb7053ef97aad80dcb48aa8fda8b3f",
+      "commit_date": "2026-09-18T20:30:12Z",
+      "commit_message": "release: 0.132.0",
+      "pairs_with": null,
+      "stats": {
+        "configured_endpoints": 220,
+        "openapi_spec_url": "https://storage.googleapis.com/stainless-sdk-openapi-specs/lithic/lithic-61a059277e4c1eb58cc145be1639732d3d0d79d969742baff98690faf96dc164.yml",
+        "openapi_spec_hash": "cc69f6bb4c6d98be95100774de6aff3e",
+        "config_hash": "f21cef3cf163623883f344efe9032e4f"
+      },
+      "verify_md5": {},
+      "notes": "Later commits have no linked GitHub author and include 'stlc:' merges."
+    },
+    {
+      "name": "perplexity-py",
+      "group": "perplexity",
+      "kind": "sdk",
+      "repo": "perplexityai/perplexity-py",
+      "url": "https://github.com/perplexityai/perplexity-py.git",
+      "sha": "f068fb8e270a56440b604703e39750ba219aa0b3",
+      "commit_date": "2026-07-17T17:02:47Z",
+      "commit_message": "release: 0.42.0 (#67)",
+      "pairs_with": null,
+      "stats": {
+        "configured_endpoints": 14,
+        "openapi_spec_url": "https://storage.googleapis.com/stainless-sdk-openapi-specs/perplexity-ai/perplexity-9fca0405579d6d1a2b8e686dfa59daaaf3a60d0627d0638c8079c6d85a4ff7d9.yml",
+        "openapi_spec_hash": "68e5745c9b747b7aa5f46da6c746e4ea",
+        "config_hash": "25a3795c176e58c4127154760d603480"
+      },
+      "verify_md5": {},
+      "notes": "Later commits are by pplx-oss ('chore: sync generated API SDKs')."
+    },
+    {
+      "name": "opencode-sdk-python",
+      "group": "opencode",
+      "kind": "sdk",
+      "repo": "anomalyco/opencode-sdk-python",
+      "url": "https://github.com/anomalyco/opencode-sdk-python.git",
+      "sha": "817f1a08163452fd7fcfbb1268b262cc78a9d629",
+      "commit_date": "2025-08-27T02:38:36Z",
+      "commit_message": "release: 0.1.0-alpha.36",
+      "pairs_with": null,
+      "stats": {
+        "configured_endpoints": 26,
+        "openapi_spec_url": "https://storage.googleapis.com/stainless-sdk-openapi-specs/opencode%2Fopencode-62d8fccba4eb8dc3a80434e0849eab3352e49fb96a718bb7b6d17ed8e582b716.yml",
+        "openapi_spec_hash": "4ff9376cf9634e91731e63fe482ea532",
+        "config_hash": "1ae82c93499b9f0b9ba828b8919f9cb3"
+      },
+      "verify_md5": {},
+      "notes": "sst/opencode-sdk-python redirects here (GitHub reports anomalyco/opencode-sdk-python as the canonical name). HEAD is still this Stainless commit."
+    }
+  ]
+}
