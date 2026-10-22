@@ -1,0 +1,4 @@
+# Third-party Stainless-generated runtime (see runtime/README.md): byte parity with upstream
+# matters more than our lint rules, so nothing here is linted or formatted.
+extend = "../../pyproject.toml"
+extend-exclude = ["**/*.py"]

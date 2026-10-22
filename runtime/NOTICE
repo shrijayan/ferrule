@@ -1,5 +1,22 @@
 ferrule-runtime
+Copyright 2026 The Ferrule Authors
 
-Portions of this runtime will be derived from Apache-2.0 licensed sources
-(Stainless-generated SDK runtimes). The specific upstream sources, copyright
-holders and their NOTICE contents will be credited here as code is ported.
+runtime/template/ is derived from the Stainless-generated OneBusAway Python SDK:
+  Repository: https://github.com/OneBusAway/python-sdk
+  Commit:     4c20fa834c2a1237ef046e4894af60cd02fb3bcf (release 1.30.0)
+  Licence:    Apache License, Version 2.0
+  Copyright:  Copyright 2026 Onebusaway SDK
+  Files:      src/onebusaway/{_base_client,_compat,_constants,_exceptions,_files,_models,
+              _qs,_resource,_response,_streaming,_types}.py, py.typed, _utils/*.py
+  Changes:    Modified by The Ferrule Authors: names, log env var, timeout, max retries and
+              the file-upload hint replaced by placeholders; #ferrule: directive lines added
+              to _utils/_compat.py, _exceptions.py and _response.py. Marks are recorded here
+              and in runtime/README.md instead of in the files to keep rendered output
+              byte-identical (ADR 0004 amendment).
+
+As noted in their upstream headers, _streaming.py contains code initially copied from
+httpx-sse (https://github.com/florimondmanca/httpx-sse, MIT) and _utils/_datetime_parse.py
+contains code from pydantic (https://github.com/pydantic/pydantic, MIT).
+
+src/ferrule_runtime/pagination.py reproduces the pagination class text of Stainless-generated
+SDKs (Apache-2.0): lithic-python, honcho-python-core, knock-python, knock-mgmt-python.

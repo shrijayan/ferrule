@@ -19,7 +19,16 @@ Files derived from these sources keep their original headers and are marked
 Stainless-generated SDK runtimes (Apache-2.0)
 ------------------------------------------------------------------------
 Used in: runtime/ (see runtime/NOTICE for per-file detail)
-Sources: (none yet; add repository, commit and files when code is imported)
+Sources:
+  - OneBusAway/python-sdk @ 4c20fa834c2a1237ef046e4894af60cd02fb3bcf (Apache-2.0,
+    Copyright 2026 Onebusaway SDK): the runtime modules of src/onebusaway/, copied to
+    runtime/template/. Modified by The Ferrule Authors (names replaced by placeholders,
+    #ferrule: directives); marks kept in runtime/README.md and runtime/NOTICE, not in the
+    files, so rendered output stays byte-identical (ADR 0004 amendment).
+  - Pagination class text from lithic-python, honcho-python-core, knock-python and
+    knock-mgmt-python (Apache-2.0), reproduced by runtime/src/ferrule_runtime/pagination.py.
+  - Embedded upstream: httpx-sse (MIT) in _streaming.py, pydantic (MIT) in
+    _utils/_datetime_parse.py, as their headers note.
 
 ------------------------------------------------------------------------
 OneBusAway Python SDK project files (Apache-2.0)

@@ -42,3 +42,12 @@ Chosen: option 2 for `runtime/`, and option 3 in adopt mode.
 - Good: behavior parity by construction; attribution is explicit and auditable.
 - Bad: legal risk until reviewed; tracked as a release blocker for 0.1.
 - Bad: upstream runtime fixes must be pulled manually; parity runs detect drift.
+
+## Amendment 1 (2026-10-23): modification marks for the runtime template
+
+`runtime/template/` holds the OneBusAway SDK runtime with names replaced by placeholders and a
+few `#ferrule:` directive lines. A `# Modified by The Ferrule Authors` line inside each file
+would appear in every rendered SDK and break byte parity with Stainless output. So the
+Apache-2.0 §4(b) notice for these files is recorded in `runtime/README.md`, `runtime/NOTICE`
+and the root `NOTICE` instead of in the files. Each file's original header line is kept.
+Files under `runtime/src/` are our own and carry our header.
