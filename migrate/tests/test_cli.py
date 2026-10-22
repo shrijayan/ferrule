@@ -4,6 +4,7 @@ import subprocess
 import sys
 
 import pytest
+
 from ferrule import __version__
 from ferrule.cli import SUBCOMMANDS, main
 

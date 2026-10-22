@@ -19,3 +19,4 @@ corpus/cache/
 docs/site/dist/
 docs/site/.astro/
 .DS_Store
+.claude/worktrees/

@@ -1,8 +1,9 @@
 # Copyright 2026 Ferrule contributors
 # SPDX-License-Identifier: Apache-2.0
-from ferrule_runtime import retry_delay, should_retry
 from hypothesis import given
 from hypothesis import strategies as st
+
+from ferrule_runtime import retry_delay, should_retry
 
 
 def test_should_retry() -> None:
