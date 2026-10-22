@@ -1,0 +1,306 @@
+# Copyright 2026 Ferrule contributors
+# SPDX-License-Identifier: Apache-2.0
+"""``ferrule generate``: spec + stainless.yml -> a formatted Python SDK tree.
+
+Pipeline: converter CLI -> Forge with the Python plugin -> runtime -> ``ruff format``.
+
+The planning functions here are pure; :func:`generate` is the only place that touches the
+file system or runs processes, and it takes the process runner and the runtime renderer as
+parameters so tests can replace both.
+"""
+
+from __future__ import annotations
+
+import hashlib
+import importlib
+import shutil
+import subprocess
+import tempfile
+from dataclasses import dataclass
+from pathlib import Path, PurePosixPath
+from typing import TYPE_CHECKING, Protocol, cast
+
+from ferrule.errors import (
+    MISSING_INPUT,
+    NO_PACKAGE,
+    NO_RUNTIME,
+    OUT_NOT_EMPTY,
+    STEP_FAILED,
+    TOOL_NOT_FOUND,
+    fail,
+)
+
+if TYPE_CHECKING:
+    from collections.abc import Callable, Iterable, Mapping, Sequence
+
+REPO_ROOT = Path(__file__).resolve().parents[3]
+
+# Runtime modules of a Stainless-style package, relative to src/<package>/. In adopt mode
+# (ADR 0004) these are copied from the customer's own SDK; everything else is generated.
+RUNTIME_FILES = frozenset(
+    {
+        "_base_client.py",
+        "_compat.py",
+        "_constants.py",
+        "_exceptions.py",
+        "_files.py",
+        "_models.py",
+        "_qs.py",
+        "_resource.py",
+        "_response.py",
+        "_streaming.py",
+        "_types.py",
+        "py.typed",
+    },
+)
+RUNTIME_DIRS = frozenset({"_utils"})
+SKIP_PARTS = frozenset({"__pycache__", ".ruff_cache", ".mypy_cache", ".pytest_cache", ".git"})
+
+
+class RuntimeRenderer(Protocol):
+    """What ``ferrule_runtime.render`` must look like for ``generate`` to use it.
+
+    It writes the runtime modules for ``package`` into ``package_dir`` (``<out>/src/<package>``).
+    """
+
+    def __call__(self, package: str, package_dir: Path, /) -> object:
+        """Render the runtime for ``package`` into ``package_dir``."""
+        ...
+
+
+type Runner = Callable[[Sequence[str]], subprocess.CompletedProcess[str]]
+
+
+@dataclass(frozen=True)
+class Tools:
+    """Executables and artifacts the pipeline runs."""
+
+    node: str
+    converter: Path
+    forge: Path
+    plugin: Path
+    ruff: str
+
+
+@dataclass(frozen=True)
+class Step:
+    """One external command in the pipeline."""
+
+    name: str
+    argv: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class GenerateRequest:
+    """Inputs of one ``ferrule generate`` run."""
+
+    spec: Path
+    config: Path
+    out: Path
+    tools: Tools
+    runtime_from: Path | None = None
+
+
+@dataclass(frozen=True)
+class GenerateResult:
+    """What a run produced."""
+
+    package: str
+    files: int
+    runtime_files: int
+    digest: str
+
+
+def resolve_tools(
+    env: Mapping[str, str],
+    root: Path = REPO_ROOT,
+    forge: Path | None = None,
+    plugin: Path | None = None,
+) -> Tools:
+    """Pick tool paths: explicit argument, then ``FERRULE_*`` env var, then repo default."""
+    return Tools(
+        node=env.get("FERRULE_NODE", "node"),
+        converter=Path(env.get("FERRULE_CONVERTER", str(root / "converter" / "src" / "cli.ts"))),
+        forge=forge
+        or Path(env.get("FERRULE_FORGE", str(root / ".cache/forge/target/release/forge"))),
+        plugin=plugin
+        or Path(env.get("FERRULE_PLUGIN", str(root / "python-plugin/dist/plugin.wasm"))),
+        ruff=env.get("FERRULE_RUFF", "ruff"),
+    )
+
+
+def plan_steps(request: GenerateRequest, work: Path) -> tuple[Step, Step]:
+    """Plan the converter and Forge commands, writing the annotated spec into ``work``."""
+    annotated = work / "annotated.json"
+    t = request.tools
+    convert = Step(
+        "convert",
+        (t.node, str(t.converter), str(request.spec), str(request.config), "-o", str(annotated)),
+    )
+    forge = Step(
+        "forge",
+        (str(t.forge), str(annotated), "--target", f"wasm://{t.plugin}", "--out", str(request.out)),
+    )
+    return convert, forge
+
+
+def format_step(out: Path, tools: Tools) -> Step:
+    """``ruff format`` over the output, without leaving a cache behind."""
+    return Step("format", (tools.ruff, "format", "--no-cache", "--quiet", str(out)))
+
+
+def is_runtime_path(rel: PurePosixPath) -> bool:
+    """Whether ``rel`` (relative to the package dir) is a runtime module."""
+    if not rel.parts or any(p in SKIP_PARTS for p in rel.parts):
+        return False
+    if len(rel.parts) == 1:
+        return rel.name in RUNTIME_FILES
+    return rel.parts[0] in RUNTIME_DIRS
+
+
+def runtime_copies(
+    package_files: Iterable[PurePosixPath],
+    generated: Iterable[PurePosixPath],
+) -> list[PurePosixPath]:
+    """Runtime files to copy from an existing package; generated files always win."""
+    taken = set(generated)
+    return sorted(p for p in package_files if is_runtime_path(p) and p not in taken)
+
+
+def pick_package(candidates: Iterable[str], pointer: str) -> str:
+    """Return the single importable package under a ``src/`` directory."""
+    names = sorted(c for c in candidates if c.isidentifier())
+    if len(names) != 1:
+        found = ", ".join(names) or "none"
+        raise fail(
+            NO_PACKAGE,
+            f"expected exactly one package under src/, found {found}",
+            pointer,
+            "point --runtime-from at a Stainless-style SDK with src/<package>/__init__.py",
+        )
+    return names[0]
+
+
+def relative_files(root: Path) -> list[PurePosixPath]:
+    """Every file under ``root`` as sorted POSIX paths, skipping caches."""
+    if not root.is_dir():
+        return []
+    out = [
+        PurePosixPath(p.relative_to(root).as_posix())
+        for p in root.rglob("*")
+        if p.is_file() and not SKIP_PARTS.intersection(p.relative_to(root).parts)
+    ]
+    return sorted(out)
+
+
+def tree_digest(root: Path) -> str:
+    """sha256 over every file's path and bytes; equal trees give equal digests."""
+    h = hashlib.sha256()
+    for rel in relative_files(root):
+        data = (root / rel).read_bytes()
+        h.update(f"{rel}\0{len(data)}\0".encode())
+        h.update(data)
+    return h.hexdigest()
+
+
+def load_renderer() -> RuntimeRenderer | None:
+    """``ferrule_runtime.render`` when the runtime package provides it."""
+    try:
+        module = importlib.import_module("ferrule_runtime")
+    except ImportError:
+        return None
+    render: object = getattr(module, "render", None)
+    return cast("RuntimeRenderer", render) if callable(render) else None
+
+
+def run_subprocess(argv: Sequence[str]) -> subprocess.CompletedProcess[str]:
+    """Run one pipeline command, capturing its output."""
+    return subprocess.run(argv, capture_output=True, text=True, check=False)  # noqa: S603
+
+
+def _check_inputs(request: GenerateRequest) -> None:
+    for label, path in (("--spec", request.spec), ("--config", request.config)):
+        if not path.is_file():
+            raise fail(MISSING_INPUT, f"{path} does not exist", label, "pass an existing file")
+    t = request.tools
+    for label, path in (("FERRULE_FORGE", t.forge), ("FERRULE_PLUGIN", t.plugin)):
+        if not path.is_file():
+            raise fail(
+                TOOL_NOT_FOUND,
+                f"{path} does not exist",
+                label,
+                "run `mise run forge:setup` and `pnpm --filter @ferrule/python-plugin build`, "
+                f"or set {label}",
+            )
+    for label, exe in (("FERRULE_NODE", t.node), ("FERRULE_RUFF", t.ruff)):
+        if shutil.which(exe) is None:
+            raise fail(TOOL_NOT_FOUND, f"{exe} is not on PATH", label, f"install it or set {label}")
+    if request.out.exists() and any(request.out.iterdir()):
+        raise fail(OUT_NOT_EMPTY, f"{request.out} is not empty", "--out", "pass a new directory")
+    if request.runtime_from is not None and not (request.runtime_from / "src").is_dir():
+        raise fail(
+            MISSING_INPUT,
+            f"{request.runtime_from}/src does not exist",
+            "--runtime-from",
+            "point it at the root of an existing SDK checkout",
+        )
+
+
+def _run(step: Step, runner: Runner) -> None:
+    proc = runner(step.argv)
+    if proc.returncode != 0:
+        detail = (proc.stderr or proc.stdout).strip().splitlines()
+        last = detail[-1] if detail else f"exit code {proc.returncode}"
+        raise fail(STEP_FAILED, f"{step.name} failed: {last}", step.name, "fix the reported error")
+
+
+def _src_packages(root: Path) -> list[str]:
+    src = root / "src"
+    return [p.name for p in src.iterdir() if (p / "__init__.py").is_file()] if src.is_dir() else []
+
+
+def _copy_runtime(source_root: Path, out: Path) -> tuple[str, int]:
+    package = pick_package(_src_packages(source_root), "--runtime-from")
+    src_pkg = source_root / "src" / package
+    dst_pkg = out / "src" / package
+    copies = runtime_copies(relative_files(src_pkg), relative_files(dst_pkg))
+    for rel in copies:
+        target = dst_pkg / rel
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(src_pkg / rel, target)
+    return package, len(copies)
+
+
+def generate(
+    request: GenerateRequest,
+    runner: Runner = run_subprocess,
+    renderer: RuntimeRenderer | None = None,
+) -> GenerateResult:
+    """Run the whole pipeline into ``request.out``."""
+    _check_inputs(request)
+    request.out.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix="ferrule-") as tmp:
+        for step in plan_steps(request, Path(tmp)):
+            _run(step, runner)
+    if request.runtime_from is not None:
+        package, runtime_count = _copy_runtime(request.runtime_from, request.out)
+    elif renderer is not None:
+        package = pick_package(_src_packages(request.out), "--out")
+        package_dir = request.out / "src" / package
+        before = len(relative_files(package_dir))
+        renderer(package, package_dir)
+        runtime_count = len(relative_files(package_dir)) - before
+    else:
+        raise fail(
+            NO_RUNTIME,
+            "no runtime source: ferrule_runtime.render is unavailable",
+            "--runtime-from",
+            "pass --runtime-from <existing SDK checkout> (adopt mode)",
+        )
+    _run(format_step(request.out, request.tools), runner)
+    return GenerateResult(
+        package=package,
+        files=len(relative_files(request.out)),
+        runtime_files=runtime_count,
+        digest=tree_digest(request.out),
+    )

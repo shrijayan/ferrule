@@ -6,10 +6,10 @@ import sys
 import pytest
 
 from ferrule import __version__
-from ferrule.cli import SUBCOMMANDS, main
+from ferrule.cli import UNIMPLEMENTED, main
 
 
-@pytest.mark.parametrize("command", sorted(SUBCOMMANDS))
+@pytest.mark.parametrize("command", sorted(UNIMPLEMENTED))
 def test_unimplemented(command: str, capsys: pytest.CaptureFixture[str]) -> None:
     assert main([command]) == 2
     assert "FER0001 not implemented in this version" in capsys.readouterr().err
@@ -30,7 +30,7 @@ def test_no_command() -> None:
 
 def test_module_entry() -> None:
     proc = subprocess.run(
-        [sys.executable, "-m", "ferrule", "verify"],
+        [sys.executable, "-m", "ferrule", "merge"],
         capture_output=True,
         text=True,
         check=False,
