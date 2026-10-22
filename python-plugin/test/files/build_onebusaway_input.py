@@ -14,6 +14,7 @@ import json
 import re
 import sys
 from pathlib import Path
+from typing import Any
 
 import yaml
 
@@ -29,7 +30,7 @@ def snake(name: str) -> str:
     return re.sub(r"(?<!^)(?=[A-Z])", "_", s).lower()
 
 
-def sdk_type(schema: dict) -> dict:
+def sdk_type(schema: dict[str, Any]) -> dict[str, Any]:
     """Return the SdkType of a parameter schema (the shapes OneBusAway uses)."""
     if "enum" in schema:
         return {"kind": "literal", "values": schema["enum"]}
@@ -43,10 +44,10 @@ def sdk_type(schema: dict) -> dict:
     return {"kind": "unknown"}
 
 
-def parse_api_md() -> dict:
+def parse_api_md() -> dict[str, dict[str, Any]]:
     """Resource title -> its api.md types and method lines."""
     text = (SDK / "api.md").read_text()
-    out = {}
+    out: dict[str, dict[str, Any]] = {}
     for block in re.split(r"^# ", text, flags=re.MULTILINE)[1:]:
         title = block.splitlines()[0]
         types = re.search(r"from onebusaway\.types import (.+)", block)
@@ -69,20 +70,21 @@ def variable(sdk_test: Path) -> str:
 
 def main() -> None:
     """Write onebusaway-input.json."""
-    spec = yaml.safe_load((CFG / "openapi.yml").read_text())
-    config = yaml.safe_load((CFG / "stainless-config.yml").read_text())
+    spec: Any = yaml.safe_load((CFG / "openapi.yml").read_text())
+    config: Any = yaml.safe_load((CFG / "stainless-config.yml").read_text())
     api = parse_api_md()
-    resources = []
+    resources: list[dict[str, Any]] = []
     for title, entry in api.items():
         if title == "Shared Types":
             continue
         name = entry["methods"][0][2]
-        methods = []
+        methods: list[dict[str, Any]] = []
         for verb, path, _, method, sig, resp_mod, resp_name in entry["methods"]:
-            op = spec["paths"][path][verb]
-            params = []
+            op: Any = spec["paths"][path][verb]
+            params: list[dict[str, Any]] = []
+            prm: Any
             for prm in spec["paths"][path].get("parameters", []) + op.get("parameters", []):
-                p = {
+                p: dict[str, Any] = {
                     "pyName": snake(prm["name"]),
                     "wireName": prm["name"],
                     "required": bool(prm.get("required", False)),
@@ -98,7 +100,7 @@ def main() -> None:
                 params.append(p)
             params.sort(key=lambda p: p["location"] != "path")
             pm = re.search(r'href="src/onebusaway/([^"]+)\.py">params', sig)
-            entry_out = {
+            entry_out: dict[str, Any] = {
                 "name": method,
                 "httpMethod": verb,
                 "path": path,
@@ -120,9 +122,10 @@ def main() -> None:
                 "subresources": [],
             }
         )
-    stats = dict(line.split(": ", 1) for line in (SDK / ".stats.yml").read_text().splitlines())
-    org = config["organization"]
-    data = {
+    lines = (SDK / ".stats.yml").read_text().splitlines()
+    stats: dict[str, str] = dict(line.split(": ", 1) for line in lines)
+    org: Any = config["organization"]
+    data: dict[str, Any] = {
         "edition": "python.2025-10-08",
         "packageName": "onebusaway",
         "distributionName": config["targets"]["python"]["package_name"],
