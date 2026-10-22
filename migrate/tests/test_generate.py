@@ -19,6 +19,7 @@ from ferrule.generate import (
     format_step,
     generate,
     is_runtime_path,
+    kept_copies,
     load_renderer,
     pick_package,
     plan_steps,
@@ -118,6 +119,24 @@ def test_is_runtime_path(rel: str, *, expected: bool) -> None:
 def test_runtime_copies_generated_wins() -> None:
     have = [P("_types.py"), P("_qs.py"), P("_client.py")]
     assert runtime_copies(have, [P("_types.py")]) == [P("_qs.py")]
+
+
+def test_kept_copies_keep_every_file_the_generator_did_not_write() -> None:
+    # Stainless leaves modules it no longer generates in place (OneBusAway 1.30.0 still ships
+    # types/search_for_route_retrieve_params.py), and lib/ is hand-written: both survive.
+    have = [
+        P("_qs.py"),
+        P("_client.py"),
+        P("lib/helpers.py"),
+        P("types/search_for_route_retrieve_params.py"),
+        P("types/__init__.py"),
+    ]
+    generated = [P("_client.py"), P("types/__init__.py")]
+    assert kept_copies(have, generated) == [
+        P("_qs.py"),
+        P("lib/helpers.py"),
+        P("types/search_for_route_retrieve_params.py"),
+    ]
 
 
 def test_pick_package() -> None:
