@@ -34,3 +34,7 @@ run = "uv run pytest"
 [tasks.check]
 description = "Everything ci.yml runs"
 depends = ["lint:ts", "lint:py", "typecheck:ts", "typecheck:py", "test:ts", "test:py"]
+
+[tasks."forge:telemetry"]
+description = "Fail if Forge gains a network-capable dependency (ADR 0006)"
+run = "bash scripts/forge-telemetry-check.sh"
