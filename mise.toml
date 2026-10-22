@@ -23,7 +23,7 @@ run = ["uv run ruff check .", "uv run ruff format --check ."]
 run = "pnpm -r --if-present typecheck"
 
 [tasks."typecheck:py"]
-run = ["uv run pyright", "uv run mypy runtime/src migrate/src"]
+run = ["uv run pyright", "uv run mypy runtime/src migrate/src", "uv run mypy -p scripts.parity"]
 
 [tasks."test:ts"]
 run = "pnpm -r --if-present test"
@@ -61,3 +61,7 @@ run = "bash scripts/spike.sh"
 [tasks."converter:oracles"]
 description = "Phase 2 gate: convert every config oracle and compare with snapshots"
 run = "python3 -m scripts.oracles.converter_oracles"
+
+[tasks.parity]
+description = "Regenerate an oracle and measure parity"
+run = "uv run python -m scripts.parity.run"
