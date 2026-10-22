@@ -23,7 +23,7 @@ else
   test "$(git -C "$dir" rev-parse HEAD)" = "$FORGE_REF"
 fi
 
-cargo build --manifest-path "$dir/Cargo.toml" --release --locked --features wasm
+(cd "$dir" && cargo build --release --locked --features wasm)
 # The TypeScript plugin library (@cloudflare/forge/plugin, /ts) and its WIT.
 (cd "$dir" && pnpm install --frozen-lockfile)
 (cd "$dir/packages/forge" && node scripts/build.mjs)

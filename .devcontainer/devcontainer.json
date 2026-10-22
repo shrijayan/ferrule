@@ -10,7 +10,13 @@
   "postCreateCommand": "mise trust && mise install && mise run install && (test -f scripts/forge-setup.sh && mise run forge:setup || true) && lefthook install",
   "customizations": {
     "vscode": {
-      "extensions": ["biomejs.biome", "charliermarsh.ruff", "ms-python.python", "ms-pyright.pyright", "hverlin.mise-vscode"]
+      "extensions": [
+        "biomejs.biome",
+        "charliermarsh.ruff",
+        "ms-python.python",
+        "ms-pyright.pyright",
+        "hverlin.mise-vscode"
+      ]
     }
   }
 }
