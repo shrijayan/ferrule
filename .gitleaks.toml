@@ -1,0 +1,9 @@
+# Pinned md5/sha256 digests of public files look like API keys to the generic rule.
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Content digests of public oracle and corpus files"
+paths = ['''^oracles/manifest\.yaml$''', '''^corpus/manifest\.yaml$''']
+regexes = ['''^[0-9a-f]{32}$''', '''^[0-9a-f]{64}$''']
+condition = "AND"
