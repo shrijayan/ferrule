@@ -163,9 +163,11 @@ def test_generate_copies_runtime_and_formats(inputs: tuple[GenerateRequest, Path
         P("src/acme/_qs.py"),
         P("src/acme/_types.py"),
         P("src/acme/_utils/_utils.py"),
+        # No longer generated, so kept from the existing SDK (as Stainless does).
+        P("src/acme/resources/foo.py"),
     ]
     assert (request.out / "src/acme/_types.py").read_text() == "# generated wins\n"
-    assert result == GenerateResult("acme", 5, 2, tree_digest(request.out))
+    assert result == GenerateResult("acme", 6, 3, tree_digest(request.out))
 
 
 def test_generate_is_deterministic(inputs: tuple[GenerateRequest, Path]) -> None:

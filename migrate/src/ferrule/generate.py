@@ -192,6 +192,24 @@ def runtime_copies(
     return sorted(p for p in package_files if is_runtime_path(p) and p not in taken)
 
 
+def kept_copies(
+    package_files: Iterable[PurePosixPath],
+    generated: Iterable[PurePosixPath],
+) -> list[PurePosixPath]:
+    """Files of an existing package to keep: everything the generator did not write.
+
+    That is the runtime, hand-written code (``lib/``) and modules a regeneration no longer
+    produces, which Stainless leaves in place (removing them would break importers). Caches
+    are skipped; generated files always win.
+    """
+    taken = set(generated)
+    return sorted(
+        p
+        for p in package_files
+        if p not in taken and p.parts and not any(part in SKIP_PARTS for part in p.parts)
+    )
+
+
 def pick_package(candidates: Iterable[str], pointer: str) -> str:
     """Return the single importable package under a ``src/`` directory."""
     names = sorted(c for c in candidates if c.isidentifier())
@@ -337,7 +355,7 @@ def _copy_runtime(source_root: Path, out: Path) -> tuple[str, int]:
             "--runtime-from",
             "replace the symlinks with regular files",
         )
-    copies = runtime_copies(relative_files(src_pkg), relative_files(dst_pkg))
+    copies = kept_copies(relative_files(src_pkg), relative_files(dst_pkg))
     for rel in copies:
         source = ensure_inside(src_pkg, rel)
         target = dst_pkg / rel
