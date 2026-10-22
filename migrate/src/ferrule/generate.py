@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import hashlib
 import importlib
+import os
 import shutil
 import subprocess
 import tempfile
@@ -26,6 +27,7 @@ from ferrule.errors import (
     NO_RUNTIME,
     OUT_NOT_EMPTY,
     STEP_FAILED,
+    SYMLINK_REFUSED,
     TOOL_NOT_FOUND,
     fail,
 )
@@ -188,7 +190,9 @@ def relative_files(root: Path) -> list[PurePosixPath]:
     out = [
         PurePosixPath(p.relative_to(root).as_posix())
         for p in root.rglob("*")
-        if p.is_file() and not SKIP_PARTS.intersection(p.relative_to(root).parts)
+        if p.is_file()
+        and not p.is_symlink()
+        and not SKIP_PARTS.intersection(p.relative_to(root).parts)
     ]
     return sorted(out)
 
@@ -259,15 +263,58 @@ def _src_packages(root: Path) -> list[str]:
     return [p.name for p in src.iterdir() if (p / "__init__.py").is_file()] if src.is_dir() else []
 
 
+def symlinks(root: Path) -> list[PurePosixPath]:
+    """Every symlink (file or directory) under ``root``, without following any."""
+    if root.is_symlink():
+        return [PurePosixPath(".")]
+    found: list[PurePosixPath] = []
+    for dirpath, dirnames, filenames in os.walk(root, followlinks=False):
+        base = Path(dirpath)
+        found.extend(
+            PurePosixPath((base / name).relative_to(root).as_posix())
+            for name in (*dirnames, *filenames)
+            if (base / name).is_symlink()
+        )
+    return sorted(found)
+
+
+def ensure_inside(root: Path, rel: PurePosixPath) -> Path:
+    """``root / rel``, refusing any path that is or passes through a symlink or escapes ``root``."""
+    path = root
+    for part in rel.parts:
+        path /= part
+        if path.is_symlink():
+            raise fail(
+                SYMLINK_REFUSED,
+                f"{path} is a symlink",
+                "--runtime-from",
+                "replace it with a regular file",
+            )
+    if not path.resolve().is_relative_to(
+        root.resolve()
+    ):  # pragma: no cover - guarded by the loop above
+        raise fail(SYMLINK_REFUSED, f"{path} escapes {root}", "--runtime-from", "remove it")
+    return path
+
+
 def _copy_runtime(source_root: Path, out: Path) -> tuple[str, int]:
     package = pick_package(_src_packages(source_root), "--runtime-from")
     src_pkg = source_root / "src" / package
     dst_pkg = out / "src" / package
+    linked = symlinks(source_root / "src")
+    if linked:
+        raise fail(
+            SYMLINK_REFUSED,
+            f"refusing symlinks in the runtime source: {', '.join(map(str, linked))}",
+            "--runtime-from",
+            "replace the symlinks with regular files",
+        )
     copies = runtime_copies(relative_files(src_pkg), relative_files(dst_pkg))
     for rel in copies:
+        source = ensure_inside(src_pkg, rel)
         target = dst_pkg / rel
         target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(src_pkg / rel, target)
+        shutil.copyfile(source, target, follow_symlinks=False)
     return package, len(copies)
 
 

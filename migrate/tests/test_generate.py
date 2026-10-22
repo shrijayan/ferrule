@@ -15,6 +15,7 @@ from ferrule.generate import (
     GenerateRequest,
     GenerateResult,
     Tools,
+    ensure_inside,
     format_step,
     generate,
     is_runtime_path,
@@ -25,6 +26,7 @@ from ferrule.generate import (
     resolve_tools,
     run_subprocess,
     runtime_copies,
+    symlinks,
     tree_digest,
 )
 
@@ -295,3 +297,16 @@ def test_runtime_from_refuses_symlinks(inputs: tuple[GenerateRequest, Path], kin
         generate(request, runner=fake_runner([]))
     copied = [p for p in request.out.rglob("*") if p.is_file()]
     assert all("PRIVATE" not in p.read_text() for p in copied)
+
+
+def test_symlink_helpers(tmp_path: Path) -> None:
+    root = tmp_path / "root"
+    write(root / "a/b.py", "x\n")
+    (root / "link.py").symlink_to(root / "a/b.py")
+    (tmp_path / "rootlink").symlink_to(root, target_is_directory=True)
+    assert symlinks(root) == [P("link.py")]
+    assert symlinks(tmp_path / "rootlink") == [P(".")]
+    assert relative_files(root) == [P("a/b.py")]
+    assert ensure_inside(root, P("a/b.py")) == root / "a/b.py"
+    with pytest.raises(FerruleError, match="FER4007"):
+        ensure_inside(root, P("link.py"))
