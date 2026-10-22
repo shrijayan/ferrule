@@ -26,6 +26,14 @@ export function relImport(from: string, target: string): string {
 }
 
 /** Greedy word wrap at `width` columns. */
+/**
+ * Makes spec text safe inside a `"""` docstring: backslashes doubled (as Stainless does) and
+ * quotes that could close the docstring escaped, so a spec can't inject code into the SDK.
+ */
+export function escapeDocstring(text: string): string {
+  return text.replaceAll('\\', '\\\\').replaceAll('"""', '\\"\\"\\"').replace(/"$/, '\\"');
+}
+
 export function wrap(text: string, width = 80): string[] {
   const lines: string[] = [];
   for (const para of text.split('\n')) {

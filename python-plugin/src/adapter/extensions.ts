@@ -68,6 +68,8 @@ function members(v: Json | undefined): Members {
   return isObject(v) ? v : {};
 }
 
+/** A GitHub `owner/name`; it is interpolated into docstrings, so nothing else is allowed. */
+const REPO_SLUG = /^(?:[\w.-]+\/[\w.-]+)?$/;
 const PY_IDENT = /^[A-Za-z_][A-Za-z0-9_]*$/;
 
 export function readMethodExtensions(
@@ -111,8 +113,13 @@ export function readMethodExtensions(
   }
 
   const pkg = members(found.get('x-ferrule-package'));
-  if (typeof pkg.name !== 'string' || !PY_IDENT.test(pkg.name) || typeof pkg.repo !== 'string') {
-    throw bad('x-ferrule-package', '{ name: string, repo: string }');
+  if (
+    typeof pkg.name !== 'string' ||
+    !PY_IDENT.test(pkg.name) ||
+    typeof pkg.repo !== 'string' ||
+    !REPO_SLUG.test(pkg.repo)
+  ) {
+    throw bad('x-ferrule-package', '{ name: string, repo: "owner/name" or "" }');
   }
 
   const models = new Map<string, ModelName>();

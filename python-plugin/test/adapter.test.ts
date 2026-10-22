@@ -59,6 +59,7 @@ describe('readMethodExtensions', () => {
     ['x-ferrule-method-name', 3, 'FER101 #/p/x-ferrule-method-name'],
     ['x-ferrule-package', { name: 'a' }, 'FER101 #/p/x-ferrule-package'],
     ['x-ferrule-package', 'acme', 'FER101 #/p/x-ferrule-package'],
+    ['x-ferrule-package', { name: 'a', repo: 'a/b""" x' }, 'FER101 #/p/x-ferrule-package'],
     ['x-ferrule-models', [], 'FER101 #/p/x-ferrule-models'],
     ['x-ferrule-models', { A: { name: 'A', module: 'Bad-Mod' } }, 'FER101 #/p/x-ferrule-models'],
     ['x-ferrule-models', { A: { name: 1 } }, 'FER101 #/p/x-ferrule-models'],

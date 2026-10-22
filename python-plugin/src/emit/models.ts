@@ -3,7 +3,7 @@ import type { SdkField, SdkObject, SdkRef, SdkType } from '../model/index.ts';
 import { classSegment, singular, splitWords } from '../naming.ts';
 import { LINE_LENGTH, PythonPrinter } from '../printer.ts';
 import { type AnnotationContext, isNullable, toAnnotation } from '../type-mapper.ts';
-import { HEADER, relImport, sortFields, wrap } from './common.ts';
+import { escapeDocstring, HEADER, relImport, sortFields, wrap } from './common.ts';
 
 export interface ModelFile {
   /** The root class and its module under `types`. */
@@ -88,7 +88,7 @@ function fieldLines(
 
 /** A docstring: one line when it fits, otherwise wrapped with the quotes on their own line. */
 export function docstring(text: string, indent: string): string[] {
-  const body = wrap(text.trim());
+  const body = wrap(escapeDocstring(text.trim()));
   if (body.length === 0) return [];
   const one = `${indent}"""${body.join(' ')}"""`;
   if (body.length === 1 && one.length <= LINE_LENGTH) return [one];

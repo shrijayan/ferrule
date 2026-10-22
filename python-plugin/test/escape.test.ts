@@ -10,7 +10,7 @@ describe('docstring escaping', () => {
 
   it('escapes triple quotes so the docstring cannot be closed by the spec', () => {
     const lines = docstring('x """ + __import__("os").system("id") + """', '    ');
-    const text = lines.join('\n');
+    const text = lines.join('\n').trim();
     expect(text.slice(3, -3)).not.toContain('"""');
     expect(text).toContain('\\"\\"\\"');
   });

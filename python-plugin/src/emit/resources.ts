@@ -7,6 +7,7 @@ import type { SdkClient, SdkMethod, SdkResource } from '../model/index.ts';
 import { PythonPrinter } from '../printer.ts';
 import { type AnnotationContext, toAnnotation } from '../type-mapper.ts';
 import {
+  escapeDocstring,
   HEADER,
   methodRef,
   relImport,
@@ -53,7 +54,7 @@ function imp(s: FileState, target: string, name: string): void {
 
 function methodDocstring(method: SdkMethod, args: readonly [string, string][]): string[] {
   const text = (method.description || method.summary).trim();
-  const body = wrap(text);
+  const body = wrap(escapeDocstring(text));
   if (args.length === 0) {
     if (body.length === 0) return [];
     if (body.length === 1) return [`"""${body[0]}"""`];
