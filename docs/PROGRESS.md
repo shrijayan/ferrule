@@ -14,16 +14,21 @@ Gate: `mise run check && mise run docs:build && mise run release:dry-run && mise
 - Oracles pinned at last Stainless commit (`oracles/manifest.yaml`); sdk-config pinned at `27cdbb11` (last commit before upstream deleted `stainless-config.yml`, md5-paired with python-sdk 1.30.0). Corpus Tier 1 (14 specs) + Tier 2 pinned by sha256.
 - Remote half of the gate (signed dev release, deployed docs) → [HUMAN-ACTIONS.md](HUMAN-ACTIONS.md). A separate session is setting up the GitHub repo at the user's request.
 
-## Phase 1 — Plugin spike and adapter: IN PROGRESS
+## Phase 1 — Plugin spike and adapter: DONE (local gate passed 2026-10-23)
 
-See [phases/phase-1.md](phases/phase-1.md).
+Gate: `mise run check && mise run spike` — green. The spike converts the real pinned
+OneBusAway pair, runs Forge + the WASM plugin, and the 5 generated files pass ruff,
+pyright strict and mypy strict inside a copy of the oracle SDK and are byte-identical
+to the oracle except the header line.
 
-### Done
-- Converter spike (task A): resources → Fern grouping + x-ferrule-* extensions, `ferrule-convert` bin, OneBusAway snapshot.
-- Plugin spike (task B): adapter → SdkModel → emitters; OneBusAway `agencies_with_coverage` output byte-identical to the oracle except the header line; cursor-page fixture; `mise run golden`.
+- Converter: resources → Fern grouping + `x-ferrule-*` (resource, method, pagination,
+  package, models), `ferrule-convert` bin, OneBusAway snapshot.
+- Plugin: adapter (only Forge importer) → SdkModel → pure emitters; golden fixtures
+  (`mise run golden`); cursor pagination via synthetic fixture (ADR 0007).
+- Gaps: [forge-gaps.md](forge-gaps.md) — 16 gaps, none blocking; no fork or upstream
+  patch needed. G2/G3 upstream issues queued in HUMAN-ACTIONS.
+- ADR 0008: Dependabot instead of Renovate (maintainer's choice at repo setup).
 
-### Next
-1. Converter: emit `x-ferrule-package {name, repo}` and `x-ferrule-models` on every operation (gaps G2/G3, see `python-plugin/GAPS.md`).
-2. Fold `python-plugin/GAPS.md` into `docs/forge-gaps.md`; amend ADR 0003 for both extensions.
-3. Write `scripts/spike.sh` + `mise run spike` (convert real OneBusAway → forge → plugin → ruff/pyright → diff vs oracle); run the Phase 1 gate.
+## Phase 2 — Converter: IN PROGRESS
 
+See [phases/phase-2.md](phases/phase-2.md).

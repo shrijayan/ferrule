@@ -14,3 +14,4 @@ Stainless output needs an ADR.
 | [0006](./0006-forge-telemetry-check.md)   | Forge telemetry check                                                                  | Accepted | 2026-10-22 |
 | [0007](./0007-phase-1-spike-resource.md) | Phase 1 spike resource and synthetic pagination | Accepted | 2026-10-23 |
 | [0008](./0008-dependabot-instead-of-renovate.md) | Dependabot instead of Renovate | Accepted | 2026-10-23 |
+| [0009](./0009-oracle-configs.md) | Which oracle configs Phase 2 converts | Accepted | 2026-10-23 |
