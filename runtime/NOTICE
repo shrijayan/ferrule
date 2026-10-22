@@ -1,0 +1,5 @@
+ferrule-runtime
+
+Portions of this runtime will be derived from Apache-2.0 licensed sources
+(Stainless-generated SDK runtimes). The specific upstream sources, copyright
+holders and their NOTICE contents will be credited here as code is ported.
