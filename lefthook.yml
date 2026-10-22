@@ -6,7 +6,7 @@ pre-commit:
       run: pnpm exec biome check --no-errors-on-unmatched {staged_files}
     ruff:
       glob: "*.py"
-      run: uv run ruff check {staged_files} && uv run ruff format --check {staged_files}
+      run: uv run ruff check --force-exclude {staged_files} && uv run ruff format --check --force-exclude {staged_files}
     gitleaks:
       run: mise exec -- gitleaks git --staged --no-banner
 commit-msg:
