@@ -30,4 +30,4 @@ mise run install
 mise run check
 ```
 
-See [CONTRIBUTING.md](https://github.com/ferrule-dev/ferrule/blob/main/CONTRIBUTING.md).
+See [CONTRIBUTING.md](https://github.com/shrijayan/ferrule/blob/main/CONTRIBUTING.md).

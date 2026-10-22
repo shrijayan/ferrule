@@ -35,7 +35,7 @@ not multi-language until Python is proven.
 
 ## Documentation
 
-- Docs site: https://ferrule-dev.github.io/ferrule
+- Docs site: https://shrijayan.github.io/ferrule
 - Plan: [docs/plan.html](./docs/plan.html) · Decisions: [docs/adr/](./docs/adr/)
 - Contributing: [CONTRIBUTING.md](./CONTRIBUTING.md) · Governance: [GOVERNANCE.md](./GOVERNANCE.md) · Security: [SECURITY.md](./SECURITY.md)
 

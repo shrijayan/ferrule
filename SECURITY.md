@@ -7,7 +7,7 @@ Ferrule is pre-1.0. Only the latest release and `main` receive security fixes.
 ## Reporting a vulnerability
 
 Please do **not** open a public issue. Report privately through
-[GitHub private vulnerability reporting](https://github.com/ferrule-dev/ferrule/security/advisories/new)
+[GitHub private vulnerability reporting](https://github.com/shrijayan/ferrule/security/advisories/new)
 or by email to `security@ferrule.dev` (placeholder until the domain is registered).
 
 Include the affected component (converter, python-plugin, runtime, migrate, action), version or

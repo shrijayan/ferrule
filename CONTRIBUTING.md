@@ -9,7 +9,7 @@ Thanks for helping teams leave Stainless without their users noticing. Read
 2. Clone and install tools and dependencies:
 
    ```bash
-   git clone https://github.com/ferrule-dev/ferrule && cd ferrule
+   git clone https://github.com/shrijayan/ferrule && cd ferrule
    mise install          # Node 24, pnpm, Python 3.12, uv, lefthook, gitleaks
    mise run install      # pnpm + uv workspaces from frozen lockfiles
    mise run forge:setup  # build the pinned Forge commit

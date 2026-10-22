@@ -2,13 +2,13 @@ import starlight from '@astrojs/starlight';
 import { defineConfig } from 'astro/config';
 
 export default defineConfig({
-  site: 'https://ferrule-dev.github.io',
+  site: 'https://shrijayan.github.io',
   base: '/ferrule',
   integrations: [
     starlight({
       title: 'Ferrule',
       description: 'Leave Stainless without your users noticing.',
-      social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/ferrule-dev/ferrule' }],
+      social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/shrijayan/ferrule' }],
       sidebar: [
         { label: 'Start', items: ['getting-started'] },
         { label: 'Design', items: ['architecture', 'principles'] },
