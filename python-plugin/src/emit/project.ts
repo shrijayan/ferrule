@@ -6,7 +6,14 @@
 import type { SdkClient, SdkMethod, SdkResource } from '../model/index.ts';
 import { PythonPrinter } from '../printer.ts';
 import { emitClientFile } from './client.ts';
-import { HEADER, methodParams, methodRef, resourceModule, returnModel } from './common.ts';
+import {
+  HEADER,
+  methodParams,
+  methodRef,
+  pyString,
+  resourceModule,
+  returnModel,
+} from './common.ts';
 import { emitAliasFile, emitModelFile } from './models.ts';
 import { emitParamsFile } from './params.ts';
 import { className, emitResourceFile } from './resources.ts';
@@ -48,7 +55,7 @@ function resourcesInit(members: readonly SdkResource[]): string {
 }
 
 function allListLines(names: readonly string[]): string[] {
-  return ['__all__ = [', ...names.map((n) => `    ${JSON.stringify(n)},`), ']'];
+  return ['__all__ = [', ...names.map((n) => `    ${pyString(n)},`), ']'];
 }
 
 /** Emits the types a method synthesizes: its inline response model and its params TypedDict. */

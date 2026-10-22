@@ -1,6 +1,11 @@
 /**
  * The only reader of `x-ferrule-*` extensions (ADR 0003). Validates their shapes and turns them
  * into typed values; anything malformed or unknown is a FER diagnostic.
+ *
+ * Untrusted input: extensions carry spec and config text into generated Python. Every value
+ * that becomes a Python identifier (names, env vars, pagination fields) is checked here against
+ * an identifier pattern (FER101); every string literal the emitters print goes through
+ * `pyString`/`pyFString` (emit/common.ts), and every docstring through `escapeDocstring`.
  */
 import type { Json } from '@cloudflare/forge/plugin';
 import { FerruleError } from '../diagnostics.ts';
@@ -153,6 +158,18 @@ function members(v: Json | undefined): Members {
 /** A GitHub `owner/name`; it is interpolated into docstrings, so nothing else is allowed. */
 const REPO_SLUG = /^(?:[\w.-]+\/[\w.-]+)?$/;
 const PY_IDENT = /^[A-Za-z_][A-Za-z0-9_]*$/;
+/** `<PREFIX>_BASE_URL` and friends. */
+const ENV_PREFIX = /^[A-Z][A-Z0-9_]*$/;
+const ENV_NAME = /^[A-Za-z_][A-Za-z0-9_]*$/;
+/** An http(s) URL with nothing that could close or interpolate into a Python string. */
+const HTTP_URL = /^https?:\/\/[^\s"'\\{}]+$/;
+
+/** Pagination field paths: dotted identifiers, with `[]` stepping into array items. */
+function fieldPaths(map: { readonly [key: string]: string }): boolean {
+  return Object.keys(map).every((path) =>
+    path.split('.').every((seg) => seg === '[]' || PY_IDENT.test(seg)),
+  );
+}
 /** A stainless.yml resource key, snake_cased by the adapter (`trip-details`); `$client` is reserved. */
 const RESOURCE_NAME = /^(?:\$client|[A-Za-z_][A-Za-z0-9_-]*)$/;
 
@@ -243,6 +260,8 @@ export function readMethodExtensions(
       !PY_IDENT.test(page) ||
       !isStringRecord(request) ||
       !isStringRecord(response) ||
+      !fieldPaths(request) ||
+      !fieldPaths(response) ||
       (headers !== undefined && !isStringRecord(headers)) ||
       (paramLocation !== undefined && paramLocation !== 'query' && paramLocation !== 'body')
     ) {
@@ -321,6 +340,7 @@ function readOpt(v: Json, fail: () => FerruleError): SdkClientOpt {
     !oneOf(OPT_TYPES, type) ||
     typeof nullable !== 'boolean' ||
     !optString(readEnv) ||
+    (readEnv !== undefined && !ENV_NAME.test(readEnv)) ||
     !optString(description)
   ) {
     throw fail();
@@ -374,6 +394,7 @@ export function readClient(v: Json, fail: () => FerruleError): RawClient {
   if (
     typeof name !== 'string' ||
     typeof envPrefix !== 'string' ||
+    !ENV_PREFIX.test(envPrefix) ||
     !Array.isArray(opts) ||
     !Array.isArray(environments) ||
     !isObject(securitySchemes) ||
@@ -386,7 +407,7 @@ export function readClient(v: Json, fail: () => FerruleError): RawClient {
   }
   const envs = environments.map((e) => {
     const { name: n, url } = members(e);
-    if (typeof n !== 'string' || typeof url !== 'string') throw fail();
+    if (typeof n !== 'string' || typeof url !== 'string' || !HTTP_URL.test(url)) throw fail();
     return { name: n, url };
   });
   const sec = security.map((alt) => {

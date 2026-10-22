@@ -1,4 +1,6 @@
 /** The one function mapping SdkType to a Python annotation (CLAUDE.md: type mapping lives here). */
+
+import { pyString } from './emit/common.ts';
 import type { SdkObject, SdkRef, SdkType } from './model/index.ts';
 import type { PythonPrinter } from './printer.ts';
 
@@ -30,7 +32,7 @@ const PRIMITIVES = {
 } as const;
 
 function pyLiteral(v: string | number | boolean): string {
-  if (typeof v === 'string') return JSON.stringify(v);
+  if (typeof v === 'string') return pyString(v);
   if (typeof v === 'boolean') return v ? 'True' : 'False';
   return String(v);
 }

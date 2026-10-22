@@ -6,7 +6,7 @@
 import { FerruleError } from '../diagnostics.ts';
 import type { SdkClient, SdkClientOpt, SdkClientSettings, SdkResource } from '../model/index.ts';
 import { LINE_LENGTH, PythonPrinter } from '../printer.ts';
-import { HEADER, resourceModule } from './common.ts';
+import { HEADER, pyFString, pyString, resourceModule } from './common.ts';
 import { call, printExpr } from './format.ts';
 import { allList } from './models.ts';
 import { className, emitClientMethods, type Mode } from './resources.ts';
@@ -124,7 +124,7 @@ function emitInit(s: ClientState, mode: Mode): void {
     for (const o of settings.opts) {
       if (o.readEnv !== undefined) {
         p.block(`if ${o.name} is None:`, () =>
-          p.line(`${o.name} = os.environ.get(${JSON.stringify(o.readEnv)})`),
+          p.line(`${o.name} = os.environ.get(${pyString(o.readEnv ?? '')})`),
         );
       }
       if (!o.nullable) {
@@ -137,7 +137,7 @@ function emitInit(s: ClientState, mode: Mode): void {
           printExpr(
             p,
             call(`raise ${errorName(s)}(`, [
-              JSON.stringify(`The ${o.name} client option must be set ${how}`),
+              pyString(`The ${o.name} client option must be set ${how}`),
             ]),
           ),
         );
@@ -149,7 +149,7 @@ function emitInit(s: ClientState, mode: Mode): void {
       p.line(`base_url = os.environ.get("${settings.envPrefix}_BASE_URL")`),
     );
     p.block('if base_url is None:', () =>
-      p.line(`base_url = f${JSON.stringify(env?.url ?? s.client.baseUrl)}`),
+      p.line(`base_url = ${pyFString(env?.url ?? s.client.baseUrl)}`),
     );
     p.line();
     p.importFrom('._utils', 'is_mapping_t');
@@ -213,10 +213,7 @@ function authLines(s: ClientState): string[] | undefined {
         ];
       }
       if (scheme.type === 'apiKey' && scheme.in === 'header') {
-        return [
-          `${opt.name} = self.${opt.name}`,
-          `return {${JSON.stringify(scheme.name)}: ${opt.name}}`,
-        ];
+        return [`${opt.name} = self.${opt.name}`, `return {${pyString(scheme.name)}: ${opt.name}}`];
       }
     }
   }
@@ -248,7 +245,7 @@ function emitClientClass(s: ClientState, mode: Mode): void {
     p.line('@property');
     p.line('@override');
     p.block('def qs(self) -> Querystring:', () =>
-      p.line(`return Querystring(array_format=${JSON.stringify(settings.arrayFormat)})`),
+      p.line(`return Querystring(array_format=${pyString(settings.arrayFormat)})`),
     );
     p.line();
     p.line('@property');
@@ -264,7 +261,7 @@ function emitClientClass(s: ClientState, mode: Mode): void {
         p.line('**super().default_headers,');
         p.line(`"X-Stainless-Async": ${isAsync ? 'f"async:{get_async_library()}"' : '"false"'},`);
         for (const [k, v] of Object.entries(settings.defaultHeaders)) {
-          p.line(`${JSON.stringify(k)}: ${JSON.stringify(v)},`);
+          p.line(`${pyString(k)}: ${pyString(v)},`);
         }
         p.line('**self._custom_headers,');
       });
@@ -278,7 +275,7 @@ function emitClientClass(s: ClientState, mode: Mode): void {
       p.block('def default_query(self) -> dict[str, object]:', () => {
         p.block('return {', () => {
           p.line('**super().default_query,');
-          for (const o of queryOpts) p.line(`${JSON.stringify(o.send?.name)}: self.${o.name},`);
+          for (const o of queryOpts) p.line(`${pyString(o.send?.name ?? '')}: self.${o.name},`);
           p.line('**self._custom_query,');
         });
         p.line('}');

@@ -13,7 +13,7 @@ import type {
 import { classSegment, pascalCase, singular, splitWords } from '../naming.ts';
 import { PythonPrinter } from '../printer.ts';
 import { type AnnotationContext, toAnnotation } from '../type-mapper.ts';
-import { HEADER, methodParams, methodRef, relImport, sortFields } from './common.ts';
+import { HEADER, methodParams, methodRef, pyString, relImport, sortFields } from './common.ts';
 import { call, printExpr } from './format.ts';
 import { allList, docstring } from './models.ts';
 
@@ -120,7 +120,7 @@ function isDate(t: SdkType): boolean {
 function fieldAnnotation(p: PythonPrinter, f: SdkParam, ctx: AnnotationContext): string {
   let ann = toAnnotation(f.type, p, ctx);
   const info: string[] = [];
-  if (f.pyName !== f.wireName) info.push(`alias=${JSON.stringify(f.wireName)}`);
+  if (f.pyName !== f.wireName) info.push(`alias=${pyString(f.wireName)}`);
   if (isDate(f.type)) info.push('format="iso8601"');
   if (info.length > 0) {
     p.importFrom('typing_extensions', 'Annotated');

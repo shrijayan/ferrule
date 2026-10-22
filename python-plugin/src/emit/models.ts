@@ -2,7 +2,7 @@
 import type { SdkField, SdkObject, SdkRef, SdkType } from '../model/index.ts';
 import { LINE_LENGTH, PythonPrinter } from '../printer.ts';
 import { type AnnotationContext, isNullable, toAnnotation } from '../type-mapper.ts';
-import { escapeDocstring, HEADER, relImport, sortFields, wrap } from './common.ts';
+import { escapeDocstring, HEADER, pyString, relImport, sortFields, wrap } from './common.ts';
 import { call, formatExpr } from './format.ts';
 import { type Decl, type Named, nameParams } from './params.ts';
 
@@ -51,7 +51,7 @@ function fieldLines(
   const alias = field.pyName !== field.wireName;
   if (alias) p.importFrom('pydantic', 'Field as FieldInfo');
   const args = [
-    ...(alias ? [`alias=${JSON.stringify(field.wireName)}`] : []),
+    ...(alias ? [`alias=${pyString(field.wireName)}`] : []),
     ...(hasDefault ? ['default=None'] : []),
   ].join(', ');
   const head = `${indent}${field.pyName}: ${ann}`;
@@ -94,9 +94,9 @@ const SUMMARY_MAX = 82;
 
 /** The `__all__` list, wrapped one name per line when it doesn't fit. */
 export function allList(names: readonly string[]): string[] {
-  const one = `__all__ = [${names.map((n) => JSON.stringify(n)).join(', ')}]`;
+  const one = `__all__ = [${names.map((n) => pyString(n)).join(', ')}]`;
   if (one.length <= LINE_LENGTH) return [one];
-  return ['__all__ = [', ...names.map((n) => `    ${JSON.stringify(n)},`), ']'];
+  return ['__all__ = [', ...names.map((n) => `    ${pyString(n)},`), ']'];
 }
 
 /** Renders one model file, `types/<module>.py`. */
@@ -179,7 +179,7 @@ function aliasLines(
   ctx.runtime?.('_utils', 'PropertyInfo');
   const annotated = call(
     'Annotated[',
-    [union, `PropertyInfo(discriminator=${JSON.stringify(u.discriminator)})`],
+    [union, `PropertyInfo(discriminator=${pyString(u.discriminator)})`],
     false,
     ']',
   );

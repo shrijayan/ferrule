@@ -26,6 +26,19 @@ export function relImport(from: string, target: string): string {
 }
 
 /**
+ * A Python string literal for any text. JSON's escaping (quotes, backslashes, control characters
+ * and lone surrogates as `\uXXXX`) is valid in a Python `"..."` literal, so no text can end it.
+ */
+export function pyString(text: string): string {
+  return JSON.stringify(text);
+}
+
+/** An f-string literal holding `text` verbatim: braces are doubled so nothing interpolates. */
+export function pyFString(text: string): string {
+  return `f${pyString(text).replaceAll('{', '{{').replaceAll('}', '}}')}`;
+}
+
+/**
  * Makes spec text safe inside a `"""` docstring: backslashes doubled (as Stainless does) and
  * quotes that could close the docstring escaped, so a spec can't inject code into the SDK.
  */

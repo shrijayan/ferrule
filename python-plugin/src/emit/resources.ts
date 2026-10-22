@@ -11,6 +11,7 @@ import {
   HEADER,
   methodParams,
   methodRef,
+  pyString,
   relImport,
   resourceClassBase,
   resourceModule,
@@ -84,13 +85,13 @@ function argLine(s: FileState, q: SdkParam, ctx: AnnotationContext): string {
 
 /** `path_template("/a/{b_id}", b_id=b_id)` or the plain path string. */
 function pathExpr(method: SdkMethod, s: FileState): Expr {
-  if (method.pathParams.length === 0) return JSON.stringify(method.path);
+  if (method.pathParams.length === 0) return pyString(method.path);
   imp(s, '_utils', 'path_template');
   let template = method.path;
   for (const p of method.pathParams)
     template = template.replace(`{${p.wireName}}`, `{${p.pyName}}`);
   return call('path_template(', [
-    JSON.stringify(template),
+    pyString(template),
     ...method.pathParams.map((p) => `${p.pyName}=${p.pyName}`),
   ]);
 }
@@ -108,7 +109,7 @@ function transformExpr(
   return call(`${key}=${awaits ? 'await ' : ''}${fn}(`, [
     call(
       '{',
-      params.map((q) => `${JSON.stringify(q.pyName)}: ${q.pyName}`),
+      params.map((q) => `${pyString(q.pyName)}: ${q.pyName}`),
       params.length > 1,
       '}',
     ),
