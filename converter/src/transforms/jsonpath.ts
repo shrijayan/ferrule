@@ -77,7 +77,11 @@ type Expr =
 
 class Parser {
   pos = 0;
-  constructor(readonly src: string) {}
+  // A plain field, not a parameter property: node's type stripping (the bin) rejects those.
+  readonly src: string;
+  constructor(src: string) {
+    this.src = src;
+  }
 
   fail(message: string): never {
     throw new JsonPathError(`${message} at offset ${this.pos} in "${this.src}"`);
