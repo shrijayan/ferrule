@@ -1,6 +1,6 @@
 [project]
 name = "ferrule-runtime"
-version = "0.0.0"
+version = "0.1.0"
 description = "Runtime support code vendored into Ferrule-generated Python SDKs."
 license = "Apache-2.0"
 requires-python = ">=3.12"
