@@ -1,0 +1,85 @@
+{
+  "openapi": "3.0.0",
+  "info": { "title": "Cursor Page", "version": "1.0.0" },
+  "servers": [{ "url": "https://api.example.com" }],
+  "x-ferrule-config": {
+    "version": 1,
+    "edition": "python",
+    "packageName": "cursor_page",
+    "projectName": "cursor-page"
+  },
+  "paths": {
+    "/v1/items": {
+      "get": {
+        "summary": "List items.",
+        "parameters": [
+          {
+            "name": "ending_before",
+            "in": "query",
+            "description": "A cursor: return items before this token.",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "description": "Page size (for pagination).",
+            "schema": { "type": "integer" }
+          },
+          {
+            "name": "starting_after",
+            "in": "query",
+            "description": "A cursor: return items after this token.",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of items",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["data", "has_more"],
+                  "properties": {
+                    "data": { "type": "array", "items": { "$ref": "#/components/schemas/Item" } },
+                    "has_more": { "type": "boolean" }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-fern-sdk-group-name": ["items"],
+        "x-fern-sdk-method-name": "list",
+        "x-ferrule-resource": { "path": ["items"] },
+        "x-ferrule-method-name": "list",
+        "x-ferrule-package": { "name": "cursor_page", "repo": "example/cursor-page-python" },
+        "x-ferrule-models": { "Item": { "name": "Item" } },
+        "x-ferrule-pagination": {
+          "scheme": "cursor",
+          "page": "cursor_page",
+          "request": {
+            "starting_after": "next_cursor_param",
+            "ending_before": "previous_cursor_param",
+            "page_size": "limit"
+          },
+          "response": { "data": "items", "has_more": "has_more" }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Item": {
+        "type": "object",
+        "required": ["token", "created"],
+        "properties": {
+          "token": { "type": "string", "description": "Globally unique identifier." },
+          "created": { "type": "string", "format": "date-time" },
+          "status": { "type": "string", "enum": ["ACTIVE", "CLOSED"] },
+          "nickname": { "type": "string", "nullable": true }
+        }
+      }
+    }
+  }
+}

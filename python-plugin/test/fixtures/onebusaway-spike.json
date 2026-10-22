@@ -1,0 +1,542 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "OneBusAway",
+    "description": "The OneBusAway REST API. For use with servers like https://api.pugetsound.onebusaway.org",
+    "version": "0.0.2"
+  },
+  "servers": [
+    {
+      "url": "https://api.pugetsound.onebusaway.org"
+    }
+  ],
+  "x-ferrule-config": {
+    "version": 1,
+    "edition": "python",
+    "packageName": "onebusaway",
+    "projectName": "onebusaway"
+  },
+  "paths": {
+    "/api/where/agencies-with-coverage.json": {
+      "get": {
+        "tags": ["default"],
+        "summary": "Returns a list of all transit agencies currently supported by OneBusAway along with the center of their coverage area.",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseWrapper"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/CoverageResponse"
+                        }
+                      },
+                      "required": ["data"]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "x-fern-sdk-group-name": ["agencies_with_coverage"],
+        "x-fern-sdk-method-name": "list",
+        "x-ferrule-resource": {
+          "path": ["agencies_with_coverage"]
+        },
+        "x-ferrule-method-name": "list",
+        "x-ferrule-package": {
+          "name": "onebusaway",
+          "repo": "OneBusAway/python-sdk"
+        },
+        "x-ferrule-models": {
+          "Reference": {
+            "name": "References",
+            "module": "shared.references"
+          },
+          "ResponseWrapper": {
+            "name": "ResponseWrapper",
+            "module": "shared.response_wrapper"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Agency": {
+        "type": "object",
+        "properties": {
+          "disclaimer": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "fareUrl": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "lang": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "privateService": {
+            "type": "boolean"
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "name", "timezone", "url"]
+      },
+      "Coverage": {
+        "type": "object",
+        "properties": {
+          "agencyId": {
+            "type": "string"
+          },
+          "lat": {
+            "type": "number"
+          },
+          "latSpan": {
+            "type": "number"
+          },
+          "lon": {
+            "type": "number"
+          },
+          "lonSpan": {
+            "type": "number"
+          }
+        },
+        "required": ["agencyId", "lat", "latSpan", "lon", "lonSpan"]
+      },
+      "CoverageResponse": {
+        "type": "object",
+        "properties": {
+          "limitExceeded": {
+            "type": "boolean"
+          },
+          "list": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Coverage"
+            }
+          },
+          "references": {
+            "$ref": "#/components/schemas/Reference"
+          }
+        },
+        "required": ["list", "references"]
+      },
+      "ResponseWrapper": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer"
+          },
+          "currentTime": {
+            "type": "integer"
+          },
+          "text": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer"
+          }
+        },
+        "required": ["code", "currentTime", "text", "version"]
+      },
+      "Reference": {
+        "type": "object",
+        "properties": {
+          "agencies": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Agency"
+            }
+          },
+          "routes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Route"
+            }
+          },
+          "situations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Situation"
+            }
+          },
+          "stopTimes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StopTime"
+            }
+          },
+          "stops": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Stop"
+            }
+          },
+          "trips": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Trip"
+            }
+          }
+        },
+        "required": ["agencies", "routes", "situations", "stopTimes", "stops", "trips"]
+      },
+      "Route": {
+        "type": "object",
+        "properties": {
+          "agencyId": {
+            "type": "string"
+          },
+          "color": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "longName": {
+            "type": "string"
+          },
+          "nullSafeShortName": {
+            "type": "string"
+          },
+          "shortName": {
+            "type": "string"
+          },
+          "textColor": {
+            "type": "string"
+          },
+          "type": {
+            "type": "integer"
+          },
+          "url": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "type", "agencyId"]
+      },
+      "Situation": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the situation."
+          },
+          "creationTime": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Unix timestamp of when this situation was created."
+          },
+          "reason": {
+            "type": "string",
+            "description": "Reason for the service alert, taken from TPEG codes."
+          },
+          "summary": {
+            "type": "object",
+            "properties": {
+              "lang": {
+                "type": "string",
+                "description": "Language of the summary."
+              },
+              "value": {
+                "type": "string",
+                "description": "Short summary of the situation."
+              }
+            }
+          },
+          "description": {
+            "type": "object",
+            "properties": {
+              "lang": {
+                "type": "string",
+                "description": "Language of the description."
+              },
+              "value": {
+                "type": "string",
+                "description": "Longer description of the situation."
+              }
+            }
+          },
+          "url": {
+            "type": "object",
+            "properties": {
+              "lang": {
+                "type": "string",
+                "description": "Language of the URL."
+              },
+              "value": {
+                "type": "string",
+                "description": "URL for more information about the situation."
+              }
+            }
+          },
+          "activeWindows": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "from": {
+                  "type": "integer",
+                  "format": "int64",
+                  "description": "Start time of the active window as a Unix timestamp."
+                },
+                "to": {
+                  "type": "integer",
+                  "format": "int64",
+                  "description": "End time of the active window as a Unix timestamp."
+                }
+              }
+            }
+          },
+          "allAffects": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "agencyId": {
+                  "type": "string",
+                  "description": "Identifier for the agency."
+                },
+                "applicationId": {
+                  "type": "string",
+                  "description": "Identifier for the application."
+                },
+                "directionId": {
+                  "type": "string",
+                  "description": "Identifier for the direction."
+                },
+                "routeId": {
+                  "type": "string",
+                  "description": "Identifier for the route."
+                },
+                "stopId": {
+                  "type": "string",
+                  "description": "Identifier for the stop."
+                },
+                "tripId": {
+                  "type": "string",
+                  "description": "Identifier for the trip."
+                }
+              }
+            }
+          },
+          "consequences": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "condition": {
+                  "type": "string",
+                  "description": "Condition of the consequence."
+                },
+                "conditionDetails": {
+                  "type": "object",
+                  "properties": {
+                    "diversionPath": {
+                      "type": "object",
+                      "properties": {
+                        "length": {
+                          "type": "integer",
+                          "description": "Length of the diversion path."
+                        },
+                        "levels": {
+                          "type": "string",
+                          "description": "Levels of the diversion path."
+                        },
+                        "points": {
+                          "type": "string",
+                          "description": "Points of the diversion path."
+                        }
+                      }
+                    },
+                    "diversionStopIds": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "description": "List of stop IDs affected by the diversion."
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "publicationWindows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimeWindow"
+            }
+          },
+          "severity": {
+            "type": "string",
+            "description": "Severity of the situation."
+          },
+          "consequenceMessage": {
+            "type": "string",
+            "description": "Message regarding the consequence of the situation."
+          }
+        },
+        "required": ["id", "creationTime"]
+      },
+      "TimeWindow": {
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Start time of the time window as a Unix timestamp."
+          },
+          "to": {
+            "type": "integer",
+            "format": "int64",
+            "description": "End time of the time window as a Unix timestamp."
+          }
+        },
+        "required": ["from", "to"]
+      },
+      "Stop": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "direction": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "lat": {
+            "type": "number"
+          },
+          "locationType": {
+            "type": "integer"
+          },
+          "lon": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string"
+          },
+          "parent": {
+            "type": "string"
+          },
+          "routeIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "staticRouteIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "wheelchairBoarding": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "lat",
+          "lon",
+          "name",
+          "parent",
+          "routeIds",
+          "staticRouteIds",
+          "locationType"
+        ]
+      },
+      "Trip": {
+        "type": "object",
+        "properties": {
+          "blockId": {
+            "type": "string"
+          },
+          "directionId": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "peakOffpeak": {
+            "type": "integer"
+          },
+          "routeId": {
+            "type": "string"
+          },
+          "routeShortName": {
+            "type": "string"
+          },
+          "serviceId": {
+            "type": "string"
+          },
+          "shapeId": {
+            "type": "string"
+          },
+          "timeZone": {
+            "type": "string"
+          },
+          "tripHeadsign": {
+            "type": "string"
+          },
+          "tripShortName": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "routeId", "serviceId"]
+      },
+      "StopTime": {
+        "type": "object",
+        "properties": {
+          "arrivalTime": {
+            "type": "integer"
+          },
+          "departureTime": {
+            "type": "integer"
+          },
+          "distanceAlongTrip": {
+            "type": "number"
+          },
+          "historicalOccupancy": {
+            "type": "string"
+          },
+          "stopHeadsign": {
+            "type": "string"
+          },
+          "stopId": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
