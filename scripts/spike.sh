@@ -50,7 +50,7 @@ while IFS= read -r -d '' f; do
   mkdir -p "$(dirname "$out/sdk/$rel")"
   cp "$f" "$out/sdk/$rel"
   generated+=("$rel")
-done < <(find "$out/generated" -name '*.py' -print0 | sort -z)
+done < <(find "$out/generated/src" -name '*.py' -print0 | sort -z)
 echo "generated ${#generated[@]} files"
 
 # Third-party dependencies only, by name; the oracle package itself is not installed.
@@ -71,8 +71,10 @@ uvx ruff@0.17.1 check "${generated[@]}" || status=1
 uvx ruff@0.17.1 format --check "${generated[@]}" || status=1
 echo "== pyright strict"
 PYTHONPATH=src uvx pyright@1.1.414 --pythonpath "$out/venv/bin/python" "${generated[@]}" || status=1
-echo "== mypy strict"
-MYPYPATH=src uvx mypy@2.4.0 --strict --python-executable "$out/venv/bin/python" \
+echo "== mypy (oracle's strict config)"
+# The SDK's own [tool.mypy] settings, as for ruff and pyright: Stainless's _client.py relies on
+# implicit re-exports that bare --strict rejects.
+MYPYPATH=src uvx mypy@2.4.0 --python-executable "$out/venv/bin/python" \
   --follow-imports=silent --explicit-package-bases "${generated[@]}" || status=1
 
 # 5. Diff against the oracle, ignoring only the generated-by header line.
