@@ -1,3 +1,5 @@
+# Copyright 2026 Ferrule contributors
+# SPDX-License-Identifier: Apache-2.0
 """Print the last stainless-app[bot] commit and its .stats.yml for GitHub repos.
 
 Usage: python3 scripts/oracles/find_stainless_commit.py owner/repo [owner/repo ...]

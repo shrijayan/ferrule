@@ -14,7 +14,8 @@
       "!**/*.md",
       "!**/test/golden",
       "!docs/plan.html",
-      "!docs/research"
+      "!docs/research",
+      "!**/manifest.yaml"
     ]
   },
   "formatter": {

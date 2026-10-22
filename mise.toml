@@ -44,3 +44,9 @@ run = "pnpm --filter @ferrule/docs build"
 
 [tasks."release:dry-run"]
 run = "bash scripts/release-dry-run.sh"
+
+[tasks."oracles:fetch"]
+run = "python3 oracles/fetch.py"
+
+[tasks."corpus:fetch"]
+run = "python3 corpus/fetch.py"

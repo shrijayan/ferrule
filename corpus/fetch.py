@@ -1,3 +1,5 @@
+# Copyright 2026 Ferrule contributors
+# SPDX-License-Identifier: Apache-2.0
 """Download the pinned spec corpus into corpus/cache/ and verify each file's sha256.
 
 Usage: python corpus/fetch.py [--tier 1|2|all] [name ...]

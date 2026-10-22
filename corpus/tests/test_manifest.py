@@ -1,3 +1,5 @@
+# Copyright 2026 Ferrule contributors
+# SPDX-License-Identifier: Apache-2.0
 """Offline tests for the corpus manifest and helpers."""
 
 from __future__ import annotations

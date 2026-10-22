@@ -1,3 +1,5 @@
+# Copyright 2026 Ferrule contributors
+# SPDX-License-Identifier: Apache-2.0
 """Clone Tier 0 oracle repos into oracles/cache/<name>, pinned to their last Stainless commit.
 
 Usage: python oracles/fetch.py [name-or-group ...]
