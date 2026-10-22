@@ -50,3 +50,6 @@ run = "python3 oracles/fetch.py"
 
 [tasks."corpus:fetch"]
 run = "python3 corpus/fetch.py"
+
+[tasks.golden]
+run = ["pnpm --filter @ferrule/python-plugin build", "pnpm --filter @ferrule/python-plugin golden"]

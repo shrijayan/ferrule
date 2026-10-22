@@ -43,7 +43,7 @@ known-first-party = ["ferrule", "ferrule_runtime"]
 [tool.pyright]
 typeCheckingMode = "strict"
 pythonVersion = "3.12"
-exclude = ["oracles/cache", "corpus/cache", ".cache", "**/node_modules", "**/.venv"]
+exclude = ["oracles/cache", "corpus/cache", ".cache", "**/node_modules", "**/.venv", "python-plugin/test/golden"]
 
 [tool.mypy]
 strict = true
