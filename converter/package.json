@@ -8,16 +8,21 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "test": "vitest run --coverage"
+    "test": "vitest run --coverage",
+    "convert": "node src/cli.ts"
   },
   "dependencies": {
     "yaml": "2.9.1",
     "zod": "4.6.7"
   },
   "devDependencies": {
+    "@types/node": "24.19.2",
     "@vitest/coverage-v8": "5.0.5",
     "fast-check": "4.10.2",
     "typescript": "7.0.2",
     "vitest": "5.0.5"
+  },
+  "bin": {
+    "ferrule-convert": "./src/cli.ts"
   }
 }
