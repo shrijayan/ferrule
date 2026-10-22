@@ -1,6 +1,15 @@
 import { z } from 'zod';
 import { type Diagnostic, toJsonPointer } from '../diagnostic.ts';
-import { append, type Command, copy, merge, move, remove, update } from './commands.ts';
+import {
+  append,
+  type Command,
+  copy,
+  merge,
+  move,
+  oneOfToAnyOf,
+  remove,
+  update,
+} from './commands.ts';
 import { isRecord } from './jsonpath.ts';
 import type { OpenApiSpec } from './pipeline.ts';
 import { type Doc, error } from './targets.ts';
@@ -70,6 +79,11 @@ const COMMANDS: Readonly<Record<string, Spec>> = {
 /** The command names the schema defines, in schema order. */
 export const TRANSFORM_COMMANDS = Object.keys(COMMANDS);
 
+/** Commands only the deprecated `openapi.transformations` list accepts (no args). */
+const LEGACY_COMMANDS: Readonly<Record<string, Spec>> = {
+  oneOfToAnyOf: { args: z.looseObject({}), keys: [], required: [], run: oneOfToAnyOf },
+};
+
 export interface ApplyTransformsResult {
   readonly spec: OpenApiSpec;
   readonly diagnostics: readonly Diagnostic[];
@@ -105,6 +119,7 @@ function unknownKeys(
 function validate(
   entry: unknown,
   pointer: string,
+  legacy: boolean,
 ): { spec?: Spec; args?: unknown; diagnostics: Diagnostic[] } {
   const commands = TRANSFORM_COMMANDS.join(', ');
   if (!isRecord(entry)) {
@@ -114,8 +129,13 @@ function validate(
       ],
     };
   }
-  const { command, reason, args } = entry;
-  const spec = typeof command === 'string' ? COMMANDS[command] : undefined;
+  const { command, reason } = entry;
+  const spec =
+    typeof command !== 'string'
+      ? undefined
+      : (COMMANDS[command] ?? (legacy ? LEGACY_COMMANDS[command] : undefined));
+  // A command with no required args may leave `args` out.
+  const args = entry['args'] === undefined && spec?.required.length === 0 ? {} : entry['args'];
   if (spec === undefined) {
     return {
       diagnostics: [
@@ -188,7 +208,7 @@ export function applyTransforms(
   const diagnostics: Diagnostic[] = [];
   transforms.forEach((entry, i) => {
     const pointer = `${base}/${i}`;
-    const checked = validate(entry, pointer);
+    const checked = validate(entry, pointer, base.endsWith('/transformations'));
     diagnostics.push(...checked.diagnostics);
     if (checked.spec === undefined) return;
     diagnostics.push(...checked.spec.run(doc, checked.args, `${pointer}/args`));

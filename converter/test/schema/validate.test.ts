@@ -199,17 +199,24 @@ describe('validateConfig', () => {
     expect(d?.message).toContain('(line 12, column 11)');
   });
 
-  it('reports shapes the typed reader rejects as FER1119', () => {
-    // A webhook_unwrap method (no `endpoint`) is schema-valid but not readable by MethodSchema yet.
+  it('reads endpointless methods such as webhook_unwrap', () => {
     const r = validateConfig(
       BASE.replace(
         'resources: {}',
         'resources: { a: { methods: { hook: { type: webhook_unwrap } } } }',
       ),
     );
-    expect(r.diagnostics.map((d) => [d.code, d.severity])).toEqual([['FER1119', 'error']]);
-    expect(r.diagnostics[0]?.pointer).toBe('/resources/a/methods/hook');
-    expect(r.config).toBeUndefined();
+    expect(r.diagnostics).toEqual([]);
+    expect(r.config).toBeDefined();
+  });
+
+  it('accepts legacy oneOfToAnyOf in the deprecated transformations list only', () => {
+    const legacy = (key: string) =>
+      validateConfig(`${BASE}openapi:\n  ${key}:\n    - { command: oneOfToAnyOf, reason: r }\n`);
+    expect(legacy('transformations').diagnostics.map((d) => [d.code, d.severity])).toEqual([
+      ['FER1118', 'warning'],
+    ]);
+    expect(legacy('transforms').diagnostics.some((d) => d.severity === 'error')).toBe(true);
   });
 });
 

@@ -414,8 +414,13 @@ function checkAnyOf(
     return;
   }
   const expected = describeAlternatives(root, alternatives);
+  const actual = describeValue(value);
+  // "expected an object, got an object" says nothing: name the mismatch instead.
+  const message = expected.every((e) => e === actual)
+    ? `${actual} that matches none of the ${alternatives.length} documented forms`
+    : `expected ${expected.join(' or ')}, got ${actual}`;
   out.push(
-    err(path, keyword, s, `expected ${expected.join(' or ')}, got ${describeValue(value)}`, {
+    err(path, keyword, s, message, {
       expected,
       fallback: true,
     }),

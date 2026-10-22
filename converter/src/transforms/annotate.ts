@@ -64,6 +64,8 @@ function annotateMethod(
 ): void {
   const pointer = methodPointer(path, name);
   const endpoint = typeof method === 'string' ? method : method.endpoint;
+  // Methods without an endpoint (`type: webhook_unwrap`) are SDK-side helpers, not operations.
+  if (typeof endpoint !== 'string') return;
   const found = findOperation(ctx.spec, endpoint);
   if (found === undefined) {
     ctx.diagnostics.push({
@@ -164,7 +166,7 @@ function collectModels(ctx: Ctx, path: readonly string[], resource: Resource): v
     if (!Object.hasOwn(obj(obj(ctx.spec, 'components'), 'schemas'), schema)) {
       ctx.diagnostics.push({
         code: 'FER1005',
-        severity: 'error',
+        severity: 'warning',
         message: `Model ${[...path, key].join('.')} names schema "${schema}", which is not in components.schemas.`,
         pointer,
         suggestion: 'Name a schema under components.schemas in the OpenAPI spec.',

@@ -10,6 +10,8 @@ export const MethodSchema = z.union([
     paginated: z.union([z.boolean(), z.string()]).optional(),
     type: z.string().optional(),
   }),
+  /** A method with no HTTP endpoint, such as `type: webhook_unwrap` (an SDK-side helper). */
+  z.looseObject({ type: z.string() }),
 ]);
 
 /** A model is a bare schema name or an object form. */

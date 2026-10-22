@@ -345,3 +345,19 @@ function relocate(doc: Doc, source: Match, to: readonly (string | number)[]): vo
   else setAt(doc, to, source.value);
   if (!isPrefix(to, from)) deleteAt(doc, from);
 }
+
+/**
+ * Legacy `oneOfToAnyOf` (deprecated `openapi.transformations` only; not in the public schema,
+ * still used by real configs such as ogx): rename every `oneOf` keyword in the spec to `anyOf`.
+ */
+export const oneOfToAnyOf: Command<Record<string, never>> = (doc) => {
+  const visit = (node: unknown): unknown => {
+    if (Array.isArray(node)) return node.map(visit);
+    if (typeof node !== 'object' || node === null) return node;
+    return Object.fromEntries(
+      Object.entries(node).map(([k, v]) => [k === 'oneOf' ? 'anyOf' : k, visit(v)]),
+    );
+  };
+  doc.root = visit(doc.root);
+  return [];
+};

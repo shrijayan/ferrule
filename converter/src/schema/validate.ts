@@ -75,10 +75,12 @@ export function validateConfig(text: string): ConfigValidation {
     };
   }
   const value: unknown = doc.toJS() ?? {};
-  const located = toDiagnostics(validate(STAINLESS_CONFIG_SCHEMA, value)).map((d) => ({
-    ...d,
-    message: `${d.message}${at(offsetOf(doc.contents, d.segments, d.onKey, doc))}`,
-  }));
+  const located = toDiagnostics(validate(STAINLESS_CONFIG_SCHEMA, value))
+    .filter((d) => !isLegacyTransformation(value, d.segments))
+    .map((d) => ({
+      ...d,
+      message: `${d.message}${at(offsetOf(doc.contents, d.segments, d.onKey, doc))}`,
+    }));
   const diagnostics: Diagnostic[] = located.map(({ segments: _s, onKey: _k, ...d }) => d);
   if (diagnostics.some((d) => d.severity === 'error')) {
     return { config: undefined, value, diagnostics };
@@ -102,10 +104,29 @@ export function validateConfig(text: string): ConfigValidation {
 }
 
 /** Validate an already-parsed value (no source positions). */
+/**
+ * Legacy commands the deprecated `openapi.transformations` list still carries in real configs
+ * (e.g. ogx's `oneOfToAnyOf`). The public schema no longer lists them; the transforms engine
+ * checks them instead.
+ */
+const LEGACY_TRANSFORMATIONS: ReadonlySet<string> = new Set(['oneOfToAnyOf']);
+
+function isLegacyTransformation(value: unknown, segments: readonly Segment[]): boolean {
+  const [a, b, i] = segments;
+  if (a !== 'openapi' || b !== 'transformations' || typeof i !== 'number') return false;
+  const list = (value as { openapi?: { transformations?: unknown } }).openapi?.transformations;
+  const entry: unknown = Array.isArray(list) ? list[i] : undefined;
+  const command =
+    typeof entry === 'object' && entry !== null
+      ? (entry as { command?: unknown }).command
+      : undefined;
+  return typeof command === 'string' && LEGACY_TRANSFORMATIONS.has(command);
+}
+
 export function validateConfigValue(value: unknown): Diagnostic[] {
-  return toDiagnostics(validate(STAINLESS_CONFIG_SCHEMA, value)).map(
-    ({ segments: _s, onKey: _k, ...d }) => d,
-  );
+  return toDiagnostics(validate(STAINLESS_CONFIG_SCHEMA, value))
+    .filter((d) => !isLegacyTransformation(value, d.segments))
+    .map(({ segments: _s, onKey: _k, ...d }) => d);
 }
 
 interface Located extends Diagnostic {

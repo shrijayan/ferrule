@@ -87,7 +87,7 @@ resources:
     const config = parseConfig('resources: { a: { models: { ghost: Ghost } } }');
     const { spec: out, diagnostics } = convert(spec, config);
     expect(diagnostics.map((d) => [d.code, d.severity, d.pointer])).toEqual([
-      ['FER1005', 'error', '/resources/a/models/ghost'],
+      ['FER1005', 'warning', '/resources/a/models/ghost'],
     ]);
     expect(out).toEqual(spec);
   });
