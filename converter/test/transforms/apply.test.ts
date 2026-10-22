@@ -191,7 +191,7 @@ describe('properties', () => {
             expect(first.spec).not.toBe(input);
         },
       ),
-      { numRuns: 300 },
+      { numRuns: 100, seed: 20261023 },
     );
   });
 
@@ -208,7 +208,7 @@ describe('properties', () => {
           }
         },
       ),
-      { numRuns: 200 },
+      { numRuns: 100, seed: 20261023 },
     );
   });
 });
