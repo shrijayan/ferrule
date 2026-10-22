@@ -38,6 +38,26 @@ diagnostic. Initial set (shapes are TypeScript-like; `?` means optional):
 `version` in `x-ferrule-config` is bumped on any incompatible shape change, and the adapter
 rejects versions it does not know.
 
+
+### Amendment 2026-10-23: Forge's own grouping extensions
+
+Forge builds groups, method names and model names only from Fern extensions
+(`.cache/forge/src/link/openapi.rs`): an operation without
+`x-fern-sdk-group-name` makes no group, and `forge.groups` is empty. So the
+converter also writes, on every operation it keeps:
+
+| Extension                | Where     | Value                                                  |
+| ------------------------ | --------- | ------------------------------------------------------ |
+| `x-fern-sdk-group-name`  | operation | the resource path, e.g. `["agencies_with_coverage"]` |
+| `x-fern-sdk-method-name` | operation | the Python method name, e.g. `"list"`                  |
+| `x-fern-type-name`       | schema    | the model name, when the config names it               |
+
+`x-ferrule-resource` and `x-ferrule-method-name` stay as the source of truth for
+the plugin (Forge splits names into words and loses spelling such as `$shared`);
+the Fern ones only drive Forge's grouping. Forge does not pass schema-level
+extensions to plugins, so `x-ferrule-model-name` is also mirrored per method in
+`x-ferrule-models` (see docs/forge-gaps.md).
+
 ### Consequences
 
 - Good: one place defines the contract between converter and plugin; both sides test against it.
