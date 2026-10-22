@@ -65,6 +65,34 @@ export function pascalCase(words: readonly string[]): string {
   );
 }
 
+/** Words Stainless spells upper-case inside class names, such as `SituationURL`. */
+const ACRONYMS = new Set(['id', 'ids', 'url', 'uri', 'api', 'http', 'https', 'ip', 'json', 'uuid']);
+
+/** A class-name segment: PascalCase with acronyms upper-cased; `ids` becomes `IDs`. */
+export function classSegment(words: readonly string[]): string {
+  return clean(words)
+    .map((w) => {
+      const lower = w.toLowerCase();
+      if (!ACRONYMS.has(lower)) return w.charAt(0).toUpperCase() + w.slice(1);
+      return lower.endsWith('s') && lower !== 'https'
+        ? `${lower.slice(0, -1).toUpperCase()}s`
+        : lower.toUpperCase();
+    })
+    .join('');
+}
+
+/** The singular of the last word, as Stainless names array item classes: `agencies` -> `agency`. */
+export function singular(words: readonly string[]): string[] {
+  const out = [...words];
+  const last = out.pop();
+  if (last === undefined) return out;
+  let s = last;
+  if (/ies$/i.test(last)) s = `${last.slice(0, -3)}y`;
+  else if (/(ss|us|is)$/i.test(last)) s = last;
+  else if (/s$/i.test(last)) s = last.slice(0, -1);
+  return [...out, s];
+}
+
 /** Split an identifier like `listUsers`, `list_users` or `HTTPServer` into words. */
 export function splitWords(identifier: string): string[] {
   return identifier

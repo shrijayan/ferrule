@@ -66,6 +66,9 @@ importers:
       '@cloudflare/forge':
         specifier: link:../.cache/forge/packages/forge
         version: link:../.cache/forge/packages/forge
+      '@types/node':
+        specifier: 24.19.2
+        version: 24.19.2
       '@vitest/coverage-v8':
         specifier: 5.0.5
         version: 5.0.5(vitest@5.0.5)
