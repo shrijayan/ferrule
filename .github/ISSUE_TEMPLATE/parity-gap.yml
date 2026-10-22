@@ -1,0 +1,41 @@
+name: Parity gap
+description: Ferrule output differs from what Stainless generated for the same spec.
+labels: [parity]
+body:
+  - type: input
+    id: fer-code
+    attributes:
+      label: FER code
+      description: The FER code reported by `ferrule verify` or the parity job (e.g. FER2104).
+      placeholder: FER0000
+    validations:
+      required: true
+  - type: input
+    id: oracle
+    attributes:
+      label: Oracle or spec
+      description: Oracle repo (e.g. onebusaway) or a link to the public spec and stainless.yml.
+    validations:
+      required: true
+  - type: textarea
+    id: diff
+    attributes:
+      label: Diff
+      description: The smallest diff between the Stainless file and the Ferrule file.
+      render: diff
+    validations:
+      required: true
+  - type: dropdown
+    id: impact
+    attributes:
+      label: Impact
+      options:
+        - Public API differs (breaks users)
+        - Behaviour differs at runtime
+        - Cosmetic only (formatting, comments, ordering)
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes

@@ -1,0 +1,13 @@
+# Default owners for everything. Replace the team with real handles once the org exists.
+*                               @ferrule-dev/maintainers
+
+# Supply chain, release and CI: changes here need a maintainer review.
+/.github/                       @ferrule-dev/maintainers
+/scripts/                       @ferrule-dev/maintainers
+/release-please-config.json     @ferrule-dev/maintainers
+/.release-please-manifest.json  @ferrule-dev/maintainers
+/renovate.json                  @ferrule-dev/maintainers
+/mise.toml                      @ferrule-dev/maintainers
+
+# Golden output: every diff is a reviewed decision.
+/python-plugin/test/golden/     @ferrule-dev/maintainers

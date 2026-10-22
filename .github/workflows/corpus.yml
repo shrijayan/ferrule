@@ -1,0 +1,57 @@
+name: corpus
+
+on:
+  schedule:
+    - cron: "41 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  list:
+    name: list tier 1 specs
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      specs: ${{ steps.specs.outputs.specs }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - id: specs
+        run: bash scripts/ci/corpus-matrix.sh >> "$GITHUB_OUTPUT"
+
+  corpus:
+    name: corpus (${{ matrix.spec }})
+    needs: list
+    if: needs.list.outputs.specs != '[]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      issues: write
+    strategy:
+      fail-fast: false
+      matrix:
+        spec: ${{ fromJSON(needs.list.outputs.specs) }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+      - name: Convert, generate, compile
+        env:
+          SPEC: ${{ matrix.spec }}
+        run: bash scripts/ci/run-if-present.sh corpus -- --tier 1 --spec "$SPEC"
+      - name: Open issue on regression
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SPEC: ${{ matrix.spec }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: bash scripts/ci/open-issue.sh "Corpus regression - $SPEC" "corpus" "$RUN_URL"
