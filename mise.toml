@@ -23,7 +23,7 @@ run = ["uv run ruff check .", "uv run ruff format --check ."]
 run = "pnpm -r --if-present typecheck"
 
 [tasks."typecheck:py"]
-run = ["uv run pyright", "uv run mypy runtime/src migrate/src", "uv run mypy -p scripts.parity"]
+run = ["uv run pyright", "uv run mypy runtime/src migrate/src", "uv run mypy -p scripts.parity", "uv run mypy -p scripts.corpus", "uv run mypy -p scripts.board"]
 
 [tasks."test:ts"]
 run = "pnpm -r --if-present test"
@@ -69,3 +69,11 @@ run = "uv run python -m scripts.parity.run"
 [tasks."adopt:gate"]
 description = "Phase 4 gate: adopt five public Stainless SDKs locally and prove nothing changed"
 run = "uv run python -m scripts.adopt.gate"
+
+[tasks.corpus]
+description = "Run the spec corpus through convert, Forge, plugin and the compile gate"
+run = "uv run python -m scripts.corpus.run"
+
+[tasks.board]
+description = "Build the fidelity board data from reports/parity"
+run = "uv run python -m scripts.board.build"

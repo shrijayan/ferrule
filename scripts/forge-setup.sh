@@ -27,4 +27,6 @@ fi
 # The TypeScript plugin library (@cloudflare/forge/plugin, /ts) and its WIT.
 (cd "$dir" && pnpm install --frozen-lockfile)
 (cd "$dir/packages/forge" && node scripts/build.mjs)
+# Re-link the workspace so python-plugin gets the forge-plugin bin from the fresh build.
+(cd "$root" && pnpm install --frozen-lockfile)
 echo "forge $(git -C "$dir" rev-parse --short HEAD) built: $dir/target/release/forge"
