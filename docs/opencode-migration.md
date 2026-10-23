@@ -1,64 +1,86 @@
-# opencode-python-sdk migration (draft)
+# opencode-python-sdk migration
 
-> **Draft.** Re-run after Phase 5. Nothing here was pushed to the SDK repository.
+Nothing here was pushed to the SDK repository and no PR was opened. Decision record: ADR 0013.
 
 ## Target
 
 | Field | Value |
 | --- | --- |
 | Repository | <https://github.com/shrijayan/opencode-python-sdk> |
-| Latest release tag | `v0.2.3` |
-| Commit | `7bc98edc5566f7a791bbab5cbad7eb4afd786e84` (2026-10-22) |
-| API covered | OpenCode 2.1.2, 142 operations in 31 groups, 412 schema definitions |
-| Spec file | `spec/contract.json`, md5 `0e762710699a69eb1ace3cd81c2c8967` |
+| Release | `v0.2.3`, commit `7bc98edc5566f7a791bbab5cbad7eb4afd786e84` |
+| API covered | OpenCode 2.1.2: 142 operations in 31 groups, 412 schema definitions |
+| Source contract | `spec/contract.json`, md5 `0e762710699a69eb1ace3cd81c2c8967` |
+| Lineage | not Stainless: built by the SDK's own `codegen/` from `contract.json` (no `.stats.yml`) |
 
-## Finding: this SDK has no Stainless lineage
+The checkout lives in `.cache/opencode-python-sdk` (gitignored). None of its code, scripts or hooks
+were run.
 
-The brief assumed a Stainless-generated SDK. It is not one:
+## Spec and config provenance
 
-- There is no `.stats.yml`, so no `openapi_spec_url`, `openapi_spec_hash` or `config_hash`.
-- The SDK is built by its own generator (`codegen/`, run as `python -m codegen`) from
-  `spec/contract.json`. That file is not OpenAPI: `codegen/extract` exports it from the Effect
-  `HttpApi` definitions in the `@opencode/protocol` npm package (see
-  `.github/workflows/sync-spec.yml`).
-- The runtime (`src/opencode/_base_client.py`, `_models.py`, …) has the Stainless file layout
-  but extra modules (`_rpc.py`, `_pty.py`, `_service.py`, `_server.py`, `_aiohttp.py`, `_unions.py`).
+| Artifact | How | Result |
+| --- | --- | --- |
+| OpenAPI 3.1 | `uv run python -m scripts.opencode.contract_to_openapi .cache/opencode-python-sdk/spec/contract.json .cache/opencode-openapi.json` | 117 paths, 142 operations, 412 schemas; md5 `8eeab36b38b71967913b9587fb2139a3`, byte-identical on re-run |
+| `stainless.yml` | `uv run python -m scripts.opencode.api_md_to_config .cache/opencode-python-sdk/api.md oracles/configs/opencode-python-sdk/stainless.yml` | 45 resources, 142 methods; basic auth and `OPENCODE_` settings from `_client.py` |
+| Config check | `node converter/src/cli.ts <spec> <config> -o .cache/opencode-annotated.json` | **0 diagnostics** (one FER1111, missing `readme`, fixed before the final run) |
 
-### Spec and config provenance
+## Generate
 
-| Source | Status |
-| --- | --- |
-| Stainless spec for this SDK | none exists |
-| Pinned public pair `opencode-config` (`anomalyco/opencode@33cef07`, 2025-07-31) | targets the 0.x API (26 endpoints, spec md5 `4ff9376c…`); cannot match a 2.1.2 SDK with 142 operations |
-| OpenAPI spec for OpenCode 2.x in `anomalyco/opencode` | none committed; the only `openapi.json` is a console route that serves it at runtime |
+`ferrule generate --spec … --config … --out .cache/opencode-gen --runtime-from .cache/opencode-python-sdk`
+stops at the first unsupported shape, so the gaps were collected by dropping each failing
+operation from a scratch copy of the spec and re-running. Every FER code seen:
 
-So no config hash can be matched, and `oracles/configs/opencode-python-sdk/stainless.yml` was
-**not** written: there is no OpenAPI document to validate it against with `converter/src/cli.ts`,
-and writing one for the 0.x spec would describe a different API.
+| Code | Where | Cause | Owner | Status |
+| --- | --- | --- | --- | --- |
+| FER4003 / Forge | `GET /api/websearch/provider` (and every op with a `location` query object) | `style: deepObject` query parameter: Forge covers only `form` | Forge (upstream) | worked around in the converter: emits `form` + `explode` |
+| FER201 | `GET /api/agent/{agentID}` (4 schemas: `*.Settings`) | `allOf` member of kind map not generated | python-plugin | worked around in the converter: Struct+Record `allOf` folded into `additionalProperties` (equivalent schema) |
+| FER201 | `POST /api/experimental/fs/write` | request body that is not an object (binary upload) | python-plugin | **open**; operation dropped for the run (→ `file.write` removed) |
+| FER4003 (format) | `types/message_list_response.py`, `types/session/message_get_response.py` | union member that `$ref`s another union emits `Union[, , ]` (`Session.Message.Info` → `Session.Message.Compaction`) | python-plugin | **open**; nested unions inlined in the scratch spec for the run |
 
-## Generate and verify
+With those, generate succeeds: spec md5 `dacc24c6d441a20d6879371819aea77d` (141 operations).
+The generated package does **not import**: generated code needs `opencode._utils` (and the
+`omit`/`not_given` sentinels), which the SDK's own runtime does not have. `--runtime-from` assumes
+a Stainless runtime (owner: migrate, with runtime).
 
-Not run. `ferrule generate` needs an OpenAPI spec; none is available without running third-party
-code (the `@opencode/protocol` package or `opencode serve`), which this task forbids.
+## Verify against v0.2.3
 
-| Metric | Value |
-| --- | --- |
-| FER diagnostics | n/a (converter not run) |
-| Breaking differences | n/a |
-| Hand edits vs. generator output | n/a; the SDK's own `python -m codegen --check` is the equivalent check and was not run (no SDK code executed) |
+`ferrule verify --against .cache/opencode-python-sdk --new .cache/opencode-gen --json .cache/opencode-verify.json`
+exits 1. Closeness **25.75**. **1144 breaking, 610 additive.**
+
+### Breaking, by cause
+
+| Count | Cause | Owner |
+| --- | --- | --- |
+| 693 | Named schema types removed from `opencode.types` (`AgentInfo`, `SessionInfo`, `WorktreeInfo` …). The SDK exports every `$defs` entry from `types/_generated.py`; Ferrule, like Stainless, emits only types reachable from methods, named after the response (`AgentGetResponse`). Fix is config: `models:` entries per resource | config (this repo's `stainless.yml`), then python-plugin if `models:` naming falls short |
+| 67 | Top-level objects removed from `opencode` (incl. `API_VERSION`): per-error exception classes (`SessionNotFoundError` …), RPC client (`RpcClient`, `rpc_method` …), PTY (`PtyConnection`), server/service (`OpencodeServer`, `Endpoint`), event hub, cursor pages | SDK-specific runtime (`_rpc.py`, `_pty.py`, `_server.py`, `_service.py`, `_events.py`); custom code for `merge`, or runtime if generic |
+| 206 | Parameter defaults changed (202 on resources, 4 on the client): `NOT_GIVEN` → `omit`/`not_given` (`timeout`, `location`, `limit`, `type`, `cursor` …) | runtime sentinel version; expected for any pre-`omit` SDK. Classify as non-breaking in verify? (migrate) |
+| 154 | Kind changed attribute → function: `with_raw_response`, `with_streaming_response` and client resource properties. Both sides are `cached_property`; griffe sees the SDK's `functools.cached_property` as an attribute and Ferrule's `_compat.cached_property` as a function | migrate (verify normalisation) |
+| 16 | Client: `events`, `fake`, `from_service`, `wait_until_ready` removed (8, sync + async); constructor `directory`, `transport` removed, `base_url` made keyword, `username` and `timeout` defaults changed, base classes renamed (8) | SDK-specific client methods (merge); `directory`/`transport` have no `client_settings` equivalent (converter/runtime) |
+| 6 | Resources: `file.write` removed (FER201 above); `SyncResources`/`AsyncResources` mixins removed; `shell.create(timeout_)` removed (spec has a body field `timeout`, the SDK renamed it to avoid the request option) | python-plugin |
+| 2 | `types._generated.PermissionCreateResponse.{id,effect}` | follows from the type layout |
+
+### Additive
+
+586 objects added (per-response types, `AsyncClient` alias, `auth_headers`, `default_headers` …)
+and 24 optional parameters added (`_strict_response_validation`, `copy(base_url)` …): Stainless
+runtime surface the SDK did not have.
+
+## Files that differ from generator output
+
+The SDK is the output of its own generator, so "hand edits" means drift from `python -m codegen`;
+that check needs running SDK code and was not done. Against Ferrule's output, `verify` compared
+393 files: 13 identical, 47 partly similar, 333 with no counterpart or nothing in common. The
+type layout alone accounts for most: the SDK has 2 files under `types/`, Ferrule 155.
 
 ## What remains
 
-1. **Get an OpenAPI 3 document for OpenCode 2.1.2.** Options, for a human to choose:
-   - export it from `@opencode/protocol` with Effect's `HttpApi` OpenAPI generator, in a sandbox;
-   - fetch it from a running `opencode serve` (`/doc` or the console `openapi.json` route);
-   - add a `contract.json` → OpenAPI step (generic, so upstream-first: discuss before building).
-2. Write `oracles/configs/opencode-python-sdk/stainless.yml` from `api.md` (resource tree,
-   method names, `client.session.*` etc.), the generated models and `opencode-config`'s client
-   settings, as an adopter would (ADR 0009). Validate with the converter, zero error diagnostics.
-3. Run `ferrule generate --runtime-from .cache/opencode-python-sdk` and `ferrule verify --against`
-   `v0.2.3`. Expect breaking differences from the custom runtime modules above (owner: runtime)
-   and from naming the SDK chose itself (owner: python-plugin / converter).
-4. Decide whether "Stainless-identical" is the right bar for this SDK at all: it was never
-   Stainless output, so parity here means "Ferrule reproduces a hand-built generator", which may
-   need its own ADR.
+1. python-plugin: non-object (binary) request bodies; nested union `$ref` emitting `Union[, , ]`.
+2. migrate: `--runtime-from` on a non-Stainless runtime gives an SDK that cannot import; verify
+   should normalise `cached_property` kinds and `NOT_GIVEN` → `omit` defaults (360 of 1144).
+3. Forge (upstream): `deepObject` query parameters.
+4. Config: add `models:` to `oracles/configs/opencode-python-sdk/stainless.yml` to keep the
+   693 named types; add a rename for `shell.create(timeout)`.
+5. SDK-specific modules (RPC, PTY, server, event hub, typed errors) need custom code kept by
+   `ferrule merge` (ADR 0011) or a decision to drop them.
+6. Register ADR 0013 in `docs/adr/README.md` (owner: ci-docs).
+7. Wire `scripts/opencode/tests` into `pytest` testpaths and the `typecheck:py` mypy list (root
+   config, not owned here). Today: `uv run python -m pytest scripts/opencode/tests`.
