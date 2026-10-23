@@ -13,21 +13,23 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from ferrule import __version__
+from ferrule.adopt import AdoptRequest, adopt
 from ferrule.errors import FerruleError
 from ferrule.generate import GenerateRequest, generate, load_renderer, resolve_tools
+from ferrule.rescue import rescue, write_spec
 from ferrule.verify import export_ref, verify
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    from collections.abc import Callable, Sequence
 
 SUBCOMMANDS: dict[str, str] = {
     "generate": "Generate an SDK from an OpenAPI spec.",
     "adopt": "Adopt an existing Stainless-generated SDK.",
-    "rescue": "Rescue custom code from a generated SDK.",
+    "rescue": "Save the OpenAPI spec .stats.yml points to (md5-checked).",
     "verify": "Verify an SDK against its oracle.",
     "merge": "Merge regenerated code with custom changes.",
 }
-UNIMPLEMENTED = ("adopt", "rescue", "merge")
+UNIMPLEMENTED = ("merge",)
 
 EXIT_OK = 0
 EXIT_FAILED = 1
@@ -58,7 +60,60 @@ def build_parser() -> argparse.ArgumentParser:
     ver.add_argument("--repo", type=Path, default=Path(), help="git repo for --against REF")
     ver.add_argument("--package", help="import name (default: detected)")
     ver.add_argument("--json", type=Path, help="also write the full report here")
+
+    res = subs["rescue"]
+    res.add_argument("repo", nargs="?", type=Path, default=Path(), help="SDK checkout (default: .)")
+    res.add_argument("--out", type=Path, help="where to write the spec (default: openapi.<ext>)")
+
+    ado = subs["adopt"]
+    ado.add_argument("repo", nargs="?", type=Path, default=Path(), help="SDK checkout (default: .)")
+    ado.add_argument("--config", type=Path, help="stainless.yml (default: REPO/stainless.yml)")
+    ado.add_argument("--spec", type=Path, help="OpenAPI spec (default: rescue it)")
+    ado.add_argument("--dry-run", action="store_true", help="report the plan, change nothing")
+    ado.add_argument("--forge", type=Path, help="Forge CLI (default: $FERRULE_FORGE)")
+    ado.add_argument("--plugin", type=Path, help="plugin.wasm (default: $FERRULE_PLUGIN)")
     return parser
+
+
+def _rescue(args: argparse.Namespace) -> int:
+    rescued = rescue(args.repo)
+    out: Path = args.out or args.repo / f"openapi{rescued.stats.suffix}"
+    write_spec(rescued, out)
+    sys.stdout.write(f"rescued spec to {out} (md5 {rescued.stats.spec_hash} ok)\n")
+    return EXIT_OK
+
+
+def _say(line: str) -> None:
+    sys.stdout.write(line + "\n")
+    sys.stdout.flush()
+
+
+def _adopt(args: argparse.Namespace) -> int:
+    request = AdoptRequest(
+        repo=args.repo,
+        tools=resolve_tools(os.environ, forge=args.forge, plugin=args.plugin),
+        config=args.config,
+        spec=args.spec,
+        dry_run=args.dry_run,
+    )
+    result = adopt(request, renderer=load_renderer(), say=_say)
+    if result.branch is None:
+        return EXIT_OK
+    sys.stdout.write(f"ferrule verify --against {result.against}\n")
+    with tempfile.TemporaryDirectory(prefix="ferrule-verify-") as tmp:
+        old = export_ref(result.repo, result.against, Path(tmp) / "old")
+        new = export_ref(result.repo, result.branch, Path(tmp) / "new")
+        report = verify(old, new)
+    sys.stdout.write(report.summary() + "\n")
+    for change in report.breaking:
+        sys.stdout.write(f"  breaking {change.detail}\n")
+    return EXIT_FAILED if report.breaking else EXIT_OK
+
+
+COMMANDS: dict[str, Callable[[argparse.Namespace], int]] = {
+    "adopt": _adopt,
+    "rescue": _rescue,
+}
 
 
 def _generate(args: argparse.Namespace) -> int:
@@ -98,6 +153,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         sys.stderr.write(f"ferrule {command}: FER0001 not implemented in this version\n")
         return EXIT_NOT_IMPLEMENTED
     try:
+        if command in COMMANDS:
+            return COMMANDS[command](args)
         return _generate(args) if command == "generate" else _verify(args)
     except FerruleError as exc:
         sys.stderr.write(f"ferrule {command}: {exc.diagnostic.render()}\n")
