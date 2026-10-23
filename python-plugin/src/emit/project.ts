@@ -5,6 +5,7 @@
  */
 import type { SdkClient, SdkMethod, SdkResource } from '../model/index.ts';
 import { PythonPrinter } from '../printer.ts';
+import { emitAgentFiles } from './agent/index.ts';
 import { emitClientFile } from './client.ts';
 import {
   HEADER,
@@ -164,5 +165,6 @@ export function emitRootFiles(client: SdkClient, meta?: ProjectMeta): FileTree {
     if (input !== undefined)
       for (const [path, text] of emitProjectFiles(input)) files.set(path, text);
   }
+  for (const [path, text] of emitAgentFiles(client, meta)) files.set(path, text);
   return new Map([...files].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)));
 }
