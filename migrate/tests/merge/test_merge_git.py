@@ -125,6 +125,13 @@ def test_cli_merge(repo: Path, tmp_path: Path, capsys: pytest.CaptureFixture[str
         ".git/config",
         "a/.git/hooks/x",
         "a\0b",
+        # Variants that macOS/Windows file systems fold onto .git (security review).
+        ".GIT/config",
+        "a/.Git/x",
+        ".git./x",
+        ".git /x",
+        "‌.git/x",
+        "GIT~1/config",
     ],
 )
 def test_write_tree_refuses_paths_outside_out(tmp_path: Path, rel: str) -> None:
