@@ -1,6 +1,7 @@
 import { parse } from 'yaml';
 import type { Diagnostic } from './diagnostic.ts';
 import { applyEdition } from './editions/index.ts';
+import { normalize } from './normalize/index.ts';
 import type { Config } from './schema/config.ts';
 import { validateConfig } from './schema/validate.ts';
 import { stableStringify } from './serialize.ts';
@@ -32,6 +33,12 @@ export { CLIENT_GROUP } from './extensions/groups.ts';
 export { PAGINATION_SCHEMES, type PaginationScheme } from './extensions/pagination.ts';
 export type { FerruleOnEvent, FerruleStreaming } from './extensions/streaming.ts';
 export {
+  NORMALIZE_CODES,
+  NORMALIZED_KEY,
+  type NormalizeResult,
+  normalize,
+} from './normalize/index.ts';
+export {
   type Config,
   ConfigSchema,
   type Method,
@@ -62,16 +69,17 @@ export interface ConvertResult {
 }
 
 /**
- * Apply `openapi.transforms`, then annotate the result with Fern and x-ferrule-* extensions from
+ * Apply `openapi.transforms`, normalise constructs Forge cannot read, then annotate the result with Fern and x-ferrule-* extensions from
  * `config`. Pure; the inputs are never mutated.
  */
 export function convert(spec: OpenApiSpec, config: Config): ConvertResult {
   // Config's index signature defeats TypeScript's weak-type check, hence the widening.
   const transformed = applyConfigTransforms(spec, config as { readonly openapi?: unknown });
-  const annotated = annotate(transformed.spec, config);
+  const normalized = normalize(transformed.spec);
+  const annotated = annotate(normalized.spec, config);
   return {
     spec: annotated.spec,
-    diagnostics: [...transformed.diagnostics, ...annotated.diagnostics],
+    diagnostics: [...transformed.diagnostics, ...normalized.diagnostics, ...annotated.diagnostics],
   };
 }
 

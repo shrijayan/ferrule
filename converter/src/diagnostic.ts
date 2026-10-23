@@ -1,7 +1,7 @@
 /** A FER code such as `FER0001`. */
 export type FerCode = `FER${number}`;
 
-export type Severity = 'error' | 'warning';
+export type Severity = 'error' | 'warning' | 'info';
 
 /** Every error carries a FER code, a JSON pointer into the spec or config, and a suggested fix. */
 export interface Diagnostic {
