@@ -82,3 +82,46 @@ names, log env var, timeout, max retries and file-upload hint replaced by placeh
 `_utils/_compat.py`, `_exceptions.py`, `_response.py` gained `#ferrule:` directive lines).
 `_streaming.py` contains code from httpx-sse and `_utils/_datetime_parse.py` from pydantic, as
 noted in their upstream headers.
+
+## Testing fake server
+
+`render_files(..., testing=True)` adds `testing/__init__.py` and `testing/_fake.py`: an
+in-process fake server (ADR 0013). Not in Stainless output; off by default, so parity is
+unaffected.
+
+```python
+from acme.testing import fake, http_client
+
+with fake() as client:  # Acme(base_url=fake, max_retries=0, http_client=...)
+    client.users.retrieve("u1")  # deterministic example from the response schema
+client = Acme(api_key="x", http_client=http_client(overrides={"GET /users/{id}": {"id": "u1"}}))
+```
+
+`FakeTransport` / `AsyncFakeTransport` match method and path template (literal paths before
+templated ones; any base URL path prefix accepted) and never open a socket. Overrides map
+`"METHOD /path/{param}"` to an `httpx.Response`, a callable taking the request, or a JSON body.
+Unmatched requests get a 404. Bodies: `example`, `examples[0]`, `default`, `const`, `enum[0]`,
+`$ref`, `allOf` (merged), first of `oneOf`/`anyOf`, then type defaults (`"string"` or a fixed
+value per `format`, `0`, `0.0`, `false`, one array item). Optional properties without an
+example are omitted, so cursors are absent and pagination stops; `$ref` cycles end there.
+
+The plugin emits `<pkg>/testing/_routes.json` (missing file = no routes):
+
+```json
+{
+  "version": 1,
+  "client_options": {"api_key": "fake-api-key"},
+  "schemas": {"User": {"type": "object", "required": ["id"], "properties": {"id": {"type": "string"}}}},
+  "routes": [
+    {"method": "GET", "path": "/users/{user_id}", "status": 200,
+     "content_type": "application/json", "response": {"$ref": "#/schemas/User"}}
+  ]
+}
+```
+
+- `routes[]`: one per operation; `path` relative to the base URL with `{param}` templates;
+  `status` (default 200) is the first 2xx response; `response` omitted for no body (204);
+  `content_type` defaults to `application/json`.
+- `schemas`: component schemas (OpenAPI 3.1 JSON Schema subset); refs are `#/schemas/<Name>`.
+- `client_options`: keyword arguments the client needs to construct without the environment
+  (required auth arguments with placeholder values, and `base_url` only if needed).
