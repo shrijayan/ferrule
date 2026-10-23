@@ -219,4 +219,35 @@ describe('normalize: corpus Tier 1', () => {
       }),
     ]);
   });
+
+  it('rewrites a list-valued items to prefixItems, which Forge reads (slack)', () => {
+    const latest = { items: [{ $ref: '#/components/schemas/M' }, { type: 'null' }] };
+    const spec = { components: { schemas: { M: {}, C: { properties: { latest } } } } };
+    const { spec: out, diagnostics } = normalize(spec);
+    expect((out as AnyJson).components.schemas.C.properties.latest).toEqual({
+      prefixItems: latest.items,
+      'x-ferrule-normalized': ['items-tuple'],
+    });
+    expect(diagnostics.map((d) => [d.code, d.pointer])).toEqual([
+      ['FER1607', '/components/schemas/C/properties/latest/items'],
+    ]);
+  });
+
+  it('treats property names that are keywords as names, not data (kubernetes)', () => {
+    const spec = {
+      components: {
+        schemas: {
+          L: {
+            properties: {
+              default: { additionalProperties: { $ref: '#/components/schemas/Gone' } },
+            },
+          },
+        },
+      },
+    };
+    const { diagnostics } = normalize(spec);
+    expect(diagnostics.map((d) => [d.code, d.pointer])).toEqual([
+      ['FER1606', '/components/schemas/L/properties/default/additionalProperties/$ref'],
+    ]);
+  });
 });

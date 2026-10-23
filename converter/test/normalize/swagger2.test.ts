@@ -186,6 +186,24 @@ describe('swagger2ToOpenApi3', () => {
     expect(post.requestBody.required).toBeUndefined();
   });
 
+  it('rewrites refs under properties named like keywords (kubernetes)', () => {
+    const k8s = {
+      swagger: '2.0',
+      definitions: {
+        Q: { type: 'string' },
+        L: {
+          properties: {
+            default: { additionalProperties: { $ref: '#/definitions/Q' } },
+            example: { $ref: '#/definitions/Q' },
+          },
+        },
+      },
+    };
+    const props = (swagger2ToOpenApi3(k8s).spec as AnyJson).components.schemas.L.properties;
+    expect(props.default.additionalProperties.$ref).toBe('#/components/schemas/Q');
+    expect(props.example.$ref).toBe('#/components/schemas/Q');
+  });
+
   it('is the identity on an OpenAPI 3 document', () => {
     const spec = { openapi: '3.1.0', paths: {} };
     expect(swagger2ToOpenApi3(spec)).toEqual({ spec, diagnostics: [] });
