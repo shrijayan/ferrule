@@ -9,7 +9,7 @@ The Ferrule action keeps an adopted SDK up to date. Each time your spec or confi
 2. **Verifies** the new public API with `ferrule verify --json` against the previous release (the latest tag, or `HEAD`).
 3. **Labels** the bump: any breaking change is `major`, any additive change is `minor`, anything else is `patch`.
 4. **Opens or updates a PR** from the `ferrule/regenerate` branch with that label, when `open-pr: true`.
-5. **Fails** on breaking changes when `verify: true`, unless the PR carries `ferrule:allow-breaking`.
+5. **Fails** on breaking changes when `verify: true`, unless the PR that triggered the run carries `ferrule:allow-breaking`. That PR must be from the same repository. Each force-push of new content removes the label, so every new breaking diff needs a fresh approval.
 
 ## Usage
 
