@@ -1,0 +1,9 @@
+# onebusaway
+
+> Python SDK for the OnebusawaySDK API, version 0.0.1. Install with `pip install onebusaway` and import `onebusaway`.
+
+## Docs
+
+- [README](https://github.com/OneBusAway/python-sdk/blob/main/README.md): installation, usage, async client, retries, timeouts
+- [api.md](https://github.com/OneBusAway/python-sdk/blob/main/api.md): every resource, method and type
+- [SKILL.md](https://github.com/OneBusAway/python-sdk/blob/main/src/onebusaway/_agent/SKILL.md): agent skill with tested examples
