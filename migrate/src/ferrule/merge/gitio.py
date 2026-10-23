@@ -81,7 +81,8 @@ def safe_rel(rel: str) -> str:
     """Return ``rel`` if it is a plain relative POSIX path that stays inside its root.
 
     Trees come from refs and merge results, which a hostile repository controls, so absolute
-    paths, ``..``/``.``/empty parts, backslashes, NUL and ``.git`` parts are refused (FER4008).
+    paths, ``..``/``.``/empty parts, backslashes, colons, NUL and any spelling of ``.git`` that a
+    file system folds onto it are refused (FER4008).
     """
     parts = rel.split("/")
     if (
@@ -89,6 +90,7 @@ def safe_rel(rel: str) -> str:
         or rel.startswith("/")
         or "\\" in rel
         or "\0" in rel
+        or ":" in rel  # NTFS streams (.git::$INDEX_ALLOCATION) and drive-relative names
         or any(p in {"", ".", ".."} or _is_git_dir(p) for p in parts)
     ):
         raise fail(UNSAFE_PATH, f"unsafe path {rel!r} in tree", rel, "remove the entry")
