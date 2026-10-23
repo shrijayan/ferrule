@@ -1,0 +1,135 @@
+name: Ferrule regenerate
+description: Regenerate a Python SDK with Ferrule, verify its public API, label the semver bump and open a PR.
+author: Ferrule contributors
+branding:
+  icon: refresh-cw
+  color: gray-dark
+
+inputs:
+  spec:
+    description: OpenAPI spec path, relative to the repository root
+    required: true
+  config:
+    description: SDK config (stainless.yml) path, relative to the repository root
+    required: true
+  verify:
+    description: Fail on breaking API changes unless the PR has the ferrule:allow-breaking label
+    required: false
+    default: "true"
+  open-pr:
+    description: Commit to ferrule/regenerate and create or update a labeled PR
+    required: false
+    default: "false"
+  against:
+    description: Git ref to verify against (default the latest tag, else HEAD)
+    required: false
+    default: ""
+  python-version:
+    description: Python version for Ferrule
+    required: false
+    default: "3.12"
+  ferrule-version:
+    description: Exact Ferrule version from PyPI, or `source` to install from this action's checkout
+    required: false
+    default: "0.1.0"
+  github-token:
+    description: Token for gh (needs contents:write and pull-requests:write when open-pr is true)
+    required: false
+    default: ""
+
+outputs:
+  label:
+    description: Semver bump, one of major, minor, patch
+    value: ${{ steps.label.outputs.label }}
+  breaking:
+    description: Number of breaking public API changes
+    value: ${{ steps.label.outputs.breaking }}
+  additive:
+    description: Number of additive public API changes
+    value: ${{ steps.label.outputs.additive }}
+
+runs:
+  using: composite
+  steps:
+    - name: Validate inputs
+      shell: bash
+      env:
+        INPUT_SPEC: ${{ inputs.spec }}
+        INPUT_CONFIG: ${{ inputs.config }}
+        INPUT_VERIFY: ${{ inputs.verify }}
+        INPUT_OPEN_PR: ${{ inputs.open-pr }}
+        INPUT_AGAINST: ${{ inputs.against }}
+        INPUT_PYTHON_VERSION: ${{ inputs.python-version }}
+        INPUT_FERRULE_VERSION: ${{ inputs.ferrule-version }}
+        GH_TOKEN: ${{ inputs.github-token }}
+      run: bash "$GITHUB_ACTION_PATH/scripts/validate.sh"
+
+    - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+      with:
+        python-version: ${{ inputs.python-version }}
+        enable-cache: false
+
+    - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      with:
+        node-version: "24"
+
+    - name: Install Ferrule
+      shell: bash
+      env:
+        FERRULE_VERSION: ${{ inputs.ferrule-version }}
+      run: |
+        if [[ "$FERRULE_VERSION" == "source" ]]; then
+          uv tool install --force "$GITHUB_ACTION_PATH/../migrate"
+        else
+          uv tool install --force "ferrule==$FERRULE_VERSION"
+        fi
+        uv tool install --force ruff==0.17.1
+
+    - name: Generate and verify
+      shell: bash
+      env:
+        INPUT_SPEC: ${{ inputs.spec }}
+        INPUT_CONFIG: ${{ inputs.config }}
+        INPUT_AGAINST: ${{ inputs.against }}
+        FERRULE_VERSION: ${{ inputs.ferrule-version }}
+        WORKSPACE: ${{ github.workspace }}
+        OUT: ${{ runner.temp }}/ferrule-out
+        REPORT: ${{ runner.temp }}/ferrule-verify.json
+      run: bash "$GITHUB_ACTION_PATH/scripts/regenerate.sh"
+
+    - name: Label
+      id: label
+      shell: bash
+      env:
+        ENFORCE: ${{ inputs.verify }}
+        GH_TOKEN: ${{ inputs.github-token }}
+        REPORT: ${{ runner.temp }}/ferrule-verify.json
+      run: |
+        labels="$(bash "$GITHUB_ACTION_PATH/scripts/pr_labels.sh")"
+        status=0
+        python3 "$GITHUB_ACTION_PATH/scripts/label.py" "$REPORT" \
+          --enforce "$ENFORCE" --labels "$labels" --github-output "$GITHUB_OUTPUT" || status=$?
+        case "$status" in
+          0) echo "blocked=false" >> "$GITHUB_OUTPUT" ;;
+          1) echo "blocked=true" >> "$GITHUB_OUTPUT" ;;
+          *) exit "$status" ;;
+        esac
+
+    - name: Open PR
+      if: inputs.open-pr == 'true'
+      shell: bash
+      env:
+        LABEL: ${{ steps.label.outputs.label }}
+        BREAKING: ${{ steps.label.outputs.breaking }}
+        ADDITIVE: ${{ steps.label.outputs.additive }}
+        WORKSPACE: ${{ github.workspace }}
+        GH_TOKEN: ${{ inputs.github-token }}
+      run: bash "$GITHUB_ACTION_PATH/scripts/open_pr.sh"
+
+    # Last, so the PR above exists for a maintainer to add ferrule:allow-breaking to.
+    - name: Fail on unlabeled breaking changes
+      if: steps.label.outputs.blocked == 'true'
+      shell: bash
+      run: |
+        echo "::error::breaking API changes without the ferrule:allow-breaking label" >&2
+        exit 1
