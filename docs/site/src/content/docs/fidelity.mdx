@@ -3,25 +3,30 @@ title: Fidelity board
 description: Nightly regeneration of public Stainless Python SDKs, scored against their last Stainless release.
 ---
 
-import fidelity from '../../data/fidelity.json';
+import FidelityTable from '../../components/FidelityTable.astro';
 
-Each row is a public Stainless Python SDK regenerated nightly by `parity.yml` and compared with
-its last Stainless commit: public API diff (griffe), the repo's own tests, HTTP replay, and a
-normalized text diff.
+Each row is a public Stainless Python SDK regenerated nightly by `parity.yml` from its public
+`stainless.yml` and OpenAPI spec, then compared with its last Stainless-generated commit. Click a
+column header to sort.
 
-{fidelity.length === 0 ? (
-  <p><em>No results yet. The board fills in once nightly parity runs start (Phase 5).</em></p>
-) : (
-  <table>
-    <thead>
-      <tr><th>Repository</th><th>Breaking</th><th>Additive</th><th>Tests</th><th>Closeness</th></tr>
-    </thead>
-    <tbody>
-      {fidelity.map((r) => (
-        <tr>
-          <td>{r.repo}</td><td>{r.breaking}</td><td>{r.additive}</td><td>{r.tests}</td><td>{r.closeness}</td>
-        </tr>
-      ))}
-    </tbody>
-  </table>
-)}
+<FidelityTable />
+
+## Methodology
+
+The oracles and their pinned commits live in
+[`oracles/manifest.yaml`](https://github.com/shrijayan/ferrule/blob/main/oracles/manifest.yaml).
+How each config repo is paired with its SDK commit is recorded in
+[ADR 0009](https://github.com/shrijayan/ferrule/blob/main/docs/adr/0009-oracle-configs.md), and
+how the inputs are pinned by digest in
+[ADR 0010](https://github.com/shrijayan/ferrule/blob/main/docs/adr/0010-oracle-snapshot-digests.md).
+
+| Column | Meaning |
+| --- | --- |
+| Oracle | The oracle group in the manifest. |
+| SDK repo @ sha | The Stainless-generated SDK and the commit Ferrule's output is compared with. |
+| Breaking | Public API changes that would break a user (griffe diff: removed or renamed names, changed signatures). The goal is 0. |
+| Additive | Public API additions that break nobody. |
+| Closeness | Share of the SDK's source text that matches after normalization (formatting, import order). |
+| Tests passed / failed | The SDK repo's own test suite run against the generated code and a mock server; failed includes errors. `—` means tests were not run. |
+| Deterministic | Two generations from the same inputs were byte-identical. |
+| Generated | The date of the nightly run that produced the row. |

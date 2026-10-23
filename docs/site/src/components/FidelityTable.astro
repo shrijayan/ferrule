@@ -1,0 +1,126 @@
+---
+// Copyright 2026 Ferrule contributors
+// SPDX-License-Identifier: Apache-2.0
+// Sortable fidelity board. Rows come from src/data/fidelity.json (scripts/board/build.py).
+import fidelity from '../data/fidelity.json';
+
+interface Row {
+  name: string;
+  repo: string | null;
+  sha: string;
+  breaking: number;
+  additive: number;
+  closeness: number | null;
+  tests_passed: number;
+  tests_failed: number;
+  tests_status: string;
+  deterministic: boolean;
+  generated: string | null;
+}
+
+// biome-ignore lint/correctness/noUnusedVariables: used by the template below
+const rows = fidelity as Row[];
+// biome-ignore lint/correctness/noUnusedVariables: used by the template below
+const columns = [
+  ['Oracle', 'text'],
+  ['SDK repo @ sha', 'text'],
+  ['Breaking', 'num'],
+  ['Additive', 'num'],
+  ['Closeness', 'num'],
+  ['Tests passed', 'num'],
+  ['Tests failed', 'num'],
+  ['Deterministic', 'text'],
+  ['Generated', 'text'],
+] as const;
+---
+
+{
+  rows.length === 0 ? (
+    <p>
+      <em>No results yet. The board fills in once nightly parity runs start.</em>
+    </p>
+  ) : (
+    <div class="board">
+      <table data-fidelity>
+        <thead>
+          <tr>
+            {columns.map(([label, kind], i) => (
+              <th scope="col" aria-sort="none">
+                <button type="button" data-col={i} data-kind={kind}>
+                  {label}
+                </button>
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r) => (
+            <tr>
+              <td data-v={r.name}>{r.name}</td>
+              <td data-v={r.repo ?? ''}>
+                {r.repo ? (
+                  <a href={`https://github.com/${r.repo}/tree/${r.sha}`}>
+                    {r.repo}@<code>{r.sha.slice(0, 7)}</code>
+                  </a>
+                ) : (
+                  <code>{r.sha.slice(0, 7)}</code>
+                )}
+              </td>
+              <td data-v={r.breaking}>{r.breaking}</td>
+              <td data-v={r.additive}>{r.additive}</td>
+              <td data-v={r.closeness ?? -1}>{r.closeness === null ? '—' : `${r.closeness.toFixed(2)}%`}</td>
+              <td data-v={r.tests_passed}>{r.tests_status === 'skipped' ? '—' : r.tests_passed}</td>
+              <td data-v={r.tests_failed}>{r.tests_status === 'skipped' ? '—' : r.tests_failed}</td>
+              <td data-v={r.deterministic ? 'yes' : 'no'}>{r.deterministic ? 'yes' : 'no'}</td>
+              <td data-v={r.generated ?? ''}>{r.generated ?? '—'}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+<style>
+  .board {
+    overflow-x: auto;
+  }
+  th button {
+    all: unset;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  th button:focus-visible {
+    outline: 2px solid var(--sl-color-accent);
+  }
+  th[aria-sort='ascending'] button::after {
+    content: ' ▲';
+  }
+  th[aria-sort='descending'] button::after {
+    content: ' ▼';
+  }
+</style>
+
+<script>
+  for (const table of document.querySelectorAll<HTMLTableElement>('table[data-fidelity]')) {
+    const body = table.tBodies[0];
+    for (const button of table.querySelectorAll<HTMLButtonElement>('th button')) {
+      button.addEventListener('click', () => {
+        const th = button.parentElement as HTMLElement;
+        const col = Number(button.dataset.col);
+        const numeric = button.dataset.kind === 'num';
+        const dir = th.getAttribute('aria-sort') === 'ascending' ? -1 : 1;
+        for (const other of table.querySelectorAll('th')) other.setAttribute('aria-sort', 'none');
+        th.setAttribute('aria-sort', dir === 1 ? 'ascending' : 'descending');
+        const value = (row: HTMLTableRowElement) => row.cells[col]?.dataset.v ?? '';
+        // biome-ignore lint/correctness/noUnusedVariables: used by the template below
+const rows = [...body.rows].sort((a, b) =>
+          numeric
+            ? dir * (Number(value(a)) - Number(value(b)))
+            : dir * value(a).localeCompare(value(b)),
+        );
+        body.append(...rows);
+      });
+    }
+  }
+</script>
