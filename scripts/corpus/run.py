@@ -47,7 +47,7 @@ from ferrule.generate import (
     sort_imports_step,
     symlinks,
 )
-from scripts.corpus.harness import failed_at, fer_codes, reached, summarize, synthesize
+from scripts.corpus.harness import FER_RE, failed_at, fer_codes, reached, summarize, synthesize
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -233,7 +233,7 @@ def generate_stages(spec: Spec, out: Path) -> bool:
 
     if not spec.stage("forge", do_forge):
         err = str(spec.stages["forge"].get("error", "")).lower()
-        if "wasm" in err or "plugin" in err:
+        if "wasm" in err or "plugin" in err or FER_RE.search(err.upper()):
             spec.stages["plugin"] = spec.stages.pop("forge")
             spec.stages["forge"] = {"ok": True, "note": "failure is inside the plugin"}
         return False
@@ -273,6 +273,10 @@ def count_errors(text: str, tool: str) -> int:
 
 def compile_stage(spec: Spec, out: Path) -> dict[str, object]:
     """ruff, pyright and mypy with the SDK's own config, in a venv of its declared deps."""
+    if not (out / "pyproject.toml").is_file():
+        # Checking without it would pick up Ferrule's own root config instead.
+        msg = "generated SDK has no pyproject.toml, so it has no ruff/pyright/mypy config"
+        raise StageError(msg)
     venv = spec.work / "venv"
     shutil.rmtree(venv, ignore_errors=True)
     spec.check(

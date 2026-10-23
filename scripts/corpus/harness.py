@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 
 VERBS = ("get", "put", "post", "delete", "options", "head", "patch", "trace")
 STAGES = ("fetch", "convert", "forge", "plugin", "runtime", "compile", "wheel")
-FER_RE = re.compile(r"\bFER\d{4}\b")
+FER_RE = re.compile(r"\bFER\d{3,4}\b")
 _CAMEL_RE = re.compile(r"(?<=[a-z0-9])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])")
 _NON_WORD_RE = re.compile(r"[^0-9a-zA-Z]+")
 

@@ -128,9 +128,10 @@ def test_synthesize_empty_spec() -> None:
 
 
 def test_fer_codes() -> None:
-    assert fer_codes(["error FER1001 x", "FER1001 FER0002 FER12345 XFER1003"]) == {
+    assert fer_codes(["error FER1001 x", "FER1001 FER0002 FER201 FER12345 XFER1003"]) == {
         "FER0002": 1,
         "FER1001": 2,
+        "FER201": 1,
     }
 
 
