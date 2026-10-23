@@ -5,6 +5,7 @@ import { normalize } from './normalize/index.ts';
 import type { Config } from './schema/config.ts';
 import { validateConfig } from './schema/validate.ts';
 import { stableStringify } from './serialize.ts';
+import { swagger2ToOpenApi3 } from './swagger2/index.ts';
 import { annotate } from './transforms/annotate.ts';
 import { applyConfigTransforms } from './transforms/openapi-transforms.ts';
 import type { OpenApiSpec } from './transforms/pipeline.ts';
@@ -53,6 +54,7 @@ export {
   validateConfigValue,
 } from './schema/validate.ts';
 export { sortKeys, stableStringify } from './serialize.ts';
+export { SWAGGER2_CODE, swagger2ToOpenApi3 } from './swagger2/index.ts';
 export { annotate, type FerruleModel, type FerrulePagination } from './transforms/annotate.ts';
 export {
   type ApplyTransformsOptions,
@@ -69,17 +71,26 @@ export interface ConvertResult {
 }
 
 /**
- * Apply `openapi.transforms`, normalise constructs Forge cannot read, then annotate the result with Fern and x-ferrule-* extensions from
+ * Convert Swagger 2.0 to OpenAPI 3, apply `openapi.transforms`, normalise constructs Forge cannot read, then annotate the result with Fern and x-ferrule-* extensions from
  * `config`. Pure; the inputs are never mutated.
  */
 export function convert(spec: OpenApiSpec, config: Config): ConvertResult {
   // Config's index signature defeats TypeScript's weak-type check, hence the widening.
-  const transformed = applyConfigTransforms(spec, config as { readonly openapi?: unknown });
+  const upgraded = swagger2ToOpenApi3(spec);
+  const transformed = applyConfigTransforms(
+    upgraded.spec,
+    config as { readonly openapi?: unknown },
+  );
   const normalized = normalize(transformed.spec);
   const annotated = annotate(normalized.spec, config);
   return {
     spec: annotated.spec,
-    diagnostics: [...transformed.diagnostics, ...normalized.diagnostics, ...annotated.diagnostics],
+    diagnostics: [
+      ...upgraded.diagnostics,
+      ...transformed.diagnostics,
+      ...normalized.diagnostics,
+      ...annotated.diagnostics,
+    ],
   };
 }
 
