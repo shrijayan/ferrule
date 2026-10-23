@@ -65,3 +65,7 @@ run = "python3 -m scripts.oracles.converter_oracles"
 [tasks.parity]
 description = "Regenerate an oracle and measure parity"
 run = "uv run python -m scripts.parity.run"
+
+[tasks."adopt:gate"]
+description = "Phase 4 gate: adopt five public Stainless SDKs locally and prove nothing changed"
+run = "uv run python -m scripts.adopt.gate"
