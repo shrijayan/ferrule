@@ -95,6 +95,7 @@ runs:
         WORKSPACE: ${{ github.workspace }}
         OUT: ${{ runner.temp }}/ferrule-out
         REPORT: ${{ runner.temp }}/ferrule-verify.json
+        MANIFEST: ${{ runner.temp }}/ferrule-manifest.txt
       run: bash "$GITHUB_ACTION_PATH/scripts/regenerate.sh"
 
     - name: Label
@@ -102,7 +103,6 @@ runs:
       shell: bash
       env:
         ENFORCE: ${{ inputs.verify }}
-        GH_TOKEN: ${{ inputs.github-token }}
         REPORT: ${{ runner.temp }}/ferrule-verify.json
       run: |
         labels="$(bash "$GITHUB_ACTION_PATH/scripts/pr_labels.sh")"
@@ -124,6 +124,7 @@ runs:
         ADDITIVE: ${{ steps.label.outputs.additive }}
         WORKSPACE: ${{ github.workspace }}
         GH_TOKEN: ${{ inputs.github-token }}
+        MANIFEST: ${{ runner.temp }}/ferrule-manifest.txt
       run: bash "$GITHUB_ACTION_PATH/scripts/open_pr.sh"
 
     # Last, so the PR above exists for a maintainer to add ferrule:allow-breaking to.

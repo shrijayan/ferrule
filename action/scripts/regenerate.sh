@@ -38,5 +38,8 @@ if [[ "$status" -gt 1 || ! -s "$REPORT" ]]; then
   exit 1
 fi
 
+# The only paths open_pr.sh may commit.
+(cd "$OUT" && find . -type f ! -path './.git/*' | sed 's#^\./##' | sort) > "${MANIFEST:?}"
+
 # Adopt mode: overlay generated files; never delete hand-written ones (lib/, keep_files).
 (cd "$OUT" && tar --exclude=.git -cf - .) | (cd "$WORKSPACE" && tar -xf -)

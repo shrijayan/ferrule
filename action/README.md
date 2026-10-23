@@ -61,7 +61,10 @@ jobs:
 
 ## Breaking changes
 
-When `verify: true` finds a breaking change and no PR label overrides it, the PR is still opened (if `open-pr` is on), and then the job fails. To accept the change, a maintainer adds `ferrule:allow-breaking` to the `ferrule/regenerate` PR (or to the triggering PR) and re-runs the job.
+When `verify: true` finds a breaking change and no PR label overrides it, the PR is still opened (if `open-pr` is on), and then the job fails. The override is read only from the PR that triggered the run, and only when that PR's head is in the same repository. To accept a change, run the workflow on `pull_request` (types `opened`, `synchronize`, `labeled`) for the `ferrule/regenerate` PR, and have a maintainer add `ferrule:allow-breaking` to it. Each force-push of new content removes that label, so every new breaking diff must be approved again.
+
+- Only same-repository PRs are updated. A fork PR whose head branch is also named `ferrule/regenerate` is ignored.
+- Only the paths the generator wrote are committed. If anything else in the working tree has changed, the action refuses to commit or push.
 
 ## Security
 

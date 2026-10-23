@@ -146,8 +146,8 @@ def test_open_pr_drops_allow_breaking_on_push(tmp_path: Path) -> None:
     (repo / "gen.py").write_text("new\n")
     done = _open_pr(tmp_path, repo, ["gen.py"], GH_PR_LIST_JSON=json.dumps(PRS))
     assert done.returncode == 0, done.stderr
-    edit = next(line for line in _log(tmp_path).splitlines() if line.startswith("pr edit 9"))
-    assert "ferrule:allow-breaking" in edit
+    edit = _log(tmp_path).split("pr edit 9", 1)[1]
+    assert "--remove-label major,minor,patch,ferrule:allow-breaking" in edit
 
 
 def _labels(tmp: Path, event: dict[str, object]) -> str:

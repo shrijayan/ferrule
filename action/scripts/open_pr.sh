@@ -4,7 +4,8 @@
 # Commit the regenerated SDK to ferrule/regenerate and create or update its PR with the
 # semver label. With DRY_RUN=1 it prints the plan and touches neither git nor the network.
 #
-# Env: LABEL (major|minor|patch), BREAKING, ADDITIVE, WORKSPACE, GH_TOKEN, DRY_RUN.
+# Env: LABEL (major|minor|patch), BREAKING, ADDITIVE, WORKSPACE, GH_TOKEN, DRY_RUN,
+# MANIFEST (generated paths, one per line), GITHUB_REPOSITORY_OWNER.
 set -euo pipefail
 
 BRANCH="ferrule/regenerate"
@@ -29,17 +30,38 @@ run() {
   fi
 }
 
-if [[ "${DRY_RUN:-0}" != "1" ]]; then
+# Same-repo PRs only: a fork can open a PR whose head branch is also named $BRANCH.
+# shellcheck disable=SC2016 # jq, not the shell, expands $ENV
+SAME_REPO_JQ='[.[] | select(.isCrossRepository == false and .headRepositoryOwner.login == $ENV.GITHUB_REPOSITORY_OWNER)][0].number // empty'
+
+if [[ "${DRY_RUN:-0}" == "1" ]]; then
+  echo "+ stage only the paths listed in \$MANIFEST; refuse if anything else changed"
+  run git switch -C "$BRANCH"
+else
+  : "${MANIFEST:?}" "${GITHUB_REPOSITORY_OWNER:?}"
   cd "$WORKSPACE"
-  if git diff --quiet && [[ -z "$(git ls-files --others --exclude-standard)" ]]; then
+  changed="$(mktemp)"
+  generated="$(mktemp)"
+  trap 'rm -f "$changed" "$generated"' EXIT
+  # Everything changed in the working tree (modified, deleted, untracked) ...
+  git ls-files --modified --deleted --others --exclude-standard | sort -u > "$changed"
+  sed 's#^\./##' "$MANIFEST" | sort -u > "$generated"
+  # ... must have come from the generator; anything else is not ours to commit.
+  stray="$(comm -23 "$changed" "$generated")"
+  if [[ -n "$stray" ]]; then
+    echo "::error::refusing to commit files the generator did not produce:" >&2
+    echo "$stray" >&2
+    exit 1
+  fi
+  if [[ ! -s "$changed" ]]; then
     echo "no changes; nothing to open"
     exit 0
   fi
   gh auth setup-git
+  git switch -C "$BRANCH"
+  git add --pathspec-from-file="$changed"
 fi
 
-run git switch -C "$BRANCH"
-run git add -A
 run git -c user.name="github-actions[bot]" \
   -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
   commit -s -m "$title"
@@ -47,11 +69,13 @@ run git push --force origin "$BRANCH"
 run gh label create "$LABEL" --force --color ededed --description "Ferrule semver bump"
 existing=""
 if [[ "${DRY_RUN:-0}" != "1" ]]; then
-  existing="$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number // empty')"
+  existing="$(gh pr list --head "$BRANCH" --state open \
+    --json number,isCrossRepository,headRepositoryOwner --jq "$SAME_REPO_JQ")"
 fi
 if [[ -n "$existing" ]]; then
+  # New content was force-pushed: an earlier breaking-change approval no longer applies.
   run gh pr edit "$existing" --title "$title" --body "$body" \
-    --remove-label major,minor,patch --add-label "$LABEL"
+    --remove-label major,minor,patch,ferrule:allow-breaking --add-label "$LABEL"
 else
   run gh pr create --head "$BRANCH" --title "$title" --body "$body" --label "$LABEL"
 fi
