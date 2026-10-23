@@ -14,7 +14,14 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from ferrule.errors import BAD_REF, OUT_NOT_EMPTY, STEP_FAILED, SYMLINK_REFUSED, fail
+from ferrule.errors import (
+    BAD_REF,
+    OUT_NOT_EMPTY,
+    STEP_FAILED,
+    SYMLINK_REFUSED,
+    UNSAFE_PATH,
+    fail,
+)
 from ferrule.merge.core import MergeResult, merge_trees
 
 if TYPE_CHECKING:
@@ -58,6 +65,24 @@ def _rev(repo: Path, ref: str) -> str | None:
     return proc.stdout.decode().strip() if proc.returncode == 0 else None
 
 
+def safe_rel(rel: str) -> str:
+    """Return ``rel`` if it is a plain relative POSIX path that stays inside its root.
+
+    Trees come from refs and merge results, which a hostile repository controls, so absolute
+    paths, ``..``/``.``/empty parts, backslashes, NUL and ``.git`` parts are refused (FER4008).
+    """
+    parts = rel.split("/")
+    if (
+        not rel
+        or rel.startswith("/")
+        or "\\" in rel
+        or "\0" in rel
+        or any(p in {"", ".", "..", ".git"} for p in parts)
+    ):
+        raise fail(UNSAFE_PATH, f"unsafe path {rel!r} in tree", rel, "remove the entry")
+    return rel
+
+
 def read_ref(repo: Path, ref: str) -> dict[str, bytes]:
     """Read every regular file of the commit ``ref`` into memory."""
     if _rev(repo, ref) is None:
@@ -71,7 +96,7 @@ def read_ref(repo: Path, ref: str) -> dict[str, bytes]:
             continue  # submodules are not part of an SDK tree
         if mode == b"120000":
             raise fail(SYMLINK_REFUSED, "symlink in tree", path.decode(), "replace with a file")
-        entries.append((path.decode(), sha.decode()))
+        entries.append((safe_rel(path.decode()), sha.decode()))
     batch = _git(repo, "cat-file", "--batch", stdin="".join(f"{s}\n" for _, s in entries).encode())
     tree: dict[str, bytes] = {}
     at = 0
@@ -107,8 +132,11 @@ def write_tree(out: Path, files: Tree) -> None:
     """Write ``files`` into ``out``, which must be new or empty."""
     if out.exists() and any(out.iterdir()):
         raise fail(OUT_NOT_EMPTY, "output directory is not empty", str(out), "pass a new --out")
+    root = out.resolve()
     for rel, data in files.items():
-        target = out / rel
+        target = out / safe_rel(rel)
+        if not target.resolve().is_relative_to(root):
+            raise fail(UNSAFE_PATH, f"{rel!r} resolves outside the output", rel, "remove the entry")
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(data)
 
