@@ -27,6 +27,8 @@ gaps worth an issue on cloudflare/forge (queued in [HUMAN-ACTIONS.md](HUMAN-ACTI
 | G19 | One endpoint used by two stainless.yml methods (lumaai `generations.create` and `generations.video.create`) | An operation belongs to one group; the second method is dropped | None yet (lumaai `generation_create_params.py` and `generations.create` missing); needs a converter alias (`x-forge` alias operation) | Maybe: method aliases |
 | G20 | Description of an inline object schema (class docstring) | `object-info` has no description; a property's own description stands in | Adapter copies the property description onto its inline object (matches every OneBusAway class) | Yes: describe object types |
 | G21 | Multipart / binary request bodies (`FileTypes`) | `content-info.ty` is `unknown` for non-JSON media types | Body typed `unknown`; non-object bodies are FER201 | Yes: types for non-JSON content |
+| G22 | Read imagekit's `type: [array, null]` (YAML `null`, not the string `"null"`; 8 schemas) | `SchemaType` is a strict serde enum: `expected value` and the whole document is refused. The spec is invalid JSON Schema, which Stainless tolerates | Converter normalisation `type-null-literal` (FER1601) rewrites the entry to `"null"` and notes `x-ferrule-normalized` on the node | Maybe: accept a `null` literal leniently, or report the JSON pointer |
+| G23 | Read knock's `discriminator: __typename` (a bare string, OpenAPI requires a Discriminator Object) | Deserialiser expects an object: `invalid type: string "__typename"`, document refused | Converter normalisation `discriminator-string` (FER1602) rewrites to `{ propertyName }`, noted with `x-ferrule-normalized` | Maybe: accept the string shorthand, or report the JSON pointer |
 
 ## Verdict for Phase 1
 
