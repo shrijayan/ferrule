@@ -18,3 +18,4 @@ Stainless output needs an ADR.
 | [0010](./0010-oracle-snapshot-digests.md) | Converter oracle snapshots store digests, not specs | Accepted | 2026-10-23 |
 | [0011](./0011-keep-files-the-generator-no-longer-writes.md) | Keep files the generator no longer writes | Accepted | 2026-10-23 |
 | [0012](./0012-generated-sdk-type-checks-use-the-sdk-config.md) | Generated SDKs are type-checked with their own configuration | Accepted | 2026-10-23 |
+| [0013](./0013-sdk-testing-fake-server.md) | Ship a `<pkg>.testing` fake server in generated SDKs | Accepted | 2026-10-23 |
