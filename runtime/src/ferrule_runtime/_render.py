@@ -51,6 +51,7 @@ _BASE_MODEL_HINT = (
     '            raise TypeError("Pydantic models must subclass our base model type, '
     'e.g. `from {pkg} import BaseModel`")'
 )
+_TESTING_DIR = "testing/"
 _NOT_TEMPLATE = frozenset({"__pycache__", "ruff.toml"})  # ruff.toml: lint opt-out, not shipped
 _SECONDS_PER_MINUTE = 60
 _PY310 = (3, 10)
@@ -87,6 +88,8 @@ class RuntimeOptions:
     webhooks: bool = False
     """Adds ``APIWebhookValidationError`` (SDKs that configure webhook unwrapping)."""
     line_length: int = 120
+    testing: bool = False
+    """Adds the ``testing/`` fake server (``<pkg>.testing``); not in Stainless output (ADR 0013)."""
 
 
 def template_root() -> Traversable:
@@ -167,13 +170,15 @@ def render_files(  # noqa: PLR0913 - mirrors RuntimeOptions; keyword-only
     min_python: tuple[int, int] = (3, 9),
     webhooks: bool = False,
     line_length: int = 120,
+    testing: bool = False,
     pagination: Sequence[PageScheme] = (),
 ) -> dict[str, str]:
     """Render the runtime for one SDK (pure).
 
     Returns a mapping from a path relative to the SDK's package directory (for example
     ``_utils/_logs.py``) to the exact file text. ``pagination.py`` is included when
-    ``pagination`` schemes are given. :func:`render` writes these files to disk.
+    ``pagination`` schemes are given, and ``testing/`` (the fake server) when ``testing`` is set.
+    :func:`render` writes these files to disk.
     """
     return render_options(
         RuntimeOptions(
@@ -188,6 +193,7 @@ def render_files(  # noqa: PLR0913 - mirrors RuntimeOptions; keyword-only
             min_python=min_python,
             webhooks=webhooks,
             line_length=line_length,
+            testing=testing,
         ),
         pagination=pagination,
     )
@@ -233,6 +239,8 @@ def render_options(
 
     files: dict[str, str] = {}
     for rel, entry in _walk(template_root()):
+        if rel.startswith(_TESTING_DIR) and not options.testing:
+            continue
         text = resolve_directives(entry.read_bytes().decode("utf-8"), flags, rel)
         for token, value in replacements.items():
             text = text.replace(token, value)
