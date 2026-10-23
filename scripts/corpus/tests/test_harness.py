@@ -94,7 +94,7 @@ def test_synthesize() -> None:
     assert result.config == {
         "organization": {"name": "acme"},
         "environments": {"production": "https://api.acme.test/v1"},
-        "targets": {"python": {"package_name": "corpus_acme"}},
+        "targets": {"python": {"package_name": "corpus_acme", "publish": {"pypi": False}}},
         "readme": {
             "example_requests": {
                 "default": {"type": "request", "endpoint": "get /", "params": {}},

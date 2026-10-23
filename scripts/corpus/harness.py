@@ -5,7 +5,7 @@
 Synthesized stainless.yml (deterministic; corpus specs have no config of their own):
 
 * ``organization.name`` is the corpus id; ``targets.python.package_name`` is
-  ``corpus_<id>`` with ``-`` as ``_``.
+  ``corpus_<id>`` with ``-`` as ``_``, with ``publish: {pypi: false}``.
 * ``environments.production`` is the spec's first absolute ``http(s)`` server URL (OpenAPI 3
   ``servers`` or Swagger 2 ``schemes``/``host``/``basePath``), else ``https://api.<id>.test``.
 * Operations are visited by sorted path, then in the order get, put, post, delete, options,
@@ -155,7 +155,7 @@ def synthesize(spec: Mapping[str, object], spec_id: str) -> Synthesis:
     config: dict[str, object] = {
         "organization": {"name": spec_id},
         "environments": {"production": base_url(spec, spec_id)},
-        "targets": {"python": {"package_name": package_name(spec_id)}},
+        "targets": {"python": {"package_name": package_name(spec_id), "publish": {"pypi": False}}},
         "readme": {"example_requests": {"default": example, "headline": dict(example)}},
         "resources": {name: {"methods": methods} for name, methods in sorted(resources.items())},
     }
