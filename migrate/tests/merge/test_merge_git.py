@@ -132,6 +132,8 @@ def test_cli_merge(repo: Path, tmp_path: Path, capsys: pytest.CaptureFixture[str
         ".git /x",
         "‌.git/x",
         "GIT~1/config",
+        ".git::$INDEX_ALLOCATION/config",
+        "C:foo",
     ],
 )
 def test_write_tree_refuses_paths_outside_out(tmp_path: Path, rel: str) -> None:
