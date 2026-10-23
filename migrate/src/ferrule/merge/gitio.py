@@ -8,6 +8,7 @@ Only local git plumbing is used, with hooks disabled; nothing is ever pushed.
 from __future__ import annotations
 
 import os
+import re
 import subprocess
 import tempfile
 from dataclasses import dataclass
@@ -65,6 +66,17 @@ def _rev(repo: Path, ref: str) -> str | None:
     return proc.stdout.decode().strip() if proc.returncode == 0 else None
 
 
+# Code points HFS+ ignores in names, so ".g\u200cit" would land in ".git" on macOS.
+_IGNORABLE = re.compile("[\u200b-\u200f\u202a-\u202e\u206a-\u206f\ufeff]")
+_GIT_SHORT = re.compile(r"git~\d+")  # Windows 8.3 short name of .git
+
+
+def _is_git_dir(part: str) -> bool:
+    """Whether a path part names .git on some file system (case, ignorables, 8.3, trailing)."""
+    folded = _IGNORABLE.sub("", part).casefold().rstrip(". ")
+    return folded == ".git" or _GIT_SHORT.fullmatch(folded) is not None
+
+
 def safe_rel(rel: str) -> str:
     """Return ``rel`` if it is a plain relative POSIX path that stays inside its root.
 
@@ -77,7 +89,7 @@ def safe_rel(rel: str) -> str:
         or rel.startswith("/")
         or "\\" in rel
         or "\0" in rel
-        or any(p in {"", ".", "..", ".git"} for p in parts)
+        or any(p in {"", ".", ".."} or _is_git_dir(p) for p in parts)
     ):
         raise fail(UNSAFE_PATH, f"unsafe path {rel!r} in tree", rel, "remove the entry")
     return rel
