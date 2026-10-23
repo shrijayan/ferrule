@@ -29,7 +29,7 @@ SUBCOMMANDS: dict[str, str] = {
     "verify": "Verify an SDK against its oracle.",
     "merge": "Merge regenerated code with custom changes.",
 }
-UNIMPLEMENTED = ("merge",)
+UNIMPLEMENTED: tuple[str, ...] = ()
 
 EXIT_OK = 0
 EXIT_FAILED = 1
@@ -72,6 +72,15 @@ def build_parser() -> argparse.ArgumentParser:
     ado.add_argument("--dry-run", action="store_true", help="report the plan, change nothing")
     ado.add_argument("--forge", type=Path, help="Forge CLI (default: $FERRULE_FORGE)")
     ado.add_argument("--plugin", type=Path, help="plugin.wasm (default: $FERRULE_PLUGIN)")
+
+    mrg = subs["merge"]
+    mrg.add_argument("--base", required=True, help="previous generation: a directory or ref")
+    mrg.add_argument("--ours", required=True, help="custom branch: a directory or ref")
+    mrg.add_argument("--theirs", required=True, help="new generation: a directory or ref")
+    mrg.add_argument("--repo", type=Path, default=Path(), help="repository for REF arguments")
+    mrg.add_argument("--out", type=Path, help="write the merged tree to this new directory")
+    mrg.add_argument("--report", type=Path, help="write the merge report (JSON) here")
+    mrg.add_argument("--keep", action="append", default=[], help="keep_files glob (repeatable)")
     return parser
 
 
@@ -110,12 +119,6 @@ def _adopt(args: argparse.Namespace) -> int:
     return EXIT_FAILED if report.breaking else EXIT_OK
 
 
-COMMANDS: dict[str, Callable[[argparse.Namespace], int]] = {
-    "adopt": _adopt,
-    "rescue": _rescue,
-}
-
-
 def _generate(args: argparse.Namespace) -> int:
     request = GenerateRequest(
         spec=args.spec,
@@ -143,6 +146,29 @@ def _verify(args: argparse.Namespace) -> int:
     if args.json is not None:
         args.json.write_text(json.dumps(report.to_json(), indent=2, sort_keys=True) + "\n")
     return EXIT_FAILED if report.breaking else EXIT_OK
+
+
+def _merge(args: argparse.Namespace) -> int:
+    from ferrule.merge import KeepRules, merge_trees  # noqa: PLC0415 - keeps startup light
+    from ferrule.merge.gitio import read_tree, write_tree  # noqa: PLC0415
+
+    trees = [read_tree(src, args.repo) for src in (args.base, args.ours, args.theirs)]
+    result = merge_trees(*trees, keep=KeepRules(tuple(args.keep)))
+    if args.out is not None:
+        write_tree(args.out, result.files)
+    for conflict in result.conflicts:
+        sys.stdout.write(conflict.render() + "\n")
+    sys.stdout.write(f"merged {len(result.files)} files, {len(result.blocking)} conflict(s)\n")
+    if args.report is not None:
+        args.report.write_text(json.dumps(result.to_json(), indent=2, sort_keys=True) + "\n")
+    return EXIT_FAILED if result.blocking else EXIT_OK
+
+
+COMMANDS: dict[str, Callable[[argparse.Namespace], int]] = {
+    "adopt": _adopt,
+    "merge": _merge,
+    "rescue": _rescue,
+}
 
 
 def main(argv: Sequence[str] | None = None) -> int:

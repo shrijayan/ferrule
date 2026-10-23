@@ -30,10 +30,10 @@ def test_no_command() -> None:
 
 def test_module_entry() -> None:
     proc = subprocess.run(
-        [sys.executable, "-m", "ferrule", "merge"],
+        [sys.executable, "-m", "ferrule", "--version"],
         capture_output=True,
         text=True,
         check=False,
     )
-    assert proc.returncode == 2
-    assert "FER0001" in proc.stderr
+    assert proc.returncode == 0
+    assert proc.stdout.startswith("ferrule ")
