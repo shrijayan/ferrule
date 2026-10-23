@@ -12,7 +12,37 @@ import type { OpenApiSpec } from '../transforms/pipeline.ts';
 export const SWAGGER2_CODE = 'FER1610';
 
 type Json = unknown;
-type Obj = Record<string, Json>;
+/** An object node; the OpenAPI keys read here are named so they can be read with a dot. */
+type Obj = Record<string, Json> & {
+  $ref?: Json;
+  basePath?: Json;
+  components?: Json;
+  consumes?: Json;
+  content?: Json;
+  definitions?: Json;
+  description?: Json;
+  headers?: Json;
+  host?: Json;
+  in?: Json;
+  name?: Json;
+  nullable?: Json;
+  parameters?: Json;
+  paths?: Json;
+  produces?: Json;
+  properties?: Json;
+  requestBody?: Json;
+  required?: Json;
+  responses?: Json;
+  schema?: Json;
+  schemas?: Json;
+  schemes?: Json;
+  securityDefinitions?: Json;
+  securitySchemes?: Json;
+  servers?: Json;
+  style?: Json;
+  swagger?: Json;
+  type?: Json;
+};
 
 function isObject(v: Json): v is Obj {
   return typeof v === 'object' && v !== null && !Array.isArray(v);
