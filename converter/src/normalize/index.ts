@@ -20,6 +20,8 @@ export const NORMALIZE_CODES = {
   equalNamesNumbered: 'FER1605',
   /** A `$ref` into components.schemas points to nothing; replaced by an unknown schema. */
   danglingRef: 'FER1606',
+  /** `items` is a list (a tuple, draft 4); rewritten to `prefixItems`. */
+  itemsTuple: 'FER1607',
 } as const;
 
 export const NORMALIZED_KEY = 'x-ferrule-normalized';
@@ -34,6 +36,8 @@ type Json = unknown;
 /** An object node; the OpenAPI keys read here are named so they can be read with a dot. */
 type Node = Record<string, Json> & {
   $ref?: Json;
+  items?: Json;
+  prefixItems?: Json;
   basePath?: Json;
   components?: Json;
   consumes?: Json;
@@ -69,6 +73,34 @@ function isObject(v: Json): v is Node {
 
 /** Keys under which a schema keyword appears as data rather than as a schema. */
 const DATA_KEYS = new Set(['example', 'examples', 'enum', 'const', 'default']);
+
+/** Keys whose value maps names to nodes: a name such as `default` there is not a keyword. */
+const NAME_MAPS = new Set([
+  'properties',
+  'patternProperties',
+  '$defs',
+  'definitions',
+  'schemas',
+  'parameters',
+  'responses',
+  'requestBodies',
+  'headers',
+  'content',
+  'paths',
+]);
+
+/** Walk `value`'s children with `visit`; entries of name maps are always visited. */
+function children(value: Node, visit: (child: Json, keys: readonly string[]) => Json): Node {
+  const out: Node = {};
+  for (const [k, v] of Object.entries(value)) {
+    if (NAME_MAPS.has(k) && isObject(v)) {
+      out[k] = Object.fromEntries(Object.entries(v).map(([n, c]) => [n, visit(c, [k, n])]));
+    } else {
+      out[k] = DATA_KEYS.has(k) || k.startsWith('x-') ? v : visit(v, [k]);
+    }
+  }
+  return out;
+}
 
 /**
  * The words Forge names a field by (`.cache/forge/src/name.rs` `Name::new`): split at characters
@@ -140,11 +172,22 @@ export function normalize(spec: OpenApiSpec): NormalizeResult {
   function walk(value: Json, path: (string | number)[]): Json {
     if (Array.isArray(value)) return value.map((v, i) => walk(v, [...path, i]));
     if (!isObject(value)) return value;
-    const out: Node = {};
-    for (const [k, v] of Object.entries(value)) {
-      out[k] = DATA_KEYS.has(k) || k.startsWith('x-') ? v : walk(v, [...path, k]);
+    const out = children(value, (child, keys) => walk(child, [...path, ...keys]));
+    const { type, discriminator, $ref, items } = out;
+    if (Array.isArray(items)) {
+      delete out.items;
+      out.prefixItems = items;
+      note(out, 'items-tuple');
+      diagnostics.push({
+        code: NORMALIZE_CODES.itemsTuple,
+        severity: 'info',
+        message:
+          '`items` is a list (a draft-4 tuple); rewritten to `prefixItems`, which Forge reads as an unknown tuple',
+        pointer: toJsonPointer([...path, 'items']),
+        suggestion:
+          'if a list of one of these was meant, write `items: { anyOf: [...] }` in the spec',
+      });
     }
-    const { type, discriminator, $ref } = out;
     if (out.in === 'query' && typeof out.style === 'string' && out.style !== 'form') {
       const style = out.style;
       delete out.style;
@@ -260,9 +303,7 @@ export function normalize(spec: OpenApiSpec): NormalizeResult {
       return;
     }
     if (!isObject(value)) return;
-    for (const [k, v] of Object.entries(value)) {
-      if (!DATA_KEYS.has(k) && !k.startsWith('x-')) properties(v, [...path, k]);
-    }
+    children(value, (child, keys) => properties(child, [...path, ...keys]));
     const props = value.properties;
     if (!isObject(props)) return;
     disambiguate(

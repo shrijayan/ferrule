@@ -96,6 +96,8 @@ function schema(value: Json): Json {
       out.nullable = v;
     } else if (k === 'discriminator' && typeof v === 'string') {
       out[k] = { propertyName: v };
+    } else if ((k === 'properties' || k === 'patternProperties') && isObject(v)) {
+      out[k] = named(v);
     } else if (k === 'example' || k === 'enum' || k === 'default' || k.startsWith('x-')) {
       out[k] = v;
     } else {
@@ -104,6 +106,11 @@ function schema(value: Json): Json {
   }
   if (out.type === 'file') Object.assign(out, { type: 'string', format: 'binary' });
   return out;
+}
+
+/** A map from names to schemas; a name such as `default` is not a keyword there. */
+function named(map: Obj): Obj {
+  return Object.fromEntries(Object.entries(map).map(([n, v]) => [n, schema(v)]));
 }
 
 /** A non-body parameter (or a header object): its type keywords move into `schema`. */
@@ -247,7 +254,7 @@ export function swagger2ToOpenApi3(spec: OpenApiSpec): {
   }
 
   const components: Obj = {};
-  if (isObject(doc.definitions)) components.schemas = schema(doc.definitions);
+  if (isObject(doc.definitions)) components.schemas = named(doc.definitions);
   const params = Object.entries(globalParams).filter(
     ([, p]) => !(isObject(p) && (p.in === 'body' || p.in === 'formData')),
   );
