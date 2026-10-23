@@ -111,3 +111,24 @@ def test_cli_merge(repo: Path, tmp_path: Path, capsys: pytest.CaptureFixture[str
     assert main([*argv, "--theirs", str(dirs["t"]), "--keep", "none"]) == 1
     assert "FER4301" in capsys.readouterr().out
     assert main([*argv, "--theirs", "nope", "--repo", str(repo)]) == 1
+
+
+@pytest.mark.parametrize(
+    "rel",
+    [
+        "../escape.py",
+        "/abs/path.py",
+        "a/../../b.py",
+        "a/./b.py",
+        "a//b.py",
+        "a\\b.py",
+        ".git/config",
+        "a/.git/hooks/x",
+        "a\0b",
+    ],
+)
+def test_write_tree_refuses_paths_outside_out(tmp_path: Path, rel: str) -> None:
+    # A crafted ref or merge result must never write outside --out (security review).
+    with pytest.raises(FerruleError, match="FER4008"):
+        write_tree(tmp_path / "out", {rel: b"x"})
+    assert not (tmp_path / "escape.py").exists()
