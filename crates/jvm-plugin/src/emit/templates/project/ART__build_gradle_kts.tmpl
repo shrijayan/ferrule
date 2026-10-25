@@ -1,0 +1,56 @@
+# From OneBusAway/java-sdk @ c29c48ad and OneBusAway/kotlin-sdk @ 69234467, <artifact>/build.gradle.kts (Apache-2.0, see NOTICE). Modified by The Ferrule Authors: names replaced by {{...}} tokens, the flavors merged with {{#java}} blocks, branding per BRANDING.md; this line is not emitted.
+plugins {
+    id("{{ORG}}.kotlin")
+    id("{{ORG}}.publish")
+}
+
+dependencies {
+    api(project(":{{ARTIFACT}}-client-okhttp"))
+}
+
+{{#java}}
+// Redefine `dokkaJavadoc` to:
+{{/java}}
+{{#kotlin}}
+// Redefine `dokkaHtml` to:
+{{/kotlin}}
+// - Depend on the root project's task for merging the docs of all the projects
+// - Forward that task's output to this task's output
+{{#java}}
+tasks.named("dokkaJavadoc").configure {
+{{/java}}
+{{#kotlin}}
+tasks.named("dokkaHtml").configure {
+{{/kotlin}}
+    actions.clear()
+
+{{#java}}
+    val dokkaJavadocCollector = rootProject.tasks["dokkaJavadocCollector"]
+    dependsOn(dokkaJavadocCollector)
+{{/java}}
+{{#kotlin}}
+    val dokkaHtmlCollector = rootProject.tasks["dokkaHtmlCollector"]
+    dependsOn(dokkaHtmlCollector)
+{{/kotlin}}
+
+{{#java}}
+    val outputDirectory = project.layout.buildDirectory.dir("dokka/javadoc")
+{{/java}}
+{{#kotlin}}
+    val outputDirectory = project.layout.buildDirectory.dir("dokka/html")
+{{/kotlin}}
+    doLast {
+        copy {
+{{#java}}
+            from(dokkaJavadocCollector.outputs.files)
+{{/java}}
+{{#kotlin}}
+            from(dokkaHtmlCollector.outputs.files)
+{{/kotlin}}
+            into(outputDirectory)
+            duplicatesStrategy = DuplicatesStrategy.INCLUDE
+        }
+    }
+
+    outputs.dir(outputDirectory)
+}

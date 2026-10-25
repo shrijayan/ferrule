@@ -1,0 +1,34 @@
+# From OneBusAway/java-sdk @ c29c48ad and OneBusAway/kotlin-sdk @ 69234467, bin/check-release-environment (Apache-2.0, see NOTICE). Modified by The Ferrule Authors: names replaced by {{...}} tokens, the flavors merged with {{#java}} blocks, branding per BRANDING.md; this line is not emitted.
+#!/usr/bin/env bash
+
+errors=()
+
+if [ -z "${SONATYPE_USERNAME}" ]; then
+  errors+=("The SONATYPE_USERNAME secret has not been set. Please set it in either this repository's secrets or your organization secrets")
+fi
+
+if [ -z "${SONATYPE_PASSWORD}" ]; then
+  errors+=("The SONATYPE_PASSWORD secret has not been set. Please set it in either this repository's secrets or your organization secrets")
+fi
+
+if [ -z "${GPG_SIGNING_KEY}" ]; then
+  errors+=("The GPG_SIGNING_KEY secret has not been set. Please set it in either this repository's secrets or your organization secrets")
+fi
+
+if [ -z "${GPG_SIGNING_PASSWORD}" ]; then
+  errors+=("The GPG_SIGNING_PASSWORD secret has not been set. Please set it in either this repository's secrets or your organization secrets")
+fi
+
+lenErrors=${#errors[@]}
+
+if [[ lenErrors -gt 0 ]]; then
+  echo -e "Found the following errors in the release environment:\n"
+
+  for error in "${errors[@]}"; do
+    echo -e "- $error\n"
+  done
+
+  exit 1
+fi
+
+echo "The environment is ready to push releases!"

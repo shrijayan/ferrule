@@ -1,0 +1,42 @@
+# From OneBusAway/java-sdk @ c29c48ad and OneBusAway/kotlin-sdk @ 69234467, build.gradle.kts (Apache-2.0, see NOTICE). Modified by The Ferrule Authors: names replaced by {{...}} tokens, the flavors merged with {{#java}} blocks, branding per BRANDING.md; this line is not emitted.
+plugins {
+    id("org.jetbrains.dokka") version "2.0.0"
+}
+
+repositories {
+    mavenCentral()
+}
+
+allprojects {
+    group = "{{PKG}}"
+    version = "{{VERSION}}" // x-release-please-version
+}
+
+subprojects {
+    // These are populated with dependencies by `buildSrc` scripts.
+    tasks.register("format") {
+        group = "Verification"
+        description = "Formats all source files."
+    }
+    tasks.register("lint") {
+        group = "Verification"
+        description = "Verifies all source files are formatted."
+    }
+}
+
+subprojects {
+    apply(plugin = "org.jetbrains.dokka")
+}
+
+{{#java}}
+// Avoid race conditions between `dokkaJavadocCollector` and `dokkaJavadocJar` tasks
+tasks.named("dokkaJavadocCollector").configure {
+{{/java}}
+{{#kotlin}}
+// Avoid race conditions between `dokkaHtmlCollector` and `dokkaJavadocJar` tasks
+tasks.named("dokkaHtmlCollector").configure {
+{{/kotlin}}
+    subprojects.flatMap { it.tasks }
+        .filter { it.project.name != "{{ARTIFACT}}" && it.name == "dokkaJavadocJar" }
+        .forEach { mustRunAfter(it) }
+}
