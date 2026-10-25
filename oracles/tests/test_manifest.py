@@ -4,6 +4,7 @@
 
 from __future__ import annotations
 
+import dataclasses
 import json
 from typing import TYPE_CHECKING, cast
 
@@ -290,10 +291,25 @@ def test_download_refuses_plain_http() -> None:
 
 
 def test_parse_args() -> None:
-    assert fetch.parse_args([]) == ([], None)
-    assert fetch.parse_args(["--kind", "config", "demo"]) == (["demo"], "config")
+    assert fetch.parse_args([]) == fetch.Args([], None, "python")
+    assert fetch.parse_args(["--kind", "config", "demo"]) == fetch.Args(["demo"], "config")
+    args = fetch.parse_args(["--language", "go", "--group", "demo", "--group", "x", "y"])
+    assert args == fetch.Args(["y"], None, "go", ("demo", "x"))
+    assert fetch.parse_args(["--language", "all"]).language == "all"
     with pytest.raises(SystemExit):
         fetch.parse_args(["--kind", "binary"])
+    with pytest.raises(SystemExit):
+        fetch.parse_args(["--language", "cobol"])
+
+
+def test_group_flag_must_name_a_group() -> None:
+    oracles = fetch.parse_manifest(doc(config_entry(), sdk_entry()))
+    assert fetch.Args(["demo-python"], groups=("demo",)).wanted(oracles) == [
+        "demo",
+        "demo-python",
+    ]
+    with pytest.raises(fetch.ManifestError, match="unknown group"):
+        fetch.Args([], groups=("demo-python",)).wanted(oracles)
 
 
 def test_verify_files(tmp_path: Path) -> None:
@@ -307,3 +323,136 @@ def test_verify_files(tmp_path: Path) -> None:
     (tmp_path / "a.txt").write_text("abd", encoding="utf-8")
     with pytest.raises(fetch.VerifyError):
         fetch.verify_files(oracle, tmp_path)
+
+
+def lang_entry(language: str, **overrides: object) -> dict[str, object]:
+    """Build a non-Python sdk of the demo group, proven against demo-config."""
+    base = entry(
+        name=f"demo-{language}",
+        language=language,
+        repo=f"acme/demo-{language}",
+        url=f"https://github.com/acme/demo-{language}.git",
+        pairs_with="demo-config",
+        paired="proven",
+        license="MIT",
+    )
+    if language in fetch.LAYOUTS:
+        base["layout"] = fetch.LAYOUTS[language][0]
+    for key, value in overrides.items():
+        if value is None and key in {"layout", "paired", "license"}:
+            base.pop(key, None)
+        else:
+            base[key] = value
+    return base
+
+
+def test_language_defaults_to_python() -> None:
+    config, sdk = fetch.parse_manifest(doc(config_entry(), sdk_entry()))
+    assert (sdk.language, sdk.layout, sdk.paired) == ("python", None, None)
+    assert (config.language, config.layout) == (None, None)
+
+
+def test_parses_language_sdks() -> None:
+    oracles = fetch.parse_manifest(
+        doc(
+            config_entry(),
+            sdk_entry(),
+            lang_entry("typescript", layout="node"),
+            lang_entry("go", layout="v2"),
+            lang_entry("java"),
+            lang_entry("ruby", paired="nearest", stats={**STATS, "config_hash": "0" * 32}),
+        )
+    )
+    by_name = {o.name: o for o in oracles}
+    ts, go, java = by_name["demo-typescript"], by_name["demo-go"], by_name["demo-java"]
+    assert (ts.language, ts.layout, ts.paired) == ("typescript", "node", "proven")
+    assert (go.language, go.layout) == ("go", "v2")
+    assert (java.language, java.layout) == ("java", None)
+    assert by_name["demo-ruby"].paired == "nearest"
+    assert [o.name for o in fetch.paired_sdks(oracles, by_name["demo-config"])] == [
+        "demo-python",
+        "demo-typescript",
+        "demo-go",
+        "demo-java",
+        "demo-ruby",
+    ]
+
+
+@pytest.mark.parametrize(
+    "bad",
+    [
+        {"language": "cobol"},
+        {"language": "typescript", "layout": None},
+        {"language": "typescript", "layout": "deno"},
+        {"language": "go", "layout": "v3"},
+        {"language": "java", "layout": "v1"},
+        {"language": "ruby", "paired": None},
+        {"language": "ruby", "paired": "maybe"},
+        {"language": "ruby", "group": "other"},
+        {"language": "ruby", "license": None},
+        {"language": "ruby", "pairs_with": "demo-python"},
+        {"language": "ruby", "stats": {**STATS, "config_hash": "0" * 32}},  # not proven
+        {"language": "ruby", "paired": "nearest"},  # both hashes match, so proven
+        {"language": "ruby", "pairs_with": None},  # paired names no config
+        {"language": "ruby", "spec": {"path": "openapi.yml"}},
+        {"language": "python", "name": "demo-python2"},  # pairing belongs on the config
+        {"language": "python", "name": "demo-python2", "paired": None},  # 2 python sdks
+    ],
+)
+def test_rejects_bad_language_sdks(bad: dict[str, object]) -> None:
+    raw = lang_entry(cast("str", bad.pop("language")), **bad)
+    with pytest.raises(fetch.ManifestError):
+        fetch.parse_manifest(doc(config_entry(), sdk_entry(), raw))
+
+
+def test_rejects_language_on_config_and_two_sdks_per_language() -> None:
+    with pytest.raises(fetch.ManifestError, match="only for sdk"):
+        fetch.parse_manifest(doc(config_entry(language="python"), sdk_entry()))
+    twin = lang_entry(
+        "go", name="demo-go2", repo="acme/demo-go2", url="https://github.com/acme/demo-go2.git"
+    )
+    with pytest.raises(fetch.ManifestError, match="both go sdks"):
+        fetch.parse_manifest(doc(config_entry(), sdk_entry(), lang_entry("go"), twin))
+
+
+def test_select_by_language() -> None:
+    lone = entry(
+        name="lone-go",
+        group="lone",
+        language="go",
+        layout="v1",
+        repo="acme/lone-go",
+        url="https://github.com/acme/lone-go.git",
+    )
+    oracles = fetch.parse_manifest(
+        doc(config_entry(), sdk_entry(), lang_entry("typescript"), lang_entry("go"), lone)
+    )
+
+    def names(wanted: list[str], kind: str | None = None, language: str = "python") -> list[str]:
+        return [o.name for o in fetch.select(oracles, wanted, kind, language)]
+
+    assert names(["demo"]) == ["demo-config", "demo-python"]
+    assert names([]) == ["demo-config", "demo-python"]
+    assert names(["demo"], None, "typescript") == ["demo-config", "demo-typescript"]
+    assert names([], "sdk", "go") == ["demo-go", "lone-go"]
+    assert names([], "config", "go") == ["demo-config"]
+    assert names(["lone"], None, "typescript") == []
+    assert names(["demo"], None, "all") == [
+        "demo-config",
+        "demo-python",
+        "demo-typescript",
+        "demo-go",
+    ]
+    # An oracle named exactly is selected whatever the language filter says.
+    assert names(["demo-go"]) == ["demo-go"]
+    assert names(["demo", "demo-go"]) == ["demo-config", "demo-python", "demo-go"]
+    with pytest.raises(fetch.ManifestError, match="unknown language"):
+        fetch.select(oracles, [], None, "cobol")
+
+
+def test_checkout_refuses_non_https(tmp_path: Path) -> None:
+    (oracle,) = fetch.parse_manifest(doc(entry()))
+    plain = dataclasses.replace(oracle, url="http://github.com/acme/demo-python.git")
+    with pytest.raises(fetch.VerifyError, match="non-https"):
+        fetch.checkout(plain, tmp_path)
+    assert not (tmp_path / "demo-python").exists()
