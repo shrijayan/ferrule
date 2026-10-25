@@ -1,0 +1,5 @@
+# Project-file templates for generated SDKs (Python, TOML, YAML, Markdown with %%TOKENS%%): data,
+# not Go templates, and not this repository's code.
+crates/python-plugin/src/emit/files/templates/*.tmpl linguist-detectable=false
+# Golden output and fixtures are generated SDK code, not Ferrule's own.
+crates/python-plugin/tests/golden/** linguist-generated
