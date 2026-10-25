@@ -7,7 +7,7 @@ pub mod input;
 pub mod render;
 pub mod templates;
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 pub use input::ProjectFilesInput;
 use input::{ExampleRequest, FilesResource};
@@ -16,19 +16,22 @@ use render::{TemplateVars, render};
 use crate::js;
 use crate::model::{ArrayFormat, NestedFormat};
 
-fn count_methods(resources: &[FilesResource]) -> usize {
-    resources
-        .iter()
-        .map(|r| r.methods.len() + count_methods(&r.subresources))
-        .sum()
+fn endpoints<'a>(resources: &'a [FilesResource], out: &mut BTreeSet<(&'static str, &'a str)>) {
+    for r in resources {
+        out.extend(r.methods.iter().map(|m| (m.http_method.as_str(), m.path.as_str())));
+        endpoints(&r.subresources, out);
+    }
 }
 
-/// The text of `.stats.yml`.
+/// The text of `.stats.yml`. An endpoint bound to several methods (lumaai's `post
+/// /generations/video`) counts once.
 #[must_use]
 pub fn emit_stats(input: &ProjectFilesInput) -> String {
+    let mut configured = BTreeSet::new();
+    endpoints(&input.resources, &mut configured);
     format!(
         "configured_endpoints: {}\nopenapi_spec_url: {}\nopenapi_spec_hash: {}\nconfig_hash: {}\n",
-        count_methods(&input.resources),
+        configured.len(),
         input.stats.openapi_spec_url,
         input.stats.openapi_spec_hash,
         input.stats.config_hash,
