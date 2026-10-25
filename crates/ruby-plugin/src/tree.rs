@@ -265,6 +265,15 @@ const FIELD_RESERVED: [&str; 41] = [
     "y",
 ];
 
+/// A field's Ruby name: snake case, `_` after a reserved word.
+fn ruby_field_name<S: AsRef<str>>(words: &[S]) -> String {
+    let mut name = snake(words);
+    if FIELD_RESERVED.contains(&name.as_str()) {
+        name.push('_');
+    }
+    name
+}
+
 /// Builds declarations for one SDK.
 pub struct Builder<'a> {
     pub client: &'a Client,
@@ -376,7 +385,7 @@ impl<'a> Builder<'a> {
             if direct {
                 site.see_parent.as_ref().map(|p| See::Field {
                     parent: p.clone(),
-                    field: snake(&split_words(wire)),
+                    field: ruby_field_name(&split_words(wire)),
                 })
             } else {
                 None
@@ -476,12 +485,8 @@ impl<'a> Builder<'a> {
             }
             ty => self.field_type(site, at, ty, nested),
         };
-        let mut ruby = snake(&name);
-        if FIELD_RESERVED.contains(&ruby.as_str()) {
-            ruby.push('_');
-        }
         RField {
-            name: ruby,
+            name: ruby_field_name(&name),
             wire: f.wire_name.clone(),
             required: f.required,
             nullable,
@@ -555,7 +560,6 @@ impl<'a> Builder<'a> {
             };
             let description = match &v.ty {
                 Type::Ref(r) => self.client.model(r).map(|d| d.description.clone()).unwrap_or_default(),
-                Type::Object(o) => o.description.clone().unwrap_or_default(),
                 _ => String::new(),
             };
             variants.push(Variant {
@@ -698,7 +702,13 @@ impl<'a> Builder<'a> {
                         required: b.required,
                         deprecated: false,
                         read_only: false,
-                        description: b.description.clone(),
+                        // The body's own description, else its model's.
+                        description: match (b.description.is_empty(), ty) {
+                            (true, Type::Ref(rf)) => {
+                                self.client.model(rf).map(|d| d.description.clone()).unwrap_or_default()
+                            }
+                            _ => b.description.clone(),
+                        },
                         default: None,
                         ty: ty.clone(),
                     };

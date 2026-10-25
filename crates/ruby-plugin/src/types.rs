@@ -259,7 +259,11 @@ impl RType {
                 }
             }
             Self::Union(c, variants) => {
-                if variants.is_empty() {
+                // Spelled out where Sorbet takes input and a variant is a model (to allow hashes),
+                // and always with a constant variant; else its `Variants` alias.
+                let has_const = variants.iter().any(|v| matches!(v, Self::Const(_)));
+                let has_class = variants.iter().any(Self::has_class);
+                if variants.is_empty() || !(has_const || (or_symbol && has_class)) {
                     format!("{}::Variants", c.code(m))
                 } else {
                     let list: Vec<String> = variants.iter().map(|v| v.rbi_with(m, or_hash, or_symbol)).collect();

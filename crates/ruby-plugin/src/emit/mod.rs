@@ -114,7 +114,15 @@ impl<'a> Gen<'a> {
         }
         g.resources = resources;
         g.models = g.model_files();
-        mark_inputs(&mut g.models);
+        let mut responses = Vec::new();
+        for r in &g.resources {
+            for m in &r.methods {
+                if let Some(t) = &m.response {
+                    type_refs(t, &mut responses);
+                }
+            }
+        }
+        mark_inputs(&mut g.models, responses);
         g
     }
 
@@ -220,21 +228,27 @@ impl<'a> Gen<'a> {
         out
     }
 
-    /// `@see` the first method (resources and methods in Stainless's order) that returns the model.
+    /// `@see` the first method (resources and methods in Stainless's order) of a resource in the
+    /// model's namespace that returns it.
     fn set_see(&self, decl: &mut Decl, r: &ferrule_sdk_model::model::TypeRef) {
-        let see = self.resources.iter().find_map(|res| {
-            res.methods.iter().find_map(|m| {
-                let returns = m
-                    .method
-                    .response
-                    .as_ref()
-                    .is_some_and(|resp| matches!(&resp.ty, Type::Ref(t) if t == r));
-                returns.then(|| See::Method {
-                    resource: res.class.clone(),
-                    method: m.name.clone(),
+        let namespace = &decl.r().segs[..decl.r().segs.len() - 1];
+        let see = self
+            .resources
+            .iter()
+            .filter(|res| res.class[..res.class.len() - 1] == *namespace)
+            .find_map(|res| {
+                res.methods.iter().find_map(|m| {
+                    let returns = m
+                        .method
+                        .response
+                        .as_ref()
+                        .is_some_and(|resp| matches!(&resp.ty, Type::Ref(t) if t == r));
+                    returns.then(|| See::Method {
+                        resource: res.class.clone(),
+                        method: m.name.clone(),
+                    })
                 })
-            })
-        });
+            });
         match decl {
             Decl::Class(c) => c.see = see,
             Decl::Enum(e) => e.see = see,
@@ -310,25 +324,17 @@ fn mark(d: &mut Decl, input: &[ClassRef]) {
     }
 }
 
-/// Marks every class requests carry: the params classes, their bases, and every class their
-/// fields reach, transitively.
-fn mark_inputs(models: &mut [ModelFile]) {
-    let mut pending: Vec<ClassRef> = models
-        .iter()
-        .filter_map(|f| match &f.decl {
-            Decl::Class(c) if c.params => Some(c.r.clone()),
-            _ => None,
-        })
-        .collect();
-    let mut input: Vec<ClassRef> = Vec::new();
+/// Every class reachable from `pending`: through fields, bases, variants and converters.
+fn reachable(models: &[ModelFile], mut pending: Vec<ClassRef>) -> Vec<ClassRef> {
+    let mut seen: Vec<ClassRef> = Vec::new();
     while let Some(r) = pending.pop() {
-        if input.contains(&r) {
+        if seen.contains(&r) {
             continue;
         }
         let Some(d) = find_decl(models.iter().map(|f| &f.decl), &r) else {
             continue;
         };
-        input.push(r);
+        seen.push(r);
         match d {
             Decl::Class(c) => {
                 pending.extend(c.base.iter().cloned());
@@ -345,6 +351,27 @@ fn mark_inputs(models: &mut [ModelFile]) {
             Decl::Enum(_) => {}
         }
     }
+    seen
+}
+
+/// Marks the classes Sorbet types as inputs: every class no response reaches (params classes,
+/// request bodies, models only the helpers use), and the params classes themselves.
+fn mark_inputs(models: &mut [ModelFile], responses: Vec<ClassRef>) {
+    fn all(d: &Decl, out: &mut Vec<ClassRef>) {
+        out.push(d.r().clone());
+        match d {
+            Decl::Class(c) => c.nested.iter().for_each(|n| all(n, out)),
+            Decl::Union(u) => u.nested.iter().for_each(|n| all(n, out)),
+            Decl::Alias(a) => a.before.iter().for_each(|n| all(n, out)),
+            Decl::Enum(_) => {}
+        }
+    }
+    let output = reachable(models, responses);
+    let mut every = Vec::new();
+    for f in models.iter() {
+        all(&f.decl, &mut every);
+    }
+    let input: Vec<ClassRef> = every.into_iter().filter(|r| !output.contains(r)).collect();
     for f in models {
         mark(&mut f.decl, &input);
     }

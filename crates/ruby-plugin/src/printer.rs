@@ -33,7 +33,7 @@ pub fn len(s: &str) -> usize {
 
 /// Greedy word wrap of `words` at `width`, the first line after `first`, the others after
 /// `rest`.
-fn fill(words: &[&str], width: usize, first: &str, rest: &str, out: &mut Vec<String>) {
+fn fill(words: &[String], width: usize, first: &str, rest: &str, out: &mut Vec<String>) {
     let mut cur = first.to_owned();
     let mut empty = true;
     for word in words {
@@ -86,6 +86,39 @@ fn tokens(line: &str) -> Vec<&str> {
     out
 }
 
+/// `*emphasis*` as prettier writes it, `_emphasis_` (`**strong**` stays).
+#[must_use]
+pub fn underscores(line: &str) -> String {
+    let chars: Vec<char> = line.chars().collect();
+    let mut out = String::with_capacity(line.len());
+    let mut i = 0;
+    while i < chars.len() {
+        let c = chars[i];
+        let prev = if i == 0 { ' ' } else { chars[i - 1] };
+        let single = c == '*' && chars.get(i + 1) != Some(&'*') && prev != '*';
+        if single && !prev.is_alphanumeric() && chars.get(i + 1).is_some_and(|n| !n.is_whitespace()) {
+            // The closing `*` of the same emphasis.
+            let close = (i + 1..chars.len()).find(|&j| {
+                chars[j] == '*'
+                    && chars.get(j + 1) != Some(&'*')
+                    && chars[j - 1] != '*'
+                    && !chars[j - 1].is_whitespace()
+                    && chars.get(j + 1).is_none_or(|n| !n.is_alphanumeric())
+            });
+            if let Some(j) = close {
+                out.push('_');
+                out.extend(&chars[i + 1..j]);
+                out.push('_');
+                i = j + 1;
+                continue;
+            }
+        }
+        out.push(c);
+        i += 1;
+    }
+    out
+}
+
 /// The marker of a markdown list item (`- `, `* `, `1. `), if the line starts one.
 fn list_marker(line: &str) -> Option<&str> {
     for m in ["- ", "* ", "+ "] {
@@ -105,10 +138,10 @@ pub fn wrap(text: &str, width: usize) -> Vec<String> {
     let is_space = ferrule_sdk_model::js::is_space;
     let mut out: Vec<String> = Vec::new();
     // The words of the paragraph or list item being collected, and its marker.
-    let mut words: Vec<&str> = Vec::new();
+    let mut words: Vec<String> = Vec::new();
     let mut marker: Option<&str> = None;
     let mut fenced = false;
-    let flush = |words: &mut Vec<&str>, marker: &mut Option<&str>, out: &mut Vec<String>| {
+    let flush = |words: &mut Vec<String>, marker: &mut Option<&str>, out: &mut Vec<String>| {
         if !words.is_empty() {
             match marker.take() {
                 Some(m) => fill(words, width, m, &" ".repeat(len(m)), out),
@@ -118,6 +151,9 @@ pub fn wrap(text: &str, width: usize) -> Vec<String> {
         }
     };
     for raw in text.split('\n') {
+        // A line ending in two spaces or a backslash is a hard break; a list item's trailing
+        // spaces are dropped (it ends its line anyway).
+        let hard = raw.ends_with("  ") || raw.trim_end_matches(is_space).ends_with('\\');
         let line = raw.trim_end_matches(is_space);
         if fenced {
             out.push(line.to_owned());
@@ -146,7 +182,7 @@ pub fn wrap(text: &str, width: usize) -> Vec<String> {
             }
             flush(&mut words, &mut marker, &mut out);
             marker = Some(m);
-            words.extend(tokens(&trimmed[m.len()..]));
+            words.extend(tokens(&underscores(&trimmed[m.len()..])).into_iter().map(str::to_owned));
             continue;
         }
         if trimmed.starts_with('#') || trimmed.starts_with('|') {
@@ -154,7 +190,11 @@ pub fn wrap(text: &str, width: usize) -> Vec<String> {
             out.push(trimmed.to_owned());
             continue;
         }
-        words.extend(tokens(trimmed));
+        let emphasis = underscores(trimmed);
+        words.extend(tokens(&emphasis).into_iter().map(str::to_owned));
+        if hard && marker.is_none() {
+            flush(&mut words, &mut marker, &mut out);
+        }
     }
     flush(&mut words, &mut marker, &mut out);
     while out.last().is_some_and(String::is_empty) {

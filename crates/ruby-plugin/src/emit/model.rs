@@ -141,9 +141,8 @@ fn yard_param(g: &Gen<'_>, f: &RField) -> String {
     if f.nullable { format!("{t}, nil") } else { t }
 }
 
-/// A description as `@param` tags show it: its first line, cut at 80 columns.
-#[must_use]
-pub fn short(description: &str) -> String {
+/// A description's first line, cut at 80 columns.
+fn cut(description: &str) -> String {
     let first = description.split('\n').next().unwrap_or("");
     let units: Vec<u16> = first.encode_utf16().collect();
     if units.len() <= COMMENT_WIDTH {
@@ -153,10 +152,17 @@ pub fn short(description: &str) -> String {
     }
 }
 
+/// A description as `@param` tags show it: its first line, cut at 80 columns, emphasis as
+/// prettier writes it.
+#[must_use]
+pub fn short(description: &str) -> String {
+    crate::printer::underscores(&cut(description))
+}
+
 /// Whether [`short`] leaves part of `description` out, so the docs say some were truncated.
 #[must_use]
 pub fn truncated(description: &str) -> bool {
-    short(description) != description
+    cut(description) != description
 }
 
 /// `@param` lines: blank comment lines between them when any has a description.
@@ -311,7 +317,7 @@ fn rbi_read(g: &Gen<'_>, c: &Class, t: &RType) -> String {
 
 /// Sorbet's writer type: a model also as a hash; for an optional field, every model inside it.
 fn rbi_writer(g: &Gen<'_>, c: &Class, f: &RField) -> String {
-    let t = if matches!(f.ty, RType::Model(_) | RType::Union(..)) {
+    let t = if matches!(f.ty, RType::Model(_)) {
         f.ty.rbi_input(&g.m)
     } else if !f.required && !f.nullable {
         f.ty.rbi_with(&g.m, true, true)
