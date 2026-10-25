@@ -9,10 +9,12 @@ the generated files: ``rubocop -a`` on ``.rb`` (with the generated ``.rubocop.ym
 workaround around it) -> the Ruby runtime, rendered by ``ferrule_runtime.render_ruby_files`` from
 those options (already in the formatted layout, so it is not formatted again).
 
-The formatters are the versions ``crates/ruby-plugin/tools/Gemfile`` pins; ``FERRULE_STREE`` and
-``FERRULE_RUBOCOP`` name them (such as ``bundle exec stree``). As in :mod:`ferrule.generate`,
-planning is pure and :func:`generate_ruby` is the only function that touches the file system or
-runs processes; it takes the runner and the renderer as parameters.
+The formatters are the versions ``crates/ruby-plugin/tools/Gemfile.lock`` pins, which
+``mise run ruby:tools`` installs into ``.cache/ruby-tools`` and ``crates/ruby-plugin/tools/bin``
+runs; ``FERRULE_STREE`` and ``FERRULE_RUBOCOP`` override them (such as ``bundle exec stree``).
+As in :mod:`ferrule.generate`, planning is pure and :func:`generate_ruby` is the only function
+that touches the file system or runs processes; it takes the runner and the renderer as
+parameters.
 """
 
 from __future__ import annotations
@@ -20,6 +22,7 @@ from __future__ import annotations
 import importlib
 import json
 import re
+import shlex
 import shutil
 import tempfile
 from dataclasses import dataclass
@@ -35,6 +38,7 @@ from ferrule.errors import (
     fail,
 )
 from ferrule.generate import (
+    REPO_ROOT,
     GenerateResult,
     Runner,
     Step,
@@ -52,6 +56,9 @@ RUBY_RUNTIME_OPTIONS = ".ferrule/ruby-runtime.json"
 
 ALIAS_MARK = "ferrule-rbs-alias"
 """The marker comment that hides ``class X = Y`` from syntax_tree while it formats ``.rbs``."""
+
+FORMATTER_BIN = REPO_ROOT / "crates/ruby-plugin/tools/bin"
+"""The wrappers that run the formatter bundle ``mise run ruby:tools`` installs."""
 
 _ALIAS = re.compile(r"^(?P<ws>\s*)(?P<kind>class|module) (?P<name>\S+) = (?P<value>.+)$")
 
@@ -74,6 +81,20 @@ class RubyRequest:
     gen: Path
     stree: tuple[str, ...] = ("stree",)
     rubocop: tuple[str, ...] = ("rubocop",)
+
+
+def resolve_formatter(
+    env: Mapping[str, str], var: str, name: str, bin_dir: Path = FORMATTER_BIN
+) -> tuple[str, ...]:
+    """Resolve a formatter's command.
+
+    ``$var`` split as a shell would, else the repository's wrapper in ``bin_dir`` when it is
+    there, else ``name`` on the PATH.
+    """
+    if var in env:
+        return tuple(shlex.split(env[var]))
+    wrapper = bin_dir / name
+    return (str(wrapper),) if wrapper.is_file() else (name,)
 
 
 def plan_ruby_steps(request: RubyRequest, work: Path) -> tuple[Step, Step]:
@@ -186,8 +207,8 @@ def _check(request: RubyRequest) -> None:
     for name, cmd in (("FERRULE_STREE", request.stree), ("FERRULE_RUBOCOP", request.rubocop)):
         if not cmd or shutil.which(cmd[0]) is None:
             hint = (
-                "install the gem's formatters (BUNDLE_GEMFILE=crates/ruby-plugin/tools/Gemfile "
-                f"bundle install) and set {name}, such as `bundle exec stree`"
+                "install the gem's formatters (`mise run ruby:tools` in the Ferrule repository) "
+                f"or set {name}, such as `bundle exec stree`"
             )
             raise fail(TOOL_NOT_FOUND, f"{' '.join(cmd)} is not on PATH", name, hint)
     if request.out.exists() and any(request.out.iterdir()):

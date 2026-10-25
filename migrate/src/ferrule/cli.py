@@ -7,7 +7,6 @@ from __future__ import annotations
 import argparse
 import json
 import os
-import shlex
 import sys
 import tempfile
 from pathlib import Path
@@ -19,7 +18,12 @@ from ferrule.errors import MISSING_INPUT, FerruleError, fail
 from ferrule.generate import GenerateRequest, generate, load_renderer, resolve_tools
 from ferrule.generate_go import GoRequest, generate_go, load_go_renderer
 from ferrule.generate_jvm import JvmRequest, generate_jvm, load_java_renderer, resolve_ktfmt
-from ferrule.generate_ruby import RubyRequest, generate_ruby, load_ruby_renderer
+from ferrule.generate_ruby import (
+    RubyRequest,
+    generate_ruby,
+    load_ruby_renderer,
+    resolve_formatter,
+)
 from ferrule.rescue import rescue, write_spec
 from ferrule.verify import export_ref, verify
 
@@ -187,8 +191,8 @@ def _generate_ruby(args: argparse.Namespace) -> int:
         config=args.config,
         out=args.out,
         gen=resolve_tools(os.environ, gen=args.gen).gen,
-        stree=tuple(shlex.split(os.environ.get("FERRULE_STREE", "stree"))),
-        rubocop=tuple(shlex.split(os.environ.get("FERRULE_RUBOCOP", "rubocop"))),
+        stree=resolve_formatter(os.environ, "FERRULE_STREE", "stree"),
+        rubocop=resolve_formatter(os.environ, "FERRULE_RUBOCOP", "rubocop"),
     )
     result = generate_ruby(request, renderer=load_ruby_renderer())
     sys.stdout.write(
