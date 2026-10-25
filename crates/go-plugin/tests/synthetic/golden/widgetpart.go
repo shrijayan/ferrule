@@ -38,7 +38,7 @@ func NewWidgetPartService(opts ...option.RequestOption) (r *WidgetPartService) {
 func (r *WidgetPartService) Get(ctx context.Context, widgetID string, partNumber int64, opts ...option.RequestOption) (res *WidgetPartGetResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if widgetID == "" {
-		err = errors.New("missing required widgetID parameter")
+		err = errors.New("missing required widget_id parameter")
 		return nil, err
 	}
 	path := fmt.Sprintf("v1/widgets/%s/parts/%v", widgetID, partNumber)

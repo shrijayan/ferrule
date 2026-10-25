@@ -52,7 +52,7 @@ func (r *WidgetService) New(ctx context.Context, body WidgetNewParams, opts ...o
 func (r *WidgetService) Get(ctx context.Context, widgetID string, opts ...option.RequestOption) (res *Widget, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if widgetID == "" {
-		err = errors.New("missing required widgetID parameter")
+		err = errors.New("missing required widget_id parameter")
 		return nil, err
 	}
 	path := fmt.Sprintf("v1/widgets/%s", widgetID)
@@ -73,7 +73,7 @@ func (r *WidgetService) Delete(ctx context.Context, widgetID string, opts ...opt
 	opts = slices.Concat(r.Options, opts)
 	opts = append([]option.RequestOption{option.WithHeader("Accept", "")}, opts...)
 	if widgetID == "" {
-		err = errors.New("missing required widgetID parameter")
+		err = errors.New("missing required widget_id parameter")
 		return err
 	}
 	path := fmt.Sprintf("v1/widgets/%s", widgetID)
