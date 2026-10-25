@@ -72,3 +72,51 @@ fn a_map_or_array_body_is_one_body_argument() {
 fn a_union_body_is_one_overload_per_variant() {
     check("union_of_objects");
 }
+
+/// A `multipart/form-data` body (honcho `sessions.messages.upload`) is sent as multipart with
+/// its binary fields as files, as ogx-client-python `files.create` writes it. Only the request is
+/// pinned: Stainless types the binary field `FileTypes`, which needs a type the project-file
+/// emitters know too (the field is still `object`).
+#[test]
+fn a_multipart_body_sends_its_binary_fields_as_files() {
+    let files = generated("multipart");
+    let resource = files.get("src/fx/resources/messages.py").expect("messages.py");
+    let sync = r#"        if not session_id:
+            raise ValueError(f"Expected a non-empty value for `session_id` but received {session_id!r}")
+        body = deepcopy_with_paths(
+            {
+                "file": file,
+                "peer_id": peer_id,
+            },
+            [["file"]],
+        )
+        files = extract_files(cast(Mapping[str, object], body), paths=[["file"]])
+        # It should be noted that the actual Content-Type header that will be
+        # sent to the server will contain a `boundary` parameter, e.g.
+        # multipart/form-data; boundary=---abc--
+        extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
+        return self._post(
+            path_template("/sessions/{session_id}/messages/upload", session_id=session_id),
+            body=maybe_transform(body, message_upload_params.MessageUploadParams),
+            files=files,
+            options=make_request_options(
+                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+            ),
+            cast_to=MessageUploadResponse,
+        )
+"#;
+    assert!(resource.contains(sync), "{resource}");
+    assert!(
+        resource.contains(
+            "            body=await async_maybe_transform(body, message_upload_params.MessageUploadParams),\n            files=files,\n"
+        ),
+        "{resource}"
+    );
+    for import in [
+        "from typing import Mapping, cast\n",
+        "from .._files import deepcopy_with_paths\n",
+        "from .._utils import extract_files, path_template, maybe_transform, async_maybe_transform\n",
+    ] {
+        assert!(resource.contains(import), "{import}");
+    }
+}
