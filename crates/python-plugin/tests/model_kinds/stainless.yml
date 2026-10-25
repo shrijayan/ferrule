@@ -19,6 +19,7 @@ resources:
       static_audience: StaticAudience
       dynamic_audience: DynamicAudience
       channel_data: ChannelData
+      source: Source
     methods:
       retrieve: get /workflows/{key}
       activate: put /workflows/{key}/activate

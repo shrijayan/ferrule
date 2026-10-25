@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import List, Optional
 
+from .source import Source
 from .._models import BaseModel
 from .audience import Audience
 from .channel_data import ChannelData
@@ -35,6 +36,9 @@ class Workflow(BaseModel):
 
     resolution: Optional[StreamingResolution] = None
     """A streaming resolution."""
+
+    source: Optional[Source] = None
+    """Where the workflow reads from."""
 
 
 from .workflow_step import WorkflowStep
