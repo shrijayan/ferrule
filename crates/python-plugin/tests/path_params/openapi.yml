@@ -1,0 +1,22 @@
+openapi: 3.1.0
+info: {title: fx, version: '1'}
+servers: [{url: 'https://api.example.com'}]
+
+paths:
+  /workspaces/{workspace_id}/peers/{peer_id}/card:
+    get:
+      operationId: peerCard
+      parameters:
+        - {name: workspace_id, in: path, required: true, description: ID of the workspace, schema: {type: string}}
+        - {name: peer_id, in: path, required: true, description: ID of the peer, schema: {type: string}}
+        - {name: target, in: query, description: The peer whose card to get., schema: {type: string}}
+      responses:
+        '200': {description: ok, content: {application/json: {schema: {type: object, properties: {card: {type: string}}}}}}
+  /workspaces/{workspace_id}/peers/{peer_id}:
+    delete:
+      operationId: deletePeer
+      parameters:
+        - {name: workspace_id, in: path, required: true, description: ID of the workspace, schema: {type: string}}
+        - {name: peer_id, in: path, required: true, description: ID of the peer, schema: {type: string}}
+      responses:
+        '200': {description: ok, content: {application/json: {schema: {type: object, properties: {id: {type: string}}}}}}
