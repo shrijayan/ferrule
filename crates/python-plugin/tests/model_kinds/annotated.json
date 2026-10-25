@@ -230,6 +230,19 @@
           "key": {
             "type": "string"
           },
+          "owners": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "$ref": "#/components/schemas/StaticAudience"
+                }
+              ]
+            },
+            "type": "array"
+          },
           "resolution": {
             "$ref": "#/components/schemas/StreamingResolution"
           },
@@ -324,6 +337,127 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/audiences": {
+      "get": {
+        "operationId": "listAudiences",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/components/schemas/StaticAudience"
+                      },
+                      {
+                        "$ref": "#/components/schemas/DynamicAudience"
+                      }
+                    ]
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "ok"
+          }
+        },
+        "x-fern-sdk-group-name": [
+          "workflows"
+        ],
+        "x-fern-sdk-method-name": "list_audiences",
+        "x-ferrule-client": {
+          "defaultEnvironment": "production",
+          "defaultHeaders": {},
+          "envPrefix": "FX",
+          "environments": [
+            {
+              "name": "production",
+              "url": "https://api.example.com"
+            }
+          ],
+          "name": "fx",
+          "omitPlatformHeaders": false,
+          "opts": [],
+          "query": {
+            "arrayFormat": "comma",
+            "nestedFormat": "brackets"
+          },
+          "retries": {
+            "initialDelaySeconds": 0.5,
+            "maxDelaySeconds": 8,
+            "maxRetries": 2
+          },
+          "security": [],
+          "securitySchemes": {},
+          "timeoutSeconds": 60
+        },
+        "x-ferrule-method-name": "list_audiences",
+        "x-ferrule-method-order": 2,
+        "x-ferrule-models": {
+          "Audience": {
+            "module": "audience",
+            "name": "Audience"
+          },
+          "ChannelData": {
+            "module": "channel_data",
+            "name": "ChannelData"
+          },
+          "ConditionGroup": {
+            "module": "condition_group",
+            "name": "ConditionGroup"
+          },
+          "DynamicAudience": {
+            "module": "dynamic_audience",
+            "name": "DynamicAudience"
+          },
+          "Extensions": {
+            "module": "shared.extensions",
+            "name": "Extensions"
+          },
+          "Source": {
+            "module": "source",
+            "name": "Source"
+          },
+          "StaticAudience": {
+            "module": "static_audience",
+            "name": "StaticAudience"
+          },
+          "StreamingResolution": {
+            "module": "shared.streaming_resolution",
+            "name": "StreamingResolution"
+          },
+          "Workflow": {
+            "module": "workflow",
+            "name": "Workflow"
+          },
+          "WorkflowBranchStep": {
+            "module": "workflow_branch_step",
+            "name": "WorkflowBranchStep"
+          },
+          "WorkflowDelayStep": {
+            "module": "workflow_delay_step",
+            "name": "WorkflowDelayStep"
+          },
+          "WorkflowStep": {
+            "module": "workflow_step",
+            "name": "WorkflowStep"
+          }
+        },
+        "x-ferrule-package": {
+          "name": "fx",
+          "repo": ""
+        },
+        "x-ferrule-resource": {
+          "order": [
+            1
+          ],
+          "path": [
+            "workflows"
+          ]
+        }
+      }
+    },
     "/workflows/{key}": {
       "get": {
         "operationId": "getWorkflow",

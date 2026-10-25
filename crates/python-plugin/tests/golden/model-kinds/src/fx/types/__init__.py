@@ -16,6 +16,7 @@ from .dynamic_audience import DynamicAudience as DynamicAudience
 from .workflow_delay_step import WorkflowDelayStep as WorkflowDelayStep
 from .workflow_branch_step import WorkflowBranchStep as WorkflowBranchStep
 from .workflow_activate_response import WorkflowActivateResponse as WorkflowActivateResponse
+from .workflow_list_audiences_response import WorkflowListAudiencesResponse as WorkflowListAudiencesResponse
 
 # Rebuild cyclical models only after all modules are imported.
 # This ensures that, when building the deferred (due to cyclical references) model schema,
