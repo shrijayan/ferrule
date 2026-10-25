@@ -1,5 +1,5 @@
-//! Ferrule's typed reader of stainless.yml (`converter/src/schema/config.ts`): the subset of the
-//! config the converter reads, checked with the same rules (and messages) as the Zod schema.
+//! Ferrule's typed reader of stainless.yml: the subset of the config the converter reads, checked
+//! with the same rules (and messages) as the Zod schema.
 
 use crate::value::Value;
 use crate::zod::{Issue, Z};

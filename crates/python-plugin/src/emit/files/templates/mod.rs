@@ -1,12 +1,12 @@
 //! Every project file emitted from a template: output path -> template text (tokens per
-//! [`super::render`]). Port of `python-plugin/src/emit/files/templates/`.
+//! [`super::render`]).
 //!
 //! Each `<name>.tmpl` is derived from the file at the output path in
-//! OneBusAway/python-sdk@4c20fa834c2a (Apache-2.0).
-//! Modified by The Ferrule Authors: per-SDK values replaced by %%TOKENS%%, branding per
-//! `src/emit/files/BRANDING.md`. The text is byte-identical to the TypeScript templates it was
-//! ported from; do not edit by hand. The `.tmpl` extension keeps GitHub's dependency graph from
-//! reading the generated SDK's `requirements*.lock` templates as Ferrule's own manifests.
+//! OneBusAway/python-sdk@4c20fa834c2a (Apache-2.0). Modified by The Ferrule Authors: per-SDK values
+//! replaced by %%TOKENS%%, branding per `src/emit/files/BRANDING.md`. The text is byte-identical to
+//! the TypeScript templates it was ported from; do not edit by hand. The `.tmpl` extension keeps
+//! GitHub's dependency graph from reading the generated SDK's `requirements*.lock` templates as
+//! Ferrule's own manifests.
 
 /// Output path -> template text, in the order of the TypeScript `TEMPLATES` map.
 pub const TEMPLATES: &[(&str, &str)] = &[

@@ -1,14 +1,14 @@
 //! The only reader of `x-ferrule-*` extensions (ADR 0003). Validates their shapes and turns them
 //! into typed values; anything malformed or unknown is a FER diagnostic.
 //!
-//! Untrusted input: extensions carry spec and config text into generated Python. Every value
-//! that becomes a Python identifier (names, env vars, pagination fields) is checked here against
-//! an identifier pattern (FER101); every string literal the emitters print goes through
+//! Untrusted input: extensions carry spec and config text into generated Python. Every value that
+//! becomes a Python identifier (names, env vars, pagination fields) is checked here against an
+//! identifier pattern (FER101); every string literal the emitters print goes through
 //! `py_string`/`py_fstring` (`emit::common`), and every docstring through `escape_docstring`.
 //!
-//! Port of `python-plugin/src/adapter/extensions.ts`. The TypeScript plugin reads the values
-//! through `JSON.parse`, so object keys are visited in JavaScript order ([`js::entries`]) and a
-//! JSON `null` counts as present but `??` replaces it with the default, as there.
+//! The TypeScript plugin reads the values through `JSON.parse`, so object keys are visited in
+//! JavaScript order ([`js::entries`]) and a JSON `null` counts as present but `??` replaces it with
+//! the default, as there.
 
 use std::collections::HashMap;
 

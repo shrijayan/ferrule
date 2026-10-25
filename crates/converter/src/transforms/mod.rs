@@ -1,6 +1,5 @@
-//! Stainless `openapi.transforms`: update, append, merge, remove, copy and move, as defined by
-//! the `openapi.transforms` items in the public schema. Port of
-//! `converter/src/transforms/openapi-transforms.ts`.
+//! Stainless `openapi.transforms`: update, append, merge, remove, copy and move, as defined by the
+//! `openapi.transforms` items in the public schema.
 
 pub mod annotate;
 pub mod commands;
@@ -8,7 +7,7 @@ pub mod jsonpath;
 pub mod targets;
 
 use crate::Diagnostic;
-use crate::diagnostic::{Seg, escape_token, to_json_pointer};
+use crate::diagnostic::{Seg, to_json_pointer};
 use crate::value::{Map, Value, cmp_utf16, to_json};
 use crate::zod::Z;
 use commands::Command;
@@ -286,9 +285,4 @@ pub fn apply_config_transforms(spec: &Value, config: &Value) -> ApplyTransformsR
             }
         }
     }
-}
-
-#[allow(dead_code)]
-fn escape(s: &str) -> String {
-    escape_token(s)
 }

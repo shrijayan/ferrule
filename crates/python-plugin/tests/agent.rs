@@ -1,6 +1,5 @@
-//! Agent context for onebusaway. Port of `test/agent/agent.test.ts`; the golden comparison is in
-//! `tests/golden.rs`. Every example call renders arguments with `api_tests::example_value`, so
-//! most cases wait for the project-files port.
+//! Agent context for onebusaway. The golden comparison is in `tests/golden.rs`; every example call
+//! renders its arguments with `api_tests::example_value`.
 
 use std::fs;
 use std::io::Write;

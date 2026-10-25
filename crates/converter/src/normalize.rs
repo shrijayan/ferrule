@@ -1,8 +1,7 @@
-//! Normalisation (`converter/src/normalize/index.ts`): rewrite constructs the pinned Forge
-//! OpenAPI reader rejects into equivalents it accepts, without changing what a generator sees.
-//! Applied after transforms, before annotation. Pure. Every rewritten node gets an
-//! `x-ferrule-normalized` note (a list of rule names) and a `FER16xx` diagnostic. See
-//! docs/forge-gaps.md.
+//! Normalisation: rewrite constructs the pinned Forge OpenAPI reader rejects into equivalents it
+//! accepts, without changing what a generator sees. Applied after transforms, before annotation.
+//! Pure. Every rewritten node gets an `x-ferrule-normalized` note (a list of rule names) and a
+//! `FER16xx` diagnostic. See docs/forge-gaps.md.
 
 use crate::Diagnostic;
 use crate::diagnostic::{Seg, to_json_pointer};

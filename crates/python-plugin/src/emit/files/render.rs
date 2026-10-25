@@ -1,13 +1,12 @@
-//! The template language of the project files: `%%NAME%%` is replaced by `vars[NAME]`, and a
-//! line starting with `%%isort%%` is a one-line `from x import a, b` whose names are re-sorted the
-//! way the oracle's ruff isort config (`length-sort = true`) orders them once the tokens are
-//! filled. Port of `python-plugin/src/emit/files/render.ts`.
+//! The template language of the project files: `%%NAME%%` is replaced by `vars[NAME]`, and a line
+//! starting with `%%isort%%` is a one-line `from x import a, b` whose names are re-sorted the way
+//! the oracle's ruff isort config (`length-sort = true`) orders them once the tokens are filled.
 
 use std::cmp::Ordering;
 use std::collections::BTreeMap;
 use std::fmt;
 
-use super::js;
+use crate::js;
 
 /// Token name -> value.
 pub type TemplateVars = BTreeMap<&'static str, String>;

@@ -1,6 +1,6 @@
-//! The `openapi.transforms` commands (`converter/src/transforms/commands.ts`). Every command
-//! checks first and mutates only when it found no errors, so a failing transform leaves the
-//! document exactly as it was. `pointer` addresses the transform's `args` object.
+//! The `openapi.transforms` commands. Every command checks first and mutates only when it found no
+//! errors, so a failing transform leaves the document exactly as it was. `pointer` addresses the
+//! transform's `args` object.
 
 use super::jsonpath::query;
 use super::targets::{

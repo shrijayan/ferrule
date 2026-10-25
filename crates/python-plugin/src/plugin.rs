@@ -1,9 +1,9 @@
-//! The plugin entry: Forge -> adapter -> [`SdkClient`] -> emitters, as a native
-//! [`forge::Plugin`] (ADR 0014). Port of `python-plugin/src/plugin.ts`.
+//! The plugin entry: Forge -> adapter -> [`SdkClient`] -> emitters, as a native [`forge::Plugin`]
+//! (ADR 0014).
 //!
-//! Every file needs document-level data (Forge gaps G7, G10), so [`forge::Plugin::generate`]
-//! emits them all and `generate_group` keeps the trait's default, which emits nothing. The
-//! plugin holds no state, so the groups Forge runs in parallel cannot change the output.
+//! Every file needs document-level data (Forge gaps G7, G10), so [`forge::Plugin::generate`] emits
+//! them all and `generate_group` keeps the trait's default, which emits nothing. The plugin holds
+//! no state, so the groups Forge runs in parallel cannot change the output.
 
 use std::borrow::Cow;
 

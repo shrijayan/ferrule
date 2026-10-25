@@ -1,7 +1,3 @@
-//! Port of converter/test/schema/validate.test.ts, converter/test/schema/json-schema.test.ts,
-//! converter/test/schema/onebusaway.test.ts and the `convert` and `toJsonPointer` suites of
-//! converter/test/converter.test.ts (vitest).
-
 use ferrule_converter::diagnostic::{Seg, to_json_pointer};
 use ferrule_converter::schema::json_schema::{
     ErrorSeverity, Keyword, deep_equal, describe_alternatives, json_type, pattern_compiles, resolve_ref,
@@ -111,10 +107,6 @@ fn kw(expected: &[(&'static str, &str)]) -> Vec<(&'static str, String)> {
 fn repo_root() -> String {
     format!("{}/../../", env!("CARGO_MANIFEST_DIR"))
 }
-
-// ---------------------------------------------------------------------------------------------
-// validate.test.ts: validateConfig
-// ---------------------------------------------------------------------------------------------
 
 #[test]
 fn accepts_a_minimal_config_and_returns_the_typed_config() {
@@ -428,10 +420,6 @@ fn accepts_legacy_one_of_to_any_of_in_the_deprecated_transformations_list_only()
     );
 }
 
-// ---------------------------------------------------------------------------------------------
-// validate.test.ts: validateConfigValue
-// ---------------------------------------------------------------------------------------------
-
 #[test]
 fn validates_parsed_values_without_positions() {
     let messages: Vec<_> = validate_config_value(&v(&json!({ "organization": { "name": "a" } })))
@@ -448,10 +436,6 @@ fn validates_parsed_values_without_positions() {
     );
 }
 
-// ---------------------------------------------------------------------------------------------
-// onebusaway.test.ts
-// ---------------------------------------------------------------------------------------------
-
 #[test]
 fn validates_against_the_public_schema_with_zero_diagnostics() {
     let path = format!("{}oracles/cache/onebusaway-config/stainless-config.yml", repo_root());
@@ -463,10 +447,6 @@ fn validates_against_the_public_schema_with_zero_diagnostics() {
     assert_eq!(result.diagnostics, Vec::<Diagnostic>::new());
     assert_eq!(organization_name(result.config.as_ref()), Some("onebusaway-sdk"));
 }
-
-// ---------------------------------------------------------------------------------------------
-// json-schema.test.ts: the bundled stainless.yml schema
-// ---------------------------------------------------------------------------------------------
 
 #[test]
 fn uses_only_keywords_the_validator_implements() {
@@ -501,10 +481,6 @@ fn has_patterns_that_compile_as_unicode_regexes() {
     }
 }
 
-// ---------------------------------------------------------------------------------------------
-// json-schema.test.ts: unsupportedKeywords
-// ---------------------------------------------------------------------------------------------
-
 #[test]
 fn flags_unknown_keywords_anywhere_ignoring_x_extensions() {
     let schema = v(&json!({
@@ -526,10 +502,6 @@ fn flags_unknown_keywords_anywhere_ignoring_x_extensions() {
         ]
     );
 }
-
-// ---------------------------------------------------------------------------------------------
-// json-schema.test.ts: validate
-// ---------------------------------------------------------------------------------------------
 
 #[test]
 fn handles_boolean_schemas() {
@@ -784,10 +756,6 @@ fn ignores_deprecation_warnings_raised_by_property_names() {
     assert_eq!(keywords(&s, &json!({ "a": 1 })), kw(&[]));
 }
 
-// ---------------------------------------------------------------------------------------------
-// json-schema.test.ts: resolveRef and describeAlternatives
-// ---------------------------------------------------------------------------------------------
-
 #[test]
 fn resolves_escaped_pointers_and_rejects_remote_or_missing_refs() {
     let root = v(&json!({ "$defs": { "a/b": { "const": 1 }, "c~d": true } }));
@@ -813,10 +781,6 @@ fn describes_booleans_and_stops_at_the_ref_budget() {
         Vec::<String>::new()
     );
 }
-
-// ---------------------------------------------------------------------------------------------
-// converter.test.ts: toJsonPointer
-// ---------------------------------------------------------------------------------------------
 
 #[test]
 fn escapes_tilde_and_slash() {

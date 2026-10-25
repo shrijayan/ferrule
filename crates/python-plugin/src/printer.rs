@@ -1,7 +1,7 @@
 //! Python source printer with indentation and deterministic imports, sorted the way the oracle
 //! SDKs' ruff/isort settings sort them: sections (future, stdlib, third party, local), plain
 //! imports before `from` imports, modules and names by length then text, names grouped as
-//! constants, classes, then functions and variables. Port of `python-plugin/src/printer.ts`.
+//! constants, classes, then functions and variables.
 
 use std::cmp::Ordering;
 

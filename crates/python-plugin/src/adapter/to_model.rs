@@ -1,6 +1,5 @@
 //! Maps Forge's groups, methods, models and types to [`SdkClient`] (ADR 0002). With
 //! [`super::extensions`], the only code that knows Forge's interface.
-//! Port of `python-plugin/src/adapter/to-model.ts`.
 
 use std::collections::HashSet;
 

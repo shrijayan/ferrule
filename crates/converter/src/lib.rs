@@ -1,5 +1,5 @@
 //! stainless.yml + OpenAPI spec -> annotated spec with overlays and `x-ferrule-*` extensions.
-//! Port of `converter/` (ADR 0014). Pure: only [`cli`] touches the file system.
+//! Rust since ADR 0014. Pure: only [`cli`] touches the file system.
 
 pub mod cli;
 pub mod diagnostic;
@@ -89,7 +89,6 @@ pub fn parse_spec(text: &str) -> Result<Value, String> {
 }
 
 /// Text in, deterministic JSON text out: validate the config, apply its edition, convert.
-/// Byte-identical to `convertText` in `converter/src/index.ts`.
 ///
 /// # Errors
 ///

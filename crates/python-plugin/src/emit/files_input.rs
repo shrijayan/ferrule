@@ -1,7 +1,6 @@
 //! Maps [`SdkClient`] to the project-file emitters' input ([`super::files::input`]). Values the
 //! model cannot know yet come in [`ProjectMeta`]: `x-ferrule-config` does not carry them (proposed
 //! ADR 0003 amendment), so the plugin passes deterministic placeholders until it does.
-//! Port of `python-plugin/src/emit/files-input.ts`.
 
 use super::common::{
     leaf, method_params, method_ref, resource_class_base, resource_module, return_model, sort_fields,

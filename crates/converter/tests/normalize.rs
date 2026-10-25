@@ -1,5 +1,3 @@
-//! Port of converter/test/normalize/normalize.test.ts and swagger2.test.ts (vitest).
-
 use ferrule_converter::normalize::normalize;
 use ferrule_converter::swagger2::swagger2_to_openapi3;
 use ferrule_converter::value::{parse_json, stable_stringify};
@@ -33,9 +31,6 @@ fn csp(ds: &[Diagnostic]) -> Vec<[String; 3]> {
 fn cp(ds: &[Diagnostic]) -> Vec<[String; 2]> {
     ds.iter().map(|d| [d.code.clone(), d.pointer.clone()]).collect()
 }
-
-// ---------------------------------------------------------------------------------------------
-// normalize.test.ts: normalize
 
 #[test]
 fn rewrites_a_null_literal_in_a_type_array_to_null_imagekit() {
@@ -110,7 +105,7 @@ fn runs_inside_convert_before_annotation() {
     assert!(result.diagnostics.iter().any(|d| d.code == "FER1602"));
 }
 
-// Reduction of the fast-check counterexample `{"":{"__proto__":{}}}` from converter.test.ts.
+// Reduction of a fast-check counterexample: `{"":{"__proto__":{}}}`.
 #[test]
 fn keeps_a_proto_key_as_data() {
     let spec = parse_json(r#"{"":{"__proto__":{"a":1}}}"#).expect("json");
@@ -123,9 +118,6 @@ fn keeps_a_proto_key_as_data() {
     assert_eq!(stable_stringify(&out), stable_stringify(&spec));
     assert_eq!(parse_json(&stable_stringify(&spec)), Some(spec));
 }
-
-// ---------------------------------------------------------------------------------------------
-// normalize.test.ts: normalize: corpus Tier 1
 
 #[test]
 fn drops_a_query_parameter_style_forge_does_not_cover_stripe_openai() {
@@ -370,9 +362,6 @@ fn treats_property_names_that_are_keywords_as_names_not_data_kubernetes() {
         ]]
     );
 }
-
-// ---------------------------------------------------------------------------------------------
-// swagger2.test.ts
 
 fn docker() -> Value {
     v(json!({

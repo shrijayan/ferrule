@@ -1,7 +1,7 @@
-//! Assembles the files of the SDK from one [`SdkClient`]: `_client.py`, `resources/**`,
-//! `types/**` (`pagination.py` is rendered by the runtime), then the project files and the agent
-//! context. Everything is emitted from Forge's `generate`, which sees every group;
-//! `generate_group` emits nothing (Forge gaps G7, G10). Port of `python-plugin/src/emit/project.ts`.
+//! Assembles the files of the SDK from one [`SdkClient`]: `_client.py`, `resources/**`, `types/**`
+//! (`pagination.py` is rendered by the runtime), then the project files and the agent context.
+//! Everything is emitted from Forge's `generate`, which sees every group; `generate_group` emits
+//! nothing (Forge gaps G7, G10).
 
 use super::agent::emit_agent_files;
 use super::client::emit_client_file;

@@ -1,5 +1,3 @@
-//! Port of converter/test/transforms/{commands,apply}.test.ts (vitest).
-
 use ferrule_converter::transforms::{
     ApplyTransformsResult, TRANSFORM_COMMANDS, apply_config_transforms, apply_transforms,
 };

@@ -1,5 +1,5 @@
 //! The one function mapping [`SdkType`] to a Python annotation (CLAUDE.md: type mapping lives
-//! here). Port of `python-plugin/src/type-mapper.ts`.
+//! here).
 
 use crate::emit::common::py_string;
 use crate::js;

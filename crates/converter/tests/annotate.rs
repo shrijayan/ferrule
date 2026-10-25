@@ -1,5 +1,3 @@
-//! Port of converter/test/annotate.test.ts and converter/test/models.test.ts (vitest).
-
 use ferrule_converter::schema::config::parse_config;
 use ferrule_converter::value::{parse_json, to_json};
 use ferrule_converter::{Diagnostic, Severity, Value, convert, convert_text, parse_spec};
@@ -639,9 +637,6 @@ mod client_order_streaming {
         assert!(r.diagnostics[1].suggestion.contains("cursor_page"));
     }
 }
-
-// ---------------------------------------------------------------------------------------------
-// models.test.ts
 
 fn models_spec() -> Value {
     v(&json!({

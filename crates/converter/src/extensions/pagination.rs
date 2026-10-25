@@ -1,5 +1,5 @@
 //! `x-ferrule-pagination` (ADR 0003): normalizes the `pagination` schemes of stainless.yml and
-//! matches them against operations. Port of `converter/src/extensions/pagination.ts`.
+//! matches them against operations.
 
 use super::json::{
     arr, bool_, deref, is_array_schema, items_schema, obj, obj_of, property_names, property_schema, str_,
@@ -257,6 +257,3 @@ pub fn best_match<'s>(spec: &Value, schemes: &'s [Scheme], shape: &OperationShap
     }
     best
 }
-
-#[allow(dead_code)]
-fn unused(_: &Map) {}

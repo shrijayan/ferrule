@@ -1,4 +1,4 @@
-//! Did-you-mean suggestions (`converter/src/schema/suggest.ts`).
+//! Did-you-mean suggestions.
 
 /// The nearest candidate by edit distance, if it is close enough to be a typo.
 #[must_use]

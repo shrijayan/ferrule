@@ -1,6 +1,6 @@
 //! `_client.py`: the sync and async client classes, their raw/streaming wrappers and the
 //! `Client`/`AsyncClient` aliases, from `SdkClientSettings` and the resource tree. One pass per
-//! class with a sync/async mode flag. Port of `python-plugin/src/emit/client.ts`.
+//! class with a sync/async mode flag.
 
 use super::common::{HEADER, leaf, py_fstring, py_string, resource_module};
 use super::format::{call, print_expr};

@@ -1,5 +1,5 @@
-//! Port of converter/test/cli.test.ts (vitest). The bin smoke test has no Rust equivalent here:
-//! the binary is `ferrule-gen convert` in crates/ferrule-gen.
+//! The bin smoke test has no Rust equivalent here: the binary is `ferrule-gen convert` in
+//! crates/ferrule-gen.
 
 use ferrule_converter::cli::main;
 use std::path::{Path, PathBuf};
