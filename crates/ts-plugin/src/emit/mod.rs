@@ -4,6 +4,7 @@ pub mod api_md;
 pub mod api_tests;
 pub mod client;
 pub mod decls;
+pub mod project;
 pub mod resource;
 pub mod template;
 

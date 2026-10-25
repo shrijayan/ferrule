@@ -227,6 +227,27 @@ fn timeout_ms(ctx: &Ctx<'_>) -> String {
     crate::js::number_to_string(seconds * 1000.0)
 }
 
+/// Whether the SDK serialises queries with the vendored `qs` (a query parameter is an array or
+/// an object) rather than the basic `stringifyQuery`.
+#[must_use]
+pub fn uses_qs(ctx: &Ctx<'_>) -> bool {
+    use ferrule_sdk_model::model::Type;
+    fn nested(t: &Type) -> bool {
+        match t {
+            Type::Array { .. } | Type::Map { .. } | Type::Object(_) => true,
+            Type::Nullable { inner } => nested(inner),
+            Type::Union(u) => u.variants.iter().any(|v| nested(&v.ty)),
+            _ => false,
+        }
+    }
+    ctx.all().iter().any(|r| {
+        r.res
+            .methods
+            .iter()
+            .any(|m| m.query_params.iter().any(|p| nested(&p.field.ty)))
+    })
+}
+
 /// `src/version.ts`.
 #[must_use]
 pub fn emit_version(ctx: &Ctx<'_>) -> File {

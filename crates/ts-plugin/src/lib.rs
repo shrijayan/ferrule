@@ -29,6 +29,7 @@ pub fn generate(client: &Client, meta: &TsMeta, extras: &SpecExtras) -> Vec<emit
     let client = client.for_target(meta::TARGET);
     let ctx = ctx::Ctx::new(&client, ts_settings(&client, meta), extras);
     let mut files = emit::code_files(&ctx);
+    files.extend(emit::project::project_files(&ctx));
     files.sort_by(|a, b| a.0.cmp(&b.0));
     files
 }

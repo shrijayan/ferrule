@@ -45,6 +45,12 @@ pub struct TsMeta {
     pub organization_name: Option<String>,
     pub docs_url: Option<String>,
     pub contact: Option<String>,
+    /// `organization.security_contact`; the contact when absent.
+    pub security_contact: Option<String>,
+    /// The year in `LICENSE`.
+    pub copyright_year: u32,
+    /// `targets.typescript.publish.npm.auth_method: oidc` (`publish` is not in the model).
+    pub npm_oidc: bool,
     pub stats: Option<Stats>,
     /// `readme.example_requests` by key (`default`, `headline`, `nested_params`).
     pub readme_examples: Vec<(String, ExampleRequest)>,
@@ -63,6 +69,9 @@ impl TsMeta {
             organization_name: None,
             docs_url: None,
             contact: None,
+            security_contact: None,
+            copyright_year: 2026,
+            npm_oidc: false,
             stats: None,
             readme_examples: Vec::new(),
             license: "Apache-2.0".to_owned(),
@@ -80,6 +89,11 @@ impl TsMeta {
         meta.organization_name = s(org.and_then(|o| o.get("name")));
         meta.docs_url = s(org.and_then(|o| o.get("docs")));
         meta.contact = s(org.and_then(|o| o.get("contact")));
+        meta.security_contact = s(org.and_then(|o| o.get("security_contact")));
+        meta.npm_oidc = config
+            .pointer("/targets/typescript/publish/npm/auth_method")
+            .and_then(Value::as_str)
+            == Some("oidc");
         let settings = config.get("settings");
         if let Some(l) = s(settings.and_then(|v| v.get("license"))) {
             meta.license = l;
@@ -126,6 +140,9 @@ pub struct TsSettings {
     pub title: String,
     pub docs_url: Option<String>,
     pub contact: Option<String>,
+    pub security_contact: Option<String>,
+    pub copyright_year: u32,
+    pub npm_oidc: bool,
     pub stats: Option<Stats>,
     pub readme_examples: Vec<(String, ExampleRequest)>,
     pub mcp_server: Option<McpServer>,
@@ -183,6 +200,9 @@ pub fn ts_settings(client: &Client, meta: &TsMeta) -> TsSettings {
         title: title_case(meta.organization_name.as_deref().unwrap_or(&org)),
         docs_url: meta.docs_url.clone(),
         contact: meta.contact.clone(),
+        security_contact: meta.security_contact.clone(),
+        copyright_year: meta.copyright_year,
+        npm_oidc: meta.npm_oidc,
         stats: meta.stats.clone(),
         readme_examples: meta.readme_examples.clone(),
         mcp_server,

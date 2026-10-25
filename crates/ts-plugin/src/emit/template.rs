@@ -1,6 +1,6 @@
 //! The template language of the bundled TypeScript and project templates: `%%NAME%%` is replaced
-//! by a value, and whole lines `%%if flag%%` / `%%else%%` / `%%endif%%` keep or drop what they
-//! enclose. Templates are text copied from Apache-2.0 Stainless SDKs (see `NOTICE`).
+//! by a value, and whole lines `%%if flag%%` (or `%%if !flag%%`) / `%%else%%` / `%%endif%%`
+//! keep or drop what they enclose. Templates are text copied from Apache-2.0 Stainless SDKs (see `NOTICE`).
 
 /// Renders `template`.
 ///
@@ -15,13 +15,14 @@ pub fn render(template: &str, vars: &[(&str, &str)], flags: &[(&str, bool)]) -> 
     let mut stack: Vec<bool> = Vec::new();
     for line in template.split_inclusive('\n') {
         let trimmed = line.trim_end_matches('\n');
-        if let Some(flag) = trimmed.strip_prefix("%%if ").and_then(|r| r.strip_suffix("%%")) {
+        if let Some(cond) = trimmed.strip_prefix("%%if ").and_then(|r| r.strip_suffix("%%")) {
+            let (negate, flag) = cond.strip_prefix('!').map_or((false, cond), |f| (true, f));
             let on = flags
                 .iter()
                 .find(|(f, _)| *f == flag)
                 .unwrap_or_else(|| panic!("template flag {flag} has no value"))
                 .1;
-            stack.push(on);
+            stack.push(on != negate);
             continue;
         }
         if trimmed == "%%else%%" {

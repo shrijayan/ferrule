@@ -30,6 +30,11 @@ pub enum Expr {
     /// `callee(args)`, the callee a dotted name printed on one line.
     Call(String, Vec<Expr>),
     Await(Box<Expr>),
+    /// `head {` + body lines + `}`, such as `async (err) => {`: printed on its own lines.
+    Arrow(String, Vec<String>),
+    /// A member chain `head.a(x).b(y)`, broken one call per line as prettier's member-chain
+    /// printer does.
+    Chain(String, Vec<(String, Vec<Expr>)>),
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -74,6 +79,8 @@ impl Expr {
             Self::Array(_) => 6,
             Self::Call(..) => 7,
             Self::Await(_) => 8,
+            Self::Arrow(..) => 9,
+            Self::Chain(..) => 10,
         }
     }
 }
@@ -95,6 +102,15 @@ pub fn expr(e: &Expr) -> Doc {
         Expr::Array(items) => array(items),
         Expr::Call(callee, args) => group(concat(vec![text(callee.clone()), call_arguments(args)])),
         Expr::Await(inner) => concat(vec![text("await "), expr(inner)]),
+        Expr::Arrow(head, body) => {
+            let mut inner = Vec::new();
+            for l in body {
+                inner.push(hardline());
+                inner.push(text(l.clone()));
+            }
+            concat(vec![text(format!("{head} {{")), indent(inner), hardline(), text("}")])
+        }
+        Expr::Chain(head, calls) => chain(head, calls),
     }
 }
 
@@ -241,7 +257,7 @@ pub fn call_arguments(args: &[Expr]) -> Doc {
     };
     let last = &args[args.len() - 1];
     let penultimate = args.len().checked_sub(2).map(|i| &args[i]);
-    let group_last = last.is_object_or_array()
+    let group_last = (last.is_object_or_array() || matches!(last, Expr::Arrow(..)))
         && penultimate.is_none_or(|p| p.kind() != last.kind())
         && !(args.len() > 1 && matches!(last, Expr::Array(a) if concise(a)));
     if group_last {
@@ -276,6 +292,36 @@ pub fn call_arguments(args: &[Expr]) -> Doc {
         ],
         should_break,
     )
+}
+
+/// `printMemberChain` for `head` (the first group, such as `client.embeddings`) and its calls.
+fn chain(head: &str, calls: &[(String, Vec<Expr>)]) -> Doc {
+    let groups: Vec<Doc> = calls
+        .iter()
+        .map(|(name, args)| concat(vec![text(format!(".{name}")), call_arguments(args)]))
+        .collect();
+    let mut one_line = vec![text(head.to_owned())];
+    one_line.extend(groups.iter().cloned());
+    let one_line = concat(one_line);
+    // The first group and one call: never broken between them.
+    if groups.len() < 2 {
+        return group(one_line);
+    }
+    let mut broken = Vec::new();
+    for g in &groups {
+        broken.push(hardline());
+        broken.push(g.clone());
+    }
+    let expanded = concat(vec![text(head.to_owned()), indent(broken)]);
+    if groups[..groups.len() - 1].iter().any(will_break) {
+        return group(expanded);
+    }
+    let states = conditional_group(vec![one_line.clone(), expanded]);
+    if will_break(&one_line) {
+        concat(vec![Doc::BreakParent, states])
+    } else {
+        states
+    }
 }
 
 /// `const name = value;`.

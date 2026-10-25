@@ -1,0 +1,14 @@
+CHANGELOG.md
+/ecosystem-tests/*/**
+/node_modules
+/deno
+%%if mcp%%
+/packages/mcp-server/manifest.json
+%%endif%%
+
+# don't format tsc output, will break source maps
+%%if mcp%%
+dist
+%%else%%
+/dist
+%%endif%%
