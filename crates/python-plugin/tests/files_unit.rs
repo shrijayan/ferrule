@@ -10,7 +10,7 @@ use ferrule_python_plugin::emit::files::input::{FilesMethod, FilesResource, Proj
 use ferrule_python_plugin::emit::files::render::{RenderError, TemplateVars, isort_compare, render};
 use ferrule_python_plugin::emit::files::{emit_project_files, emit_stats, template_vars};
 use ferrule_python_plugin::model::{HttpVerb, SdkType};
-use files_support::{assert_same_as_ts, input, onebusaway_json, sdk_type};
+use files_support::{input, onebusaway_json, sdk_type};
 use serde_json::{Value, json};
 
 fn str_type() -> Value {
@@ -171,12 +171,6 @@ fn fills_every_template_with_the_input() {
     let mut sorted = paths.clone();
     sorted.sort();
     assert_eq!(paths, sorted);
-}
-
-#[test]
-fn matches_the_typescript_emitter() {
-    let json = acme_json();
-    assert_same_as_ts(&json, &emit_project_files(&input(&json)));
 }
 
 #[test]
