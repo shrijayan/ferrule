@@ -455,6 +455,23 @@ uvx ferrule verify --against v2.14.0
         <h3>Converter and plugin in TypeScript; runtime and migration tools in Python</h3>
         <p>Forge plugins are TypeScript compiled to WebAssembly, so the plugin is TypeScript, and the converter shares its toolchain. The runtime is Python because it ships in the SDK. The migration tools stay Python because griffe (API diff) and libcst (AST merge, codemods) are Python, and users run them with <code>uvx</code>.</p>
       </div>
+      <div class="adr">
+        <div class="label">Proposed · 25 Oct 2026 · after the Phase 4 gate · would amend ADR 0001</div>
+        <h3>Move converter and plugin to Rust; keep runtime and migration tools in Python</h3>
+        <p>Forge is a Rust crate: plugin execution (<code>wasm</code>) and the CLI are optional features, and it has a native <code>Plugin</code> trait (<code>generate</code>, <code>generate_group</code>) that its own TypeScript generator implements. A Rust Ferrule could depend on Forge through Cargo and run in one process, with no Node, pnpm, jco or WASM build.</p>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>Part</th><th>Size today</th><th>Rust?</th></tr></thead>
+            <tbody>
+              <tr><td class="k">converter/</td><td class="nw">~4k lines TS</td><td><span class="pill ok">Yes</span> Pure data transformation; serde fits.</td></tr>
+              <tr><td class="k">python-plugin/</td><td class="nw">~11k lines TS</td><td><span class="pill ok">Yes</span> Native <code>Plugin</code>, or a WASM component against <code>forge.wit</code> via <code>wit-bindgen</code>. The golden output must stay byte-identical, which makes the port checkable.</td></tr>
+              <tr><td class="k">runtime/</td><td class="nw">~9k lines Python</td><td><span class="pill bad">No</span> It ships inside every Python SDK.</td></tr>
+              <tr><td class="k">migrate/</td><td class="nw">~2.5k lines Python</td><td><span class="pill warn">Keep Python</span> griffe (verify) and libcst (merge) have no published Rust equivalent.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p><b>Gain:</b> one native binary, faster pipeline, closer to Forge's own code. <b>Cost:</b> about 15k lines rewritten, a new ADR, and the native trait is an internal API that may churn more than the versioned WIT interface (compile to WASM against the WIT to avoid that). Do it as one step after the Phase 4 gate, using the existing golden files as the pass/fail check.</p>
+      </div>
       <div class="tablewrap">
         <table>
           <thead><tr><th>Area</th><th>Choice</th></tr></thead>
