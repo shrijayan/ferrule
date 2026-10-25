@@ -2,7 +2,11 @@
    * Check whether the base URL is set to its default.
    */
   #baseURLOverridden(): boolean {
+%%if environments%%
+    return this.baseURL !== environments[this._options.environment || '%%DEFAULT_ENVIRONMENT%%'];
+%%else%%
     return this.baseURL !== '%%BASE_URL%%';
+%%endif%%
   }
 
   protected override defaultQuery(): Core.DefaultQuery | undefined {
@@ -24,6 +28,11 @@
   }
 
   protected override authHeaders(opts: Core.FinalRequestOptions): Core.Headers {
+%%if nullable%%
+    if (this.%%OPT%% == null) {
+      return {};
+    }
+%%endif%%
 %%AUTH_HEADERS%%
   }
 

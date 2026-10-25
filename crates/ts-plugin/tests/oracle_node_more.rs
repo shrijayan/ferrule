@@ -44,5 +44,5 @@ fn honcho_report() {
     ) else {
         return;
     };
-    report("honcho", &o, 32);
+    report("honcho", &o, 35);
 }

@@ -538,7 +538,7 @@ pub fn project_files(ctx: &Ctx<'_>) -> Vec<File> {
         ("QUERY_KEY", query_key.clone().unwrap_or_default()),
         ("QUERY_ARRAY_FORMAT", query_formats(ctx).0.to_owned()),
         ("QUERY_NESTED_FORMAT", query_formats(ctx).1.to_owned()),
-        ("BASE_URL", ctx.client.base_url.clone()),
+        ("BASE_URL", crate::emit::client::default_base_url(ctx)),
         ("ENV", s.env_prefix.clone()),
         ("CONTACT", contact),
         ("SECURITY_CONTACT", security_contact),

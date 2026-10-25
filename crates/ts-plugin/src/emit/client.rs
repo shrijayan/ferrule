@@ -202,6 +202,36 @@ fn node_auth_headers(ctx: &Ctx<'_>, opt: &ClientOpt, prop: &str) -> String {
     }
 }
 
+/// The `environments` of the client settings, the default first: (name, base URL).
+#[must_use]
+pub fn environments(ctx: &Ctx<'_>) -> Vec<(String, String)> {
+    let Some(s) = ctx.client.settings.as_ref() else {
+        return Vec::new();
+    };
+    let mut envs: Vec<(String, String)> = s
+        .environments
+        .iter()
+        .map(|e| (e.name.written.clone(), e.url.clone()))
+        .collect();
+    if let Some(i) = s
+        .default_environment
+        .as_ref()
+        .and_then(|d| envs.iter().position(|(k, _)| k == d))
+    {
+        let default = envs.remove(i);
+        envs.insert(0, default);
+    }
+    envs
+}
+
+/// The base URL a client without options uses: the default environment's, else the spec's.
+#[must_use]
+pub fn default_base_url(ctx: &Ctx<'_>) -> String {
+    environments(ctx)
+        .first()
+        .map_or_else(|| ctx.client.base_url.clone(), |(_, url)| url.clone())
+}
+
 /// `src/index.ts` of the `node` layout: the client class, its resources, the namespace and the
 /// package's exports.
 #[must_use]
@@ -220,6 +250,18 @@ pub fn emit_node_index(ctx: &Ctx<'_>) -> File {
     let auth = opt.map(|o| node_auth_headers(ctx, o, &prop)).unwrap_or_default();
     let doc = opt_doc(opt);
     let timeout = timeout_ms(ctx);
+    let envs = environments(ctx);
+    let default_env = envs.first().map(|(k, _)| k.clone()).unwrap_or_default();
+    let env_lines: Vec<String> = envs
+        .iter()
+        .map(|(k, url)| format!("  {}: {},", crate::js::property_key(k), crate::js::string_literal(url)))
+        .collect();
+    let env_docs: Vec<String> = envs
+        .iter()
+        .map(|(k, url)| format!("   * - `{k}` corresponds to `{url}`"))
+        .collect();
+    let base_url = default_base_url(ctx);
+    let (env_lines, env_docs) = (env_lines.join("\n"), env_docs.join("\n"));
     let vars = [
         ("OPT_DOC", doc.as_str()),
         ("OPT", prop.as_str()),
@@ -228,12 +270,19 @@ pub fn emit_node_index(ctx: &Ctx<'_>) -> File {
         ("ENV", s.env_prefix.as_str()),
         ("TITLE", s.title.as_str()),
         ("CLIENT", client),
-        ("BASE_URL", ctx.client.base_url.as_str()),
+        ("BASE_URL", base_url.as_str()),
         ("TIMEOUT", timeout.as_str()),
         ("QUERY_KEY", query_key.as_deref().unwrap_or_default()),
         ("AUTH_HEADERS", auth.as_str()),
+        ("ENVIRONMENTS", env_lines.as_str()),
+        ("ENVIRONMENT_DOCS", env_docs.as_str()),
+        ("DEFAULT_ENVIRONMENT", default_env.as_str()),
     ];
-    let flags = [("query_auth", query_key.is_some())];
+    let flags = [
+        ("query_auth", query_key.is_some()),
+        ("nullable", opt.is_some_and(|o| o.nullable)),
+        ("environments", envs.len() > 1),
+    ];
     let mut out = vec![
         HEADER.to_owned(),
         String::new(),

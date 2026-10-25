@@ -8,7 +8,7 @@ use crate::ctx::{Ctx, TsResource};
 use crate::doc::{concat, group, text};
 use crate::emit::resource::{ParamsArg, plan_methods};
 use crate::examples::{Examples, Fill};
-use crate::naming::{camel_case, words_of};
+use crate::naming::words_of;
 use crate::pretty::{Expr, WIDTH, call_arguments, const_decl, render};
 use crate::types::Mapper;
 
@@ -37,11 +37,12 @@ pub fn client_setup(ctx: &Ctx<'_>) -> Vec<String> {
     let mut out = vec![format!("const client = new {}({{", ctx.settings.client_class)];
     if let Some(settings) = &ctx.client.settings {
         for opt in &settings.opts {
-            if opt.auth.is_some() && !opt.nullable {
+            // The `node` layout passes a nullable key too (honcho-typescript).
+            if opt.auth.is_some() && (!opt.nullable || ctx.node()) {
                 let words = words_of(&opt.name);
                 out.push(format!(
                     "  {}: {},",
-                    camel_case(&words, &ctx.client.casings),
+                    ctx.member(&words),
                     crate::js::string_literal(&placeholder(&words))
                 ));
             }
