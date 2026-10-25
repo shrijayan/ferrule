@@ -144,8 +144,10 @@ The full walkthrough, from prerequisites to what to do on an error, is in the
 - **A public [fidelity board](https://shrijayan.github.io/ferrule/docs/fidelity/).** Real public
   Stainless SDKs, regenerated every night, scores published, including the ones that aren't green
   yet.
-- **Coming in phase 5:** agent docs (`SKILL.md`, `AGENTS.md`, `llms.txt`) inside every wheel, and a
-  fake server in every SDK so code runs without an API key.
+- **Docs for coding agents, in the wheel.** `SKILL.md`, `AGENTS.md` and `llms.txt` ship inside the
+  package under `_agent/`, locked to the installed version, with tested recipes in
+  `examples/agent/`.
+- **Coming in phase 5:** a fake server in every SDK, so code runs without an API key.
 
 ## Compared with the alternatives
 
