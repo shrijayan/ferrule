@@ -1,0 +1,168 @@
+openapi: 3.1.0
+info:
+  title: Petstore
+  version: 1.0.0
+servers:
+  - url: https://api.petstore.test/v1
+security:
+  - BearerAuth: []
+tags:
+  - name: Pets
+    description: Pets in the store.
+paths:
+  /pets:
+    get:
+      tags: [Pets]
+      operationId: listPets
+      summary: List pets
+      description: Lists the pets in the store, newest first.
+      parameters:
+        - in: query
+          name: species
+          schema:
+            type: string
+            enum: [dog, cat]
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            example: 10
+      responses:
+        '200':
+          description: The pets.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Pet'
+    post:
+      tags: [Pets]
+      operationId: createPet
+      summary: Create a pet
+      description: Adds a pet to the store.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, species]
+              properties:
+                name:
+                  type: string
+                  description: The pet's name.
+                  example: Rex
+                species:
+                  type: string
+                  enum: [dog, cat]
+                  description: What kind of animal it is.
+                birthday:
+                  type: string
+                  format: date
+                tags:
+                  type: array
+                  items:
+                    type: string
+                owner:
+                  description: Who looks after the pet.
+                  oneOf:
+                    - $ref: '#/components/schemas/Owner'
+                    - type: 'null'
+      responses:
+        '200':
+          description: The new pet.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pet'
+  /pets/{pet_id}:
+    get:
+      tags: [Pets]
+      operationId: getPet
+      summary: Get a pet
+      description: Gets one pet by its ID, with its vaccination record.
+      parameters:
+        - in: path
+          name: pet_id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The pet.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [pet]
+                properties:
+                  pet:
+                    $ref: '#/components/schemas/Pet'
+                  vaccinations:
+                    type: array
+                    description: Every vaccination the pet had.
+                    items:
+                      type: object
+                      required: [name]
+                      properties:
+                        name:
+                          type: string
+                          description: The vaccine.
+                        given_at:
+                          type: string
+                          format: date-time
+  /pets/{pet_id}/photos/{photo_id}:
+    delete:
+      tags: [Pets]
+      operationId: deletePhoto
+      summary: Delete a photo
+      description: Deletes one photo of a pet.
+      parameters:
+        - in: path
+          name: pet_id
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: photo_id
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Deleted.
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    Pet:
+      type: object
+      description: A pet in the store.
+      required: [id, name, species]
+      properties:
+        id:
+          type: string
+          description: The pet's ID.
+        name:
+          type: string
+          description: The pet's name, which owners choose when they register the pet and which can be changed later through the store's front desk.
+        species:
+          type: string
+          enum: [dog, cat]
+        owner:
+          oneOf:
+            - $ref: '#/components/schemas/Owner'
+            - type: 'null'
+    Owner:
+      type: object
+      description: A person who looks after pets.
+      required: [email]
+      properties:
+        email:
+          type: string
+          format: email
+        phone:
+          type: string

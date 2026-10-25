@@ -75,20 +75,14 @@ pub fn oracle(sdk: &str, config_dir: &str, spec: &str, config: &str) -> Option<O
         eprintln!("skipped: {} is not cached", sdk_dir.display());
         return None;
     }
-    let converted = ferrule_converter::convert_text(&spec_text, &config_text).expect("the oracle converts");
-    let forge: forge::Forge = serde_json::from_str(&converted.output).expect("a document Forge reads");
-    let client = match ferrule_sdk_model::forge_to_model(&forge) {
-        Ok(Some(client)) => client,
-        Ok(None) => panic!("{sdk}: the oracle has no operations"),
+    let (client, mut meta, extras) = match load(&spec_text, &config_text) {
+        Ok(loaded) => loaded,
         Err(err) => {
             // The model cannot describe it yet: an adapter or converter gap, reported, not hidden.
             eprintln!("skipped: {sdk} does not map to the neutral model: {err}");
             return None;
         }
     };
-    let spec_json = to_json(&ferrule_converter::parse_spec(&spec_text).expect("the spec parses"));
-    let config_json = to_json(&ferrule_converter::yaml::parse(&config_text).expect("the config parses"));
-    let mut meta = TsMeta::from_config(&config_json);
     let package: Value = serde_json::from_str(&read(&sdk_dir.join("package.json"))?).ok()?;
     if let Some(v) = package.get("version").and_then(Value::as_str) {
         v.clone_into(&mut meta.version);
@@ -98,8 +92,25 @@ pub fn oracle(sdk: &str, config_dir: &str, spec: &str, config: &str) -> Option<O
         sdk: sdk_dir,
         client,
         meta,
-        extras: SpecExtras::new(spec_json),
+        extras,
     })
+}
+
+/// A spec and stainless.yml as ferrule-gen reads them: converted, mapped to the neutral model,
+/// with the project settings from the config and the extras from the original spec.
+///
+/// # Errors
+///
+/// The adapter's diagnostic when the model cannot describe the spec.
+pub fn load(spec_text: &str, config_text: &str) -> Result<(Client, TsMeta, SpecExtras), String> {
+    let converted = ferrule_converter::convert_text(spec_text, config_text).expect("the spec converts");
+    let forge: forge::Forge = serde_json::from_str(&converted.output).expect("a document Forge reads");
+    let client = ferrule_sdk_model::forge_to_model(&forge)
+        .map_err(|e| e.to_string())?
+        .expect("the spec has operations");
+    let spec_json = to_json(&ferrule_converter::parse_spec(spec_text).expect("the spec parses"));
+    let config_json = to_json(&ferrule_converter::yaml::parse(config_text).expect("the config parses"));
+    Ok((client, TsMeta::from_config(&config_json), SpecExtras::new(spec_json)))
 }
 
 fn walk(root: &Path, dir: &Path, out: &mut Vec<String>) {

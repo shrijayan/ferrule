@@ -517,6 +517,41 @@ pub fn emit_resource(ctx: &Ctx<'_>, r: &TsResource<'_>) -> String {
     text
 }
 
+/// `src/resources/shared.ts`: the `$shared` models.
+#[must_use]
+pub fn emit_shared(ctx: &Ctx<'_>) -> String {
+    let mut mapper = Mapper::new(ctx, "resources/shared");
+    let decls: Vec<Decl> = ctx
+        .shared_models()
+        .iter()
+        .map(|d| {
+            mapper.model(
+                &ctx.type_of(&d.r#ref),
+                &d.ty,
+                &d.description,
+                d.deprecated,
+                Some(&d.r#ref.schema),
+            )
+        })
+        .collect();
+    let mut out = vec![HEADER.to_owned(), String::new()];
+    let mut namespaces = mapper.imports.clone();
+    namespaces.sort_by(|a, b| a.0.cmp(&b.0));
+    if !namespaces.is_empty() {
+        for (ns, target) in &namespaces {
+            out.push(format!("import * as {ns} from '{}';", relative("resources", target)));
+        }
+        out.push(String::new());
+    }
+    for (i, d) in decls.iter().enumerate() {
+        if i > 0 {
+            out.push(String::new());
+        }
+        out.extend(print_decl(d, 0));
+    }
+    out.join("\n") + "\n"
+}
+
 /// `export * from './x/index';`: the file beside a package's directory.
 #[must_use]
 pub fn emit_shim(r: &TsResource<'_>) -> String {

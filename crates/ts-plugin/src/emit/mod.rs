@@ -39,6 +39,9 @@ pub fn resource_files(ctx: &Ctx<'_>) -> Vec<File> {
             out.push((format!("src/{}/index.ts", r.dir()), resource::emit_index(ctx, r)));
         }
     }
+    if !ctx.shared_models().is_empty() {
+        out.push(("src/resources/shared.ts".to_owned(), resource::emit_shared(ctx)));
+    }
     out.push(("src/resources/index.ts".to_owned(), resource::emit_resources_index(ctx)));
     out
 }
