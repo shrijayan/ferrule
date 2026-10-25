@@ -1,12 +1,17 @@
 //! The project files of the SDK: package and build configuration, CI workflows, scripts, the
-//! README, the runtime's tests and `.stats.yml`, rendered from `templates/project/`.
+//! README, the runtime's tests and `.stats.yml`, rendered from `templates/project/` (the current
+//! layout) or `templates/node/project/` (the `node` layout, which shares the files the two
+//! layouts have in common, [`NODE_SHARED`]).
 //!
-//! The templates are the files of isaacus-dev/isaacus-typescript@c56af182 (Apache-2.0, see
-//! `NOTICE`). Modified by The Ferrule Authors: per-SDK names and values replaced by `%%TOKEN%%`s;
-//! `%%if mcp%%` (an MCP server package, from knock-mgmt-node's output without one), `%%if oidc%%`
-//! (npm publishing by OIDC, from knock-mgmt-node@ca88fdba), `%%if mock%%` (resource tests against
-//! the mock server: `scripts/mock` and its lines in `scripts/test` and `CONTRIBUTING.md`, from
-//! OneBusAway/js-sdk@f3ca3f47) and `%%if qs%%`; Stainless branding replaced as `BRANDING.md` lists.
+//! The templates are the files of isaacus-dev/isaacus-typescript@c56af182 and, for the `node`
+//! layout, OneBusAway/js-sdk@f3ca3f47 (Apache-2.0, see `NOTICE`). Modified by The Ferrule
+//! Authors: per-SDK names and values replaced by `%%TOKEN%%`s; `%%if mcp%%` (an MCP server
+//! package, from knock-mgmt-node's output without one), `%%if oidc%%` (npm publishing by OIDC,
+//! from knock-mgmt-node@ca88fdba), `%%if mock%%` (resource tests against the mock server:
+//! `scripts/mock` and its lines in `scripts/test` and `CONTRIBUTING.md`, from
+//! OneBusAway/js-sdk@f3ca3f47), `%%if qs%%`, `%%if attribution%%` (`readme.
+//! include_stainless_attribution`) and `%%if query_auth%%` (an API key sent in the query);
+//! Stainless branding replaced as `BRANDING.md` lists.
 
 use std::fmt::Write as _;
 
@@ -15,6 +20,7 @@ use serde_json::Value;
 use super::File;
 use super::template::render;
 use crate::ctx::Ctx;
+use crate::doc::{concat, text};
 use crate::examples::json_expr;
 use crate::js;
 use crate::naming::{camel_case, words_of};
@@ -80,6 +86,81 @@ const TEMPLATES: &[(&str, &str)] = templates![
     "tsconfig.json",
     "yarn.lock",
 ];
+
+macro_rules! node_templates {
+    ($($path:literal),* $(,)?) => {
+        &[$(($path, include_str!(concat!("templates/node/project/", $path, ".tmpl")))),*]
+    };
+}
+
+/// The `node` layout's own project templates.
+const NODE_TEMPLATES: &[(&str, &str)] = node_templates![
+    ".eslintrc.js",
+    ".github/workflows/ci.yml",
+    ".github/workflows/publish-npm.yml",
+    ".github/workflows/release-doctor.yml",
+    ".gitignore",
+    ".prettierignore",
+    "CONTRIBUTING.md",
+    "LICENSE",
+    "README.md",
+    "SECURITY.md",
+    "bin/check-release-environment",
+    "bin/publish-npm",
+    "jest.config.ts",
+    "package.json",
+    "release-please-config.json",
+    "scripts/bootstrap",
+    "scripts/build",
+    "scripts/fast-format",
+    "scripts/format",
+    "scripts/lint",
+    "scripts/mock",
+    "scripts/test",
+    "scripts/utils/fix-index-exports.cjs",
+    "scripts/utils/make-dist-package-json.cjs",
+    "scripts/utils/postprocess-files.cjs",
+    "tests/form.test.ts",
+    "tests/index.test.ts",
+    "tests/responses.test.ts",
+    "tests/stringifyQuery.test.ts",
+    "tests/uploads.test.ts",
+    "tsc-multi.json",
+    "tsconfig.build.json",
+    "tsconfig.dist-src.json",
+    "tsconfig.json",
+    "yarn.lock",
+];
+
+/// The current layout's templates the `node` layout writes too: the files that are the same in
+/// both (onebusaway-typescript and isaacus-typescript, names aside).
+pub const NODE_SHARED: &[&str] = &[
+    ".devcontainer/devcontainer.json",
+    ".prettierrc.json",
+    ".release-please-manifest.json",
+    "Brewfile",
+    "examples/.keep",
+    "scripts/utils/check-is-in-git-install.sh",
+    "scripts/utils/check-version.cjs",
+    "scripts/utils/git-swap.sh",
+    "src/lib/.keep",
+    "tsconfig.deno.json",
+];
+
+/// The templates of the SDK's layout: (path in the SDK, text).
+fn templates(ctx: &Ctx<'_>) -> Vec<(&'static str, &'static str)> {
+    let mcp = ctx.settings.mcp_server.is_some();
+    if ctx.node() {
+        let mut out: Vec<(&str, &str)> = NODE_TEMPLATES.to_vec();
+        out.extend(TEMPLATES.iter().filter(|(p, _)| NODE_SHARED.contains(p)));
+        return out;
+    }
+    TEMPLATES
+        .iter()
+        .filter(|(p, _)| mcp || !MCP_ONLY.contains(p))
+        .copied()
+        .collect()
+}
 
 /// Files only an SDK with an MCP server package has.
 const MCP_ONLY: &[&str] = &[".dockerignore", "scripts/build-all", "scripts/publish-packages.ts"];
@@ -153,17 +234,19 @@ fn readme_example(ctx: &Ctx<'_>) -> Option<Example> {
             let endpoint = format!("{} {}", plan.m.http_method.as_str(), plan.m.path);
             let wanted = default.is_none_or(|d| d.endpoint == endpoint);
             if wanted && found.is_none() {
+                let var = ctx.node().then(|| super::resource::example_var(ctx, r, &plan));
                 found = Some((
                     (*r).clone(),
                     plan.m,
                     plan.name.clone(),
                     plan.response.clone(),
                     plan.params_type.clone(),
+                    var,
                 ));
             }
         }
     }
-    let (r, m, name, response, params_type) = found?;
+    let (r, m, name, response, params_type, node_var) = found?;
     let chain = ctx.chain(&r);
     let accessor = format!("{}.{name}", r.accessor(&chain));
     let params = default.map(|d| &d.params);
@@ -187,11 +270,15 @@ fn readme_example(ctx: &Ctx<'_>) -> Option<Example> {
         }
     }
     let base = response.rsplit('.').next().unwrap_or(&response).to_owned();
-    let var = camel_case(&crate::naming::split_words(&base), &[]);
+    // The `node` layout names the result as the method's `@example` does.
+    let var = node_var.unwrap_or_else(|| camel_case(&crate::naming::split_words(&base), &[]));
     let property = m
         .response
         .as_ref()
         .and_then(|r| ctx.client.object_of(&r.ty))
+        // The `node` layout prints no property of a response that extends a model
+        // (onebusaway-typescript's `ResponseWrapper`).
+        .filter(|o| !ctx.node() || o.bases.is_empty())
         .and_then(|o| {
             let mapper = crate::types::Mapper::new(ctx, "");
             mapper.ordered(&o.fields).first().map(|f| f.wire_name.clone())
@@ -207,30 +294,39 @@ fn readme_example(ctx: &Ctx<'_>) -> Option<Example> {
     })
 }
 
+/// The README's request with an `httpAgent` per request (the `node` layout's README).
+fn http_agent(ex: &Example) -> String {
+    let mut args = ex.args.clone();
+    args.push(Expr::Object(crate::pretty::Object {
+        props: vec![(
+            "httpAgent".to_owned(),
+            Expr::raw("new http.Agent({ keepAlive: false })"),
+        )],
+        expanded: true,
+    }));
+    let call = Expr::Await(Box::new(Expr::Call(ex.accessor.clone(), args)));
+    lines(&concat(vec![expr(&call), text(";")]))
+}
+
 fn lines(doc: &crate::doc::Doc) -> String {
     layout(doc, 0, README_WIDTH)
 }
 
-/// The README's code snippets, by template token.
-fn readme_snippets(ctx: &Ctx<'_>) -> Vec<(&'static str, String)> {
+/// The README's "Request & Response types" snippet: the params typed, then the result.
+fn types_snippet(ctx: &Ctx<'_>, ex: &Example) -> String {
     let client = &ctx.settings.client_class;
-    let Some(ex) = readme_example(ctx) else {
-        return vec![
-            ("USAGE", String::new()),
-            ("TYPES", String::new()),
-            ("ERRORS", String::new()),
-            ("REQUEST_HEAD", String::new()),
-            ("RAW_RESPONSE", String::new()),
-            ("ACCESSOR", String::new()),
-        ];
-    };
-    let (head, method) = ex.accessor.rsplit_once('.').unwrap_or((&ex.accessor, ""));
-    let call = Expr::Await(Box::new(Expr::Call(ex.accessor.clone(), ex.args.clone())));
-    let mut usage = lines(&const_decl(&ex.var, &call));
-    if let Some(p) = &ex.property {
-        let _ = write!(usage, "\n\nconsole.log({}.{p});", ex.var);
-    }
-    let types = match &ex.params {
+    match &ex.params {
+        // The `node` layout types the result alone when the call has no params.
+        None if ctx.node() => {
+            let args: Vec<String> = ex.args.iter().map(|a| layout(&expr(a), 0, usize::MAX / 2)).collect();
+            format!(
+                "const {}: {client}.{} = await {}({});",
+                ex.var,
+                ex.response,
+                ex.accessor,
+                args.join(", ")
+            )
+        }
         Some(params) => {
             let value = ex.args.last().cloned().unwrap_or(Expr::Null);
             let mut t = lines(&const_decl(&format!("params: {client}.{params}"), &value));
@@ -251,7 +347,30 @@ fn readme_snippets(ctx: &Ctx<'_>) -> Vec<(&'static str, String)> {
             t
         }
         None => String::new(),
+    }
+}
+
+/// The README's code snippets, by template token.
+fn readme_snippets(ctx: &Ctx<'_>) -> Vec<(&'static str, String)> {
+    let client = &ctx.settings.client_class;
+    let Some(ex) = readme_example(ctx) else {
+        return vec![
+            ("USAGE", String::new()),
+            ("TYPES", String::new()),
+            ("ERRORS", String::new()),
+            ("REQUEST_HEAD", String::new()),
+            ("RAW_RESPONSE", String::new()),
+            ("HTTP_AGENT", String::new()),
+            ("ACCESSOR", String::new()),
+        ];
     };
+    let (head, method) = ex.accessor.rsplit_once('.').unwrap_or((&ex.accessor, ""));
+    let call = Expr::Await(Box::new(Expr::Call(ex.accessor.clone(), ex.args.clone())));
+    let mut usage = lines(&const_decl(&ex.var, &call));
+    if let Some(p) = &ex.property {
+        let _ = write!(usage, "\n\nconsole.log({}.{p});", ex.var);
+    }
+    let types = types_snippet(ctx, &ex);
     let catch = Expr::Arrow(
         "async (err) =>".to_owned(),
         vec![
@@ -270,7 +389,11 @@ fn readme_snippets(ctx: &Ctx<'_>) -> Vec<(&'static str, String)> {
     )));
     let errors = lines(&const_decl(&ex.var, &errors_chain));
     let raw_args: Vec<String> = ex.args.iter().map(|a| layout(&expr(a), 0, usize::MAX / 2)).collect();
-    let request_head = format!("await {}({}, {{", ex.accessor, raw_args.join(", "));
+    let request_head = if raw_args.is_empty() {
+        format!("await {}({{", ex.accessor)
+    } else {
+        format!("await {}({}, {{", ex.accessor, raw_args.join(", "))
+    };
     let as_response = Expr::Await(Box::new(Expr::Chain(
         head.to_owned(),
         vec![
@@ -295,13 +418,17 @@ fn readme_snippets(ctx: &Ctx<'_>) -> Vec<(&'static str, String)> {
     raw.push_str("\nconsole.log(raw.headers.get('X-My-Header'));");
     if let Some(p) = &ex.property {
         let _ = write!(raw, "\nconsole.log({}.{p});", ex.var);
+    } else if ctx.node() {
+        let _ = write!(raw, "\nconsole.log({});", ex.var);
     }
+    let http_agent = http_agent(&ex);
     vec![
         ("USAGE", usage),
         ("TYPES", types),
         ("ERRORS", errors),
         ("REQUEST_HEAD", request_head),
         ("RAW_RESPONSE", raw),
+        ("HTTP_AGENT", http_agent),
         ("ACCESSOR", ex.accessor),
     ]
 }
@@ -345,7 +472,7 @@ pub fn project_files(ctx: &Ctx<'_>) -> Vec<File> {
         .as_ref()
         .and_then(|cs| cs.opts.iter().find(|o| o.auth.is_some()));
     let opt_words = opt.map(|o| words_of(&o.name)).unwrap_or_default();
-    let opt_prop = camel_case(&opt_words, &ctx.client.casings);
+    let opt_prop = ctx.member(&opt_words);
     let opt_env = opt.and_then(|o| o.read_env.clone()).unwrap_or_default();
     let placeholder = super::api_tests::placeholder(&opt_words);
     let repo_name = s.repo.rsplit('/').next().unwrap_or_default().to_owned();
@@ -363,7 +490,18 @@ pub fn project_files(ctx: &Ctx<'_>) -> Vec<File> {
     let security_contact = s.security_contact.clone().unwrap_or_else(|| contact.clone());
     let qs = crate::emit::client::uses_qs(ctx);
     let mock = !s.disable_mock_tests;
-    let flags = [("mcp", mcp.is_some()), ("oidc", s.npm_oidc), ("qs", qs), ("mock", mock)];
+    let query_key = opt
+        .and_then(|o| o.send.as_ref())
+        .filter(|send| send.location == ferrule_sdk_model::model::SendLocation::Query)
+        .map(|send| send.name.clone());
+    let flags = [
+        ("mcp", mcp.is_some()),
+        ("oidc", s.npm_oidc),
+        ("qs", qs),
+        ("mock", mock),
+        ("attribution", s.readme_attribution),
+        ("query_auth", query_key.is_some()),
+    ];
     let (array_format, object_format) = query_formats(ctx);
     let eslint_globs = if mcp.is_some() {
         "'tests/**', 'examples/**', 'packages/**'"
@@ -378,6 +516,13 @@ pub fn project_files(ctx: &Ctx<'_>) -> Vec<File> {
         ("MCP_PACKAGE", mcp_package),
         ("OPT_ENV", opt_env),
         ("OPT", opt_prop),
+        ("OPT_PLACEHOLDER", js::string_literal(&placeholder)),
+        (
+            "OPT_PLACEHOLDER_ANOTHER",
+            js::string_literal(&format!("another {placeholder}")),
+        ),
+        ("QUERY_KEY", query_key.clone().unwrap_or_default()),
+        ("BASE_URL", ctx.client.base_url.clone()),
         ("ENV", s.env_prefix.clone()),
         ("CONTACT", contact),
         ("SECURITY_CONTACT", security_contact),
@@ -406,11 +551,10 @@ pub fn project_files(ctx: &Ctx<'_>) -> Vec<File> {
     let mut with_section = base.clone();
     with_section.push(("MCP_SECTION", mcp_section));
     let vars: Vec<(&str, &str)> = with_section.iter().map(|(k, v)| (*k, v.as_str())).collect();
-    let mut out: Vec<File> = TEMPLATES
-        .iter()
-        .filter(|(p, _)| mcp.is_some() || !MCP_ONLY.contains(p))
+    let mut out: Vec<File> = templates(ctx)
+        .into_iter()
         .filter(|(p, _)| mock || !MOCK_ONLY.contains(p))
-        .map(|(p, t)| ((*p).to_owned(), render(t, &vars, &flags)))
+        .map(|(p, t)| (p.to_owned(), render(t, &vars, &flags)))
         .collect();
     if let Some(stats) = &s.stats {
         let endpoints: usize = ctx.all().iter().map(|r| r.res.methods.len()).sum();

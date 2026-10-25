@@ -1,23 +1,45 @@
 # ferrule-ts-plugin
 
-Emits the TypeScript SDK Stainless generates for the `typescript` target (its current layout,
-TypeScript 5.8), from the language-neutral model (`crates/sdk-model`, ADR 0017). The crate never
-names Forge (`tests/boundary.rs`); `ferrule-gen generate --target typescript` maps the annotated
-spec to the model and calls `ferrule_ts_plugin::generate`.
+Emits the TypeScript SDK Stainless generates, from the language-neutral model
+(`crates/sdk-model`, ADR 0017), in either of Stainless's two TypeScript layouts:
+
+- `typescript` target, the current layout (TypeScript 5.8): `src/client.ts`, `src/core/**`,
+  `src/internal/**`;
+- `node` target, the legacy layout (TypeScript 4.8): the client in `src/index.ts`, the request
+  machinery in `src/core.ts`, fetch shims in `src/_shims/**`, `Core.RequestOptions` in resources.
+
+`Layout::of` picks the layout from the targets the config has (`typescript`, else `node`); the
+same emitters write both under that mode flag (`Ctx::node`). The crate never names Forge
+(`tests/boundary.rs`); `ferrule-gen generate --target typescript` (or `--target node`) maps the
+annotated spec to the model and calls `ferrule_ts_plugin::generate_layout`.
 
 ```text
-annotated spec --sdk-model adapter--> Client --for_target("typescript")--> namer + emitters --> files
+annotated spec --sdk-model adapter--> Client --for_target(layout)--> namer + emitters --> files
 ```
 
-The runtime (`src/core/**`, `src/internal/**`, `src/index.ts` and the `src/*.ts` shims) is not
-emitted here: `ferrule_runtime.render_typescript_files` renders it from
-`runtime/typescript/template`, as the Python runtime is rendered from `runtime/template`.
+The runtime is not emitted here: `ferrule_runtime.render_typescript_files` renders the current
+layout's (`src/core/**`, `src/internal/**`, `src/index.ts` and the `src/*.ts` shims) from
+`runtime/typescript/template`, and `render_typescript_node_files` the `node` layout's
+(`src/core.ts`, `src/_shims/**`, `src/error.ts`, `src/uploads.ts` and the entry points) from
+`runtime/typescript-node/template`, as the Python runtime is rendered from `runtime/template`.
+
+### What the `node` layout changes
+
+| Part | Current layout | `node` layout |
+|---|---|---|
+| client | `src/client.ts`, standalone class | `src/index.ts`, `extends Core.APIClient`, then the package's exports (`templates/node/index_*`) |
+| members | `userID`, `stopIDs` | `userId`, `stopIds` (acronyms capitalized like other words) |
+| path parameters | the last positional, the others in params | all positional, a plain template literal |
+| optional params | `query: P \| null \| undefined = {}` | overloads with `isRequestOptions` |
+| `@example` | every method | only when a value comes from a spec example (a path parameter's) |
+| resource tests | required / all params | a method without required params is called bare, then with request options in the params' place |
+| project files | `templates/project/` | `templates/node/project/`, plus the ten files both layouts share (`NODE_SHARED`) |
 
 ## Layout
 
 | Module | What |
 |---|---|
-| `meta.rs` | `TsMeta` (what the annotated spec does not carry yet) and `ts_settings`, the one accessor; package name, repository and options come from `client.target("typescript")` |
+| `meta.rs` | `Layout`, `TsMeta` (what the annotated spec does not carry yet) and `ts_settings`, the one accessor; package name, repository and options come from `client.target("typescript")` or `client.target("node")` |
 | `extras.rs` | lookups into the OpenAPI document: examples, tag descriptions, written property order, nullable-variant descriptions |
 | `ctx.rs` | the resource tree: classes, properties, files, where each model is declared |
 | `naming.rs` | spellings: `PascalCase` types with acronyms (`URLEndpoints`), `camelCase` members, `kebab-case` files |
@@ -52,6 +74,12 @@ check layouts; it is not a dependency.
   substitutions of `BRANDING.md`; every other oracle file is a runtime file (33, proven by
   `runtime/tests/test_render_oracles_typescript.py`), `CHANGELOG.md`, the dropped
   `scripts/utils/upload-artifact.sh`, or `packages/mcp-server/**` (not generated yet).
+- `tests/oracle_onebusaway.rs`: onebusaway-typescript 1.20.0 (`node` layout), 108/109 emitted
+  files identical; `README.md` differs only by OneBusAway's own "Examples and Sample Code"
+  section. Every other oracle file is a runtime file (36, proven by
+  `runtime/tests/test_render_oracles_typescript_node.py`), `CHANGELOG.md`, the dropped
+  `scripts/utils/upload-artifact.sh`, or OneBusAway's hand-written `examples/` and
+  `package-lock.json`.
 - `tests/oracle_more.rs`: imagekit-typescript (identical/total reported, with a floor);
   knock-mgmt-typescript is skipped while the adapter rejects its pagination (FER101).
 - `tests/golden.rs`: a small synthetic SDK (`tests/fixtures/petstore`), byte for byte.
@@ -62,7 +90,8 @@ commits, gitignored), and skip without them.
 
 ## Not generated yet
 
-The node (legacy) layout; pagination (`src/core/pagination.ts`, `getAPIList` methods, page
+In the `node` layout, lines whose prettier layout depends on name lengths are proven only for
+OneBusAway's names (`tests/index.test.ts`, the README snippets). In both layouts: pagination (`src/core/pagination.ts`, `getAPIList` methods, page
 aliases); streaming; file uploads (`Uploadable` bodies); unions of objects as params; webhooks
 (a resource with models and no methods is not in the model); the MCP server package; client
 settings beyond one auth option (several opts, environments, idempotency header, default
