@@ -7,6 +7,8 @@ lefthook = "latest"
 gitleaks = "latest"
 # Same channel as rust-toolchain.toml and the pinned Forge commit (ADR 0014).
 rust = { version = "1.99.0", components = "rustfmt,clippy" }
+# gofmt checks the Go plugin's output; go build/vet/test run the generated Go SDKs.
+go = "1.27.1"
 
 [tasks."forge:setup"]
 description = "Check out the pinned Forge commit into .cache/forge (for the canary)"
