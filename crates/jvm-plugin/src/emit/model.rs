@@ -6,7 +6,7 @@ use std::fmt::Write as _;
 use crate::emit::Gen;
 use crate::kt::{Imports, doc, string};
 use crate::naming::{camel, capitalize, constant, decapitalize, singular, split_words};
-use crate::types::{Class, ClassKind, Jt, Prop, Shape, list_shadowed};
+use crate::types::{Class, Jt, Prop, Shape, list_shadowed};
 
 /// The `KDoc` line every value getter throws with.
 fn throws_line(g: &Gen<'_>, missing: bool) -> String {
@@ -121,7 +121,7 @@ fn object(g: &Gen<'_>, c: &Class<'_>, chain: &[&Class<'_>], imp: &mut Imports) -
         imp.add("kotlin.jvm.optionals.getOrNull");
     }
     for p in props {
-        add_type_imports(g, &p.ty, imp);
+        add_type_imports(&p.ty, imp);
         if p.required() {
             imp.core("checkRequired");
         }
@@ -364,7 +364,7 @@ fn object(g: &Gen<'_>, c: &Class<'_>, chain: &[&Class<'_>], imp: &mut Imports) -
     out
 }
 
-fn add_type_imports(g: &Gen<'_>, ty: &Jt, imp: &mut Imports) {
+fn add_type_imports(ty: &Jt, imp: &mut Imports) {
     let mut paths = Vec::new();
     ty.imports(&mut paths);
     for p in paths {
@@ -373,9 +373,6 @@ fn add_type_imports(g: &Gen<'_>, ty: &Jt, imp: &mut Imports) {
         } else {
             imp.add(p);
         }
-    }
-    if ty.class_kind() == Some(ClassKind::Enum) {
-        let _ = g;
     }
 }
 
