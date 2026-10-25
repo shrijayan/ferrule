@@ -14,7 +14,7 @@
 
 use ferrule_sdk_model::model::{ClientOpt, SecurityScheme, SendLocation};
 
-use super::resource::exports_of;
+use super::resource::{export_name, exports_of, page_types};
 use super::template::render as fill;
 use super::{File, HEADER};
 use crate::ctx::{Ctx, TsResource};
@@ -144,11 +144,27 @@ fn namespace(ctx: &Ctx<'_>) -> Vec<String> {
         format!("export declare namespace {client} {{"),
         format!("  export type RequestOptions = {options}.RequestOptions;"),
     ];
+    // The page classes and their params and response types.
+    for page in crate::pages::pages(ctx) {
+        let class = page.class(ctx);
+        out.push(String::new());
+        out.push(format!("  export import {class} = Pagination.{class};"));
+        let names = [
+            format!("type {class}Params as {class}Params"),
+            format!("type {class}Response as {class}Response"),
+        ];
+        out.push(render(&specifiers("export ", &names, ";"), 2, WIDTH));
+    }
     for r in &ctx.resources {
         out.push(String::new());
         let mut names = vec![format!("{} as {}", r.class, r.class)];
         if !r.res.standalone {
-            names.extend(exports_of(ctx, r).into_iter().map(|t| format!("type {t} as {t}")));
+            let pages = page_types(ctx, r);
+            names.extend(
+                exports_of(ctx, r)
+                    .into_iter()
+                    .map(|t| format!("{} as {t}", export_name(ctx, &pages, &t))),
+            );
         }
         out.push(render(&specifiers("export ", &names, ";"), 2, WIDTH));
     }
@@ -163,6 +179,51 @@ fn namespace(ctx: &Ctx<'_>) -> Vec<String> {
         }
     }
     out.push("}".to_owned());
+    out
+}
+
+/// `import * as Pagination from './core/pagination';` and the page classes' params and response
+/// types (with `AbstractPage` in the current layout), when the config has pagination.
+fn pagination_imports(ctx: &Ctx<'_>) -> Vec<String> {
+    let pages = crate::pages::pages(ctx);
+    if pages.is_empty() {
+        return Vec::new();
+    }
+    let module = if ctx.node() {
+        "./pagination"
+    } else {
+        "./core/pagination"
+    };
+    let mut names: Vec<(String, String)> = Vec::new();
+    if !ctx.node() {
+        names.push(("AbstractPage".to_owned(), "AbstractPage".to_owned()));
+    }
+    for page in &pages {
+        let class = page.class(ctx);
+        names.push((format!("{class}Params"), format!("type {class}Params")));
+        names.push((format!("{class}Response"), format!("{class}Response")));
+    }
+    names.sort_by(|a, b| a.0.cmp(&b.0));
+    let names: Vec<String> = names.into_iter().map(|(_, n)| n).collect();
+    vec![
+        format!("import * as Pagination from '{module}';"),
+        render(&specifiers("import ", &names, &format!(" from '{module}';")), 0, WIDTH),
+    ]
+}
+
+/// `Client.Resource = Resource;` for each top-level resource, and in the `node` layout its page
+/// classes after it.
+fn attached(ctx: &Ctx<'_>) -> Vec<String> {
+    let client = &ctx.settings.client_class;
+    let mut out = Vec::new();
+    for r in &ctx.resources {
+        out.push(format!("{client}.{} = {};", r.class, r.class));
+        if ctx.node() {
+            for p in page_types(ctx, r) {
+                out.push(format!("{client}.{p} = {p};"));
+            }
+        }
+    }
     out
 }
 
@@ -290,9 +351,10 @@ pub fn emit_node_index(ctx: &Ctx<'_>) -> File {
         "import { type Agent } from './_shims/index';".to_owned(),
         "import * as Core from './core';".to_owned(),
         "import * as Errors from './error';".to_owned(),
-        "import * as Uploads from './uploads';".to_owned(),
-        "import * as API from './resources/index';".to_owned(),
     ];
+    out.extend(pagination_imports(ctx));
+    out.push("import * as Uploads from './uploads';".to_owned());
+    out.push("import * as API from './resources/index';".to_owned());
     out.extend(resource_imports(ctx));
     out.push(String::new());
     out.push(fill(NODE_HEAD, &vars, &flags).trim_end_matches('\n').to_owned());
@@ -302,9 +364,7 @@ pub fn emit_node_index(ctx: &Ctx<'_>) -> File {
     out.push(fill(NODE_TAIL, &vars, &flags).trim_end_matches('\n').to_owned());
     out.push("}".to_owned());
     out.push(String::new());
-    for r in &ctx.resources {
-        out.push(format!("{client}.{} = {};", r.class, r.class));
-    }
+    out.extend(attached(ctx));
     out.push(String::new());
     out.extend(namespace(ctx));
     out.push(String::new());
@@ -358,8 +418,10 @@ pub fn emit_client(ctx: &Ctx<'_>) -> File {
         ],
         &[],
     );
-    let tail = fill(TAIL, &[("CLIENT", client)], &[("pagination", false)]);
+    let pagination = !crate::pages::pages(ctx).is_empty();
+    let tail = fill(TAIL, &[("CLIENT", client)], &[("pagination", pagination)]);
     let mut out = vec![HEADER.to_owned(), String::new(), IMPORTS_TOP.to_owned()];
+    out.extend(pagination_imports(ctx));
     out.push("import * as Uploads from './core/uploads';".to_owned());
     out.push("import * as API from './resources/index';".to_owned());
     out.push("import { APIPromise } from './core/api-promise';".to_owned());
@@ -386,9 +448,7 @@ pub fn emit_client(ctx: &Ctx<'_>) -> File {
     out.extend(members(ctx));
     out.push("}".to_owned());
     out.push(String::new());
-    for r in &ctx.resources {
-        out.push(format!("{client}.{} = {};", r.class, r.class));
-    }
+    out.extend(attached(ctx));
     out.push(String::new());
     out.extend(namespace(ctx));
     ("src/client.ts".to_owned(), out.join("\n") + "\n")

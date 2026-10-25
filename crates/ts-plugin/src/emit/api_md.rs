@@ -2,7 +2,7 @@
 //! (`src/resources/<path>/api.md`), linked from its parent's section.
 
 use super::File;
-use super::resource::{exports_of, plan_methods};
+use super::resource::{exports_of, page_types, plan_methods};
 use crate::ctx::{Ctx, TsResource};
 use crate::naming::words_of;
 use crate::types::Mapper;
@@ -24,7 +24,12 @@ fn section(ctx: &Ctx<'_>, r: &TsResource<'_>, level: usize, out: &mut Vec<String
     let mut mapper = Mapper::new(ctx, &r.module());
     let plans = plan_methods(ctx, r, &mut mapper);
     let params: Vec<String> = plans.iter().filter_map(|p| p.params_type.clone()).collect();
-    let types: Vec<String> = exports_of(ctx, r).into_iter().filter(|t| !params.contains(t)).collect();
+    // Page types are listed by the methods that return them, not as types.
+    let pages = page_types(ctx, r);
+    let types: Vec<String> = exports_of(ctx, r)
+        .into_iter()
+        .filter(|t| !params.contains(t) && !pages.contains(t))
+        .collect();
     if !types.is_empty() {
         out.push(String::new());
         out.push("Types:".to_owned());
