@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["crates/converter", "crates/sdk-model", "crates/python-plugin", "crates/jvm-plugin", "crates/go-plugin", "crates/ts-plugin", "crates/ferrule-gen"]
+members = ["crates/converter", "crates/sdk-model", "crates/python-plugin", "crates/jvm-plugin", "crates/go-plugin", "crates/ts-plugin", "crates/ruby-plugin", "crates/ferrule-gen"]
 
 [workspace.package]
 version = "0.0.0"
@@ -17,6 +17,7 @@ ferrule-converter = { path = "crates/converter" }
 ferrule-python-plugin = { path = "crates/python-plugin" }
 ferrule-go-plugin = { path = "crates/go-plugin" }
 ferrule-jvm-plugin = { path = "crates/jvm-plugin" }
+ferrule-ruby-plugin = { path = "crates/ruby-plugin" }
 ferrule-sdk-model = { path = "crates/sdk-model" }
 ferrule-ts-plugin = { path = "crates/ts-plugin" }
 
