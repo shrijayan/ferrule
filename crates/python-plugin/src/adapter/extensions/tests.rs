@@ -438,6 +438,35 @@ fn rejects_untrusted_pagination_fields() {
     }
 }
 
+// Reduced from knock (`ms_teams_pagination`): the request fields are the query param names
+// `query_options.$skiptoken` and `query_options.$top`, which Stainless sends as written
+// (`PageInfo(params={"query_options.$skiptoken": skip_token})`).
+#[test]
+fn reads_dollar_prefixed_segments_in_request_param_names() {
+    let ext = pairs(&json!({
+        "x-ferrule-resource": { "path": ["providers", "ms_teams"] },
+        "x-ferrule-method-name": "list_teams",
+        "x-ferrule-package": { "name": "acme", "repo": "" },
+        "x-ferrule-pagination": {
+            "scheme": "cursor",
+            "page": "ms_teams_pagination",
+            "request": {
+                "query_options.$skiptoken": "next_cursor_param",
+                "query_options.$top": "query_options.$top",
+            },
+            "response": { "ms_teams_teams": "items", "skip_token": "next_cursor_field" },
+        },
+    }));
+    let request = read(&ext).expect("valid").pagination.map(|p| p.request);
+    assert_eq!(
+        request,
+        Some(vec![
+            ("query_options.$skiptoken".to_owned(), "next_cursor_param".to_owned()),
+            ("query_options.$top".to_owned(), "query_options.$top".to_owned()),
+        ])
+    );
+}
+
 #[test]
 fn visits_integer_like_keys_first_as_javascript_does() {
     let mut c = client();
