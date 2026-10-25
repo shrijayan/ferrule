@@ -113,3 +113,8 @@ readme:
       endpoint: get /widgets
       params:
         environment: development
+    pagination:
+      type: request
+      endpoint: get /widgets
+      params:
+        environment: development
