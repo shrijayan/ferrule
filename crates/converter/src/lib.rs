@@ -4,7 +4,10 @@
 pub mod cli;
 pub mod diagnostic;
 pub mod editions;
+pub mod extensions;
+pub mod normalize;
 pub mod schema;
+pub mod swagger2;
 pub mod transforms;
 pub mod unicode;
 pub mod value;
