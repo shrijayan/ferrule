@@ -17,6 +17,7 @@ from ferrule.adopt import AdoptRequest, adopt
 from ferrule.errors import MISSING_INPUT, FerruleError, fail
 from ferrule.generate import GenerateRequest, generate, load_renderer, resolve_tools
 from ferrule.generate_go import GoRequest, generate_go, load_go_renderer
+from ferrule.generate_jvm import JvmRequest, generate_jvm, load_java_renderer, resolve_ktfmt
 from ferrule.rescue import rescue, write_spec
 from ferrule.verify import export_ref, verify
 
@@ -55,7 +56,7 @@ def build_parser() -> argparse.ArgumentParser:
     gen.add_argument("--gen", type=Path, help="ferrule-gen binary (default: $FERRULE_GEN)")
     gen.add_argument(
         "--target",
-        choices=("python", "go"),
+        choices=("python", "go", "java", "kotlin"),
         default="python",
         help="SDK language (default: python)",
     )
@@ -147,9 +148,35 @@ def _generate_go(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def _generate_jvm(args: argparse.Namespace) -> int:
+    if args.runtime_from is not None:
+        raise fail(
+            MISSING_INPUT,
+            f"--runtime-from is not supported with --target {args.target}",
+            "--runtime-from",
+            "drop it: the JVM runtime is rendered from ferrule_runtime",
+        )
+    request = JvmRequest(
+        spec=args.spec,
+        config=args.config,
+        out=args.out,
+        gen=resolve_tools(os.environ, gen=args.gen).gen,
+        target=args.target,
+        ktfmt=resolve_ktfmt(os.environ),
+    )
+    result = generate_jvm(request, renderer=load_java_renderer())
+    sys.stdout.write(
+        f"generated {result.package}: {result.files} files "
+        f"({result.runtime_files} runtime) sha256 {result.digest}\n",
+    )
+    return EXIT_OK
+
+
 def _generate(args: argparse.Namespace) -> int:
     if args.target == "go":
         return _generate_go(args)
+    if args.target in ("java", "kotlin"):
+        return _generate_jvm(args)
     request = GenerateRequest(
         spec=args.spec,
         config=args.config,
