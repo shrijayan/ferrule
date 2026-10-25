@@ -117,11 +117,7 @@ fn invoke(receiver: &str, args: Vec<Doc>) -> Doc {
 
 fn shape(g: &Gen<'_>, f: &RField) -> String {
     let m = &g.m;
-    let t = match &f.ty {
-        RType::Boolean | RType::Unknown => f.ty.rb_inner(m),
-        RType::Array(_) | RType::Map(_) => format!("^({})", f.ty.rb_inner(m)),
-        other => other.rb_inner(m),
-    };
+    let t = f.ty.rb_inner_pattern(m);
     if !f.required || f.nullable {
         format!("{t} | nil")
     } else {
@@ -137,6 +133,9 @@ fn method_test(g: &Gen<'_>, out: &mut String, accessor: &str, m: &Meth<'_>) {
         format!("test_{}", m.name)
     };
     let _ = writeln!(out, "  def {name}");
+    if g.target.disable_mock_tests {
+        out.push_str("    skip(\"Mock server tests are disabled\")\n\n");
+    }
     let call = invoke(
         &format!("@{}.{accessor}.{}", client_var(g), m.name),
         required_args(g, m),
@@ -178,6 +177,7 @@ impl RType {
     pub fn rb_inner_pattern(&self, m: &str) -> String {
         match self {
             Self::Array(_) | Self::Map(_) => format!("^({})", self.rb_inner(m)),
+            Self::Alias(_, t) | Self::Nullable(t) => t.rb_inner_pattern(m),
             other => other.rb_inner(m),
         }
     }
@@ -289,13 +289,53 @@ pub fn helper_files(g: &Gen<'_>) -> Vec<(String, String)> {
         .replace("__M__", m)
         .replace("__gem__", &g.target.lib)
         .replace("__client__", &client_var(g));
-    let namespaces = format!(
-        "# frozen_string_literal: true\n\nmodule {m}\n  module Test\n    module Resources\n    end\n  end\nend\n"
-    );
+    let mut namespaces = format!("# frozen_string_literal: true\n\nmodule {m}\n  module Test\n    module Resources\n");
+    namespace_tree(&mut namespaces, &namespace_paths(g), &[], 6);
+    namespaces.push_str("    end\n  end\nend\n");
     vec![
         (format!("test/{}/test_helper.rb", g.target.lib), helper),
         (format!("test/{}/resource_namespaces.rb", g.target.lib), namespaces),
     ]
+}
+
+/// The test namespaces: every resource with subresources, by class path. Stainless also declares
+/// the last segment of a nested one at the top (`Beta::V2` and `V2`).
+fn namespace_paths(g: &Gen<'_>) -> Vec<Vec<String>> {
+    let mut out: Vec<Vec<String>> = Vec::new();
+    for r in &g.resources {
+        if g.resources
+            .iter()
+            .any(|s| s.class.len() == r.class.len() + 1 && s.class.starts_with(&r.class))
+        {
+            out.push(r.class.clone());
+            if r.class.len() > 1 {
+                out.push(vec![r.class[r.class.len() - 1].clone()]);
+            }
+        }
+    }
+    out
+}
+
+/// `module X ... end` for each namespace below `prefix`, sorted, nested.
+fn namespace_tree(out: &mut String, paths: &[Vec<String>], prefix: &[String], indent: usize) {
+    let mut names: Vec<&String> = paths
+        .iter()
+        .filter(|p| p.len() > prefix.len() && p.starts_with(prefix))
+        .map(|p| &p[prefix.len()])
+        .collect();
+    names.sort_by(|a, b| ferrule_sdk_model::js::cmp(a, b));
+    names.dedup();
+    let pad = " ".repeat(indent);
+    for (i, n) in names.iter().enumerate() {
+        if i > 0 {
+            out.push('\n');
+        }
+        let _ = writeln!(out, "{pad}module {n}");
+        let mut next = prefix.to_vec();
+        next.push((*n).clone());
+        namespace_tree(out, paths, &next, indent + 2);
+        let _ = writeln!(out, "{pad}end");
+    }
 }
 
 /// The method `client_test.rb` exercises: the configured example, else the first method
