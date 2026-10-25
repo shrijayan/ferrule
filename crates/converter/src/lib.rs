@@ -3,6 +3,8 @@
 
 pub mod cli;
 pub mod diagnostic;
+pub mod editions;
+pub mod schema;
 pub mod unicode;
 pub mod value;
 pub mod yaml;
