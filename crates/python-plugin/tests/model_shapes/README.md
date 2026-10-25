@@ -20,3 +20,11 @@ oracle file named below (knock-mgmt-python 0.1.0-alpha.2), not generated.
   (`title-hoisted`); the items are `HeadersRequestTemplateHeadersArray`, the field's class name
   followed by the array's title, without a docstring, and the field is
   `Union[str, List[HeadersRequestTemplateHeadersArray], None]`.
+- `string_or_object`: `workflows.run`, whose body lists `recipients` and an optional `actor`,
+  each a `RecipientReference`: a `oneOf` of a string and an object titled
+  `ObjectRecipientReference` (knock-mgmt-python `types/workflow_run_params.py`,
+  `resources/workflows/workflows.py`). Each field gets an alias named after it (singular in a
+  list), `Recipient: TypeAlias = Union[str, RecipientObjectRecipientReference]`, declared after
+  its object; `actor` is `Optional[Actor]` (the alias leaves `None` out) and `recipients` is
+  `SequenceNotStr[Recipient]`, since a member is a string. The fixture gives `actor` the
+  description of `RecipientReference`, which Stainless prints there.

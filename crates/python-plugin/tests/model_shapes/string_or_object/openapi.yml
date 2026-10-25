@@ -1,0 +1,55 @@
+openapi: 3.0.0
+info: {title: fx, version: '1'}
+servers: [{url: 'https://api.example.com'}]
+
+paths:
+  /workflows/{workflow_key}/run:
+    put:
+      operationId: runWorkflow
+      summary: Runs a workflow.
+      parameters:
+        - {name: workflow_key, in: path, required: true, schema: {type: string}}
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/RunWorkflowRequest'}}}
+      responses:
+        '200': {description: ok, content: {application/json: {schema: {type: object, properties: {id: {type: string}}}}}}
+components:
+  schemas:
+    RunWorkflowRequest:
+      description: A request to run (test) a workflow.
+      type: object
+      required: [recipients]
+      properties:
+        actor:
+          anyOf:
+            - $ref: '#/components/schemas/RecipientReference'
+            - {nullable: true, x-struct: null, x-validate: null}
+          description: A recipient reference, used when referencing a recipient by either their ID (for a user), or by a reference for an object.
+          type: object
+        recipients:
+          description: A list of recipients to run the workflow for.
+          items: {$ref: '#/components/schemas/RecipientReference'}
+          type: array
+        tenant: {description: The tenant to associate the workflow run with., type: string}
+    RecipientReference:
+      description: A recipient reference, used when referencing a recipient by either their ID (for a user), or by a reference for an object.
+      oneOf:
+        - {description: A user ID., nullable: false, title: UserRecipientReference, type: string}
+        - description: An object reference.
+          properties:
+            collection: {description: The collection of the object., type: string}
+            id: {description: The ID of the object., type: string}
+          required: [id, collection]
+          title: ObjectRecipientReference
+          type: object
+      title: RecipientReference
+      type: object
+    ObjectRecipientReference:
+      description: An object reference.
+      properties:
+        collection: {description: The collection of the object., type: string}
+        id: {description: The ID of the object., type: string}
+      required: [id, collection]
+      title: ObjectRecipientReference
+      type: object
