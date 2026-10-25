@@ -238,7 +238,6 @@ fn path_expr(s: &FileState<'_>, p: &mut PythonPrinter, method: &SdkMethod) -> Ex
 /// The statements before the call of a multipart method (ogx `files.create`): the body dict
 /// copied with its file paths, the files taken out, and the multipart content type.
 fn print_multipart_prelude(s: &FileState<'_>, p: &mut PythonPrinter, method: &SdkMethod, body: &[&SdkParam]) {
-    imp(s, p, "_files", "deepcopy_with_paths");
     imp(s, p, "_utils", "extract_files");
     p.import_from("typing", "Mapping");
     p.import_from("typing", "cast");
@@ -258,12 +257,15 @@ fn print_multipart_prelude(s: &FileState<'_>, p: &mut PythonPrinter, method: &Sd
         body.len() > 1,
         "}",
     );
-    print_expr(
-        p,
-        &call("deepcopy_with_paths(", vec![dict.into(), paths()], body.len() > 1).into(),
-        "body = ",
-        "",
-    );
+    let copy = if s.client.style.deepcopy_with_paths {
+        imp(s, p, "_files", "deepcopy_with_paths");
+        call("deepcopy_with_paths(", vec![dict.into(), paths()], body.len() > 1)
+    } else {
+        // Runtimes before `deepcopy_with_paths` copy the whole body (honcho `messages.upload`).
+        imp(s, p, "_utils", "deepcopy_minimal");
+        call("deepcopy_minimal(", vec![dict.into()], false)
+    };
+    print_expr(p, &copy.into(), "body = ", "");
     let extract = call(
         "extract_files(",
         vec![

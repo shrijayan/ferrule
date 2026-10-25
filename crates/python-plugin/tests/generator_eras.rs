@@ -137,7 +137,7 @@ fn copies_a_multipart_body_with_deepcopy_minimal() {
             .contains("from .._utils import extract_files, maybe_transform, deepcopy_minimal, async_maybe_transform\n"),
         "{resource}"
     );
-    assert!(!resource.contains("_files"), "{resource}");
+    assert!(!resource.contains("from .._files import"), "{resource}");
     let today = generate_from("request_bodies/multipart/annotated.json", None).expect("generates");
     let spelled = json!({"multipart": "deepcopy_with_paths"});
     let spelled = generate_from("request_bodies/multipart/annotated.json", Some(&spelled)).expect("generates");

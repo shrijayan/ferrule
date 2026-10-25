@@ -383,7 +383,7 @@ const PAGINATION_SHAPE: &str =
 
 const STREAMING_SHAPE: &str = "{ format: \"sse\" | \"jsonl\", paramDiscriminator, eventSchema? }";
 
-const STYLE_SHAPE: &str = "{ sentinel?: \"omit\" | \"NOT_GIVEN\", resources?: \"lazy\" | \"eager\", paths?: \"path_template\" | \"fstring\" }";
+const STYLE_SHAPE: &str = "{ sentinel?: \"omit\" | \"NOT_GIVEN\", resources?: \"lazy\" | \"eager\", paths?: \"path_template\" | \"fstring\", multipart?: \"deepcopy_with_paths\" | \"deepcopy_minimal\" }";
 
 /// `x-ferrule-style`: every key optional, today's spelling when absent; anything else is FER101.
 fn read_style(raw: Option<&Json>) -> Result<SdkStyle, Malformed> {
@@ -397,6 +397,11 @@ fn read_style(raw: Option<&Json>) -> Result<SdkStyle, Malformed> {
             "sentinel" => (&mut style.omit, "omit", "NOT_GIVEN"),
             "resources" => (&mut style.lazy_resources, "lazy", "eager"),
             "paths" => (&mut style.path_template, "path_template", "fstring"),
+            "multipart" => (
+                &mut style.deepcopy_with_paths,
+                "deepcopy_with_paths",
+                "deepcopy_minimal",
+            ),
             _ => return Err(Malformed),
         };
         *slot = match value.as_str() {
