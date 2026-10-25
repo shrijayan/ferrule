@@ -955,3 +955,49 @@ fn names_the_items_of_an_array_beside_a_titled_union_member() {
         "{params}"
     );
 }
+
+/// Header parameters reach the project files after the query and body parameters, by wire name
+/// (ogx `models.list`); a method whose only keyword arguments are headers has no params module.
+#[test]
+fn maps_header_params_after_the_others_into_the_project_files() {
+    let mut m = method(Some(SdkType::Object(obj_with("id"))));
+    m.query_params = vec![param("zone", "zone")];
+    m.header_params = vec![
+        param("x-goog-api-key", "x_goog_api_key"),
+        param("anthropic-version", "anthropic_version"),
+    ];
+    let mut only_headers = m.clone();
+    only_headers.name = "retrieve".into();
+    only_headers.query_params = Vec::new();
+    let key = SdkClientOpt {
+        send: Some(SdkSend {
+            location: SendLocation::Query,
+            name: "key".into(),
+        }),
+        ..settings().opts[0].clone()
+    };
+    let c = client(
+        vec![resource(&["things"], vec![m, only_headers])],
+        Some(SdkClientSettings {
+            opts: vec![key],
+            ..settings()
+        }),
+        "acme/acme-python",
+    );
+    let input = to_project_files_input(&c, &placeholder_meta()).expect("an input");
+    let by_name = |name: &str| {
+        input.resources[0]
+            .methods
+            .iter()
+            .find(|m| m.name == name)
+            .expect("the method")
+    };
+    let names: Vec<&str> = by_name("list").params.iter().map(|p| p.py_name.as_str()).collect();
+    assert_eq!(names, ["zone", "anthropic_version", "x_goog_api_key"]);
+    assert_eq!(
+        by_name("list").params_module.as_deref(),
+        Some("types.thing_list_params")
+    );
+    assert_eq!(by_name("retrieve").params.len(), 2);
+    assert_eq!(by_name("retrieve").params_module, None);
+}

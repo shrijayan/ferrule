@@ -403,6 +403,60 @@ fn tests_a_param_switched_streaming_method_per_overload() {
     assert!(text.contains("    def test_path_params_act_overload_1(self, client: Acme) -> None:\n"));
 }
 
+/// Header parameters (ogx `models.list`, stagehand `sessions.end`): in the all-params call after
+/// every other argument, valued as body parameters are (the wire name for a string, the first
+/// value of an enum).
+#[test]
+fn passes_header_params_last_in_the_all_params_call() {
+    let mut json = acme_json();
+    json["resources"][0]["subresources"] = json!([]);
+    let enum_type = json!({ "kind": "literal", "values": ["true", "false"] });
+    json["resources"][0]["methods"] = json!([
+        {
+            "name": "list",
+            "httpMethod": "get",
+            "path": "/cases",
+            "params": [
+                { "pyName": "zone", "wireName": "zone", "required": false, "location": "query", "type": str_type() },
+                { "pyName": "anthropic_version", "wireName": "anthropic-version", "required": false,
+                  "location": "header", "type": str_type() },
+                { "pyName": "x_goog_api_key", "wireName": "x-goog-api-key", "required": false,
+                  "location": "header", "type": str_type() },
+            ],
+            "paramsModule": "types.case_list_params",
+            "response": { "name": "CaseListResponse", "module": "types.case_list_response" },
+        },
+        {
+            "name": "end",
+            "httpMethod": "post",
+            "path": "/cases/{id}/end",
+            "params": [
+                { "pyName": "id", "wireName": "id", "required": true, "location": "path", "type": str_type() },
+                { "pyName": "x_stream_response", "wireName": "x-stream-response", "required": false,
+                  "location": "header", "type": enum_type },
+            ],
+            "response": { "name": "CaseEndResponse", "module": "types.case_end_response" },
+        },
+    ]);
+    let tests = emit_api_tests(&input(&json));
+    let text = file(&tests, "tests/api_resources/test_cases.py");
+    let list = r#"    def test_method_list_with_all_params(self, client: Acme) -> None:
+        case = client.cases.list(
+            zone="zone",
+            anthropic_version="anthropic-version",
+            x_goog_api_key="x-goog-api-key",
+        )
+"#;
+    assert!(text.contains(list), "{text}");
+    let end = r#"    def test_method_end_with_all_params(self, client: Acme) -> None:
+        case = client.cases.end(
+            id="id",
+            x_stream_response="true",
+        )
+"#;
+    assert!(text.contains(end), "{text}");
+}
+
 // example_value
 
 #[test]
