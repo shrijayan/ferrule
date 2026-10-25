@@ -95,3 +95,10 @@ fn a_model_field_named_schema_is_schema_underscore() {
     let params = files.get("src/fx/types/field_update_params.py").expect("params");
     assert!(params.contains("\n    schema: str\n"), "{params}");
 }
+
+/// The items of a list are named in the singular, `-es` plurals included (knock-mgmt `branches`
+/// is `Branch`), also in a map of lists (knock-mgmt `example_payloads` is `ExamplePayload`).
+#[test]
+fn list_items_are_named_in_the_singular() {
+    check("plural_items");
+}

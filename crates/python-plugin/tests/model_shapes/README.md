@@ -33,3 +33,9 @@ oracle file named below (knock-mgmt-python 0.1.0-alpha.2), not generated.
   `schema`; imagekit-python `types/custom_metadata_field.py`). In a model it would shadow
   `BaseModel.schema`, so it is `schema_ = FieldInfo(alias="schema", ...)`; the params
   `TypedDict` keeps `schema`. Typed `string` here (the oracle's is a bare `type: object`).
+- `plural_items`: `WorkflowBranchStep.branches` and `SourceProviderResponse.example_payloads`, a
+  map of lists of objects, in one model (knock-mgmt-python `types/workflow_branch_step.py`
+  `Branch`, `types/source_provider_response.py` `ExamplePayload`). Item classes are named in the
+  singular: `-ches`, `-shes`, `-xes`, `-sses` and `-zzes` lose `es`, and a map of lists names its
+  items as a list does. The fixture leaves out the items' own description, which Forge does not
+  expose (gap G20; the oracle's `Branch` has it as a docstring).

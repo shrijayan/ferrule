@@ -1,0 +1,171 @@
+{
+  "components": {
+    "schemas": {
+      "WorkflowBranchStep": {
+        "description": "A branch function step.",
+        "properties": {
+          "branches": {
+            "description": "A list of workflow branches to be evaluated.",
+            "items": {
+              "properties": {
+                "name": {
+                  "description": "The name of the branch.",
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "example_payloads": {
+            "additionalProperties": {
+              "items": {
+                "properties": {
+                  "body": {
+                    "additionalProperties": true,
+                    "description": "Example payload body.",
+                    "nullable": true,
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "description": "Example payloads keyed by event type.",
+            "nullable": true,
+            "type": "object"
+          }
+        },
+        "required": [
+          "branches"
+        ],
+        "type": "object",
+        "x-fern-type-name": "WorkflowBranchStep"
+      }
+    }
+  },
+  "info": {
+    "title": "fx",
+    "version": "1"
+  },
+  "openapi": "3.0.0",
+  "paths": {
+    "/steps/{key}": {
+      "get": {
+        "operationId": "getStep",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowBranchStep"
+                }
+              }
+            },
+            "description": "ok"
+          }
+        },
+        "summary": "Gets a step.",
+        "x-fern-sdk-group-name": [
+          "steps"
+        ],
+        "x-fern-sdk-method-name": "retrieve",
+        "x-ferrule-client": {
+          "defaultEnvironment": "production",
+          "defaultHeaders": {},
+          "envPrefix": "FX",
+          "environments": [
+            {
+              "name": "production",
+              "url": "https://api.example.com"
+            }
+          ],
+          "name": "fx",
+          "omitPlatformHeaders": false,
+          "opts": [],
+          "query": {
+            "arrayFormat": "comma",
+            "nestedFormat": "brackets"
+          },
+          "retries": {
+            "initialDelaySeconds": 0.5,
+            "maxDelaySeconds": 8,
+            "maxRetries": 2
+          },
+          "security": [],
+          "securitySchemes": {},
+          "timeoutSeconds": 60
+        },
+        "x-ferrule-method-name": "retrieve",
+        "x-ferrule-method-order": 0,
+        "x-ferrule-models": {
+          "WorkflowBranchStep": {
+            "module": "workflow_branch_step",
+            "name": "WorkflowBranchStep"
+          }
+        },
+        "x-ferrule-package": {
+          "name": "fx",
+          "repo": "fx/fx-python"
+        },
+        "x-ferrule-resource": {
+          "order": [
+            0
+          ],
+          "path": [
+            "steps"
+          ]
+        }
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.example.com"
+    }
+  ],
+  "x-ferrule-client": {
+    "defaultEnvironment": "production",
+    "defaultHeaders": {},
+    "envPrefix": "FX",
+    "environments": [
+      {
+        "name": "production",
+        "url": "https://api.example.com"
+      }
+    ],
+    "name": "fx",
+    "omitPlatformHeaders": false,
+    "opts": [],
+    "query": {
+      "arrayFormat": "comma",
+      "nestedFormat": "brackets"
+    },
+    "retries": {
+      "initialDelaySeconds": 0.5,
+      "maxDelaySeconds": 8,
+      "maxRetries": 2
+    },
+    "security": [],
+    "securitySchemes": {},
+    "timeoutSeconds": 60
+  },
+  "x-ferrule-config": {
+    "edition": "2025-10-08",
+    "packageName": "fx",
+    "projectName": "fx",
+    "pythonEdition": "python.2025-10-08",
+    "version": 1
+  }
+}
