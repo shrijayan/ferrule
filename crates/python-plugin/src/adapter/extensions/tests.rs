@@ -332,6 +332,20 @@ fn reads_every_member_of_the_client() {
     );
 }
 
+/// A client option is the `snake_case` of its config key (stagehand `BROWSERBASE_API_KEY` ->
+/// `browserbase_api_key`, papr `X-Session-Token` -> `x_session_token`).
+#[test]
+fn snake_cases_client_option_names() {
+    let opts = json!([
+        { "name": "BROWSERBASE_API_KEY", "type": "string", "nullable": false },
+        { "name": "X-Session-Token", "type": "string", "nullable": true },
+        { "name": "api_key", "type": "string", "nullable": false },
+    ]);
+    let c = client_with("opts", Some(opts)).expect("valid");
+    let names: Vec<&str> = c.opts.iter().map(|o| o.name.as_str()).collect();
+    assert_eq!(names, ["browserbase_api_key", "x_session_token", "api_key"]);
+}
+
 #[test]
 fn rejects_a_bad_client_member() {
     let cases = [

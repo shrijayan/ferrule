@@ -1,0 +1,300 @@
+{
+  "components": {
+    "schemas": {
+      "EndResponse": {
+        "properties": {
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success"
+        ],
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "BrowserbaseApiKey": {
+        "in": "header",
+        "name": "x-bb-api-key",
+        "type": "apiKey"
+      },
+      "BrowserbaseProjectId": {
+        "in": "header",
+        "name": "x-bb-project-id",
+        "type": "apiKey"
+      },
+      "ModelApiKey": {
+        "in": "header",
+        "name": "x-model-api-key",
+        "type": "apiKey"
+      }
+    }
+  },
+  "info": {
+    "title": "fx",
+    "version": "1"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/sessions/{id}/end": {
+      "post": {
+        "operationId": "SessionEnd",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EndResponse"
+                }
+              }
+            },
+            "description": "ok"
+          }
+        },
+        "summary": "End a browser session",
+        "x-fern-sdk-group-name": [
+          "sessions"
+        ],
+        "x-fern-sdk-method-name": "end",
+        "x-ferrule-client": {
+          "defaultEnvironment": "production",
+          "defaultHeaders": {},
+          "envPrefix": "FX",
+          "environments": [
+            {
+              "name": "production",
+              "url": "https://api.example.com"
+            }
+          ],
+          "name": "fx",
+          "omitPlatformHeaders": false,
+          "opts": [
+            {
+              "auth": {
+                "role": "value",
+                "securityScheme": "BBApiKeyAuth"
+              },
+              "description": "Your Browserbase API Key",
+              "name": "BROWSERBASE_API_KEY",
+              "nullable": false,
+              "readEnv": "BROWSERBASE_API_KEY",
+              "type": "string"
+            },
+            {
+              "auth": {
+                "role": "value",
+                "securityScheme": "BBProjectIdAuth"
+              },
+              "description": "Deprecated.",
+              "name": "BROWSERBASE_PROJECT_ID",
+              "nullable": true,
+              "readEnv": "BROWSERBASE_PROJECT_ID",
+              "type": "string"
+            },
+            {
+              "auth": {
+                "role": "value",
+                "securityScheme": "LLMModelApiKeyAuth"
+              },
+              "description": "Your LLM provider API key",
+              "name": "MODEL_API_KEY",
+              "nullable": false,
+              "readEnv": "MODEL_API_KEY",
+              "type": "string"
+            }
+          ],
+          "query": {
+            "arrayFormat": "comma",
+            "nestedFormat": "brackets"
+          },
+          "retries": {
+            "initialDelaySeconds": 0.5,
+            "maxDelaySeconds": 8,
+            "maxRetries": 2
+          },
+          "security": [
+            {
+              "BBApiKeyAuth": [],
+              "BBProjectIdAuth": [],
+              "LLMModelApiKeyAuth": []
+            }
+          ],
+          "securitySchemes": {
+            "BBApiKeyAuth": {
+              "in": "header",
+              "name": "x-bb-api-key",
+              "type": "apiKey"
+            },
+            "BBProjectIdAuth": {
+              "in": "header",
+              "name": "x-bb-project-id",
+              "type": "apiKey"
+            },
+            "BrowserbaseApiKey": {
+              "in": "header",
+              "name": "x-bb-api-key",
+              "type": "apiKey"
+            },
+            "BrowserbaseProjectId": {
+              "in": "header",
+              "name": "x-bb-project-id",
+              "type": "apiKey"
+            },
+            "LLMModelApiKeyAuth": {
+              "in": "header",
+              "name": "x-model-api-key",
+              "type": "apiKey"
+            },
+            "ModelApiKey": {
+              "in": "header",
+              "name": "x-model-api-key",
+              "type": "apiKey"
+            }
+          },
+          "timeoutSeconds": 60
+        },
+        "x-ferrule-method-name": "end",
+        "x-ferrule-method-order": 0,
+        "x-ferrule-models": {},
+        "x-ferrule-package": {
+          "name": "fx",
+          "repo": "fx/fx-python"
+        },
+        "x-ferrule-resource": {
+          "order": [
+            0
+          ],
+          "path": [
+            "sessions"
+          ]
+        }
+      }
+    }
+  },
+  "security": [
+    {
+      "BrowserbaseApiKey": [],
+      "BrowserbaseProjectId": []
+    }
+  ],
+  "servers": [
+    {
+      "url": "https://api.example.com"
+    }
+  ],
+  "x-ferrule-client": {
+    "defaultEnvironment": "production",
+    "defaultHeaders": {},
+    "envPrefix": "FX",
+    "environments": [
+      {
+        "name": "production",
+        "url": "https://api.example.com"
+      }
+    ],
+    "name": "fx",
+    "omitPlatformHeaders": false,
+    "opts": [
+      {
+        "auth": {
+          "role": "value",
+          "securityScheme": "BBApiKeyAuth"
+        },
+        "description": "Your Browserbase API Key",
+        "name": "BROWSERBASE_API_KEY",
+        "nullable": false,
+        "readEnv": "BROWSERBASE_API_KEY",
+        "type": "string"
+      },
+      {
+        "auth": {
+          "role": "value",
+          "securityScheme": "BBProjectIdAuth"
+        },
+        "description": "Deprecated.",
+        "name": "BROWSERBASE_PROJECT_ID",
+        "nullable": true,
+        "readEnv": "BROWSERBASE_PROJECT_ID",
+        "type": "string"
+      },
+      {
+        "auth": {
+          "role": "value",
+          "securityScheme": "LLMModelApiKeyAuth"
+        },
+        "description": "Your LLM provider API key",
+        "name": "MODEL_API_KEY",
+        "nullable": false,
+        "readEnv": "MODEL_API_KEY",
+        "type": "string"
+      }
+    ],
+    "query": {
+      "arrayFormat": "comma",
+      "nestedFormat": "brackets"
+    },
+    "retries": {
+      "initialDelaySeconds": 0.5,
+      "maxDelaySeconds": 8,
+      "maxRetries": 2
+    },
+    "security": [
+      {
+        "BBApiKeyAuth": [],
+        "BBProjectIdAuth": [],
+        "LLMModelApiKeyAuth": []
+      }
+    ],
+    "securitySchemes": {
+      "BBApiKeyAuth": {
+        "in": "header",
+        "name": "x-bb-api-key",
+        "type": "apiKey"
+      },
+      "BBProjectIdAuth": {
+        "in": "header",
+        "name": "x-bb-project-id",
+        "type": "apiKey"
+      },
+      "BrowserbaseApiKey": {
+        "in": "header",
+        "name": "x-bb-api-key",
+        "type": "apiKey"
+      },
+      "BrowserbaseProjectId": {
+        "in": "header",
+        "name": "x-bb-project-id",
+        "type": "apiKey"
+      },
+      "LLMModelApiKeyAuth": {
+        "in": "header",
+        "name": "x-model-api-key",
+        "type": "apiKey"
+      },
+      "ModelApiKey": {
+        "in": "header",
+        "name": "x-model-api-key",
+        "type": "apiKey"
+      }
+    },
+    "timeoutSeconds": 60
+  },
+  "x-ferrule-config": {
+    "edition": "2025-10-08",
+    "packageName": "fx",
+    "projectName": "fx",
+    "pythonEdition": "python.2025-10-08",
+    "version": 1
+  }
+}
