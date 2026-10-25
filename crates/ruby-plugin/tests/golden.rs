@@ -41,3 +41,22 @@ fn aliases_the_item_model_of_a_converter() {
     assert!(file(&files, "rbi/acme/models.rbi").contains("  LabelsItem = Acme::Models::LabelsItem\n"));
     assert!(file(&files, "sig/acme/models.rbs").contains("  class LabelsItem = Acme::Models::LabelsItem\n"));
 }
+
+/// The top-level alias of a converter constant is typed as a converter in each view, as
+/// imagekit-ruby's `CustomMetadata` is.
+#[test]
+fn types_the_alias_of_a_converter_constant() {
+    let files = generated();
+    let models = file(&files, "lib/acme/models.rb");
+    assert!(
+        models.contains("  # @type [Acme::Internal::Type::Converter]\n  Labels = Acme::Models::Labels\n"),
+        "{models}"
+    );
+    let rbi = file(&files, "rbi/acme/models.rbi");
+    assert!(
+        rbi.contains("  Labels = T.let(Acme::Models::Labels, Acme::Internal::Type::Converter)\n"),
+        "{rbi}"
+    );
+    let rbs = file(&files, "sig/acme/models.rbs");
+    assert!(rbs.contains("  Labels: Acme::Internal::Type::Converter\n"), "{rbs}");
+}
