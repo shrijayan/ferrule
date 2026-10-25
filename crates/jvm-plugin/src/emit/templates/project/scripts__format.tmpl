@@ -1,0 +1,36 @@
+# From OneBusAway/java-sdk @ c29c48ad and OneBusAway/kotlin-sdk @ 69234467, scripts/format (Apache-2.0, see NOTICE). Modified by The Ferrule Authors: names replaced by {{...}} tokens, the flavors merged with {{#java}} blocks, branding per BRANDING.md; this line is not emitted.
+#!/usr/bin/env bash
+
+set -e
+
+cd "$(dirname "$0")/.."
+
+if command -v ktfmt &> /dev/null; then
+    echo "==> Running ktfmt"
+{{#java}}
+    ./scripts/kotlin-format
+{{/java}}
+{{#kotlin}}
+    find . -name "*.kt" -not -path "./buildSrc/build/*" -print0 | xargs -0 -r ktfmt --kotlinlang-style "$@"
+{{/kotlin}}
+else
+{{#java}}
+    echo "==> Running gradlew formatKotlin"
+    ./gradlew formatKotlin
+{{/java}}
+{{#kotlin}}
+    echo "==> Running gradlew format"
+    ./gradlew format
+{{/kotlin}}
+fi
+
+{{#java}}
+if command -v palantir-java-format &> /dev/null; then
+    echo "==> Running palantir-java-format"
+    ./scripts/java-format
+else
+    echo "==> Running gradlew formatJava"
+    ./gradlew formatJava
+fi
+
+{{/java}}

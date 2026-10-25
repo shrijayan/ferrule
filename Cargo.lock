@@ -234,6 +234,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "ferrule-jvm-plugin"
+version = "0.0.0"
+dependencies = [
+ "ferrule-converter",
+ "ferrule-sdk-model",
+ "forge",
+ "serde_json",
+]
+
+[[package]]
 name = "ferrule-python-plugin"
 version = "0.0.0"
 dependencies = [

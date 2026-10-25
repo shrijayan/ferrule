@@ -1,0 +1,78 @@
+# From OneBusAway/java-sdk @ c29c48ad and OneBusAway/kotlin-sdk @ 69234467, buildSrc/src/main/kotlin/<org>.publish.gradle.kts (Apache-2.0, see NOTICE). Modified by The Ferrule Authors: names replaced by {{...}} tokens, the flavors merged with {{#java}} blocks, branding per BRANDING.md; this line is not emitted.
+import com.vanniktech.maven.publish.JavadocJar
+import com.vanniktech.maven.publish.KotlinJvm
+import com.vanniktech.maven.publish.MavenPublishBaseExtension
+import com.vanniktech.maven.publish.SonatypeHost
+
+plugins {
+    id("com.vanniktech.maven.publish")
+}
+
+publishing {
+  repositories {
+      if (project.hasProperty("publishLocal")) {
+          maven {
+              name = "LocalFileSystem"
+              url = uri("${rootProject.layout.buildDirectory.get()}/local-maven-repo")
+          }
+      }
+  }
+}
+
+repositories {
+    gradlePluginPortal()
+    mavenCentral()
+}
+
+extra["signingInMemoryKey"] = System.getenv("GPG_SIGNING_KEY")
+extra["signingInMemoryKeyId"] = System.getenv("GPG_SIGNING_KEY_ID")
+extra["signingInMemoryKeyPassword"] = System.getenv("GPG_SIGNING_PASSWORD")
+
+configure<MavenPublishBaseExtension> {
+    if (!project.hasProperty("publishLocal")) {
+        signAllPublications()
+        publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
+    }
+
+    coordinates(project.group.toString(), project.name, project.version.toString())
+    configure(
+        KotlinJvm(
+{{#java}}
+            javadocJar = JavadocJar.Dokka("dokkaJavadoc"),
+{{/java}}
+{{#kotlin}}
+            javadocJar = JavadocJar.Dokka("dokkaHtml"),
+{{/kotlin}}
+            sourcesJar = true,
+        )
+    )
+
+    pom {
+        name.set("{{API_TITLE}}")
+        description.set("{{API_DESCRIPTION}}")
+        url.set("{{DOCS_URL}}")
+
+        licenses {
+            license {
+                name.set("Apache-2.0")
+            }
+        }
+
+        developers {
+            developer {
+                name.set("{{TITLE}}")
+                email.set("{{CONTACT}}")
+            }
+        }
+
+        scm {
+            connection.set("scm:git:git://github.com/{{REPO}}.git")
+            developerConnection.set("scm:git:git://github.com/{{REPO}}.git")
+            url.set("https://github.com/{{REPO}}")
+        }
+    }
+}
+
+tasks.withType<Zip>().configureEach {
+    isZip64 = true
+}

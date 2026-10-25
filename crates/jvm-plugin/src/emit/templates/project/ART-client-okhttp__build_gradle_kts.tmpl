@@ -1,0 +1,20 @@
+# From OneBusAway/java-sdk @ c29c48ad and OneBusAway/kotlin-sdk @ 69234467, <artifact>-client-okhttp/build.gradle.kts (Apache-2.0, see NOTICE). Modified by The Ferrule Authors: names replaced by {{...}} tokens, the flavors merged with {{#java}} blocks, branding per BRANDING.md; this line is not emitted.
+plugins {
+    id("{{ORG}}.kotlin")
+    id("{{ORG}}.publish")
+}
+
+dependencies {
+    api(project(":{{ARTIFACT}}-core"))
+
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+{{#kotlin}}
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
+{{/kotlin}}
+
+    testImplementation(kotlin("test"))
+    testImplementation("org.assertj:assertj-core:3.27.7")
+{{#java}}
+    testImplementation("com.github.tomakehurst:wiremock-jre8:2.35.2")
+{{/java}}
+}
