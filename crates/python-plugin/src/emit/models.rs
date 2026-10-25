@@ -359,16 +359,63 @@ fn decl_blocks(p: &mut PythonPrinter, named: &Named<'_>, ctx: &ModelContext<'_, 
         .collect()
 }
 
+/// Whether `t` holds an inline object, which would need a class name of its own.
+fn has_inline_object(t: &SdkType) -> bool {
+    match t {
+        SdkType::Object(_) => true,
+        SdkType::Array(inner) | SdkType::Map(inner) => has_inline_object(inner),
+        SdkType::Union { variants, .. } => variants.iter().any(has_inline_object),
+        _ => false,
+    }
+}
+
+/// The typed extra keys of an object with fields that takes other keys too, as knock-mgmt-python
+/// `types/source_environment_settings.py` declares them: `__pydantic_extra__` (assigned only for
+/// type checkers, for Pydantic before 2.8) and a `__getattr__` stub. `builtins.object` where a
+/// field named `object` shadows the builtin (ogx-client-python `batch_cancel_response.py`).
+/// Extra values that are inline objects are left out: they would need names Stainless gives them.
+fn extra_lines(p: &mut PythonPrinter, obj: &SdkObject, ctx: &ModelContext<'_, '_>) -> Option<Vec<String>> {
+    let extra = obj.extra.as_deref().filter(|t| !has_inline_object(t))?;
+    let ann = to_annotation(extra, p, ctx);
+    let ann = if ann == "object" && obj.fields.iter().any(|f| f.py_name == "object") {
+        p.import_module("builtins");
+        "builtins.object".to_owned()
+    } else {
+        ann
+    };
+    p.import_from("typing", "TYPE_CHECKING");
+    p.import_from("typing", "Dict");
+    p.import_from("pydantic", "Field as FieldInfo");
+    Some(vec![
+        "    if TYPE_CHECKING:".to_owned(),
+        "        # Some versions of Pydantic <2.8.0 have a bug and don\u{2019}t allow assigning a".to_owned(),
+        "        # value to this field, so for compatibility we avoid doing it at runtime.".to_owned(),
+        format!(
+            "        __pydantic_extra__: Dict[str, {ann}] = FieldInfo(init=False)  # pyright: ignore[reportIncompatibleVariableOverride]"
+        ),
+        String::new(),
+        "        # Stub to indicate that arbitrary properties are accepted.".to_owned(),
+        "        # To access properties that are not valid identifiers you can use `getattr`, e.g.".to_owned(),
+        "        # `getattr(obj, '$type')`".to_owned(),
+        format!("        def __getattr__(self, attr: str) -> {ann}: ..."),
+        "    else:".to_owned(),
+        format!("        __pydantic_extra__: Dict[str, {ann}]"),
+    ])
+}
+
 fn class_lines(p: &mut PythonPrinter, name: &str, obj: &SdkObject, ctx: &ModelContext<'_, '_>) -> Vec<String> {
     let mut bases: Vec<String> = obj.bases.iter().map(|b| ctx.import_ref(p, b)).collect();
     if bases.is_empty() {
         p.import_from(&rel_import(&ctx.here, "_models"), "BaseModel");
         bases.push("BaseModel".to_owned());
     }
-    let fields: Vec<Vec<String>> = sort_fields(&obj.fields)
+    let mut fields: Vec<Vec<String>> = sort_fields(&obj.fields)
         .into_iter()
         .map(|f| field_lines(p, f, ctx, "    "))
         .collect();
+    if let Some(extra) = extra_lines(p, obj, ctx) {
+        fields.push(extra);
+    }
     let doc = docstring(obj.description.as_deref().unwrap_or(""), "    ");
     let body: Vec<Vec<String>> = if fields.is_empty() && doc.is_empty() {
         vec![vec!["    pass".to_owned()]]
