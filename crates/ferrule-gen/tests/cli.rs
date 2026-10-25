@@ -176,6 +176,30 @@ fn generates_a_typescript_sdk() {
     }
 }
 
+#[test]
+fn generates_a_node_layout_sdk() {
+    let out = scratch("target-node");
+    let status = bin()
+        .arg("generate")
+        .arg(plugin_dir().join("tests/fixtures/cursor-page.json"))
+        .args(["--target", "node", "--out"])
+        .arg(&*out)
+        .status()
+        .expect("runs");
+    assert!(status.success());
+    let written: Vec<String> = files(&out).into_iter().map(|(p, _)| p).collect();
+    for path in [
+        "src/index.ts",
+        "src/resources/index.ts",
+        "api.md",
+        ".eslintrc.js",
+        "scripts/mock",
+    ] {
+        assert!(written.iter().any(|p| p == path), "{path} missing in {written:?}");
+    }
+    assert!(!written.iter().any(|p| p == "src/client.ts"), "{written:?}");
+}
+
 /// `package.json` runs `./scripts/test`, so the scripts must be executable, as in the oracles.
 #[cfg(unix)]
 #[test]
