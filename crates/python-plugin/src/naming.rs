@@ -11,6 +11,15 @@ const ACRONYMS: [&str; 11] = [
     "id", "ids", "url", "uri", "api", "http", "https", "ip", "json", "uuid", "sdk",
 ];
 
+/// Words Stainless spells upper-case in class names it makes from a schema name, as listed in the
+/// `initialism` description of the public stainless.yml schema (the converter's
+/// `DEFAULT_INITIALISMS`, which it applies to model names).
+const DEFAULT_INITIALISMS: [&str; 39] = [
+    "3ds", "ach", "acl", "ai", "api", "ats", "cpu", "crm", "db", "dns", "e2e", "eeoc", "gb", "gpu", "hd", "hris",
+    "html", "http", "https", "id", "ip", "iso", "jsonl", "kb", "kyb", "kyc", "lfs", "mb", "mp3", "mp4", "nft", "saml",
+    "sdk", "sku", "sms", "ss", "ssh", "sso", "url",
+];
+
 fn clean<S: AsRef<str>>(words: &[S]) -> Vec<String> {
     words
         .iter()
@@ -109,6 +118,31 @@ pub fn class_segment_with<S: AsRef<str>>(words: &[S], casings: &[(String, Casing
         .collect()
 }
 
+/// A class-name segment from a schema name, as Stainless names a union variant after the schema
+/// it comes from: each word capitalised and the rest lower-case, a default initialism upper-case
+/// (knock-mgmt `EmailHtmlBlock` is `EmailHTMLBlock`, ogx `OpenAIResponseInputToolChoiceMCPTool`
+/// is `OpenAIResponseInputToolChoiceMcpTool`). A plural initialism keeps its `s` (`APIs`).
+#[must_use]
+pub fn schema_segment(name: &str) -> String {
+    guard(
+        clean(&split_words(name))
+            .iter()
+            .map(|w| {
+                let lower = w.to_ascii_lowercase();
+                if DEFAULT_INITIALISMS.contains(&lower.as_str()) {
+                    return lower.to_ascii_uppercase();
+                }
+                if let Some(stem) = lower.strip_suffix('s')
+                    && DEFAULT_INITIALISMS.contains(&stem)
+                {
+                    return format!("{}s", stem.to_ascii_uppercase());
+                }
+                capitalize(&lower)
+            })
+            .collect(),
+    )
+}
+
 fn ends_with_ignore_case(s: &str, suffix: &str) -> bool {
     s.len() >= suffix.len()
         && s.is_char_boundary(s.len() - suffix.len())
@@ -196,6 +230,17 @@ mod tests {
     fn pascal_cases_word_lists() {
         assert_eq!(pascal_case(&["user", "ID"]), "UserID");
         assert_eq!(pascal_case(&["none"]), "None_");
+    }
+
+    #[test]
+    fn spells_schema_names_as_variant_segments() {
+        assert_eq!(schema_segment("EmailHtmlBlock"), "EmailHTMLBlock");
+        assert_eq!(
+            schema_segment("OpenAIResponseInputToolChoiceMCPTool"),
+            "OpenAIResponseInputToolChoiceMcpTool"
+        );
+        assert_eq!(schema_segment("ResponseFormatJSONSchema"), "ResponseFormatJsonSchema");
+        assert_eq!(schema_segment("list_apis"), "ListAPIs");
     }
 
     #[test]

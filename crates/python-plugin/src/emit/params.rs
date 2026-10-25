@@ -10,7 +10,7 @@ use super::common::{
 use super::format::{bracket, print_expr};
 use super::models::{all_list, docstring};
 use crate::model::{SdkLiteral, SdkMethod, SdkObject, SdkParam, SdkPrimitive, SdkRef, SdkResource, SdkType};
-use crate::naming::{class_segment, pascal_case, singular, split_words};
+use crate::naming::{class_segment, schema_segment, singular, split_words};
 use crate::printer::PythonPrinter;
 use crate::type_mapper::{AnnotationContext, WithoutUnionNames, to_annotation};
 
@@ -224,7 +224,7 @@ impl<'a> Named<'a> {
 /// whether a mapping was written, so the schema name comes first.
 fn variant_segment(obj: &SdkObject, discriminator: Option<&str>) -> Option<String> {
     if let Some(h) = &obj.hint {
-        return Some(pascal_case(&split_words(h)));
+        return Some(schema_segment(h));
     }
     if let Some(d) = discriminator
         && let Some(f) = obj.fields.iter().find(|f| f.wire_name == d)
