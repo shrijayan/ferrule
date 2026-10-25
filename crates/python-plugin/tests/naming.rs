@@ -42,3 +42,16 @@ fn names_the_items_of_a_nullable_array_in_the_singular() {
     assert!(text.contains("class Chunk(BaseModel):"), "{text}");
     assert!(text.contains("chunks: Optional[List[Chunk]] = None"), "{text}");
 }
+
+/// Class names made from field names spell the default initialisms of the stainless.yml schema
+/// upper-case (knock-python `types/recipients/preference_set_channel_types.py` `SMS` and
+/// `HTTP`), and `json` like any word (groq-python and perplexity-py `completion_create_params.py`
+/// `ResponseFormatResponseFormatJsonSchemaJsonSchema` from `json_schema`).
+#[test]
+fn spells_the_default_initialisms_in_field_class_names() {
+    use ferrule_python_plugin::naming::class_segment;
+    assert_eq!(class_segment(&["sms"]), "SMS");
+    assert_eq!(class_segment(&["http"]), "HTTP");
+    assert_eq!(class_segment(&["json", "schema"]), "JsonSchema");
+    assert_eq!(class_segment(&["situation", "ids"]), "SituationIDs");
+}
