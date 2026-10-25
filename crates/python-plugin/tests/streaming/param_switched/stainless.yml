@@ -1,0 +1,34 @@
+organization: {name: fx}
+targets:
+  python: {package_name: fx, production_repo: fx/fx-python, publish: {pypi: false}}
+environments: {production: 'https://api.example.com'}
+
+resources:
+  sessions:
+    models:
+      stream_event: '#/components/schemas/StreamEvent'
+    methods:
+      act:
+        endpoint: post /sessions/{id}/act
+        type: http
+        streaming:
+          param_discriminator: streamResponse
+          stream_event_model: sessions.stream_event
+          params_type_name: streamResponse
+  completions:
+    methods:
+      create:
+        endpoint: post /completions
+        type: http
+        streaming:
+          param_discriminator: stream
+streaming:
+  on_event:
+    - event_type: error
+      handle: error
+    - kind: fallthrough
+      handle: yield
+readme:
+  example_requests:
+    default: {type: request, endpoint: 'post /completions', params: {}}
+    headline: {type: request, endpoint: 'post /completions', params: {}}

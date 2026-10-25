@@ -1,0 +1,372 @@
+{
+  "components": {
+    "schemas": {
+      "ActRequest": {
+        "properties": {
+          "frameId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Target frame ID for the action"
+          },
+          "input": {
+            "description": "Natural language instruction",
+            "type": "string"
+          },
+          "streamResponse": {
+            "description": "Whether to stream the response via SSE",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "input"
+        ],
+        "type": "object"
+      },
+      "ActResponse": {
+        "properties": {
+          "success": {
+            "description": "Whether the action succeeded",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success"
+        ],
+        "type": "object"
+      },
+      "Completion": {
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "CompletionRequest": {
+        "properties": {
+          "max_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The maximum number of tokens."
+          },
+          "model": {
+            "description": "The model to use.",
+            "type": "string"
+          },
+          "prompt": {
+            "description": "The prompt to complete.",
+            "type": "string"
+          },
+          "stream": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Whether to stream the response."
+          }
+        },
+        "required": [
+          "model",
+          "prompt"
+        ],
+        "type": "object"
+      },
+      "StreamEvent": {
+        "properties": {
+          "id": {
+            "description": "Unique identifier for this event",
+            "type": "string"
+          },
+          "type": {
+            "description": "Type of stream event",
+            "enum": [
+              "system",
+              "log"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "type"
+        ],
+        "type": "object",
+        "x-fern-type-name": "StreamEvent"
+      }
+    }
+  },
+  "info": {
+    "title": "fx",
+    "version": "1"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/completions": {
+      "post": {
+        "operationId": "createCompletion",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompletionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Completion"
+                }
+              }
+            },
+            "description": "ok"
+          }
+        },
+        "summary": "Create a completion.",
+        "x-fern-sdk-group-name": [
+          "completions"
+        ],
+        "x-fern-sdk-method-name": "create",
+        "x-ferrule-client": {
+          "defaultEnvironment": "production",
+          "defaultHeaders": {},
+          "envPrefix": "FX",
+          "environments": [
+            {
+              "name": "production",
+              "url": "https://api.example.com"
+            }
+          ],
+          "name": "fx",
+          "omitPlatformHeaders": false,
+          "opts": [],
+          "query": {
+            "arrayFormat": "comma",
+            "nestedFormat": "brackets"
+          },
+          "retries": {
+            "initialDelaySeconds": 0.5,
+            "maxDelaySeconds": 8,
+            "maxRetries": 2
+          },
+          "security": [],
+          "securitySchemes": {},
+          "timeoutSeconds": 60
+        },
+        "x-ferrule-method-name": "create",
+        "x-ferrule-method-order": 0,
+        "x-ferrule-models": {
+          "StreamEvent": {
+            "module": "stream_event",
+            "name": "StreamEvent"
+          }
+        },
+        "x-ferrule-package": {
+          "name": "fx",
+          "repo": "fx/fx-python"
+        },
+        "x-ferrule-resource": {
+          "order": [
+            1
+          ],
+          "path": [
+            "completions"
+          ]
+        },
+        "x-ferrule-streaming": {
+          "format": "sse",
+          "onEvent": [
+            {
+              "eventType": "error",
+              "handle": "error",
+              "kind": "event"
+            },
+            {
+              "handle": "yield",
+              "kind": "fallthrough"
+            }
+          ],
+          "paramDiscriminator": "stream",
+          "synthesizeEventAndData": false
+        }
+      }
+    },
+    "/sessions/{id}/act": {
+      "post": {
+        "description": "Executes a browser action using natural language instructions.",
+        "operationId": "SessionAct",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActResponse"
+                }
+              },
+              "text/event-stream": {
+                "schema": {
+                  "$ref": "#/components/schemas/StreamEvent"
+                }
+              }
+            },
+            "description": "ok"
+          }
+        },
+        "summary": "Perform an action",
+        "x-fern-sdk-group-name": [
+          "sessions"
+        ],
+        "x-fern-sdk-method-name": "act",
+        "x-ferrule-client": {
+          "defaultEnvironment": "production",
+          "defaultHeaders": {},
+          "envPrefix": "FX",
+          "environments": [
+            {
+              "name": "production",
+              "url": "https://api.example.com"
+            }
+          ],
+          "name": "fx",
+          "omitPlatformHeaders": false,
+          "opts": [],
+          "query": {
+            "arrayFormat": "comma",
+            "nestedFormat": "brackets"
+          },
+          "retries": {
+            "initialDelaySeconds": 0.5,
+            "maxDelaySeconds": 8,
+            "maxRetries": 2
+          },
+          "security": [],
+          "securitySchemes": {},
+          "timeoutSeconds": 60
+        },
+        "x-ferrule-method-name": "act",
+        "x-ferrule-method-order": 0,
+        "x-ferrule-models": {
+          "StreamEvent": {
+            "module": "stream_event",
+            "name": "StreamEvent"
+          }
+        },
+        "x-ferrule-package": {
+          "name": "fx",
+          "repo": "fx/fx-python"
+        },
+        "x-ferrule-resource": {
+          "order": [
+            0
+          ],
+          "path": [
+            "sessions"
+          ]
+        },
+        "x-ferrule-streaming": {
+          "eventModel": "sessions.stream_event",
+          "eventSchema": "StreamEvent",
+          "format": "sse",
+          "onEvent": [
+            {
+              "eventType": "error",
+              "handle": "error",
+              "kind": "event"
+            },
+            {
+              "handle": "yield",
+              "kind": "fallthrough"
+            }
+          ],
+          "paramDiscriminator": "streamResponse",
+          "paramsTypeName": "streamResponse",
+          "synthesizeEventAndData": false
+        }
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.example.com"
+    }
+  ],
+  "x-ferrule-client": {
+    "defaultEnvironment": "production",
+    "defaultHeaders": {},
+    "envPrefix": "FX",
+    "environments": [
+      {
+        "name": "production",
+        "url": "https://api.example.com"
+      }
+    ],
+    "name": "fx",
+    "omitPlatformHeaders": false,
+    "opts": [],
+    "query": {
+      "arrayFormat": "comma",
+      "nestedFormat": "brackets"
+    },
+    "retries": {
+      "initialDelaySeconds": 0.5,
+      "maxDelaySeconds": 8,
+      "maxRetries": 2
+    },
+    "security": [],
+    "securitySchemes": {},
+    "timeoutSeconds": 60
+  },
+  "x-ferrule-config": {
+    "edition": "2025-10-08",
+    "packageName": "fx",
+    "projectName": "fx",
+    "pythonEdition": "python.2025-10-08",
+    "version": 1
+  }
+}
