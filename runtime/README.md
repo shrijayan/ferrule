@@ -198,9 +198,9 @@ only.
 | Oracle | Commit | Options | Identical |
 |---|---|---|---|
 | isaacus-typescript | `c56af182d21e32ea472def11c3af17641d8f89c3` (0.23.0, 2026-06-17) | defaults | 33/33 |
-| imagekit-nodejs | `9161f99f561250b11b4535a328469bb5737cb4b8` (2026-05-17) | defaults | 33/33 |
-| knock-mgmt-node | `ca88fdba703717f355ad3e18e850a0bb23e548f6` (0.32.0, 2026-07-09) | `comma`, pagination | 40/40 |
-| knock-node | `e2c0f18ad31244906b8b7885d6d52bc51e35586b` (1.7.0, 2025-06-06) | `brackets`, pagination, no extra headers | 24/40 |
+| imagekit-typescript | `9161f99f561250b11b4535a328469bb5737cb4b8` (2026-05-17) | defaults | 33/33 |
+| knock-mgmt-typescript | `ca88fdba703717f355ad3e18e850a0bb23e548f6` (0.32.0, 2026-07-09) | `comma`, pagination | 40/40 |
+| knock-typescript | `e2c0f18ad31244906b8b7885d6d52bc51e35586b` (1.7.0, 2025-06-06) | `brackets`, pagination, no extra headers | 24/40 |
 | papr-typescript | `41dbb3b3432a3b7d08bb1a09527a2e83db93fd39` (1.20.0, 2025-12-07) | papr's headers | 27/33 |
 | opencode-sdk-js (MIT) | `7149e6a0575bc4e5b90489f31f509af7b226e2ec` (2025-09-03) | no extra headers | 25/33 |
 

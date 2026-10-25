@@ -94,7 +94,7 @@ ORACLES = [
         frozenset({"packages/pagination/pagination.go"}),
     ),
     Oracle(
-        "opencode-sdk-go",
+        "opencode-go",
         GoOptions(
             module_path="github.com/sst/opencode-sdk-go",
             package_name="opencode",
