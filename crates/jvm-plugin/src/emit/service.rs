@@ -5,7 +5,7 @@ use std::fmt::Write as _;
 
 use ferrule_sdk_model::model::{Method, Type};
 
-use crate::emit::params::{has_none, param_props};
+use crate::emit::params::{BodyKind, body_kind, has_none, param_props};
 use crate::emit::{Gen, Service, method_doc};
 use crate::kt::{Imports, doc, file, string};
 
@@ -16,15 +16,46 @@ struct Mode {
     raw: bool,
 }
 
-/// The response type of `m` (a response class or a model) and its import.
+/// What a method returns.
+pub struct Resp {
+    /// The Kotlin type, or `None` for a method without a JSON response.
+    pub ty: Option<String>,
+    /// The full path of the class it names.
+    pub import: Option<String>,
+    /// A list of models: validated item by item.
+    pub each: bool,
+}
+
+/// What `m` returns: a response class, a model, a list of models, or nothing.
 #[must_use]
-pub fn response_type(g: &Gen<'_>, svc: &Service<'_>, m: &Method) -> (String, String) {
-    if let Some(Type::Ref(r)) = m.response.as_ref().map(|r| &r.ty) {
-        return (g.mapper.model_name(r), g.mapper.model_path(r));
+pub fn response_type(g: &Gen<'_>, svc: &Service<'_>, m: &Method) -> Resp {
+    let class = |name: String, import: String, each: bool| Resp {
+        ty: Some(if each { format!("List<{name}>") } else { name }),
+        import: Some(import),
+        each,
+    };
+    match m.response.as_ref().map(|r| &r.ty) {
+        Some(Type::Ref(r)) => class(g.mapper.model_name(r), g.mapper.model_path(r), false),
+        Some(Type::Array { items }) => {
+            if let Type::Ref(r) = items.as_ref() {
+                class(g.mapper.model_name(r), g.mapper.model_path(r), true)
+            } else {
+                let name = g.response_name(svc, m);
+                let path = format!("{}.{name}", g.models_package(svc));
+                class(name, path, true)
+            }
+        }
+        Some(_) => {
+            let name = g.response_name(svc, m);
+            let path = format!("{}.{name}", g.models_package(svc));
+            class(name, path, false)
+        }
+        None => Resp {
+            ty: None,
+            import: None,
+            each: false,
+        },
     }
-    let name = g.response_name(svc, m);
-    let path = format!("{}.{name}", g.models_package(svc));
-    (name, path)
 }
 
 fn suffix(async_: bool) -> &'static str {
@@ -44,11 +75,14 @@ fn modifier_ty(g: &Gen<'_>) -> &'static str {
     }
 }
 
-fn wrap(g: &Gen<'_>, mode: Mode, ty: &str) -> String {
-    let ty = if mode.raw {
-        format!("HttpResponseFor<{ty}>")
-    } else {
-        ty.to_owned()
+/// The return type of a method in `mode` (empty for a blocking method without a response).
+fn wrap(g: &Gen<'_>, mode: Mode, ty: Option<&str>) -> String {
+    let ty = match (ty, mode.raw) {
+        (Some(t), true) => format!("HttpResponseFor<{t}>"),
+        (Some(t), false) => t.to_owned(),
+        (None, true) => "HttpResponse".to_owned(),
+        (None, false) if mode.async_ && g.java() => "Void?".to_owned(),
+        (None, false) => String::new(),
     };
     if mode.async_ && g.java() {
         format!("CompletableFuture<{ty}>")
@@ -65,8 +99,8 @@ fn overloads(g: &Gen<'_>, svc: &Service<'_>, m: &Method, mode: Mode) -> String {
     let java = g.java();
     let name = g.method_name(m);
     let params = g.params_name(svc, m);
-    let (resp, _) = response_type(g, svc, m);
-    let ret = wrap(g, mode, &resp);
+    let resp = response_type(g, svc, m);
+    let ret = wrap(g, mode, resp.ty.as_deref());
     let fun = if mode.async_ && !java { "suspend fun" } else { "fun" };
     let ann = if mode.raw && !(mode.async_ && java) {
         "@MustBeClosed\n"
@@ -91,7 +125,12 @@ fn overloads(g: &Gen<'_>, svc: &Service<'_>, m: &Method, mode: Mode) -> String {
     let ro = "requestOptions: RequestOptions";
     let ro_def = "requestOptions: RequestOptions = RequestOptions.none()";
     let mut items: Vec<String> = Vec::new();
-    let sig = |args: &str| format!("{ann}{fun} {name}({args}): {ret}");
+    let typed = if ret.is_empty() {
+        String::new()
+    } else {
+        format!(": {ret}")
+    };
+    let sig = |args: &str| format!("{ann}{fun} {name}({args}){typed}");
     match (&path, optional, java) {
         (Some((p, t)), true, false) => {
             items.push(format!(
@@ -170,6 +209,30 @@ fn overloads(g: &Gen<'_>, svc: &Service<'_>, m: &Method, mode: Mode) -> String {
             items.push(sig(&format!("params: {params}, {ro_def},")));
         }
     }
+    // A method whose only parameter is a required model body also takes the model itself.
+    if let (
+        None,
+        BodyKind::Model {
+            name: body,
+            ty,
+            required: true,
+            ..
+        },
+    ) = (&path, body_kind(g, m))
+        && props.is_empty()
+    {
+        let t = ty.kt(false);
+        items.push(format!(
+            "{} =\n{name}({params}.builder().{body}({body}).build(), requestOptions,)",
+            sig(&format!("{body}: {t}, {ro_def},"))
+        ));
+        if java {
+            items.push(format!(
+                "{} =\n{name}({body}, RequestOptions.none())",
+                sig(&format!("{body}: {t}"))
+            ));
+        }
+    }
     let mut out = String::new();
     for (i, item) in items.iter().enumerate() {
         out.push_str(if i == 0 { &first_doc } else { &see });
@@ -183,6 +246,7 @@ fn interface_imports(g: &Gen<'_>, svc: &Service<'_>, async_: bool, imp: &mut Imp
     imp.core("ClientOptions");
     imp.core("RequestOptions");
     imp.core("http.HttpResponseFor");
+    imp.core("http.HttpResponse");
     if !(async_ && g.java()) {
         imp.add("com.google.errorprone.annotations.MustBeClosed");
     }
@@ -194,7 +258,16 @@ fn interface_imports(g: &Gen<'_>, svc: &Service<'_>, async_: bool, imp: &mut Imp
     }
     for m in svc.methods() {
         imp.add(format!("{}.{}", g.models_package(svc), g.params_name(svc, m)));
-        imp.add(response_type(g, svc, m).1);
+        if let Some(p) = response_type(g, svc, m).import {
+            imp.add(p);
+        }
+        if let BodyKind::Model {
+            ty: crate::types::Jt::Class { import: Some(p), .. },
+            ..
+        } = body_kind(g, m)
+        {
+            imp.add(p);
+        }
     }
     for &c in &svc.children {
         let child = &g.services[c];
@@ -303,9 +376,11 @@ pub fn impl_file(g: &Gen<'_>, svc: &Service<'_>, async_: bool) -> (String, Strin
     imp.core("ClientOptions");
     imp.core("RequestOptions");
     for n in [
+        "handlers.emptyHandler",
         "handlers.errorBodyHandler",
         "handlers.errorHandler",
         "handlers.jsonHandler",
+        "http.json",
         "http.HttpMethod",
         "http.HttpRequest",
         "http.HttpResponse",
@@ -324,7 +399,9 @@ pub fn impl_file(g: &Gen<'_>, svc: &Service<'_>, async_: bool) -> (String, Strin
     }
     for m in svc.methods() {
         imp.add(format!("{}.{}", g.models_package(svc), g.params_name(svc, m)));
-        imp.add(response_type(g, svc, m).1);
+        if let Some(p) = response_type(g, svc, m).import {
+            imp.add(p);
+        }
         let (props, _) = param_props(g, m);
         if props.iter().any(|p| p.path) {
             imp.core("checkRequired");
@@ -385,17 +462,25 @@ pub fn impl_file(g: &Gen<'_>, svc: &Service<'_>, async_: bool) -> (String, Strin
     for m in svc.methods() {
         let mn = g.method_name(m);
         let params = g.params_name(svc, m);
-        let (resp, _) = response_type(g, svc, m);
-        let ret = wrap(g, Mode { async_, raw: false }, &resp);
-        let parse = if async_ && java {
-            ".thenApply { it.parse() }"
-        } else {
-            ".parse()"
+        let resp = response_type(g, svc, m);
+        let ret = wrap(g, Mode { async_, raw: false }, resp.ty.as_deref());
+        let verb = m.http_method.as_str();
+        if ret.is_empty() {
+            let _ = writeln!(
+                out,
+                "{fun} {mn}(params: {params}, requestOptions: RequestOptions) {{\n// {verb} {}\nwithRawResponse().{mn}(params, requestOptions)\n}}\n",
+                m.path
+            );
+            continue;
+        }
+        let parse = match (async_ && java, resp.ty.is_some()) {
+            (true, true) => ".thenApply { it.parse() }",
+            (true, false) => ".thenAccept {}",
+            (false, _) => ".parse()",
         };
         let _ = writeln!(
             out,
-            "{fun} {mn}(params: {params}, requestOptions: RequestOptions,): {ret} =\n// {} {}\nwithRawResponse().{mn}(params, requestOptions){parse}\n",
-            m.http_method.as_str(),
+            "{fun} {mn}(params: {params}, requestOptions: RequestOptions,): {ret} =\n// {verb} {}\nwithRawResponse().{mn}(params, requestOptions){parse}\n",
             m.path
         );
     }
@@ -404,7 +489,9 @@ pub fn impl_file(g: &Gen<'_>, svc: &Service<'_>, async_: bool) -> (String, Strin
         out,
         "class WithRawResponseImpl internal constructor(private val clientOptions: ClientOptions) :\n{base}.WithRawResponse {{\n"
     );
-    out.push_str("private val errorHandler: Handler<HttpResponse> =\nerrorHandler(errorBodyHandler(clientOptions.jsonMapper))\n\n");
+    if !svc.resource.methods.is_empty() {
+        out.push_str("private val errorHandler: Handler<HttpResponse> =\nerrorHandler(errorBodyHandler(clientOptions.jsonMapper))\n\n");
+    }
     for &c in &svc.children {
         let child = &g.services[c];
         let ci = iface(child, async_);
@@ -430,12 +517,16 @@ pub fn impl_file(g: &Gen<'_>, svc: &Service<'_>, async_: bool) -> (String, Strin
     for m in svc.methods() {
         let mn = g.method_name(m);
         let params = g.params_name(svc, m);
-        let (resp, _) = response_type(g, svc, m);
-        let ret = wrap(g, Mode { async_, raw: true }, &resp);
-        let _ = writeln!(
-            out,
-            "private val {mn}Handler: Handler<{resp}> =\njsonHandler<{resp}>(clientOptions.jsonMapper)\n"
-        );
+        let resp = response_type(g, svc, m);
+        let ret = wrap(g, Mode { async_, raw: true }, resp.ty.as_deref());
+        if let Some(t) = &resp.ty {
+            let _ = writeln!(
+                out,
+                "private val {mn}Handler: Handler<{t}> =\njsonHandler<{t}>(clientOptions.jsonMapper)\n"
+            );
+        } else {
+            let _ = writeln!(out, "private val {mn}Handler: Handler<Void?> = emptyHandler()\n");
+        }
         let _ = writeln!(
             out,
             "{fun} {mn}(params: {params}, requestOptions: RequestOptions,): {ret} {{"
@@ -448,15 +539,36 @@ pub fn impl_file(g: &Gen<'_>, svc: &Service<'_>, async_: bool) -> (String, Strin
         }
         let method = m.http_method.as_str().to_ascii_uppercase();
         let prepare = if async_ { "prepareAsync" } else { "prepare" };
+        let body = match body_kind(g, m) {
+            BodyKind::Inline(..) | BodyKind::Model { required: true, .. } => {
+                ".body(json(clientOptions.jsonMapper, params._body()))".to_owned()
+            }
+            BodyKind::Extra | BodyKind::Model { .. } if java => {
+                ".apply { params._body().ifPresent { body(json(clientOptions.jsonMapper, it)) } }".to_owned()
+            }
+            BodyKind::Extra | BodyKind::Model { .. } => {
+                ".apply { params._body()?.let { body(json(clientOptions.jsonMapper, it)) } }".to_owned()
+            }
+            BodyKind::None => String::new(),
+        };
         let _ = writeln!(
             out,
-            "val request = HttpRequest.builder().method(HttpMethod.{method}).baseUrl(clientOptions.baseUrl()).addPathSegments({}).build().{prepare}(clientOptions, params)",
+            "val request = HttpRequest.builder().method(HttpMethod.{method}).baseUrl(clientOptions.baseUrl()).addPathSegments({}){body}.build().{prepare}(clientOptions, params)",
             path_segments(g, m)
         );
         out.push_str("val requestOptions = requestOptions.applyDefaults(RequestOptions.from(clientOptions))\n");
-        let handle = format!(
-            "errorHandler.handle(response).parseable {{\nresponse.use {{ {mn}Handler.handle(it) }}.also {{\nif (requestOptions.responseValidation!!) {{\nit.validate()\n}}\n}}\n}}"
-        );
+        let validate = if resp.each {
+            "it.forEach { it.validate() }"
+        } else {
+            "it.validate()"
+        };
+        let handle = if resp.ty.is_some() {
+            format!(
+                "errorHandler.handle(response).parseable {{\nresponse.use {{ {mn}Handler.handle(it) }}.also {{\nif (requestOptions.responseValidation!!) {{\n{validate}\n}}\n}}\n}}"
+            )
+        } else {
+            format!("errorHandler.handle(response).parseable {{\nresponse.use {{ {mn}Handler.handle(it) }}\n}}")
+        };
         if async_ && java {
             let _ = writeln!(
                 out,

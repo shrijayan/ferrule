@@ -6,7 +6,7 @@ use std::fmt::Write as _;
 
 use ferrule_sdk_model::model::{Literal, Method, ModelDecl, Type, TypeRef};
 
-use crate::emit::params::{ParamProp, param_props};
+use crate::emit::params::{BodyKind, ParamProp, body_kind, param_props};
 use crate::emit::service::response_type;
 use crate::emit::{Gen, Service};
 use crate::kt::{Imports, file, string};
@@ -17,22 +17,22 @@ use crate::types::{Class, Jt, Shape};
 #[must_use]
 pub fn test_files(g: &Gen<'_>) -> Vec<(String, String)> {
     let mut out = Vec::new();
-    for s in &g.services {
-        for m in s.methods() {
-            out.push(params_test(g, s, m));
-            out.extend(response_test(g, s, m));
+    for svc in &g.services {
+        for m in svc.methods() {
+            out.push(params_test(g, svc, m));
+            out.extend(response_test(g, svc, m));
         }
         for async_ in [false, true] {
-            out.extend(service_test(g, s, async_));
+            out.extend(service_test(g, svc, async_));
         }
     }
     for d in &g.client.models {
         out.extend(model_test(g, d));
     }
     out.push(client_options_test(g));
-    if let Some((s, m)) = example(g) {
-        out.push(error_handling_test(g, s, m));
-        out.push(service_params_test(g, s, m));
+    if let Some((svc, m)) = example(g) {
+        out.push(error_handling_test(g, svc, m));
+        out.push(service_params_test(g, svc, m));
     }
     out.push(proguard_test(g));
     out
@@ -44,12 +44,13 @@ fn example<'a>(g: &'a Gen<'a>) -> Option<(&'a Service<'a>, &'a Method)> {
     let all = || {
         g.services
             .iter()
-            .flat_map(|s| s.methods().into_iter().map(move |m| (s, m)))
+            .flat_map(|svc| svc.methods().into_iter().map(move |m| (svc, m)))
     };
     if let Some((path, method)) = &g.target.example {
-        let found = all().find(|(s, m)| {
+        let found = all().find(|(svc, m)| {
             m.name.written == *method
-                && s.resource
+                && svc
+                    .resource
                     .path
                     .iter()
                     .map(|n| n.written.as_str())
@@ -100,7 +101,7 @@ fn query_text(ty: &Jt, wire: &str, c: Option<&Class<'_>>) -> String {
         Jt::LocalDate => "2019-12-27".to_owned(),
         Jt::Class { .. } => match c.map(|c| &c.shape) {
             Some(Shape::Enum { members, .. }) => members.first().map_or_else(String::new, |m| match &m.value {
-                Literal::String(s) => s.clone(),
+                Literal::String(svc) => svc.clone(),
                 Literal::Number(n) => format!("{n}"),
                 Literal::Boolean(b) => b.to_string(),
             }),
@@ -190,9 +191,19 @@ impl<'a> Values<'_, 'a> {
 }
 
 /// The test file of a method's params class.
-fn params_test(g: &Gen<'_>, s: &Service<'_>, m: &Method) -> (String, String) {
-    let name = g.params_name(s, m);
+// A Stainless test file's tests in their order, one after another: splitting the function would
+// scatter that order across helpers.
+#[allow(clippy::too_many_lines)]
+fn params_test(g: &Gen<'_>, svc: &Service<'_>, m: &Method) -> (String, String) {
+    let name = g.params_name(svc, m);
     let (props, nested) = param_props(g, m);
+    let body = body_kind(g, m);
+    let mut all_nested = Vec::new();
+    if let BodyKind::Inline(c, hoisted) = &body {
+        all_nested.push(c.clone());
+        all_nested.extend(hoisted.iter().cloned());
+    }
+    all_nested.extend(nested);
     let holder = Class {
         name: name.clone(),
         doc: String::new(),
@@ -200,27 +211,43 @@ fn params_test(g: &Gen<'_>, s: &Service<'_>, m: &Method) -> (String, String) {
             props: Vec::new(),
             bases: Vec::new(),
         },
-        nested,
+        nested: all_nested,
     };
     let mut imp = Imports::new(g.root());
     imp.add("org.junit.jupiter.api.Test");
     let vals = Values { g };
-    let mut value = |p: &ParamProp<'_>, imp: &mut Imports| vals.value(&p.ty, &p.field.wire_name, &holder, &name, imp);
-    let builder = |only: &dyn Fn(&ParamProp<'_>) -> bool,
-                   imp: &mut Imports,
-                   value: &mut dyn FnMut(&ParamProp<'_>, &mut Imports) -> String| {
-        let mut out = format!("{name}.builder()");
-        for p in props.iter().filter(|p| only(p)) {
-            let v = value(p, imp);
+    // `.name(value)` calls for the params (`all`: every one, else the path and required ones).
+    let calls = |all: bool, imp: &mut Imports| {
+        let mut out = String::new();
+        for p in props.iter().filter(|p| all || p.path || p.required()) {
+            let v = vals.value(&p.ty, &p.field.wire_name, &holder, &name, imp);
             let _ = write!(out, ".{}({v})", p.name);
         }
-        out.push_str(".build()");
+        match &body {
+            BodyKind::Inline(..) => {
+                for p in body.props().iter().filter(|p| all || p.required()) {
+                    let v = vals.value(&p.ty, p.wire(), &holder, &name, imp);
+                    if p.ty.items().is_some() {
+                        let one = crate::naming::camel(&crate::naming::singular(&split_words(&p.name)), g.casings);
+                        let _ = write!(out, ".add{}({v})", capitalize(&one));
+                    } else {
+                        let _ = write!(out, ".{}({v})", p.name);
+                    }
+                }
+            }
+            BodyKind::Model {
+                name: n, ty, required, ..
+            } if all || *required => {
+                let v = vals.value(ty, n, &holder, &name, imp);
+                let _ = write!(out, ".{n}({v})");
+            }
+            _ => {}
+        }
         out
     };
-    let mut out = format!("internal class {name}Test {{\n\n@Test\nfun create() {{\n");
-    let full = builder(&|_| true, &mut imp, &mut value);
-    let _ = writeln!(out, "{full}\n}}\n");
-    let minimal = builder(&|p| p.path || p.required(), &mut imp, &mut value);
+    let full = format!("{name}.builder(){}.build()", calls(true, &mut imp));
+    let minimal = format!("{name}.builder(){}.build()", calls(false, &mut imp));
+    let mut out = format!("internal class {name}Test {{\n\n@Test\nfun create() {{\n{full}\n}}\n\n");
     let paths: Vec<&ParamProp<'_>> = props.iter().filter(|p| p.path).collect();
     if !paths.is_empty() {
         imp.add("org.assertj.core.api.Assertions.assertThat");
@@ -272,13 +299,65 @@ fn params_test(g: &Gen<'_>, s: &Service<'_>, m: &Method) -> (String, String) {
             );
         }
     }
+    match &body {
+        BodyKind::Inline(..) => {
+            imp.add("org.assertj.core.api.Assertions.assertThat");
+            let asserts = |all: bool, imp: &mut Imports| {
+                let mut out = String::new();
+                for p in body.props().iter().filter(|p| all || p.required()) {
+                    let v = vals.value(&p.ty, p.wire(), &holder, &name, imp);
+                    out.push_str(&assertion(g, "body", p, &v, imp));
+                }
+                out
+            };
+            let _ = writeln!(
+                out,
+                "@Test\nfun body() {{\nval params = {full}\n\nval body = params._body()\n\n{}}}\n",
+                asserts(true, &mut imp)
+            );
+            if body.props().iter().any(|p| !p.required()) {
+                let _ = writeln!(
+                    out,
+                    "@Test\nfun bodyWithoutOptionalFields() {{\nval params = {minimal}\n\nval body = params._body()\n\n{}}}\n",
+                    asserts(false, &mut imp)
+                );
+            }
+        }
+        BodyKind::Model { name: n, ty, .. } => {
+            imp.add("org.assertj.core.api.Assertions.assertThat");
+            let v = vals.value(ty, n, &holder, &name, &mut imp);
+            let _ = writeln!(
+                out,
+                "@Test\nfun body() {{\nval params = {full}\n\nval body = params._body()\n\nassertThat(body).isEqualTo({v})\n}}\n"
+            );
+        }
+        _ => {}
+    }
     out.push_str("}\n");
     let mut dir = format!("{}/models", g.core_test());
-    for seg in &s.model_pkg {
+    for seg in &svc.model_pkg {
         dir.push('/');
         dir.push_str(seg);
     }
-    (format!("{dir}/{name}Test.kt"), file(&g.models_package(s), &imp, &out))
+    (format!("{dir}/{name}Test.kt"), file(&g.models_package(svc), &imp, &out))
+}
+
+/// `assertThat(<var>.<prop>()).isEqualTo(<value>)`, or the list or `Optional` form.
+fn assertion(g: &Gen<'_>, var: &str, p: &crate::types::Prop<'_>, v: &str, imp: &mut Imports) -> String {
+    let present = p.required() && !p.nullable;
+    let getter = format!("{var}.{}()", p.name);
+    if p.ty.items().is_some() {
+        if present || !g.java() {
+            format!("assertThat({getter}).containsExactly({v})\n")
+        } else {
+            imp.add("kotlin.jvm.optionals.getOrNull");
+            format!("assertThat({getter}.getOrNull()).containsExactly({v})\n")
+        }
+    } else if present || !g.java() {
+        format!("assertThat({getter}).isEqualTo({v})\n")
+    } else {
+        format!("assertThat({getter}).contains({v})\n")
+    }
 }
 
 /// The test of a model class: build it, read every field back, and round-trip it through JSON.
@@ -295,20 +374,7 @@ fn class_test(g: &Gen<'_>, c: &Class<'_>, pkg: &str, dir: &str, imp: &mut Import
     if let Shape::Object { props, .. } = &c.shape {
         for p in props {
             let v = vals.value(&p.ty, p.wire(), c, name, imp);
-            let present = p.required() && !p.nullable;
-            let getter = format!("{var}.{}()", p.name);
-            if p.ty.items().is_some() {
-                if present || !g.java() {
-                    let _ = writeln!(out, "assertThat({getter}).containsExactly({v})");
-                } else {
-                    imp.add("kotlin.jvm.optionals.getOrNull");
-                    let _ = writeln!(out, "assertThat({getter}.getOrNull()).containsExactly({v})");
-                }
-            } else if present || !g.java() {
-                let _ = writeln!(out, "assertThat({getter}).isEqualTo({v})");
-            } else {
-                let _ = writeln!(out, "assertThat({getter}).contains({v})");
-            }
+            out.push_str(&assertion(g, &var, p, &v, imp));
         }
     }
     let _ = writeln!(
@@ -318,19 +384,19 @@ fn class_test(g: &Gen<'_>, c: &Class<'_>, pkg: &str, dir: &str, imp: &mut Import
     (format!("{dir}/{name}Test.kt"), file(pkg, imp, &out))
 }
 
-fn response_test(g: &Gen<'_>, s: &Service<'_>, m: &Method) -> Option<(String, String)> {
+fn response_test(g: &Gen<'_>, svc: &Service<'_>, m: &Method) -> Option<(String, String)> {
     let Type::Object(out) = &m.response.as_ref()?.ty else {
         return None;
     };
-    let name = g.response_name(s, m);
+    let name = g.response_name(svc, m);
     let c = g.mapper.object_class(name, out, String::new());
     let mut dir = format!("{}/models", g.core_test());
-    for seg in &s.model_pkg {
+    for seg in &svc.model_pkg {
         dir.push('/');
         dir.push_str(seg);
     }
     let mut imp = Imports::new(g.root());
-    Some(class_test(g, &c, &g.models_package(s), &dir, &mut imp))
+    Some(class_test(g, &c, &g.models_package(svc), &dir, &mut imp))
 }
 
 fn model_test(g: &Gen<'_>, d: &ModelDecl) -> Option<(String, String)> {
@@ -379,11 +445,17 @@ fn plural(name: &str) -> String {
 }
 
 /// The variable a service test stores a method's result in.
-fn result_var(g: &Gen<'_>, s: &Service<'_>, m: &Method) -> String {
-    if let Some(Type::Ref(r)) = m.response.as_ref().map(|r| &r.ty) {
-        return decapitalize(&g.mapper.model_name(r));
+fn result_var(g: &Gen<'_>, svc: &Service<'_>, m: &Method) -> String {
+    match m.response.as_ref().map(|r| &r.ty) {
+        Some(Type::Ref(r)) => return decapitalize(&g.mapper.model_name(r)),
+        Some(Type::Array { items }) => {
+            if let Type::Ref(r) = items.as_ref() {
+                return plural(&decapitalize(&g.mapper.model_name(r)));
+            }
+        }
+        _ => {}
     }
-    let single = decapitalize(&s.prefix);
+    let single = decapitalize(&svc.prefix);
     if m.name.written == "list" {
         plural(&single)
     } else {
@@ -392,9 +464,16 @@ fn result_var(g: &Gen<'_>, s: &Service<'_>, m: &Method) -> String {
 }
 
 /// The arguments a service test calls a method with.
-fn call_args(g: &Gen<'_>, s: &Service<'_>, m: &Method, imp: &mut Imports) -> String {
-    let name = g.params_name(s, m);
+fn call_args(g: &Gen<'_>, svc: &Service<'_>, m: &Method, imp: &mut Imports) -> String {
+    let name = g.params_name(svc, m);
     let (props, nested) = param_props(g, m);
+    let body = body_kind(g, m);
+    let mut all_nested = Vec::new();
+    if let BodyKind::Inline(c, hoisted) = &body {
+        all_nested.push(c.clone());
+        all_nested.extend(hoisted.iter().cloned());
+    }
+    all_nested.extend(nested);
     let holder = Class {
         name: name.clone(),
         doc: String::new(),
@@ -402,29 +481,47 @@ fn call_args(g: &Gen<'_>, s: &Service<'_>, m: &Method, imp: &mut Imports) -> Str
             props: Vec::new(),
             bases: Vec::new(),
         },
-        nested,
+        nested: all_nested,
     };
     let vals = Values { g };
-    if props.iter().all(|p| p.path) {
-        return props
-            .iter()
-            .map(|p| string(&query_text(&p.ty, &p.field.wire_name, None)))
-            .collect::<Vec<_>>()
-            .join(", ");
+    let no_body = matches!(body, BodyKind::None | BodyKind::Extra);
+    if no_body && props.is_empty() {
+        return String::new();
     }
-    imp.add(format!("{}.{name}", g.models_package(s)));
+    if no_body && props.len() == 1 && props[0].path {
+        return string(&query_text(&props[0].ty, &props[0].field.wire_name, None));
+    }
+    imp.add(format!("{}.{name}", g.models_package(svc)));
     let mut out = format!("{name}.builder()");
     for p in &props {
         let v = vals.value(&p.ty, &p.field.wire_name, &holder, &name, imp);
         let _ = write!(out, ".{}({v})", p.name);
+    }
+    match &body {
+        BodyKind::Inline(..) => {
+            for p in body.props() {
+                let v = vals.value(&p.ty, p.wire(), &holder, &name, imp);
+                if p.ty.items().is_some() {
+                    let one = crate::naming::camel(&crate::naming::singular(&split_words(&p.name)), g.casings);
+                    let _ = write!(out, ".add{}({v})", capitalize(&one));
+                } else {
+                    let _ = write!(out, ".{}({v})", p.name);
+                }
+            }
+        }
+        BodyKind::Model { name: n, ty, .. } => {
+            let v = vals.value(ty, n, &holder, &name, imp);
+            let _ = write!(out, ".{n}({v})");
+        }
+        _ => {}
     }
     out.push_str(".build()");
     out
 }
 
 /// `client.files().versions()`.
-fn accessor_chain(g: &Gen<'_>, s: &Service<'_>) -> String {
-    let index = g.services.iter().position(|x| std::ptr::eq(x, s)).unwrap_or_default();
+fn accessor_chain(g: &Gen<'_>, svc: &Service<'_>) -> String {
+    let index = g.services.iter().position(|x| std::ptr::eq(x, svc)).unwrap_or_default();
     let mut chain = vec![index];
     let mut cur = index;
     while let Some(parent) = g.services.iter().position(|p| p.children.contains(&cur)) {
@@ -439,50 +536,81 @@ fn accessor_chain(g: &Gen<'_>, s: &Service<'_>) -> String {
     out
 }
 
-fn service_test(g: &Gen<'_>, s: &Service<'_>, async_: bool) -> Option<(String, String)> {
-    if s.resource.methods.is_empty() {
+fn service_test(g: &Gen<'_>, svc: &Service<'_>, async_: bool) -> Option<(String, String)> {
+    if svc.resource.methods.is_empty() {
         return None;
     }
     let java = g.java();
     let sfx = if async_ { "Async" } else { "" };
-    let svc = format!("{}Service{sfx}", s.name);
+    let class_name = format!("{}Service{sfx}", svc.name);
     let mut imp = Imports::new(g.root());
     imp.add("org.junit.jupiter.api.Test");
-    imp.add("org.junit.jupiter.api.extension.ExtendWith");
-    imp.sdk("TestServerExtension");
     let okhttp = format!("{}OkHttpClient{sfx}", g.client_name());
     imp.sdk(&format!("client.okhttp.{okhttp}"));
-    let svc_var = decapitalize(&svc);
-    let mut out = format!("@ExtendWith(TestServerExtension::class)\ninternal class {svc}Test {{\n\n");
-    for m in s.methods() {
+    let svc_var = decapitalize(&class_name);
+    let (annotation, base_url) = if g.target.mock_tests {
+        imp.add("org.junit.jupiter.api.extension.ExtendWith");
+        imp.sdk("TestServerExtension");
+        (
+            "@ExtendWith(TestServerExtension::class)\n",
+            ".baseUrl(TestServerExtension.BASE_URL)",
+        )
+    } else {
+        imp.add("org.junit.jupiter.api.Disabled");
+        ("", "")
+    };
+    let disabled = if g.target.mock_tests {
+        ""
+    } else {
+        "@Disabled(\"Mock server tests are disabled\")\n"
+    };
+    let mut out = format!("{annotation}internal class {class_name}Test {{\n\n");
+    for m in svc.methods() {
         let mn = g.method_name(m);
         let fun = if async_ && !java { "suspend fun" } else { "fun" };
-        let args = call_args(g, s, m, &mut imp);
-        let var = result_var(g, s, m);
+        let args = call_args(g, svc, m, &mut imp);
+        let var = result_var(g, svc, m);
+        let resp = response_type(g, svc, m);
+        let validate = if resp.each {
+            format!("{var}.forEach {{ it.validate() }}")
+        } else {
+            format!("{var}.validate()")
+        };
         let _ = writeln!(
             out,
-            "@Test\n{fun} {mn}() {{\nval client = {okhttp}.builder().baseUrl(TestServerExtension.BASE_URL){}.build()\nval {svc_var} = {}\n",
+            "{disabled}@Test\n{fun} {mn}() {{\nval client = {okhttp}.builder(){base_url}{}.build()\nval {svc_var} = {}\n",
             test_options(g),
-            accessor_chain(g, s)
+            accessor_chain(g, svc)
         );
-        if async_ && java {
-            let _ = writeln!(
-                out,
-                "val {var}Future = {svc_var}.{mn}({args})\n\nval {var} = {var}Future.get()\n{var}.validate()\n}}\n"
-            );
-        } else {
-            let _ = writeln!(out, "val {var} = {svc_var}.{mn}({args})\n\n{var}.validate()\n}}\n");
+        match (async_ && java, resp.ty.is_some()) {
+            (true, true) => {
+                let _ = writeln!(
+                    out,
+                    "val {var}Future = {svc_var}.{mn}({args})\n\nval {var} = {var}Future.get()\n{validate}\n}}\n"
+                );
+            }
+            (true, false) => {
+                let _ = writeln!(
+                    out,
+                    "val future = {svc_var}.{mn}({args})\n\nval response = future.get()\n}}\n"
+                );
+            }
+            (false, true) => {
+                let _ = writeln!(out, "val {var} = {svc_var}.{mn}({args})\n\n{validate}\n}}\n");
+            }
+            (false, false) => {
+                let _ = writeln!(out, "{svc_var}.{mn}({args})\n}}\n");
+            }
         }
     }
     out.push_str("}\n");
-    let pkg = g.service_package(s, async_);
+    let pkg = g.service_package(svc, async_);
     let path = format!(
-        "{}/services/{}/{}{svc}Test.kt",
+        "{}/services/{}/{}{class_name}Test.kt",
         g.core_test(),
         if async_ { "async" } else { "blocking" },
-        crate::emit::dir_prefix(&s.service_pkg)
+        crate::emit::dir_prefix(&svc.service_pkg)
     );
-    let _ = response_type;
     Some((path, file(&pkg, &imp, &out)))
 }
 
@@ -491,7 +619,7 @@ fn verb(m: &Method) -> &'static str {
     m.http_method.as_str()
 }
 
-fn error_handling_test(g: &Gen<'_>, s: &Service<'_>, m: &Method) -> (String, String) {
+fn error_handling_test(g: &Gen<'_>, svc: &Service<'_>, m: &Method) -> (String, String) {
     let client = g.client_name();
     let mut imp = Imports::new(g.root());
     for p in [
@@ -516,15 +644,15 @@ fn error_handling_test(g: &Gen<'_>, s: &Service<'_>, m: &Method) -> (String, Str
     imp.core("http.Headers");
     imp.core("jsonMapper");
     imp.sdk(&format!("errors.{client}Exception"));
-    let svc_var = decapitalize(&format!("{}Service", s.name));
-    let args = call_args(g, s, m, &mut imp);
-    let prefix = format!("{}{}", decapitalize(&s.prefix), capitalize(&g.method_name(m)));
+    let svc_var = decapitalize(&format!("{}Service", svc.name));
+    let args = call_args(g, svc, m, &mut imp);
+    let prefix = format!("{}{}", decapitalize(&svc.prefix), capitalize(&g.method_name(m)));
     let call = format!("{svc_var}.{}({args})", g.method_name(m));
     let mut out = format!(
         "@WireMockTest\n@ResourceLock(\"https://github.com/wiremock/wiremock/issues/169\")\ninternal class ErrorHandlingTest {{\n\ncompanion object {{\n\nprivate val ERROR_JSON: JsonValue = JsonValue.from(mapOf(\"errorProperty\" to \"42\"))\n\nprivate val ERROR_JSON_BYTES: ByteArray = jsonMapper().writeValueAsBytes(ERROR_JSON)\n\nprivate const val HEADER_NAME: String = \"Error-Header\"\n\nprivate const val HEADER_VALUE: String = \"42\"\n\nprivate const val NOT_JSON: String = \"Not JSON\"\n}}\n\nprivate lateinit var client: {client}Client\n\n@BeforeEach\nfun beforeEach(wmRuntimeInfo: WireMockRuntimeInfo) {{\nclient = {client}OkHttpClient.builder().baseUrl(wmRuntimeInfo.httpBaseUrl){}.build()\n}}\n\n",
         test_options(g)
     );
-    let chain = accessor_chain(g, s);
+    let chain = accessor_chain(g, svc);
     for (status, exc) in [
         (400, "BadRequestException"),
         (401, "UnauthorizedException"),
@@ -559,7 +687,7 @@ fn error_handling_test(g: &Gen<'_>, s: &Service<'_>, m: &Method) -> (String, Str
     (path, file(&format!("{}.services", g.root()), &imp, &out))
 }
 
-fn service_params_test(g: &Gen<'_>, s: &Service<'_>, m: &Method) -> (String, String) {
+fn service_params_test(g: &Gen<'_>, svc: &Service<'_>, m: &Method) -> (String, String) {
     let client = g.client_name();
     let mut imp = Imports::new(g.root());
     let v = verb(m);
@@ -581,9 +709,9 @@ fn service_params_test(g: &Gen<'_>, s: &Service<'_>, m: &Method) -> (String, Str
     }
     imp.sdk(&format!("client.{client}Client"));
     imp.sdk(&format!("client.okhttp.{client}OkHttpClient"));
-    let name = g.params_name(s, m);
-    imp.add(format!("{}.{name}", g.models_package(s)));
-    let svc_var = decapitalize(&format!("{}Service", s.name));
+    let name = g.params_name(svc, m);
+    imp.add(format!("{}.{name}", g.models_package(svc)));
+    let svc_var = decapitalize(&format!("{}Service", svc.name));
     let mn = g.method_name(m);
     let (props, nested) = param_props(g, m);
     let holder = Class {
@@ -605,7 +733,7 @@ fn service_params_test(g: &Gen<'_>, s: &Service<'_>, m: &Method) -> (String, Str
     let out = format!(
         "@WireMockTest\n@ResourceLock(\"https://github.com/wiremock/wiremock/issues/169\")\ninternal class ServiceParamsTest {{\n\nprivate lateinit var client: {client}Client\n\n@BeforeEach\nfun beforeEach(wmRuntimeInfo: WireMockRuntimeInfo) {{\nclient = {client}OkHttpClient.builder().baseUrl(wmRuntimeInfo.httpBaseUrl){}.build()\n}}\n\n@Test\nfun {mn}() {{\nval {svc_var} = {}\nstubFor({v}(anyUrl()).willReturn(ok(\"{{}}\")))\n\n{svc_var}.{mn}({builder})\n\nverify({v}RequestedFor(anyUrl()).withHeader(\"Secret-Header\", equalTo(\"42\")).withQueryParam(\"secret_query_param\", equalTo(\"42\")))\n}}\n}}\n",
         test_options(g),
-        accessor_chain(g, s)
+        accessor_chain(g, svc)
     );
     let path = format!("{}/services/ServiceParamsTest.kt", g.core_test());
     (path, file(&format!("{}.services", g.root()), &imp, &out))

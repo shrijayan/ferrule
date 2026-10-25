@@ -60,6 +60,9 @@ pub struct JvmMeta {
     pub docs_url: Option<String>,
     /// `organization.contact`, the published POM's developer email.
     pub contact: Option<String>,
+    /// `settings.disable_mock_tests` inverted: whether the service tests run against the mock
+    /// server (`TestServerExtension`) or are disabled. Defaults to true.
+    pub mock_tests: Option<bool>,
 }
 
 /// The JVM settings of one SDK.
@@ -76,11 +79,14 @@ pub struct JvmTarget {
     pub title: String,
     /// GitHub `owner/name`, without a `#branch`.
     pub repo: String,
+    /// The default branch: `production_repo`'s `#branch`, else `main`.
+    pub branch: String,
     pub version: String,
     pub example: Option<(Vec<String>, String)>,
     pub year: u32,
     pub docs_url: String,
     pub contact: String,
+    pub mock_tests: bool,
 }
 
 fn is_package(s: &str) -> bool {
@@ -130,6 +136,10 @@ pub fn jvm_target(client: &Client, flavor: Flavor, meta: &JvmMeta) -> Result<Jvm
         words.push(flavor.key().to_owned());
         words.join("-")
     });
+    let branch = settings
+        .and_then(|t| t.production_repo.as_deref())
+        .and_then(|r| r.split_once('#'))
+        .map_or_else(|| "main".to_owned(), |(_, b)| b.to_owned());
     let repo = settings.and_then(|t| t.production_repo.as_deref()).map_or_else(
         || client.package.repo.clone(),
         |r| r.split_once('#').map_or(r, |(repo, _)| repo).to_owned(),
@@ -141,10 +151,12 @@ pub fn jvm_target(client: &Client, flavor: Flavor, meta: &JvmMeta) -> Result<Jvm
         client: pascal(&org_words, Casings(&client.casings)),
         title: title(&org_words),
         repo,
+        branch,
         version: meta.version.clone().unwrap_or_else(|| "0.0.1".to_owned()),
         example: meta.example.clone(),
         year: meta.year.unwrap_or(2026),
         docs_url: meta.docs_url.clone().unwrap_or_default(),
         contact: meta.contact.clone().unwrap_or_default(),
+        mock_tests: meta.mock_tests.unwrap_or(true),
     })
 }

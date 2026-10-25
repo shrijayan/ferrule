@@ -46,8 +46,41 @@ pub fn class(g: &Gen<'_>, c: &Class<'_>, chain: &[&Class<'_>], imp: &mut Imports
     }
 }
 
+/// The docs of a prop's value getter: its description and what it throws.
+#[must_use]
+pub fn getter_doc(g: &Gen<'_>, p: &Prop<'_>) -> String {
+    let mut text = p.field.description.trim().to_owned();
+    if !text.is_empty() {
+        text.push_str("\n\n");
+    }
+    text.push_str(&throws_line(g, p.required() && !p.nullable));
+    text
+}
+
+/// The type a prop's value getter returns: `T`, or `Optional<T>` / `T?` when it may be absent.
+#[must_use]
+pub fn getter_type(g: &Gen<'_>, p: &Prop<'_>, qualify: bool) -> String {
+    let t = p.ty.kt(qualify);
+    if p.required() && !p.nullable {
+        t
+    } else if g.java() {
+        format!("Optional<{t}>")
+    } else {
+        format!("{t}?")
+    }
+}
+
+/// The docs of a prop's raw getter.
+#[must_use]
+pub fn raw_doc(n: &str) -> String {
+    format!(
+        "Returns the raw JSON value of [{n}].\n\nUnlike [{n}], this method doesn't throw if the JSON field has an unexpected type."
+    )
+}
+
 /// `JsonField<T>` of a prop, as declared.
-fn field_ty(p: &Prop<'_>, qualify: bool) -> String {
+#[must_use]
+pub fn field_ty(p: &Prop<'_>, qualify: bool) -> String {
     if p.ty == Jt::Value {
         "JsonValue".to_owned()
     } else {
@@ -145,26 +178,22 @@ fn object(g: &Gen<'_>, c: &Class<'_>, chain: &[&Class<'_>], imp: &mut Imports) -
         if p.ty == Jt::Value {
             continue;
         }
-        let mut text = p.field.description.trim().to_owned();
-        if !text.is_empty() {
-            text.push_str("\n\n");
-        }
-        let missing = p.required() && !p.nullable;
-        text.push_str(&throws_line(g, missing));
-        out.push_str(&doc(&text));
+        out.push_str(&doc(&getter_doc(g, p)));
         let wire = string(p.wire());
-        let t = p.ty.kt(qualify);
-        if missing {
-            let _ = writeln!(out, "fun {}(): {t} = {}.getRequired({wire})\n", p.name, p.name);
+        let get = if p.required() && !p.nullable {
+            "getRequired"
         } else if java {
-            let _ = writeln!(
-                out,
-                "fun {}(): Optional<{t}> = {}.getOptional({wire})\n",
-                p.name, p.name
-            );
+            "getOptional"
         } else {
-            let _ = writeln!(out, "fun {}(): {t}? = {}.getNullable({wire})\n", p.name, p.name);
-        }
+            "getNullable"
+        };
+        let _ = writeln!(
+            out,
+            "fun {}(): {} = {}.{get}({wire})\n",
+            p.name,
+            getter_type(g, p, qualify),
+            p.name
+        );
     }
 
     // Raw getters.
@@ -179,9 +208,7 @@ fn object(g: &Gen<'_>, c: &Class<'_>, chain: &[&Class<'_>], imp: &mut Imports) -
             );
             continue;
         }
-        out.push_str(&doc(&format!(
-            "Returns the raw JSON value of [{n}].\n\nUnlike [{n}], this method doesn't throw if the JSON field has an unexpected type."
-        )));
+        out.push_str(&doc(&raw_doc(n)));
         let _ = writeln!(
             out,
             "@JsonProperty({}) @ExcludeMissing fun _{n}(): {} = {n}\n",
@@ -247,7 +274,9 @@ fn object(g: &Gen<'_>, c: &Class<'_>, chain: &[&Class<'_>], imp: &mut Imports) -
     );
 
     for p in props {
-        out.push_str(&setters(g, p, qualify));
+        for setter in setters(g, p, qualify) {
+            out.push_str(&setter.text());
+        }
     }
 
     out.push_str(&additional_properties_builder());
@@ -350,64 +379,127 @@ fn add_type_imports(g: &Gen<'_>, ty: &Jt, imp: &mut Imports) {
     }
 }
 
+/// One builder setter: `{doc}fun {name}({args}) = {expr}`.
+pub struct Setter {
+    pub doc: String,
+    pub name: String,
+    /// `(name, type)` pairs.
+    pub args: Vec<(String, String)>,
+    pub expr: String,
+}
+
+impl Setter {
+    fn new(doc_text: &str, name: &str, args: &[(&str, &str)], expr: String) -> Self {
+        Self {
+            doc: doc(doc_text),
+            name: name.to_owned(),
+            args: args.iter().map(|(a, t)| ((*a).to_owned(), (*t).to_owned())).collect(),
+            expr,
+        }
+    }
+
+    /// The setter's text.
+    #[must_use]
+    pub fn text(&self) -> String {
+        let args: Vec<String> = self.args.iter().map(|(a, t)| format!("{a}: {t}")).collect();
+        format!("{}fun {}({}) = {}\n\n", self.doc, self.name, args.join(", "), self.expr)
+    }
+
+    /// The same setter on a params builder, delegating to its body's builder.
+    #[must_use]
+    pub fn delegate(&self, to: &str) -> String {
+        let args: Vec<String> = self.args.iter().map(|(a, t)| format!("{a}: {t}")).collect();
+        let names: Vec<&str> = self.args.iter().map(|(a, _)| a.as_str()).collect();
+        format!(
+            "{}fun {}({}) = apply {{ {to}.{}({}) }}\n\n",
+            self.doc,
+            self.name,
+            args.join(", "),
+            self.name,
+            names.join(", ")
+        )
+    }
+}
+
 /// The setters of one prop in a model builder.
-fn setters(g: &Gen<'_>, p: &Prop<'_>, qualify: bool) -> String {
+#[must_use]
+pub fn setters(g: &Gen<'_>, p: &Prop<'_>, qualify: bool) -> Vec<Setter> {
     let java = g.java();
-    let n = &p.name;
-    let mut out = String::new();
+    let n = p.name.as_str();
+    let mut out = Vec::new();
     let desc = p.field.description.trim();
     if p.ty == Jt::Value {
-        out.push_str(&doc(desc));
-        let _ = writeln!(out, "fun {n}({n}: JsonValue) = apply {{ this.{n} = {n} }}\n");
+        out.push(Setter::new(
+            desc,
+            n,
+            &[(n, "JsonValue")],
+            format!("apply {{ this.{n} = {n} }}"),
+        ));
         return out;
     }
     let t = p.ty.kt(qualify);
-    out.push_str(&doc(desc));
     if p.nullable {
-        let _ = writeln!(out, "fun {n}({n}: {t}?) = {n}(JsonField.ofNullable({n}))\n");
+        let nullable = format!("{t}?");
+        out.push(Setter::new(
+            desc,
+            n,
+            &[(n, &nullable)],
+            format!("{n}(JsonField.ofNullable({n}))"),
+        ));
         if p.ty.is_primitive() {
-            out.push_str(&doc(&format!(
-                "Alias for [Builder.{n}].\n\nThis unboxed primitive overload exists for backwards compatibility."
-            )));
-            let _ = writeln!(out, "fun {n}({n}: {t}) = {n}({n} as {t}?)\n");
+            out.push(Setter::new(
+                &format!(
+                    "Alias for [Builder.{n}].\n\nThis unboxed primitive overload exists for backwards compatibility."
+                ),
+                n,
+                &[(n, &t)],
+                format!("{n}({n} as {t}?)"),
+            ));
         }
         if java {
-            out.push_str(&doc(&format!(
-                "Alias for calling [Builder.{n}] with `{n}.orElse(null)`."
-            )));
-            let _ = writeln!(out, "fun {n}({n}: Optional<{t}>) = {n}({n}.getOrNull())\n");
+            let optional = format!("Optional<{t}>");
+            out.push(Setter::new(
+                &format!("Alias for calling [Builder.{n}] with `{n}.orElse(null)`."),
+                n,
+                &[(n, &optional)],
+                format!("{n}({n}.getOrNull())"),
+            ));
         }
     } else {
-        let _ = writeln!(out, "fun {n}({n}: {t}) = {n}(JsonField.of({n}))\n");
+        out.push(Setter::new(desc, n, &[(n, &t)], format!("{n}(JsonField.of({n}))")));
     }
-    out.push_str(&doc(&format!(
-        "Sets [Builder.{n}] to an arbitrary JSON value.\n\nYou should usually call [Builder.{n}] with a well-typed {} value instead. This method is primarily for setting the field to an undocumented or not yet supported value.",
-        p.ty.doc()
-    )));
-    if p.ty.items().is_some() {
-        let _ = writeln!(
-            out,
-            "fun {n}({n}: JsonField<{t}>) = apply {{ this.{n} = {n}.map {{ it.toMutableList() }} }}\n"
-        );
+    let raw = format!("JsonField<{t}>");
+    let raw_expr = if p.ty.items().is_some() {
+        format!("apply {{ this.{n} = {n}.map {{ it.toMutableList() }} }}")
     } else {
-        let _ = writeln!(out, "fun {n}({n}: JsonField<{t}>) = apply {{ this.{n} = {n} }}\n");
-    }
+        format!("apply {{ this.{n} = {n} }}")
+    };
+    out.push(Setter::new(
+        &format!(
+            "Sets [Builder.{n}] to an arbitrary JSON value.\n\nYou should usually call [Builder.{n}] with a well-typed {} value instead. This method is primarily for setting the field to an undocumented or not yet supported value.",
+            p.ty.doc()
+        ),
+        n,
+        &[(n, &raw)],
+        raw_expr,
+    ));
     if let Some(items) = p.ty.items() {
-        let one_words = singular(&split_words(n));
-        let one = camel(&one_words, g.casings);
-        let target = if one == *n { format!("Builder.{n}") } else { n.clone() };
-        out.push_str(&doc(&format!(
-            "Adds a single {} to [{target}].\n\n@throws IllegalStateException if the field was previously set to a non-list.",
-            items.doc()
-        )));
+        let one = camel(&singular(&split_words(n)), g.casings);
+        let target = if one == n { format!("Builder.{n}") } else { n.to_owned() };
         let it = items.kt(qualify);
-        let field = if one == *n { format!("this.{n}") } else { n.clone() };
-        let _ = writeln!(
-            out,
-            "fun add{}({one}: {it}) = apply {{\n{field} = ({field} ?: JsonField.of(mutableListOf())).also {{\ncheckKnown({}, it).add({one})\n}}\n}}\n",
-            capitalize(&one),
-            string(n)
-        );
+        let field = if one == n { format!("this.{n}") } else { n.to_owned() };
+        out.push(Setter::new(
+            &format!(
+                "Adds a single {} to [{target}].\n\n@throws IllegalStateException if the field was previously set to a non-list.",
+                items.doc()
+            ),
+            &format!("add{}", capitalize(&one)),
+            &[(&one, &it)],
+            format!(
+                "apply {{\n{field} = ({field} ?: JsonField.of(mutableListOf())).also {{\ncheckKnown({}, it).add({one})\n}}\n}}",
+                string(n)
+            ),
+        ));
     }
     out
 }

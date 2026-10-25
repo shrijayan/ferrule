@@ -167,6 +167,8 @@ pub struct Mapper<'a> {
     /// The SDK's root package (`org.onebusaway`).
     pub root: &'a str,
     pub flavor: Flavor,
+    /// The package (below `models`) of each resource model, by schema: see `emit::place`.
+    pub placement: Vec<(String, Vec<String>)>,
 }
 
 impl<'a> Mapper<'a> {
@@ -186,6 +188,13 @@ impl<'a> Mapper<'a> {
     #[must_use]
     pub fn model_package(&self, r: &TypeRef) -> String {
         let mut pkg = format!("{}.models", self.root);
+        if let Some((_, segs)) = self.placement.iter().find(|(schema, _)| *schema == r.schema) {
+            for seg in segs {
+                pkg.push('.');
+                pkg.push_str(seg);
+            }
+            return pkg;
+        }
         let resources = &r.path[..r.path.len().saturating_sub(1)];
         if resources.first().is_some_and(|n| n.written != "shared") {
             for n in resources {
