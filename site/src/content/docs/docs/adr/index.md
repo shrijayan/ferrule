@@ -26,3 +26,4 @@ Stainless output needs an ADR.
 | [0014](https://github.com/shrijayan/ferrule/blob/main/docs/adr/0014-rust-for-converter-and-plugin.md)                | Rust for the converter and the plugin                                                  | Accepted | 2026-10-25 |
 | [0015](https://github.com/shrijayan/ferrule/blob/main/docs/adr/0015-opencode-spec-from-contract-json.md)             | The opencode SDK's spec comes from our own contract.json converter                     | Accepted | 2026-10-23 |
 | [0016](https://github.com/shrijayan/ferrule/blob/main/docs/adr/0016-sdk-testing-fake-server.md)                      | Ship a `<pkg>.testing` fake server in generated SDKs                                   | Accepted | 2026-10-23 |
+| [0017](https://github.com/shrijayan/ferrule/blob/main/docs/adr/0017-multi-language-targets.md)                       | Generate every major SDK language, from one language-neutral model                     | Proposed | 2026-10-26 |
