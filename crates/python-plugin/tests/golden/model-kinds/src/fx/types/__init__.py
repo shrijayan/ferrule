@@ -5,6 +5,7 @@ from __future__ import annotations
 from . import workflow, workflow_branch_step, workflow_activate_response
 from .. import _compat
 from .shared import Extensions as Extensions, StreamingResolution as StreamingResolution
+from .source import Source as Source
 from .audience import Audience as Audience
 from .workflow import Workflow as Workflow
 from .channel_data import ChannelData as ChannelData

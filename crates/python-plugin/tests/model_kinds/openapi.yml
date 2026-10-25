@@ -39,6 +39,7 @@ components:
         resolution: {$ref: '#/components/schemas/StreamingResolution'}
         extensions: {$ref: '#/components/schemas/Extensions'}
         channel_data: {$ref: '#/components/schemas/ChannelData'}
+        source: {$ref: '#/components/schemas/Source'}
     WorkflowStep:
       description: A step within a workflow.
       anyOf:
@@ -126,3 +127,19 @@ components:
         type: object
         properties:
           tokens: {type: array, items: {type: string}}
+    Source:
+      description: Where the workflow reads from.
+      discriminator: {propertyName: type}
+      oneOf:
+        - title: S3
+          type: object
+          required: [type, bucket]
+          properties:
+            type: {type: string, enum: [S3]}
+            bucket: {type: string}
+        - title: Web folder
+          type: object
+          required: [type, base_url]
+          properties:
+            type: {type: string, enum: [WEB_FOLDER]}
+            base_url: {type: string}

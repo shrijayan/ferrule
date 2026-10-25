@@ -136,6 +136,53 @@
         ],
         "type": "object"
       },
+      "Source": {
+        "description": "Where the workflow reads from.",
+        "discriminator": {
+          "propertyName": "type"
+        },
+        "oneOf": [
+          {
+            "properties": {
+              "bucket": {
+                "type": "string"
+              },
+              "type": {
+                "enum": [
+                  "S3"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "type",
+              "bucket"
+            ],
+            "title": "S3",
+            "type": "object"
+          },
+          {
+            "properties": {
+              "base_url": {
+                "type": "string"
+              },
+              "type": {
+                "enum": [
+                  "WEB_FOLDER"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "type",
+              "base_url"
+            ],
+            "title": "Web folder",
+            "type": "object"
+          }
+        ],
+        "x-fern-type-name": "Source"
+      },
       "StaticAudience": {
         "properties": {
           "key": {
@@ -185,6 +232,9 @@
           },
           "resolution": {
             "$ref": "#/components/schemas/StreamingResolution"
+          },
+          "source": {
+            "$ref": "#/components/schemas/Source"
           },
           "steps": {
             "items": {
@@ -352,6 +402,10 @@
             "module": "shared.extensions",
             "name": "Extensions"
           },
+          "Source": {
+            "module": "source",
+            "name": "Source"
+          },
           "StaticAudience": {
             "module": "static_audience",
             "name": "StaticAudience"
@@ -476,6 +530,10 @@
           "Extensions": {
             "module": "shared.extensions",
             "name": "Extensions"
+          },
+          "Source": {
+            "module": "source",
+            "name": "Source"
           },
           "StaticAudience": {
             "module": "static_audience",
