@@ -4,6 +4,10 @@
 //! One pass for both layouts: the `node` layout imports `APIResource` from `src/resource.ts` and
 //! `Core` from `src/core.ts`, takes every path parameter positionally, overloads a method whose
 //! params are all optional (`isRequestOptions`), and writes paths as plain template literals.
+//!
+//! A list method returns a page (`crate::pages`): `getAPIList` with the page class, params that
+//! extend `<Class>Params`, a `for await` example, and the module declares the page types of its
+//! items, imports the others its methods return and exports them again.
 
 use ferrule_sdk_model::model::{HttpMethod, Method, Type};
 
@@ -14,7 +18,7 @@ use crate::ctx::{Ctx, TsResource, relative};
 use crate::doc::{Doc, concat, text};
 use crate::examples::{Examples, Fill};
 use crate::naming::{camel_case, plural, type_name, words_of};
-use crate::pretty::{EXAMPLE_WIDTH, Expr, Object, WIDTH, const_decl, expr, render, signature, specifiers};
+use crate::pretty::{EXAMPLE_WIDTH, Expr, Object, WIDTH, const_decl, expr, for_await, render, signature, specifiers};
 use crate::types::{Decl, DeclKind, Mapper};
 
 /// How a method takes its non-path parameters.
@@ -42,6 +46,21 @@ pub struct MethodPlan<'a> {
     /// The response type's name when it is declared here (`XCreateResponse`), else `None`.
     pub response_decl: Option<Decl>,
     pub params_decl: Option<Decl>,
+    /// The page a list method returns.
+    pub page: Option<PagePlan>,
+}
+
+/// The page a list method returns, as its module writes it.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PagePlan {
+    /// The page class: `EntriesCursor`.
+    pub class: String,
+    /// The page type: `BranchesEntriesCursor`.
+    pub alias: String,
+    /// The item type from this module: `Branch`, `MessagesAPI.Message`.
+    pub item: String,
+    /// The module that declares the page type.
+    pub module: String,
 }
 
 /// The type names a resource module exports, in the order its `declare namespace` lists them.
@@ -85,28 +104,29 @@ pub fn plan_methods<'a>(ctx: &Ctx<'a>, r: &TsResource<'a>, mapper: &mut Mapper<'
         .map(|m| {
             let name = ctx.member(&words_of(&m.name));
             let response_name = method_type(&prefix, m, "Response", ctx);
-            let (response, response_decl) = match m.response.as_ref().map(|r| &r.ty) {
-                None => ("void".to_owned(), None),
-                Some(Type::Ref(t)) => (mapper.model_name(t), None),
-                Some(t) => {
-                    let description = ctx
-                        .extras
-                        .response_schema(&m.pointer)
-                        .and_then(|s| s.get("description"))
-                        .and_then(serde_json::Value::as_str)
-                        .unwrap_or_default();
-                    let d = mapper.model(&response_name, t, description, false, None);
-                    // The `node` layout declares a response without a schema
-                    // (`type KeyCreateResponse = unknown`) but returns `unknown`.
-                    let unknown = ctx.node()
-                        && matches!(
-                            t,
-                            Type::Scalar {
-                                scalar: ferrule_sdk_model::model::Scalar::Unknown
-                            }
-                        );
-                    (if unknown { "unknown".to_owned() } else { response_name }, Some(d))
-                }
+            let alias = crate::pages::alias_of(ctx, r, m);
+            let page_scheme = crate::pages::page_of(ctx, m);
+            // A list returns its page type; inline items are declared as `<Prefix><Method>Response`.
+            let (response, response_decl, page) = if let Some(a) = alias {
+                let (item, decl) = match &a.item {
+                    crate::pages::Item::Model(t) => (mapper.model_name(t), None),
+                    crate::pages::Item::Inline(n) => {
+                        let ty = m.pagination.as_ref().map(|p| &p.item);
+                        let description = items_description(ctx, m).unwrap_or_default();
+                        let d = ty.map(|t| mapper.model(n, t, &description, false, None));
+                        (n.clone(), d)
+                    }
+                };
+                let plan = PagePlan {
+                    class: a.class.clone(),
+                    alias: a.name.clone(),
+                    item,
+                    module: a.module.clone(),
+                };
+                (a.name, decl, Some(plan))
+            } else {
+                let (response, decl) = response_of(ctx, m, &response_name, mapper);
+                (response, decl, None)
             };
             let body_fields = m.body.as_ref().and_then(|b| ctx.client.object_of(&b.ty));
             let has_query = !m.query_params.is_empty();
@@ -128,6 +148,10 @@ pub fn plan_methods<'a>(ctx: &Ctx<'a>, r: &TsResource<'a>, mapper: &mut Mapper<'
                 // The `node` layout takes a required request body even when all its fields are
                 // optional (lumaai-typescript's `generations.audio`).
                 || (ctx.node() && has_body && m.body.as_ref().is_some_and(|b| b.required));
+            // A list's params extend `<Class>Params`, which declares the page fields.
+            let inherited = |wire: &str, in_body: bool| {
+                page_scheme.is_some_and(|p| p.scheme.in_body == in_body && p.is_request_field(wire))
+            };
             let (params_type, params_decl) = if params_arg == ParamsArg::None {
                 (None, None)
             } else {
@@ -138,22 +162,28 @@ pub fn plan_methods<'a>(ctx: &Ctx<'a>, r: &TsResource<'a>, mapper: &mut Mapper<'
                     fields.push(mapper.field(&p.field, &params_name, &mut nested));
                 }
                 for p in query_params(ctx, m) {
-                    fields.push(mapper.field(&p.field, &params_name, &mut nested));
+                    if !inherited(&p.field.wire_name, false) {
+                        fields.push(mapper.field(&p.field, &params_name, &mut nested));
+                    }
                 }
                 if let Some(o) = body_fields {
                     let schema = ctx.extras.body_schema(&m.pointer);
                     for f in mapper.ordered(&o.fields) {
-                        fields.push(mapper.described_field(f, &params_name, &mut nested, schema));
+                        if !inherited(&f.wire_name, true) {
+                            fields.push(mapper.described_field(f, &params_name, &mut nested, schema));
+                        }
                     }
                 }
+                let extends = page
+                    .as_ref()
+                    .map(|p| format!("{}Params", p.class))
+                    .into_iter()
+                    .collect();
                 let decl = Decl {
                     name: params_name.clone(),
                     description: String::new(),
                     deprecated: false,
-                    kind: DeclKind::Interface {
-                        extends: Vec::new(),
-                        fields,
-                    },
+                    kind: DeclKind::Interface { extends, fields },
                     nested,
                 };
                 (Some(params_name), Some(decl))
@@ -167,9 +197,57 @@ pub fn plan_methods<'a>(ctx: &Ctx<'a>, r: &TsResource<'a>, mapper: &mut Mapper<'
                 response,
                 response_decl,
                 params_decl,
+                page,
             }
         })
         .collect()
+}
+
+/// The description of a list's item schema in the spec (`A Slack channel.`).
+fn items_description(ctx: &Ctx<'_>, m: &Method) -> Option<String> {
+    let extras = ctx.extras;
+    let items = m.pagination.as_ref()?.response.iter().find(|p| p.purpose == "items")?;
+    let response = extras.response_schema(&m.pointer)?;
+    let array = extras.resolve(extras.property(response, &items.field)?);
+    let item = extras.resolve(extras.items(array)?);
+    item.get("description")
+        .and_then(serde_json::Value::as_str)
+        .map(str::to_owned)
+}
+
+/// What a method's `APIPromise` resolves to, and its declaration when it is declared with the
+/// method (`XCreateResponse`).
+fn response_of(ctx: &Ctx<'_>, m: &Method, response_name: &str, mapper: &mut Mapper<'_, '_>) -> (String, Option<Decl>) {
+    match m.response.as_ref().map(|r| &r.ty) {
+        None => ("void".to_owned(), None),
+        Some(Type::Ref(t)) => (mapper.model_name(t), None),
+        Some(t) => {
+            let description = ctx
+                .extras
+                .response_schema(&m.pointer)
+                .and_then(|s| s.get("description"))
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or_default();
+            let d = mapper.model(response_name, t, description, false, None);
+            // The `node` layout declares a response without a schema
+            // (`type KeyCreateResponse = unknown`) but returns `unknown`.
+            let unknown = ctx.node()
+                && matches!(
+                    t,
+                    Type::Scalar {
+                        scalar: ferrule_sdk_model::model::Scalar::Unknown
+                    }
+                );
+            (
+                if unknown {
+                    "unknown".to_owned()
+                } else {
+                    response_name.to_owned()
+                },
+                Some(d),
+            )
+        }
+    }
 }
 
 /// The path parameters a method takes positionally: all of them in the `node` layout; in the
@@ -249,6 +327,14 @@ fn example_code(ctx: &Ctx<'_>, chain: &[&TsResource<'_>], plan: &MethodPlan<'_>)
         return None;
     }
     let accessor = format!("{}.{}", chain[chain.len() - 1].accessor(chain), plan.name);
+    // A list iterates its items: `for await (const branch of client.branches.list()) {`.
+    if let Some(page) = &plan.page {
+        let call = Expr::Call(accessor, args.exprs());
+        let mut out = vec!["// Automatically fetches more pages as needed.".to_owned()];
+        let doc = for_await(&result_var(&page.item), &call, &["// ..."]);
+        out.extend(render(&doc, 0, EXAMPLE_WIDTH).split('\n').map(str::to_owned));
+        return Some(out);
+    }
     let call = Expr::Await(Box::new(Expr::Call(accessor, args.exprs())));
     let doc: Doc = if plan.response == "void" {
         concat(vec![expr(&call), text(";")])
@@ -334,7 +420,10 @@ fn node_method_lines(ctx: &Ctx<'_>, chain: &[&TsResource<'_>], plan: &MethodPlan
         .collect();
     let mut head: Vec<Doc> = positional.iter().map(|p| text(format!("{p}: string"))).collect();
     let options = text("options?: Core.RequestOptions");
-    let ret = text(format!(": Core.APIPromise<{}>", plan.response));
+    let ret = match &plan.page {
+        Some(p) => text(format!(": Core.PagePromise<{}, {}>", p.alias, p.item)),
+        None => text(format!(": Core.APIPromise<{}>", plan.response)),
+    };
     let arg = params_name(plan.params_arg);
     match (arg, &plan.params_type) {
         (Some(arg), Some(t)) if !plan.params_required => {
@@ -393,7 +482,13 @@ fn node_method_lines(ctx: &Ctx<'_>, chain: &[&TsResource<'_>], plan: &MethodPlan
             }
         }
     }
-    let void = plan.response == "void";
+    let void = plan.response == "void" && plan.page.is_none();
+    if let Some(p) = &plan.page {
+        // A list is fetched by its page class, with its HTTP method when it is not a GET.
+        out.push(page_return(m, Expr::Raw(path_expr(m, ctx)), Expr::raw(&p.alias), props));
+        out.push("  }".to_owned());
+        return out;
+    }
     let last = if props.is_empty() && !void {
         Expr::raw("options")
     } else {
@@ -418,6 +513,22 @@ fn node_method_lines(ctx: &Ctx<'_>, chain: &[&TsResource<'_>], plan: &MethodPlan
     out
 }
 
+/// `return this._client.getAPIList(path, Page, { ...props, method, ...options });` at four
+/// spaces: `props` are the params' properties.
+fn page_return(m: &Method, path: Expr, page: Expr, mut props: Vec<(String, Expr)>) -> String {
+    if m.http_method != HttpMethod::Get {
+        props.push(("method".to_owned(), Expr::str(http_verb(m.http_method))));
+    }
+    let last = if props.is_empty() {
+        Expr::raw("options")
+    } else {
+        props.push(("...options".to_owned(), Expr::raw("")));
+        literal(props)
+    };
+    let call = Expr::Call("this._client.getAPIList".to_owned(), vec![path, page, last]);
+    render(&concat(vec![text("return "), expr(&call), text(";")]), 4, WIDTH)
+}
+
 /// The lines of one method, at two spaces.
 fn method_lines(ctx: &Ctx<'_>, chain: &[&TsResource<'_>], plan: &MethodPlan<'_>) -> Vec<String> {
     if ctx.node() {
@@ -438,8 +549,16 @@ fn method_lines(ctx: &Ctx<'_>, chain: &[&TsResource<'_>], plan: &MethodPlan<'_>)
         }));
     }
     params.push(text("options?: RequestOptions"));
-    let ret = text(format!(": APIPromise<{}>", plan.response));
+    let ret = match &plan.page {
+        Some(p) => text(format!(": PagePromise<{}, {}>", p.alias, p.item)),
+        None => text(format!(": APIPromise<{}>", plan.response)),
+    };
     out.push(render(&signature(&plan.name, &params, &ret, " {"), 2, WIDTH));
+    if let Some(p) = &plan.page {
+        out.extend(page_call(ctx, plan, p));
+        out.push("  }".to_owned());
+        return out;
+    }
     let path = path_expr(m, ctx);
     let verb = http_verb(m.http_method);
     let call = match plan.params_arg {
@@ -484,7 +603,61 @@ fn method_lines(ctx: &Ctx<'_>, chain: &[&TsResource<'_>], plan: &MethodPlan<'_>)
     out
 }
 
-/// Every type a resource module exports, in `declare namespace` order.
+/// The body of a current-layout list method, at four spaces: the params destructured as other
+/// methods do, then `getAPIList` with the page class over the items.
+fn page_call(ctx: &Ctx<'_>, plan: &MethodPlan<'_>, page: &PagePlan) -> Vec<String> {
+    let m = plan.m;
+    let shorthand = |k: &str| (k.to_owned(), Expr::raw(""));
+    let mut out = Vec::new();
+    let mut props: Vec<(String, Expr)> = Vec::new();
+    match plan.params_arg {
+        ParamsArg::None => {}
+        ParamsArg::Query => props.push(shorthand("query")),
+        ParamsArg::Body => props.push(shorthand("body")),
+        ParamsArg::Mixed => {
+            let mut names: Vec<String> = path_in_params(ctx, m)
+                .iter()
+                .map(|p| p.field.wire_name.clone())
+                .collect();
+            let has_body = m
+                .body
+                .as_ref()
+                .and_then(|b| ctx.client.object_of(&b.ty))
+                .is_some_and(|o| !o.fields.is_empty());
+            let query: Vec<String> = query_params(ctx, m).iter().map(|p| p.field.wire_name.clone()).collect();
+            if has_body {
+                names.extend(query.iter().cloned());
+                names.push("...body".to_owned());
+                if !query.is_empty() {
+                    props.push((
+                        "query".to_owned(),
+                        literal(query.iter().map(|q| shorthand(q)).collect()),
+                    ));
+                }
+                props.push(shorthand("body"));
+            } else if !query.is_empty() {
+                names.push("...query".to_owned());
+                props.push(shorthand("query"));
+            }
+            out.push(render(&specifiers("const ", &names, " = params;"), 4, WIDTH));
+        }
+    }
+    let class = Expr::Raw(format!("{}<{}>", page.class, page.item));
+    out.push(page_return(m, Expr::Raw(path_expr(m, ctx)), class, props));
+    out
+}
+
+/// The page types a resource module declares, in order.
+#[must_use]
+pub fn page_types(ctx: &Ctx<'_>, r: &TsResource<'_>) -> Vec<String> {
+    crate::pages::declared_in(ctx, &r.module())
+        .into_iter()
+        .map(|a| a.name)
+        .collect()
+}
+
+/// Every type a resource module exports, in `declare namespace` order: models, responses, page
+/// types, params.
 #[must_use]
 pub fn exports_of(ctx: &Ctx<'_>, r: &TsResource<'_>) -> Vec<String> {
     let mut mapper = Mapper::new(ctx, &r.module());
@@ -495,18 +668,90 @@ pub fn exports_of(ctx: &Ctx<'_>, r: &TsResource<'_>) -> Vec<String> {
             .iter()
             .filter_map(|p| p.response_decl.as_ref().map(|d| d.name.clone())),
     );
+    out.extend(page_types(ctx, r));
     out.extend(plans.iter().filter_map(|p| p.params_type.clone()));
     out
 }
 
+/// `type X` in an export list, or `X` for a page type of the `node` layout (a class, a value).
+#[must_use]
+pub fn export_name(ctx: &Ctx<'_>, pages: &[String], name: &str) -> String {
+    if ctx.node() && pages.iter().any(|p| p == name) {
+        name.to_owned()
+    } else {
+        format!("type {name}")
+    }
+}
+
+/// What a package index or `src/resources/index.ts` exports from `r`'s module: the class and its
+/// types, the page types last (current layout) or first (`node` layout).
+#[must_use]
+pub fn index_names(ctx: &Ctx<'_>, r: &TsResource<'_>) -> Vec<String> {
+    let pages = page_types(ctx, r);
+    let types: Vec<String> = exports_of(ctx, r)
+        .into_iter()
+        .filter(|t| !pages.contains(t))
+        .map(|t| format!("type {t}"))
+        .collect();
+    if ctx.node() {
+        let mut out = pages;
+        out.push(r.class.clone());
+        out.extend(types);
+        out
+    } else {
+        let mut out = vec![r.class.clone()];
+        out.extend(types);
+        out.extend(pages.iter().map(|p| format!("type {p}")));
+        out
+    }
+}
+
 /// `export { A as A, type B as B };` lines of a namespace block, at four spaces.
-fn namespace_block(class: Option<&str>, types: &[String]) -> Vec<String> {
+fn namespace_block(ctx: &Ctx<'_>, class: Option<&str>, types: &[String], pages: &[String]) -> Vec<String> {
     let mut names: Vec<String> = class.map(|c| format!("{c} as {c}")).into_iter().collect();
-    names.extend(types.iter().map(|t| format!("type {t} as {t}")));
+    names.extend(types.iter().map(|t| format!("{} as {t}", export_name(ctx, pages, t))));
     render(&specifiers("export ", &names, ";"), 2, WIDTH)
         .split('\n')
         .map(str::to_owned)
         .collect()
+}
+
+/// The page types of a resource module: the ones it declares (with their declaration) and the
+/// ones its methods return that another module declares, which it imports and exports again.
+#[derive(Debug, Clone, Default)]
+struct PageTypes {
+    declared: Vec<(String, String)>,
+    /// (module, name), sorted by name.
+    imported: Vec<(String, String)>,
+}
+
+fn page_decls(ctx: &Ctx<'_>, r: &TsResource<'_>, plans: &[MethodPlan<'_>], mapper: &mut Mapper<'_, '_>) -> PageTypes {
+    let module = r.module();
+    let declared = crate::pages::declared_in(ctx, &module)
+        .into_iter()
+        .map(|a| {
+            let item = match &a.item {
+                crate::pages::Item::Model(t) => mapper.model_name(t),
+                crate::pages::Item::Inline(n) => n.clone(),
+            };
+            let line = if ctx.node() {
+                format!("export class {} extends {}<{item}> {{}}", a.name, a.class)
+            } else {
+                format!("export type {} = {}<{item}>;", a.name, a.class)
+            };
+            (a.name, line)
+        })
+        .collect();
+    let mut imported: Vec<(String, String)> = Vec::new();
+    for p in plans.iter().filter_map(|p| p.page.as_ref()) {
+        // A subresource's page types come with its import.
+        let from_child = r.children.iter().any(|c| c.module() == p.module);
+        if p.module != module && !from_child && !imported.iter().any(|(_, n)| *n == p.alias) {
+            imported.push((p.module.clone(), p.alias.clone()));
+        }
+    }
+    imported.sort_by(|a, b| a.1.cmp(&b.1));
+    PageTypes { declared, imported }
 }
 
 /// The class, the declarations and the namespace of a resource module.
@@ -516,6 +761,7 @@ fn body_lines(
     chain: &[&TsResource<'_>],
     plans: &[MethodPlan<'_>],
     decls: &[Decl],
+    pages: &PageTypes,
 ) -> Vec<String> {
     let mut body: Vec<String> = Vec::new();
     // The class.
@@ -549,24 +795,47 @@ fn body_lines(
         }
         body.push("}".to_owned());
     }
+    for (_, line) in &pages.declared {
+        body.push(String::new());
+        body.push(line.clone());
+    }
     for d in decls {
         body.push(String::new());
         body.extend(print_decl(d, 0));
     }
-    // Subresources attached to the class, and the namespace.
-    if !r.children.is_empty() {
-        body.push(String::new());
-        for c in &r.children {
-            body.push(format!("{}.{} = {};", r.class, c.class, c.class));
+    // The `node` layout's page classes and the subresources, attached to the class.
+    let mut attached: Vec<String> = Vec::new();
+    if ctx.node() {
+        for (name, _) in &pages.declared {
+            attached.push(format!("{}.{name} = {name};", r.class));
         }
     }
-    let own: Vec<String> = decls.iter().map(|d| d.name.clone()).collect();
+    for c in &r.children {
+        attached.push(format!("{}.{} = {};", r.class, c.class, c.class));
+        if ctx.node() {
+            for p in page_types(ctx, c) {
+                attached.push(format!("{}.{p} = {p};", r.class));
+            }
+        }
+    }
+    if !attached.is_empty() {
+        body.push(String::new());
+        body.extend(attached);
+    }
+    // The namespace.
+    let own = exports_of(ctx, r);
+    let own_pages: Vec<String> = pages.declared.iter().map(|(n, _)| n.clone()).collect();
     let mut blocks: Vec<Vec<String>> = Vec::new();
     if !own.is_empty() {
-        blocks.push(namespace_block(None, &own));
+        blocks.push(namespace_block(ctx, None, &own, &own_pages));
     }
     for c in &r.children {
-        blocks.push(namespace_block(Some(&c.class), &exports_of(ctx, c)));
+        blocks.push(namespace_block(
+            ctx,
+            Some(&c.class),
+            &exports_of(ctx, c),
+            &page_types(ctx, c),
+        ));
     }
     if !blocks.is_empty() {
         body.push(String::new());
@@ -579,8 +848,94 @@ fn body_lines(
         }
         body.push("}".to_owned());
     }
+    // The page types of other modules its methods return, exported again.
+    if !pages.imported.is_empty() {
+        let names: Vec<String> = pages
+            .imported
+            .iter()
+            .map(|(_, n)| if ctx.node() { n.clone() } else { format!("type {n}") })
+            .collect();
+        body.push(String::new());
+        body.push(render(&specifiers("export ", &names, ";"), 0, WIDTH));
+    }
 
     body
+}
+
+/// `import { EntriesCursor, type EntriesCursorParams, PagePromise } from '../core/pagination';`:
+/// the page classes the module declares types of (and, in the current layout, fetches with), the
+/// params its methods' params extend, and `PagePromise` (current layout).
+fn pagination_import(ctx: &Ctx<'_>, dir: &str, plans: &[MethodPlan<'_>], pages: &PageTypes) -> Option<String> {
+    let mut names: Vec<(String, String)> = Vec::new();
+    let mut add = |sort: String, name: String| {
+        if !names.iter().any(|(_, n)| *n == name) {
+            names.push((sort, name));
+        }
+    };
+    for a in crate::pages::aliases(ctx) {
+        if pages.declared.iter().any(|(n, _)| *n == a.name) {
+            add(a.class.clone(), a.class);
+        }
+    }
+    for p in plans.iter().filter_map(|p| p.page.as_ref().map(|page| (p, page))) {
+        let (plan, page) = p;
+        if !ctx.node() {
+            add(page.class.clone(), page.class.clone());
+        }
+        if plan.params_type.is_some() {
+            let params = format!("{}Params", page.class);
+            add(params.clone(), format!("type {params}"));
+        }
+    }
+    if !ctx.node() && plans.iter().any(|p| p.page.is_some()) {
+        add("PagePromise".to_owned(), "PagePromise".to_owned());
+    }
+    if names.is_empty() {
+        return None;
+    }
+    names.sort_by(|a, b| a.0.cmp(&b.0));
+    let names: Vec<String> = names.into_iter().map(|(_, n)| n).collect();
+    let module = if ctx.node() { "pagination" } else { "core/pagination" };
+    let tail = format!(" from '{}';", relative(dir, module));
+    Some(render(&specifiers("import ", &names, &tail), 0, WIDTH))
+}
+
+/// The namespace imports, each followed by the page types imported from the same module, then
+/// page types from modules without a namespace import.
+fn namespace_imports(dir: &str, namespaces: &[(String, String)], pages: &PageTypes) -> Vec<String> {
+    let mut out = Vec::new();
+    let mut namespaces = namespaces.to_vec();
+    namespaces.sort_by(|a, b| a.0.cmp(&b.0));
+    let named = |module: &str| -> Option<String> {
+        let names: Vec<String> = pages
+            .imported
+            .iter()
+            .filter(|(m, _)| m == module)
+            .map(|(_, n)| n.clone())
+            .collect();
+        (!names.is_empty()).then(|| {
+            render(
+                &specifiers("import ", &names, &format!(" from '{}';", relative(dir, module))),
+                0,
+                WIDTH,
+            )
+        })
+    };
+    for (ns, target) in &namespaces {
+        out.push(format!("import * as {ns} from '{}';", relative(dir, target)));
+        out.extend(named(target));
+    }
+    let mut rest: Vec<&String> = pages
+        .imported
+        .iter()
+        .map(|(m, _)| m)
+        .filter(|m| !namespaces.iter().any(|(_, t)| t == *m))
+        .collect();
+    rest.dedup();
+    for m in rest {
+        out.extend(named(m));
+    }
+    out
 }
 
 /// The imports of a resource module, given the namespaces its types use.
@@ -590,37 +945,26 @@ fn import_lines(
     dir: &str,
     namespaces: &[(String, String)],
     plans: &[MethodPlan<'_>],
+    pages: &PageTypes,
 ) -> Vec<String> {
     // Imports, now that the body knows what it uses.
     if ctx.node() {
-        return node_import_lines(ctx, r, dir, namespaces, plans);
+        return node_import_lines(ctx, r, dir, namespaces, plans, pages);
     }
     let mut imports: Vec<String> = vec![format!(
         "import {{ APIResource }} from '{}';",
         relative(dir, "core/resource")
     )];
-    let mut namespaces = namespaces.to_vec();
-    namespaces.sort_by(|a, b| a.0.cmp(&b.0));
-    for (ns, target) in &namespaces {
-        imports.push(format!("import * as {ns} from '{}';", relative(dir, target)));
-    }
-    for c in &r.children {
-        let target = relative(dir, &c.module());
-        imports.push(format!("import * as {}API from '{target}';", c.class));
-        let mut names = vec![c.class.clone()];
-        names.extend(exports_of(ctx, c));
-        names.sort();
-        imports.push(render(
-            &specifiers("import ", &names, &format!(" from '{target}';")),
-            0,
-            WIDTH,
-        ));
-    }
-    if !plans.is_empty() {
+    imports.extend(namespace_imports(dir, namespaces, pages));
+    imports.extend(child_imports(ctx, r, dir));
+    if plans.iter().any(|p| p.page.is_none()) {
         imports.push(format!(
             "import {{ APIPromise }} from '{}';",
             relative(dir, "core/api-promise")
         ));
+    }
+    imports.extend(pagination_import(ctx, dir, plans, pages));
+    if !plans.is_empty() {
         imports.push(format!(
             "import {{ RequestOptions }} from '{}';",
             relative(dir, "internal/request-options")
@@ -635,14 +979,34 @@ fn import_lines(
     imports
 }
 
+/// `import * as XAPI from './x'; import { X, XParams } from './x';` for each subresource.
+fn child_imports(ctx: &Ctx<'_>, r: &TsResource<'_>, dir: &str) -> Vec<String> {
+    let mut out = Vec::new();
+    for c in &r.children {
+        let target = relative(dir, &c.module());
+        out.push(format!("import * as {}API from '{target}';", c.class));
+        let mut names = vec![c.class.clone()];
+        names.extend(exports_of(ctx, c));
+        names.sort();
+        out.push(render(
+            &specifiers("import ", &names, &format!(" from '{target}';")),
+            0,
+            WIDTH,
+        ));
+    }
+    out
+}
+
 /// The imports of a `node`-layout resource module: `APIResource`, `isRequestOptions` for
-/// overloaded methods, `Core`, then the namespaces and subresources as in the current layout.
+/// overloaded methods, `Core`, then the namespaces and subresources as in the current layout, and
+/// the page classes last.
 fn node_import_lines(
     ctx: &Ctx<'_>,
     r: &TsResource<'_>,
     dir: &str,
     namespaces: &[(String, String)],
     plans: &[MethodPlan<'_>],
+    pages: &PageTypes,
 ) -> Vec<String> {
     let mut imports: Vec<String> = vec![format!(
         "import {{ APIResource }} from '{}';",
@@ -657,23 +1021,9 @@ fn node_import_lines(
     if !plans.is_empty() {
         imports.push(format!("import * as Core from '{}';", relative(dir, "core")));
     }
-    let mut namespaces = namespaces.to_vec();
-    namespaces.sort_by(|a, b| a.0.cmp(&b.0));
-    for (ns, target) in &namespaces {
-        imports.push(format!("import * as {ns} from '{}';", relative(dir, target)));
-    }
-    for c in &r.children {
-        let target = relative(dir, &c.module());
-        imports.push(format!("import * as {}API from '{target}';", c.class));
-        let mut names = vec![c.class.clone()];
-        names.extend(exports_of(ctx, c));
-        names.sort();
-        imports.push(render(
-            &specifiers("import ", &names, &format!(" from '{target}';")),
-            0,
-            WIDTH,
-        ));
-    }
+    imports.extend(namespace_imports(dir, namespaces, pages));
+    imports.extend(child_imports(ctx, r, dir));
+    imports.extend(pagination_import(ctx, dir, plans, pages));
     imports
 }
 
@@ -685,6 +1035,7 @@ pub fn emit_resource(ctx: &Ctx<'_>, r: &TsResource<'_>) -> String {
     let chain = ctx.chain(r);
     let mut mapper = Mapper::new(ctx, &module);
     let plans = plan_methods(ctx, r, &mut mapper);
+    let pages = page_decls(ctx, r, &plans, &mut mapper);
     let mut decls: Vec<Decl> = ctx
         .models_of(&r.keys)
         .iter()
@@ -701,8 +1052,8 @@ pub fn emit_resource(ctx: &Ctx<'_>, r: &TsResource<'_>) -> String {
     decls.extend(plans.iter().filter_map(|p| p.response_decl.clone()));
     decls.extend(plans.iter().filter_map(|p| p.params_decl.clone()));
 
-    let body = body_lines(ctx, r, &chain, &plans, &decls);
-    let imports = import_lines(ctx, r, &dir, &mapper.imports, &plans);
+    let body = body_lines(ctx, r, &chain, &plans, &decls, &pages);
+    let imports = import_lines(ctx, r, &dir, &mapper.imports, &plans, &pages);
     let mut out = vec![HEADER.to_owned(), String::new()];
     out.extend(imports);
     out.push(String::new());
@@ -759,11 +1110,12 @@ pub fn emit_shim(r: &TsResource<'_>) -> String {
 pub fn emit_index(ctx: &Ctx<'_>, r: &TsResource<'_>) -> String {
     let dir = r.dir();
     let mut entries: Vec<(String, Vec<String>)> = Vec::new();
-    let mut own = vec![r.class.clone()];
     // A standalone API's index names its class only.
-    if !r.res.standalone {
-        own.extend(exports_of(ctx, r).into_iter().map(|t| format!("type {t}")));
-    }
+    let own = if r.res.standalone {
+        vec![r.class.clone()]
+    } else {
+        index_names(ctx, r)
+    };
     entries.push((relative(&dir, &r.module()), own));
     for c in &r.children {
         let mut names = vec![c.class.clone()];
@@ -772,7 +1124,7 @@ pub fn emit_index(ctx: &Ctx<'_>, r: &TsResource<'_>) -> String {
         } else if c.package {
             format!("{}/index", relative(&dir, &c.dir()))
         } else {
-            names.extend(exports_of(ctx, c).into_iter().map(|t| format!("type {t}")));
+            names = index_names(ctx, c);
             relative(&dir, &c.module())
         };
         entries.push((target, names));
@@ -796,10 +1148,11 @@ pub fn emit_index(ctx: &Ctx<'_>, r: &TsResource<'_>) -> String {
 pub fn emit_resources_index(ctx: &Ctx<'_>) -> String {
     let mut entries: Vec<(String, Vec<String>)> = Vec::new();
     for r in &ctx.resources {
-        let mut names = vec![r.class.clone()];
-        if !r.res.standalone {
-            names.extend(exports_of(ctx, r).into_iter().map(|t| format!("type {t}")));
-        }
+        let names = if r.res.standalone {
+            vec![r.class.clone()]
+        } else {
+            index_names(ctx, r)
+        };
         entries.push((relative("resources", &r.module()), names));
     }
     entries.sort_by(|a, b| a.0.cmp(&b.0));

@@ -61,7 +61,13 @@ fn list_methods_return_pages() {
     has(
         widgets,
         "import { APIResource } from '../core/resource';
-import { EntriesCursor, type EntriesCursorParams, Page, type PageParams, PagePromise } from '../core/pagination';
+import {
+  EntriesCursor,
+  type EntriesCursorParams,
+  Page,
+  type PageParams,
+  PagePromise,
+} from '../core/pagination';
 import { RequestOptions } from '../internal/request-options';
 ",
     );
