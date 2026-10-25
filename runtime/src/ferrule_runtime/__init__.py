@@ -14,6 +14,11 @@ from ferrule_runtime._render import (
     template_root,
 )
 from ferrule_runtime._retry import retry_delay, should_retry
+from ferrule_runtime._typescript import (
+    QueryArrayFormat,
+    TypeScriptOptions,
+    render_typescript_files,
+)
 from ferrule_runtime.pagination import (
     PageField,
     PageKind,
@@ -30,14 +35,17 @@ __all__ = [
     "PageModel",
     "PageScheme",
     "PaginationError",
+    "QueryArrayFormat",
     "RenderError",
     "RuntimeOptions",
+    "TypeScriptOptions",
     "default_client_name",
     "render",
     "render_files",
     "render_options",
     "render_pagination",
     "render_tree",
+    "render_typescript_files",
     "retry_delay",
     "should_retry",
     "template_root",
