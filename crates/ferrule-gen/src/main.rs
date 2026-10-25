@@ -293,7 +293,32 @@ fn write_typescript(args: &GenerateArgs) -> Result<(), forge::Err> {
     };
     let extras = ferrule_ts_plugin::SpecExtras::new(doc);
     let files = ferrule_ts_plugin::generate(&client, &meta, &extras);
-    forge::write(&args.out, files.into_iter().map(|(p, c)| TsFile(p, c)).collect())
+    let executable: Vec<String> = files
+        .iter()
+        .map(|(p, _)| p.clone())
+        .filter(|p| ferrule_ts_plugin::is_executable(p))
+        .collect();
+    forge::write(&args.out, files.into_iter().map(|(p, c)| TsFile(p, c)).collect())?;
+    for p in executable {
+        make_executable(&args.out.join(p))?;
+    }
+    Ok(())
+}
+
+/// `chmod +x`, as the oracles have `scripts/*`.
+#[cfg(unix)]
+fn make_executable(path: &Path) -> Result<(), forge::Err> {
+    use std::os::unix::fs::PermissionsExt;
+    let mut perms = fs::metadata(path)
+        .map_err(|err| format!("{}: {err}", path.display()))?
+        .permissions();
+    perms.set_mode(perms.mode() | 0o111);
+    fs::set_permissions(path, perms).map_err(|err| format!("{}: {err}", path.display()).into())
+}
+
+#[cfg(not(unix))]
+fn make_executable(_: &Path) -> Result<(), forge::Err> {
+    Ok(())
 }
 
 fn parse_model(args: &[String]) -> Result<PathBuf, String> {
