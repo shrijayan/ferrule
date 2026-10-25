@@ -111,3 +111,24 @@ Cloudflare Forge (Apache-2.0), https://github.com/cloudflare/forge
 ------------------------------------------------------------------------
 Used as a pinned build-time dependency (ADR 0005). No Forge source is
 copied into this repository or into generated SDKs.
+
+------------------------------------------------------------------------
+Oracle SDK repositories (data, not copied)
+------------------------------------------------------------------------
+The Stainless-generated SDKs pinned in oracles/manifest.yaml are cloned into
+the gitignored oracles/cache/ at test time, and Ferrule's output is compared
+against them. They are test data. No code from them is copied into this
+repository or into generated SDKs, except the runtime and project files
+credited above. Their licences, as GitHub reports them:
+  Apache-2.0: OneBusAway/{python,js,go,java,kotlin,ruby}-sdk,
+    groq/groq-python, lithic-com/lithic-python, perplexityai/perplexity-py,
+    isaacus-dev/isaacus-{python,typescript}, lumalabs/lumaai-{python,node},
+    plastic-labs/honcho-{python,node}-core,
+    imagekit-developer/imagekit-{python,nodejs,go,java,ruby},
+    knocklabs/knock-{python,node,go,java,ruby},
+    knocklabs/knock-mgmt-{python,node,go},
+    Papr-ai/papr-pythonSDK, Papr-ai/papr-TypescriptSDK
+  MIT: anomalyco/opencode-sdk-{python,go}, browserbase/stagehand-python,
+    ogx-ai/ogx-client-{python,typescript,go}, imagekit-developer/imagekit-php
+The config repositories they pair with are fetched the same way and are
+never committed (oracles/README.md); some have no licence or a copyleft one.
