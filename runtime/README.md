@@ -50,7 +50,7 @@ names (onebusaway, groq, lithic, isaacus, perplexity, knock-mgmt, imagekit and o
 | `_response.py` | runtime | one line wraps by package-name length |
 | `_streaming.py` | runtime | default variant only (see drift) |
 | `pagination.py` | generated | `render_pagination` from config schemes |
-| `__init__.py`, `_client.py`, `_version.py`, `resources/`, `types/`, `lib/` | generated | python-plugin |
+| `__init__.py`, `_client.py`, `_version.py`, `resources/`, `types/`, `lib/` | generated | python-plugin (`crates/python-plugin`) |
 
 ## Version decision and drift
 
