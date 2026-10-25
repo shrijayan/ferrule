@@ -1,0 +1,48 @@
+organization:
+  name: acme
+  docs: https://docs.acme.test
+  contact: support@acme.test
+
+targets:
+  python:
+    package_name: acme
+    publish:
+      pypi: false
+  typescript:
+    package_name: acme
+    production_repo: acme/acme-typescript
+    publish:
+      npm: true
+
+environments:
+  production: https://api.acme.test
+
+client_settings:
+  opts:
+    api_key:
+      type: string
+      nullable: false
+      read_env: ACME_API_KEY
+      auth:
+        security_scheme: BearerAuth
+
+resources:
+  commits:
+    methods:
+      commit_all: put /commits
+
+settings:
+  license: Apache-2.0
+
+readme:
+  example_requests:
+    default:
+      type: request
+      endpoint: put /commits
+      params:
+        environment: development
+    headline:
+      type: request
+      endpoint: put /commits
+      params:
+        environment: development
