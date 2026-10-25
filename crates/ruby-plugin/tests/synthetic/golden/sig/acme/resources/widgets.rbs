@@ -1,0 +1,17 @@
+module Acme
+  module Resources
+    class Widgets
+      attr_reader parts: Acme::Resources::Widgets::Parts
+
+      def create: (name: String, ?color: Acme::Models::WidgetCreateParams::color, ?dimensions: Acme::WidgetCreateParams::Dimensions, ?tags: ::Array[String], ?request_options: Acme::request_opts) -> Acme::Widget
+
+      def retrieve: (String widget_id, ?request_options: Acme::request_opts) -> Acme::Widget
+
+      def list: (?colors: ::Array[String], ?created_after: Time, ?limit: Integer, ?request_options: Acme::request_opts) -> Acme::Models::WidgetListResponse
+
+      def delete: (String widget_id, ?request_options: Acme::request_opts) -> nil
+
+      def initialize: (client: Acme::Client) -> void
+    end
+  end
+end

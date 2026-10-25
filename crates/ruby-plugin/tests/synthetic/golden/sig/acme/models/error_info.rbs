@@ -1,0 +1,19 @@
+module Acme
+  module Models
+    type error_info = { code: String, message: String }
+
+    class ErrorInfo < Acme::Internal::Type::BaseModel
+      attr_reader code: String?
+
+      def code=: (String) -> String
+
+      attr_reader message: String?
+
+      def message=: (String) -> String
+
+      def initialize: (?code: String, ?message: String) -> void
+
+      def to_hash: -> { code: String, message: String }
+    end
+  end
+end

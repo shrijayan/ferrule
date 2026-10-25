@@ -1,0 +1,26 @@
+module Acme
+  module Models
+    type widget_list_params = { colors: ::Array[String], created_after: Time, limit: Integer } & Acme::Internal::Type::request_parameters
+
+    class WidgetListParams < Acme::Internal::Type::BaseModel
+      extend Acme::Internal::Type::RequestParameters::Converter
+      include Acme::Internal::Type::RequestParameters
+
+      attr_reader colors: ::Array[String]?
+
+      def colors=: (::Array[String]) -> ::Array[String]
+
+      attr_reader created_after: Time?
+
+      def created_after=: (Time) -> Time
+
+      attr_reader limit: Integer?
+
+      def limit=: (Integer) -> Integer
+
+      def initialize: (?colors: ::Array[String], ?created_after: Time, ?limit: Integer, ?request_options: Acme::request_opts) -> void
+
+      def to_hash: -> { colors: ::Array[String], created_after: Time, limit: Integer, request_options: Acme::RequestOptions }
+    end
+  end
+end

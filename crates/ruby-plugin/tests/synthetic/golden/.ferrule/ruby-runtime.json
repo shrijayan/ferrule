@@ -1,0 +1,9 @@
+{
+  "gem_name": "acme",
+  "module_name": "Acme",
+  "array_format": "comma",
+  "auth_in": "headers",
+  "base_model_example": "        #\n        # @example\n        #   # `error_info` is a `Acme::ErrorInfo`\n        #   error_info => {\n        #     code: code,\n        #     message: message\n        #   }\n",
+  "enum_example": "",
+  "union_example": ""
+}

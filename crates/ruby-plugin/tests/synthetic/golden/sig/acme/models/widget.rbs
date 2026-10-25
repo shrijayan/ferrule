@@ -1,0 +1,65 @@
+module Acme
+  module Models
+    type widget = { id: String, created_at: Time, name: String, status: Acme::Models::Widget::status, homepage_url: String, labels: Acme::Models::labels, parts: ::Array[Acme::Widget::Part], sku: String?, weight_kg: Float }
+
+    class Widget < Acme::Internal::Type::BaseModel
+      attr_accessor id: String
+
+      attr_accessor created_at: Time
+
+      attr_accessor name: String
+
+      attr_accessor status: Acme::Models::Widget::status
+
+      attr_reader homepage_url: String?
+
+      def homepage_url=: (String) -> String
+
+      attr_reader labels: Acme::Models::labels?
+
+      def labels=: (Acme::Models::labels) -> Acme::Models::labels
+
+      attr_reader parts: ::Array[Acme::Widget::Part]?
+
+      def parts=: (::Array[Acme::Widget::Part]) -> ::Array[Acme::Widget::Part]
+
+      attr_accessor sku: String?
+
+      attr_reader weight_kg: Float?
+
+      def weight_kg=: (Float) -> Float
+
+      def initialize: (id: String, created_at: Time, name: String, status: Acme::Models::Widget::status, ?homepage_url: String, ?labels: Acme::Models::labels, ?parts: ::Array[Acme::Widget::Part], ?sku: String?, ?weight_kg: Float) -> void
+
+      def to_hash: -> { id: String, created_at: Time, name: String, status: Acme::Models::Widget::status, homepage_url: String, labels: Acme::Models::labels, parts: ::Array[Acme::Widget::Part], sku: String?, weight_kg: Float }
+
+      type status = :draft | :active | :retired
+
+      module Status
+        extend Acme::Internal::Type::Enum
+
+        DRAFT: :draft
+        ACTIVE: :active
+        RETIRED: :retired
+
+        def self?.values: -> ::Array[Acme::Models::Widget::status]
+      end
+
+      type part = { label: String, part_number: Integer }
+
+      class Part < Acme::Internal::Type::BaseModel
+        attr_reader label: String?
+
+        def label=: (String) -> String
+
+        attr_reader part_number: Integer?
+
+        def part_number=: (Integer) -> Integer
+
+        def initialize: (?label: String, ?part_number: Integer) -> void
+
+        def to_hash: -> { label: String, part_number: Integer }
+      end
+    end
+  end
+end
