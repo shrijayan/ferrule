@@ -1,6 +1,6 @@
 //! isaacus-typescript (0.23.0, `c56af182`) regenerated from its config oracle, byte for byte
 //! after the branding substitutions of `crates/ts-plugin/BRANDING.md`. Skipped when the oracles
-//! are not cached (`oracles/cache/isaacus-config`, `.cache/ts-oracles/isaacus-typescript`).
+//! are not cached (`oracles/cache/isaacus-config`, `oracles/cache/isaacus-typescript`).
 
 mod support;
 
