@@ -28,3 +28,8 @@ oracle file named below (knock-mgmt-python 0.1.0-alpha.2), not generated.
   its object; `actor` is `Optional[Actor]` (the alias leaves `None` out) and `recipients` is
   `SequenceNotStr[Recipient]`, since a member is a string. The fixture gives `actor` the
   description of `RecipientReference`, which Stainless prints there.
+- `reserved_field_name`: `MessageTypeJsonField` with a `schema` property (knock-mgmt-python
+  `types/shared/message_type_json_field.py` `Settings.schema_`, `types/shared_params/...`
+  `schema`; imagekit-python `types/custom_metadata_field.py`). In a model it would shadow
+  `BaseModel.schema`, so it is `schema_ = FieldInfo(alias="schema", ...)`; the params
+  `TypedDict` keeps `schema`. Typed `string` here (the oracle's is a bare `type: object`).

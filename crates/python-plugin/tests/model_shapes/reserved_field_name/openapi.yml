@@ -1,0 +1,34 @@
+openapi: 3.0.0
+info: {title: fx, version: '1'}
+servers: [{url: 'https://api.example.com'}]
+
+paths:
+  /fields/{key}:
+    get:
+      operationId: getField
+      summary: Gets a field.
+      parameters:
+        - {name: key, in: path, required: true, schema: {type: string}}
+      responses:
+        '200': {description: ok, content: {application/json: {schema: {$ref: '#/components/schemas/MessageTypeJsonField'}}}}
+    put:
+      operationId: putField
+      summary: Updates a field.
+      parameters:
+        - {name: key, in: path, required: true, schema: {type: string}}
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/MessageTypeJsonField'}}}
+      responses:
+        '200': {description: ok, content: {application/json: {schema: {$ref: '#/components/schemas/MessageTypeJsonField'}}}}
+components:
+  schemas:
+    MessageTypeJsonField:
+      description: A JSON field used in a message type.
+      type: object
+      required: [key]
+      properties:
+        key: {description: The unique key of the field., type: string}
+        schema:
+          description: A JSON schema used to validate the structure of the JSON provided. Must be a valid JSON schema.
+          type: string

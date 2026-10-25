@@ -84,3 +84,14 @@ fn a_union_of_a_string_and_a_titled_object_is_an_alias() {
         assert_eq!(resource.matches(arg).count(), 2, "{arg}{resource}");
     }
 }
+
+/// A model field named `schema` would shadow `BaseModel.schema`: Stainless names it `schema_`
+/// with an alias (knock-mgmt `MessageTypeJsonField.settings.schema_`, imagekit
+/// `CustomMetadataField.schema_`). A params `TypedDict` keeps `schema`.
+#[test]
+fn a_model_field_named_schema_is_schema_underscore() {
+    check("reserved_field_name");
+    let files = generated("reserved_field_name");
+    let params = files.get("src/fx/types/field_update_params.py").expect("params");
+    assert!(params.contains("\n    schema: str\n"), "{params}");
+}
