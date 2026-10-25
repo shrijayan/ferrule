@@ -13,11 +13,11 @@ pub mod tests;
 
 use std::collections::BTreeSet;
 
-use ferrule_sdk_model::model::{Client, Method, Param, Resource, Type};
+use ferrule_sdk_model::model::{Client, Method, ModelDecl, Param, Resource, Type};
 
 use crate::meta::GoTarget;
 use crate::naming::{Casings, exported, local, method_name, singular, words};
-use crate::types::{Ctx, Pkg};
+use crate::types::{Ctx, Pkg, model_pkg};
 
 /// Everything the emitters share about one SDK.
 pub struct Gen<'a> {
@@ -27,6 +27,71 @@ pub struct Gen<'a> {
     /// `organization.name`, as the service docs name the API (`the onebusaway-sdk API`).
     pub org: String,
     pub services: Vec<Service<'a>>,
+    /// The service (index into `services`) whose file declares each root-package model, by schema.
+    pub placement: Vec<(String, usize)>,
+}
+
+/// The schemas `ty` references, in order.
+fn refs(ty: &Type, out: &mut Vec<String>) {
+    match ty {
+        Type::Ref(r) => out.push(r.schema.clone()),
+        Type::Array { items: t } | Type::Map { values: t } | Type::Nullable { inner: t } => refs(t, out),
+        Type::Object(o) => {
+            out.extend(o.bases.iter().map(|b| b.schema.clone()));
+            for f in &o.fields {
+                refs(&f.ty, out);
+            }
+        }
+        Type::Union(u) => {
+            for v in &u.variants {
+                refs(&v.ty, out);
+            }
+        }
+        Type::Scalar { .. } | Type::Enum { .. } => {}
+    }
+}
+
+fn method_refs(m: &Method) -> Vec<String> {
+    let mut out = Vec::new();
+    for p in m.path_params.iter().chain(&m.query_params).chain(&m.header_params) {
+        refs(&p.field.ty, &mut out);
+    }
+    if let Some(b) = &m.body {
+        refs(&b.ty, &mut out);
+    }
+    if let Some(r) = &m.response {
+        refs(&r.ty, &mut out);
+    }
+    out
+}
+
+/// Where each root-package model is declared: the resource stainless.yml declares it under when
+/// its path says so, else the first service whose methods reference it, else the first service.
+///
+/// `x-ferrule-models` writes Python's module for a resource model (`widget` for
+/// `widgets.models.widget`), not the resource path, so the fallback is what places most models
+/// today (Phase 1 gap list: model positions for non-Python targets).
+fn place(client: &Client, services: &[Service<'_>]) -> Vec<(String, usize)> {
+    let mut out = Vec::new();
+    for d in client.models.iter().filter(|d| model_pkg(&d.r#ref) == Pkg::Root) {
+        let path: Vec<&str> = d.r#ref.path.iter().map(|n| n.written.as_str()).collect();
+        let by_path = services.iter().position(|s| {
+            let keys: Vec<&str> = s.resource.path.iter().map(|n| n.written.as_str()).collect();
+            path.len() == keys.len() + 1 && path[..keys.len()] == keys[..]
+        });
+        let by_use = || {
+            services.iter().position(|s| {
+                s.resource
+                    .methods
+                    .iter()
+                    .any(|m| method_refs(m).contains(&d.r#ref.schema))
+            })
+        };
+        if let Some(i) = by_path.or_else(by_use).or((!services.is_empty()).then_some(0)) {
+            out.push((d.r#ref.schema.clone(), i));
+        }
+    }
+    out
 }
 
 /// A resource as a Go service.
@@ -99,6 +164,7 @@ impl<'a> Gen<'a> {
         let casings = Casings(&client.casings);
         let mut services = Vec::new();
         collect(&client.resources, None, 0, casings, &mut services);
+        let placement = place(client, &services);
         Self {
             client,
             casings,
@@ -108,7 +174,25 @@ impl<'a> Gen<'a> {
                 .as_ref()
                 .map_or_else(|| target.package_name.clone(), |s| s.name.written.clone()),
             services,
+            placement,
         }
+    }
+
+    /// The root-package models the file of `s` declares, in model order.
+    #[must_use]
+    pub fn models_of(&self, s: &Service<'_>) -> Vec<&'a ModelDecl> {
+        let Some(index) = self.services.iter().position(|x| std::ptr::eq(x.resource, s.resource)) else {
+            return Vec::new();
+        };
+        self.client
+            .models
+            .iter()
+            .filter(|d| {
+                self.placement
+                    .iter()
+                    .any(|(schema, i)| *schema == d.r#ref.schema && *i == index)
+            })
+            .collect()
     }
 
     /// A mapping context for a file of `pkg`.

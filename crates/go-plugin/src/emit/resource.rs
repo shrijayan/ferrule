@@ -9,7 +9,7 @@ use super::decls::print_decls;
 use super::{Gen, Service, body_fields, method_order, params_arg};
 use crate::naming::exported;
 use crate::printer::{ALIGN, comment, go_file};
-use crate::types::{Ctx, Decl, Mode, Pkg, Position, map_type, model_pkg, model_ref, object_decls};
+use crate::types::{Ctx, Decl, Mode, Pkg, Position, map_type, model_ref, object_decls};
 
 /// What a method returns.
 pub enum Returns {
@@ -184,16 +184,10 @@ fn service_decl(out: &mut String, g: &Gen<'_>, s: &Service<'_>, ctx: &mut Ctx<'_
 
 /// The models stainless.yml declares under this resource (not `$shared`).
 fn resource_models(g: &Gen<'_>, s: &Service<'_>, ctx: &mut Ctx<'_>) -> Vec<Decl> {
-    let keys: Vec<&str> = s.resource.path.iter().map(|n| n.written.as_str()).collect();
-    let mut out = Vec::new();
-    for d in &g.client.models {
-        let path: Vec<&str> = d.r#ref.path.iter().map(|n| n.written.as_str()).collect();
-        if model_pkg(&d.r#ref) == Pkg::Shared || path.len() != keys.len() + 1 || path[..keys.len()] != keys[..] {
-            continue;
-        }
-        out.extend(model_decls(d, Mode::Response, ctx));
-    }
-    out
+    g.models_of(s)
+        .into_iter()
+        .flat_map(|d| model_decls(d, Mode::Response, ctx))
+        .collect()
 }
 
 /// The declarations of one named model.
@@ -202,7 +196,12 @@ pub fn model_decls(d: &ferrule_sdk_model::model::ModelDecl, mode: Mode, ctx: &mu
     let pos = Position::exact(&name);
     match &d.ty {
         Type::Object(o) if !(o.fields.is_empty() && o.bases.is_empty()) => {
-            object_decls(o, &pos, &d.description, mode, ctx)
+            let doc = if d.description.is_empty() {
+                o.description.as_deref().unwrap_or_default()
+            } else {
+                &d.description
+            };
+            object_decls(o, &pos, doc, mode, ctx)
         }
         other => {
             let mapped = map_type(other, &pos, &d.description, mode, ctx);

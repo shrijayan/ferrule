@@ -9,7 +9,7 @@ use ferrule_sdk_model::model::{ClientOpt, Field, Method, OptType, Scalar, Type};
 use super::resource::params_decls;
 use super::{Gen, Service, method_order, params_arg};
 use crate::naming::{exported, local, singular, split_words, words};
-use crate::printer::{ALIGN, go_file};
+use crate::printer::{ALIGN, BREAK, go_file};
 use crate::types::{Ctx, Decl, Pkg};
 
 /// `client_test.go` after its imports; text from Stainless's Go v1 tests (OneBusAway go-sdk,
@@ -42,20 +42,20 @@ fn client_options(g: &Gen<'_>, indent: usize) -> String {
     out
 }
 
-/// A test value for a field of type `ty`.
-fn example(g: &Gen<'_>, f: &Field, decls: &[Decl], go_ty: &str, ctx: &mut Ctx<'_>) -> String {
+/// A test value for a field of type `go_ty` (the field's neutral type `ty`), for a line at
+/// `indent` tabs; an object is a multi-line literal.
+fn example(
+    g: &Gen<'_>,
+    wire: &str,
+    ty: &Type,
+    decls: &[Decl],
+    go_ty: &str,
+    indent: usize,
+    ctx: &mut Ctx<'_>,
+) -> String {
     let pkg = &g.target.package_name;
-    match &f.ty {
-        Type::Nullable { inner } => example(
-            g,
-            &Field {
-                ty: (**inner).clone(),
-                ..f.clone()
-            },
-            decls,
-            go_ty,
-            ctx,
-        ),
+    match ty {
+        Type::Nullable { inner } => example(g, wire, inner, decls, go_ty, indent, ctx),
         Type::Scalar { scalar } => match scalar {
             Scalar::Boolean => "true".to_owned(),
             s if s.is_integer() => "int64(0)".to_owned(),
@@ -65,7 +65,7 @@ fn example(g: &Gen<'_>, f: &Field, decls: &[Decl], go_ty: &str, ctx: &mut Ctx<'_
                 "time.Now()".to_owned()
             }
             Scalar::Uuid => "\"182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e\"".to_owned(),
-            _ => crate::printer::quote(&f.wire_name),
+            _ => crate::printer::quote(wire),
         },
         Type::Enum { .. } => decls
             .iter()
@@ -73,31 +73,77 @@ fn example(g: &Gen<'_>, f: &Field, decls: &[Decl], go_ty: &str, ctx: &mut Ctx<'_
                 Decl::Enum { name, members, .. } if name == go_ty => members.first().map(|(c, _)| format!("{pkg}.{c}")),
                 _ => None,
             })
-            .unwrap_or_else(|| crate::printer::quote(&f.wire_name)),
+            .unwrap_or_else(|| crate::printer::quote(wire)),
         Type::Array { items } => {
             let item_ty = go_ty.trim_start_matches("[]");
-            let inner = example(
-                g,
-                &Field {
-                    ty: (**items).clone(),
-                    ..f.clone()
-                },
-                decls,
-                item_ty,
-                ctx,
-            );
+            let inner = example(g, wire, items, decls, item_ty, indent, ctx);
             let qualified = if item_ty.starts_with(|c: char| c.is_ascii_uppercase()) {
                 format!("{pkg}.{item_ty}")
             } else {
                 item_ty.to_owned()
             };
+            // gofmt elides the element type of a composite literal's elements.
+            let inner = inner
+                .strip_prefix(&format!("{qualified}{{"))
+                .map_or(inner.clone(), |rest| format!("{{{rest}"));
             format!("[]{qualified}{{{inner}}}")
         }
-        _ => crate::printer::quote(&f.wire_name),
+        _ => match (g.client.object_of(ty), decls.iter().find(|d| d.name() == go_ty)) {
+            (Some(obj), Some(Decl::Struct { name, fields, .. })) => {
+                let sources: Vec<&Field> = obj.fields.iter().collect();
+                struct_literal(g, name, fields, &sources, decls, indent, ctx).0
+            }
+            _ => crate::printer::quote(wire),
+        },
     }
 }
 
-/// The params literal lines at `indent` tabs (fields one deeper), without the closing brace.
+/// `pkg.Name{` and one `Field: pkg.F(value),` line per field at `indent + 1` tabs, closed at
+/// `indent`; also whether any field is optional.
+fn struct_literal(
+    g: &Gen<'_>,
+    name: &str,
+    fields: &[crate::types::GoField],
+    sources: &[&Field],
+    decls: &[Decl],
+    indent: usize,
+    ctx: &mut Ctx<'_>,
+) -> (String, bool) {
+    let pkg = &g.target.package_name;
+    let tabs = "\t".repeat(indent + 1);
+    let mut out = format!("{pkg}.{name}{{\n");
+    let mut optional = false;
+    let mut after_multiline = false;
+    for f in fields {
+        let Some(src) = sources.iter().find(|x| x.wire_name == f.wire) else {
+            continue;
+        };
+        optional |= !f.required;
+        let value = example(g, &src.wire_name, &src.ty, decls, &f.ty, indent + 1, ctx);
+        let multiline = value.contains('\n');
+        // gofmt aligns keys only across single-line elements.
+        if multiline || after_multiline {
+            out.push(BREAK);
+        }
+        after_multiline = multiline;
+        let _ = writeln!(out, "{tabs}{}:{ALIGN}{pkg}.F({value}),", f.name);
+    }
+    out.push_str(&"\t".repeat(indent));
+    out.push('}');
+    (out, optional)
+}
+
+/// A test value for a path parameter: its wire name for a string, else the type's zero.
+fn path_example(p: &ferrule_sdk_model::model::Param) -> String {
+    match super::path_param_type(&p.field.ty) {
+        "int64" => "int64(0)".to_owned(),
+        "float64" => "0.000000".to_owned(),
+        "bool" => "true".to_owned(),
+        _ => crate::printer::quote(&p.field.wire_name),
+    }
+}
+
+/// The params literal at `indent` tabs, and whether it has optional fields.
 fn params_literal(
     g: &Gen<'_>,
     s: &Service<'_>,
@@ -111,25 +157,13 @@ fn params_literal(
     let Some(Decl::Struct { name, fields, .. }) = decls.first() else {
         return None;
     };
-    let pkg = &g.target.package_name;
-    let tabs = "\t".repeat(indent + 1);
-    let mut out = format!("{pkg}.{name}{{\n");
     let sources: Vec<&Field> = m
         .query_params
         .iter()
         .map(|p| &p.field)
         .chain(super::body_fields(g.client, m))
         .collect();
-    let mut optional = false;
-    for f in fields {
-        let Some(src) = sources.iter().find(|x| x.wire_name == f.wire) else {
-            continue;
-        };
-        optional |= !f.required;
-        let value = example(g, src, &decls, &f.ty, ctx);
-        let _ = writeln!(out, "{tabs}{}:{ALIGN}{pkg}.F({value}),", f.name);
-    }
-    Some((out, optional))
+    Some(struct_literal(g, name, fields, &sources, &decls, indent, ctx))
 }
 
 /// The call of `m` in a test: `client.Agency.Get(context.TODO(), "agencyID")`, with the params
@@ -137,24 +171,20 @@ fn params_literal(
 /// `= ` and whether the params have optional fields.
 fn call(g: &Gen<'_>, s: &Service<'_>, m: &Method, ctx_arg: &str, ctx: &mut Ctx<'_>) -> (String, bool) {
     let target = format!("{}.{}", s.accessor, g.method_name(m));
-    let path_args: Vec<String> = m
-        .path_params
-        .iter()
-        .map(|p| crate::printer::quote(&p.field.wire_name))
-        .collect();
+    let path_args: Vec<String> = m.path_params.iter().map(path_example).collect();
     match params_literal(g, s, m, if path_args.is_empty() { 1 } else { 2 }, ctx) {
         None => {
             let mut args = vec![ctx_arg.to_owned()];
             args.extend(path_args);
             (format!("{target}({})", args.join(", ")), false)
         }
-        Some((literal, optional)) if path_args.is_empty() => (format!("{target}({ctx_arg}, {literal}\t}})"), optional),
+        Some((literal, optional)) if path_args.is_empty() => (format!("{target}({ctx_arg}, {literal})"), optional),
         Some((literal, optional)) => {
             let mut out = format!("{target}(\n\t\t{ctx_arg},\n");
             for a in &path_args {
                 let _ = writeln!(out, "\t\t{a},");
             }
-            let _ = write!(out, "\t\t{literal}\t\t}},\n\t)");
+            let _ = write!(out, "\t\t{literal},\n\t)");
             (out, optional)
         }
     }
@@ -193,9 +223,10 @@ pub fn service_test_file(g: &Gen<'_>, s: &Service<'_>) -> Option<(String, String
     for m in method_order(&s.resource.methods) {
         let (call, optional) = call(g, s, m, "context.TODO()", &mut ctx);
         let suffix = if optional { "WithOptionalParams" } else { "" };
+        let results = if m.response.is_some() { "_, err" } else { "err" };
         let _ = write!(
             body,
-            "func Test{}{}{suffix}(t *testing.T) {{\n{PREAMBLE}{}\t_, err := {call}\n\tif err != nil {{\n\t\tvar apierr *{pkg}.Error\n\t\tif errors.As(err, &apierr) {{\n\t\t\tt.Log(string(apierr.DumpRequest(true)))\n\t\t}}\n\t\tt.Fatalf(\"err should be nil: %s\", err.Error())\n\t}}\n}}\n\n",
+            "func Test{}{}{suffix}(t *testing.T) {{\n{PREAMBLE}{}\t{results} := {call}\n\tif err != nil {{\n\t\tvar apierr *{pkg}.Error\n\t\tif errors.As(err, &apierr) {{\n\t\t\tt.Log(string(apierr.DumpRequest(true)))\n\t\t}}\n\t\tt.Fatalf(\"err should be nil: %s\", err.Error())\n\t}}\n}}\n\n",
             s.prefix,
             g.method_name(m),
             new_client(g),
@@ -212,6 +243,7 @@ pub fn service_test_file(g: &Gen<'_>, s: &Service<'_>) -> Option<(String, String
 #[must_use]
 pub fn usage_test_file(g: &Gen<'_>) -> Option<(String, String)> {
     let (s, m) = g.example()?;
+    m.response.as_ref()?;
     let mut ctx = g.ctx(Pkg::Root);
     test_imports(g, &mut ctx);
     let var = local(&singular(&split_words(&s.resource.name.written)), g.casings);
@@ -231,8 +263,21 @@ pub fn usage_test_file(g: &Gen<'_>) -> Option<(String, String)> {
 #[must_use]
 pub fn client_test_file(g: &Gen<'_>, client_name: &str) -> Option<(String, String)> {
     let (s, m) = g.example()?;
-    if !m.path_params.is_empty() || params_arg(g.client, m).is_some() {
-        return None;
+    m.response.as_ref()?;
+    // Path params as in the method tests; an empty params struct (the client tests only look at
+    // the transport).
+    let mut args = String::new();
+    for p in &m.path_params {
+        let _ = write!(args, ", {}", path_example(p));
+    }
+    if params_arg(g.client, m).is_some() {
+        let _ = write!(
+            args,
+            ", {}.{}{}Params{{}}",
+            g.target.package_name,
+            s.prefix,
+            g.method_name(m)
+        );
     }
     let mut ctx = g.ctx(Pkg::Root);
     for p in ["context", "fmt", "net/http", "reflect", "testing", "time"] {
@@ -248,7 +293,8 @@ pub fn client_test_file(g: &Gen<'_>, client_name: &str) -> Option<(String, Strin
         .replace("{{OPTIONS2}}", &client_options(g, 2))
         .replace("{{PKG}}", &g.target.package_name)
         .replace("{{CALL}}", &format!("{}.{}", s.accessor, g.method_name(m)))
-        .replace("{{USER_AGENT}}", client_name);
+        .replace("{{USER_AGENT}}", client_name)
+        .replace("{{ARGS}}", &args);
     let imports: Vec<String> = ctx.imports.into_iter().collect();
     Some((
         "client_test.go".to_owned(),

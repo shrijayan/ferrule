@@ -37,15 +37,9 @@ fn section(out: &mut String, g: &Gen<'_>, s: &Service<'_>) {
     let _ = writeln!(out, "{hashes} {}\n", s.field);
     let mut ctx = g.ctx(Pkg::Root);
     let methods = method_order(&s.resource.methods);
-    let keys: Vec<&str> = s.resource.path.iter().map(|n| n.written.as_str()).collect();
     let mut types: Vec<String> = g
-        .client
-        .models
-        .iter()
-        .filter(|d| {
-            let path: Vec<&str> = d.r#ref.path.iter().map(|n| n.written.as_str()).collect();
-            model_pkg(&d.r#ref) == Pkg::Root && path.len() == keys.len() + 1 && path[..keys.len()] == keys[..]
-        })
+        .models_of(s)
+        .into_iter()
         .map(|d| d.r#ref.name.written.clone())
         .collect();
     let mut rets = Vec::new();
