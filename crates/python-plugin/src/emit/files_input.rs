@@ -6,7 +6,7 @@ use serde_json::{Map, Value};
 
 use super::common::{
     leaf, method_params, method_ref, resource_class_base, resource_module, resource_tree, return_model, sort_fields,
-    stainless_method_order, types_dir,
+    stainless_method_order, stream_switch, types_dir,
 };
 use super::files::input::{
     Auth, AuthOpt, AuthScheme, ExampleRequest, FilesMethod, FilesParam, FilesResource, Organization, ParamLocation,
@@ -191,6 +191,7 @@ fn files_method(resource: &SdkResource, m: &SdkMethod) -> FilesMethod {
             name: r.r#ref.name,
             module: format!("types.{}", r.r#ref.module),
         }),
+        stream_switch: stream_switch(m).map(|q| q.py_name.clone()),
     }
 }
 

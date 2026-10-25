@@ -93,6 +93,9 @@ pub struct FilesMethod {
     pub params_module: Option<String>,
     /// The return type; `None` for `None`.
     pub response: Option<PyName>,
+    /// The Python name of the body parameter that switches a param-switched streaming method to
+    /// streaming (one of `params`): its tests come in two overloads.
+    pub stream_switch: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
