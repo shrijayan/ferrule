@@ -1,0 +1,26 @@
+openapi: 3.1.0
+info: {title: fx, version: '1'}
+servers: [{url: 'https://api.example.com'}]
+
+paths:
+  /sessions/{session_id}/peers:
+    post:
+      operationId: addPeers
+      parameters: [{name: session_id, in: path, required: true, schema: {type: string}}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {type: object, additionalProperties: {type: string}, description: Peers to add}
+      responses:
+        '200': {description: ok, content: {application/json: {schema: {type: object, properties: {id: {type: string}}}}}}
+    delete:
+      operationId: removePeers
+      parameters: [{name: session_id, in: path, required: true, schema: {type: string}}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {type: array, items: {type: string}, description: Peer IDs to remove}
+      responses:
+        '200': {description: ok, content: {application/json: {schema: {type: object, properties: {id: {type: string}}}}}}

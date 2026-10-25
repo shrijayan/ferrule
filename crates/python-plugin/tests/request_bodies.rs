@@ -59,3 +59,9 @@ fn check(shape: &str) {
 fn a_nullable_object_body_becomes_keyword_arguments() {
     check("nullable_object");
 }
+
+/// A map or array body (honcho `sessions.peers.add/remove`): one `body` keyword argument.
+#[test]
+fn a_map_or_array_body_is_one_body_argument() {
+    check("map_and_array");
+}
