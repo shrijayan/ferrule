@@ -55,6 +55,7 @@ pub enum Decl {
     Class(Class),
     Enum(EnumDecl),
     Union(UnionDecl),
+    Alias(AliasDecl),
 }
 
 impl Decl {
@@ -64,8 +65,19 @@ impl Decl {
             Self::Class(c) => &c.r,
             Self::Enum(e) => &e.r,
             Self::Union(u) => &u.r,
+            Self::Alias(a) => &a.r,
         }
     }
+}
+
+/// A named converter: `Extensions = ArrayOf[...]`, with the declarations its type names before it
+/// (an array response's `...Item` union).
+#[derive(Debug, Clone, PartialEq)]
+pub struct AliasDecl {
+    pub r: ClassRef,
+    pub description: String,
+    pub ty: RType,
+    pub before: Vec<Decl>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -102,7 +114,10 @@ pub struct EnumDecl {
 pub struct Variant {
     pub ty: RType,
     pub nullable: bool,
+    /// The variant's model description, written above it.
     pub description: String,
+    /// The discriminator value that selects it (`variant :text, -> { ... }`).
+    pub key: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -110,8 +125,31 @@ pub struct UnionDecl {
     pub r: ClassRef,
     pub description: String,
     pub see: Option<See>,
+    /// The discriminating property's wire name.
+    pub discriminator: Option<String>,
     pub variants: Vec<Variant>,
     pub nested: Vec<Decl>,
+    /// The converter constants of its array variants (`StringArray`), after everything else.
+    pub consts: Vec<AliasDecl>,
+}
+
+/// How a method sends its body.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Body {
+    None,
+    /// `body: parsed`: the parameters are the body's fields.
+    Fields,
+    /// `body: parsed[:name]`: one parameter is the body.
+    Param(String),
+}
+
+/// A method's arguments: its path parameters (in path order) and the rest (query parameters and
+/// body fields, Stainless's order), with their descriptions.
+#[derive(Debug, Clone, PartialEq)]
+pub struct Args {
+    pub path: Vec<RField>,
+    pub rest: Vec<RField>,
+    pub body: Body,
 }
 
 /// One file under `models/`: its path from `models/` without extension and its declaration.
@@ -177,18 +215,57 @@ impl<'a> Builder<'a> {
         }
     }
 
-    /// The class of a named model: `References` (aliased at the top of the module).
+    /// The class of a named model: `References`, or `Accounts::OriginRequest` for a model a
+    /// subresource declares (its parent's namespace, as Python's `types/accounts/`), aliased at the
+    /// top of the module.
     #[must_use]
     pub fn model_ref(&self, r: &TypeRef) -> ClassRef {
         let name = if r.name.written.is_empty() {
             class_name(&r.name.words, self.casings)
         } else {
-            r.name.written.clone()
+            class_name(&crate::naming::class_words(&r.name.written), self.casings)
         };
-        ClassRef {
-            segs: vec![name],
-            aliased: true,
+        let parents = &r.path[..r.path.len().saturating_sub(1)];
+        let mut segs: Vec<String> = parents
+            .iter()
+            .enumerate()
+            .filter(|(i, n)| !(*i == 0 && n.written == "shared"))
+            .map(|(_, n)| class_name(&words(n), self.casings))
+            .collect();
+        segs.push(name);
+        ClassRef { segs, aliased: true }
+    }
+
+    /// The type a reference to a named model has.
+    fn ref_type(&self, r: &TypeRef) -> RType {
+        let c = self.model_ref(r);
+        match self.client.model(r).map(|d| &d.ty) {
+            Some(Type::Enum { .. }) => RType::Enum(c),
+            Some(Type::Union(u)) => {
+                let variants = self.variant_types(&c, u);
+                RType::Union(c, variants)
+            }
+            Some(t @ (Type::Array { .. } | Type::Map { .. })) => match self.alias(c.clone(), t, String::new()) {
+                Decl::Alias(a) => RType::Alias(c, Box::new(a.ty)),
+                _ => RType::Unknown,
+            },
+            _ => RType::Model(c),
         }
+    }
+
+    /// The types of a union's variants, for YARD.
+    fn variant_types(&self, r: &ClassRef, u: &Union) -> Vec<RType> {
+        self.union(r.clone(), u, String::new(), None)
+            .variants
+            .into_iter()
+            .map(|v| {
+                if v.nullable {
+                    RType::Nullable(Box::new(v.ty))
+                } else {
+                    v.ty
+                }
+            })
+            .collect()
     }
 
     /// A field's Ruby type; nested declarations go to `nested`. `name` is the field's words, from
@@ -232,14 +309,7 @@ impl<'a> Builder<'a> {
                 RType::Array(Box::new(self.ty(site, At { name: &item, ..at }, items, nested, false)))
             }
             Type::Map { values } => RType::Map(Box::new(self.ty(site, at, values, nested, false))),
-            Type::Ref(r) => {
-                let c = self.model_ref(r);
-                match self.client.model(r).map(|d| &d.ty) {
-                    Some(Type::Enum { .. }) => RType::Enum(c),
-                    Some(Type::Union(_)) => RType::Union(c),
-                    _ => RType::Model(c),
-                }
-            }
+            Type::Ref(r) => self.ref_type(r),
             Type::Object(o) => {
                 let r = site.parent.child(&class_name(name, self.casings));
                 let class = self.class(r.clone(), o, see(), false);
@@ -255,8 +325,19 @@ impl<'a> Builder<'a> {
             Type::Union(u) => {
                 let r = site.parent.child(&class_name(name, self.casings));
                 let decl = self.union(r.clone(), u, doc.to_owned(), see());
+                let variants = decl
+                    .variants
+                    .iter()
+                    .map(|v| {
+                        if v.nullable {
+                            RType::Nullable(Box::new(v.ty.clone()))
+                        } else {
+                            v.ty.clone()
+                        }
+                    })
+                    .collect();
                 nested.push(Decl::Union(decl));
-                RType::Union(r)
+                RType::Union(r, variants)
             }
         }
     }
@@ -308,28 +389,63 @@ impl<'a> Builder<'a> {
             see_parent: None,
         };
         let mut nested = Vec::new();
-        let variants = u
-            .variants
-            .iter()
-            .map(|v| {
-                let name = v.name.as_ref().map_or_else(Vec::new, words);
-                let (ty, nullable) = match &v.ty {
-                    Type::Nullable { inner } => (self.ty(&site, At::plain(&name), inner, &mut nested, false), true),
-                    t => (self.ty(&site, At::plain(&name), t, &mut nested, false), false),
-                };
-                Variant {
-                    ty,
-                    nullable,
-                    description: String::new(),
+        let mut consts = Vec::new();
+        let mut variants = Vec::new();
+        for (i, v) in u.variants.iter().enumerate() {
+            // Stainless names an unnamed variant by position (`x-stainless-variantName` and the
+            // schema title are not in the model).
+            let name = v
+                .name
+                .as_ref()
+                .map(words)
+                .filter(|w| !w.is_empty())
+                .unwrap_or_else(|| split_words(&format!("UnionMember{i}")));
+            let (inner, nullable) = match &v.ty {
+                Type::Nullable { inner } => (&**inner, true),
+                t => (t, false),
+            };
+            let ty = match inner {
+                Type::Enum { members } if members.len() == 1 => RType::Const(members[0].value.clone()),
+                Type::Array { items } => {
+                    let item = self.ty(&site, At::plain(&name), items, &mut nested, false);
+                    let base = match &item {
+                        RType::Model(c) | RType::Enum(c) | RType::Union(c, _) | RType::Alias(c, _) => {
+                            c.name().to_owned()
+                        }
+                        scalar => scalar.rb_inner("").trim_start_matches("::Internal::Type::").to_owned(),
+                    };
+                    let cr = r.child(&format!("{base}Array"));
+                    let array = RType::Array(Box::new(item));
+                    consts.push(AliasDecl {
+                        r: cr.clone(),
+                        description: String::new(),
+                        ty: array.clone(),
+                        before: Vec::new(),
+                    });
+                    RType::Alias(cr, Box::new(array))
                 }
-            })
-            .collect();
+                t => self.ty(&site, At::plain(&name), t, &mut nested, false),
+            };
+            let description = match &v.ty {
+                Type::Ref(r) => self.client.model(r).map(|d| d.description.clone()).unwrap_or_default(),
+                Type::Object(o) => o.description.clone().unwrap_or_default(),
+                _ => String::new(),
+            };
+            variants.push(Variant {
+                ty,
+                nullable,
+                description,
+                key: u.discriminator.as_ref().and(v.discriminator_value.clone()),
+            });
+        }
         UnionDecl {
             r,
             description,
             see,
+            discriminator: u.discriminator.as_ref().map(|d| d.wire_name.clone()),
             variants,
             nested,
+            consts,
         }
     }
 
@@ -345,53 +461,156 @@ impl<'a> Builder<'a> {
             }
             Type::Enum { members } => Some(Decl::Enum(enum_decl(r, members, d.description.clone(), None))),
             Type::Union(u) => Some(Decl::Union(self.union(r, u, d.description.clone(), None))),
+            t @ (Type::Array { .. } | Type::Map { .. }) => Some(self.alias(r, t, d.description.clone())),
             _ => None,
         }
     }
 
-    /// The parameters class of `m`: path parameters first (without their descriptions), then the
-    /// query and body fields in Stainless's order.
+    /// A converter constant of an array or map type; an inline item union or object is declared
+    /// before it as `<Name>Item`.
+    fn alias(&self, r: ClassRef, ty: &Type, description: String) -> Decl {
+        let item = format!("{}Item", r.name());
+        let mut parent = r.clone();
+        parent.segs.pop();
+        let site = Site {
+            parent: &parent,
+            see_parent: None,
+        };
+        let mut before = Vec::new();
+        let words = crate::naming::class_words(&item);
+        let inner = match ty {
+            Type::Array { items } => {
+                RType::Array(Box::new(self.ty(&site, At::plain(&words), items, &mut before, false)))
+            }
+            Type::Map { values } => RType::Map(Box::new(self.ty(&site, At::plain(&words), values, &mut before, false))),
+            other => self.ty(&site, At::plain(&words), other, &mut before, false),
+        };
+        Decl::Alias(AliasDecl {
+            r,
+            description,
+            ty: inner,
+            before,
+        })
+    }
+
+    /// The object of a response, when Ruby declares a class for it: an object, or the empty
+    /// object Forge maps to a map of unknown values.
+    fn response_object(ty: &Type) -> Option<std::borrow::Cow<'_, Object>> {
+        match ty {
+            Type::Object(o) => Some(std::borrow::Cow::Borrowed(o)),
+            Type::Map { values }
+                if matches!(
+                    **values,
+                    Type::Scalar {
+                        scalar: ferrule_sdk_model::model::Scalar::Unknown
+                    }
+                ) =>
+            {
+                Some(std::borrow::Cow::Owned(Object::default()))
+            }
+            _ => None,
+        }
+    }
+
+    /// A method's arguments and its parameters class. The class holds the path parameters (in
+    /// path order, without their descriptions), then the query parameters and an inline object
+    /// body's fields in Stainless's order; a body that is a named object model becomes the
+    /// class's base instead, and a body of another named model (a union) is a method argument
+    /// only, named after the model.
     #[must_use]
-    pub fn params_class(&self, r: ClassRef, m: &Method, see: See) -> Class {
+    pub fn method_shape(&self, r: ClassRef, m: &Method, see: See) -> (Args, Class) {
         let site = Site {
             parent: &r,
             see_parent: None,
         };
         let mut nested = Vec::new();
-        let mut fields: Vec<RField> = m
+        let path: Vec<RField> = m
             .path_params
             .iter()
-            .map(|p| {
-                let mut f = self.field(&site, &p.field, &mut nested);
+            .map(|p| self.field(&site, &p.field, &mut nested))
+            .collect();
+        let mut own: Vec<Field> = m.query_params.iter().map(|p| p.field.clone()).collect();
+        let mut base = None;
+        let mut inherited = Vec::new();
+        let mut body = Body::None;
+        if let Some(b) = &m.body {
+            match (&b.ty, self.client.object_of(&b.ty)) {
+                (Type::Ref(rf), Some(o)) => {
+                    base = Some(self.model_ref(rf));
+                    let model_site = Site {
+                        parent: &self.model_ref(rf),
+                        see_parent: None,
+                    };
+                    inherited = sort_fields(&o.fields)
+                        .into_iter()
+                        .map(|f| self.field(&model_site, f, &mut Vec::new()))
+                        .collect();
+                    body = Body::Fields;
+                }
+                (_, Some(o)) => {
+                    own.extend(o.fields.iter().cloned());
+                    body = Body::Fields;
+                }
+                (ty, None) => {
+                    let wire = match ty {
+                        Type::Ref(rf) => snake(&crate::naming::class_words(self.model_ref(rf).name())),
+                        _ => "body".to_owned(),
+                    };
+                    let field = Field {
+                        name: ferrule_sdk_model::model::Name {
+                            words: split_words(&wire),
+                            written: wire.clone(),
+                        },
+                        wire_name: wire.clone(),
+                        required: b.required,
+                        deprecated: false,
+                        read_only: false,
+                        description: b.description.clone(),
+                        default: None,
+                        ty: ty.clone(),
+                    };
+                    inherited.push(self.field(&site, &field, &mut nested));
+                    body = Body::Param(wire);
+                }
+            }
+        }
+        let own: Vec<RField> = sort_fields(&own)
+            .into_iter()
+            .map(|f| self.field(&site, f, &mut nested))
+            .collect();
+        let mut fields: Vec<RField> = path
+            .iter()
+            .cloned()
+            .map(|mut f| {
                 f.description.clear();
                 f
             })
             .collect();
-        let mut rest: Vec<Field> = m.query_params.iter().map(|p| p.field.clone()).collect();
-        if let Some(o) = m.body.as_ref().and_then(|b| self.client.object_of(&b.ty)) {
-            rest.extend(o.fields.iter().cloned());
-        }
-        for f in sort_fields(&rest) {
-            fields.push(self.field(&site, f, &mut nested));
-        }
-        Class {
-            base: None,
+        fields.extend(own.iter().cloned());
+        let mut rest = own;
+        rest.extend(inherited);
+        let class = Class {
+            base,
             description: String::new(),
             see: Some(see),
             fields,
             nested,
             params: true,
             r,
-        }
+        };
+        (Args { path, rest, body }, class)
     }
 
     /// The class (or other declaration) of an inline response.
     #[must_use]
     pub fn response_decl(&self, r: ClassRef, ty: &Type, see: See) -> Option<Decl> {
+        if let Some(o) = Self::response_object(ty) {
+            return Some(Decl::Class(self.class(r, &o, Some(see), false)));
+        }
         match ty {
-            Type::Object(o) => Some(Decl::Class(self.class(r, o, Some(see), false))),
             Type::Enum { members } => Some(Decl::Enum(enum_decl(r, members, String::new(), Some(see)))),
             Type::Union(u) => Some(Decl::Union(self.union(r, u, String::new(), Some(see)))),
+            Type::Array { .. } => Some(self.alias(r, ty, String::new())),
             _ => None,
         }
     }
@@ -399,10 +618,16 @@ impl<'a> Builder<'a> {
     /// The type of a method's response as the resource names it.
     #[must_use]
     pub fn response_type(&self, r: &ClassRef, ty: &Type) -> RType {
+        if Self::response_object(ty).is_some() {
+            return RType::Model(r.clone());
+        }
         match ty {
-            Type::Object(_) => RType::Model(r.clone()),
             Type::Enum { .. } => RType::Enum(r.clone()),
-            Type::Union(_) => RType::Union(r.clone()),
+            Type::Union(u) => RType::Union(r.clone(), self.variant_types(r, u)),
+            Type::Array { .. } => match self.alias(r.clone(), ty, String::new()) {
+                Decl::Alias(a) => RType::Alias(r.clone(), Box::new(a.ty)),
+                _ => RType::Unknown,
+            },
             other => {
                 let site = Site {
                     parent: r,

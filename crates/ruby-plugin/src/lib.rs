@@ -50,7 +50,15 @@ pub struct RubyOutput {
 pub fn generate(client: &Client, meta: &RubyMeta) -> Result<RubyOutput, FerruleError> {
     let target = ruby_target(client, meta)?;
     // Only what stainless.yml generates for Ruby (`skip`/`only`).
-    let client = &client.for_target("ruby");
+    let mut ruby = client.for_target("ruby");
+    // Stainless declares every model stainless.yml names for the target, also those no method
+    // reaches (`for_target` drops them; Phase 1 gap list).
+    for d in client.models.iter().filter(|d| d.is_for("ruby")) {
+        if !ruby.models.iter().any(|k| k.r#ref == d.r#ref) {
+            ruby.models.push(d.clone());
+        }
+    }
+    let client = &ruby;
     let g = Gen::new(client, &target);
     let mut files = vec![emit::index::lib_file(&g)];
     files.extend(emit::index::models_files(&g));

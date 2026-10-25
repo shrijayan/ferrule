@@ -68,6 +68,7 @@ fn decl(g: &Gen<'_>, out: &mut String, indent: usize, d: &Decl, view: View) {
         (Decl::Class(c), View::Rbs) => rbs_class(g, out, indent, c),
         (Decl::Enum(e), _) => enum_decl(g, out, indent, e, view),
         (Decl::Union(u), _) => union_decl(g, out, indent, u, view),
+        (Decl::Alias(a), _) => alias_decl(g, out, indent, a, view),
     }
 }
 
@@ -140,26 +141,22 @@ fn yard_param(g: &Gen<'_>, f: &RField) -> String {
     if f.nullable { format!("{t}, nil") } else { t }
 }
 
-/// A description on one line.
-#[must_use]
-pub fn collapse(description: &str) -> String {
-    description
-        .split(ferrule_sdk_model::js::is_space)
-        .filter(|w| !w.is_empty())
-        .collect::<Vec<_>>()
-        .join(" ")
-}
-
-/// A description as one line, cut at 80 columns, for `@param` tags.
+/// A description as `@param` tags show it: its first line, cut at 80 columns.
 #[must_use]
 pub fn short(description: &str) -> String {
-    let joined = collapse(description);
-    let units: Vec<u16> = joined.encode_utf16().collect();
+    let first = description.split('\n').next().unwrap_or("");
+    let units: Vec<u16> = first.encode_utf16().collect();
     if units.len() <= COMMENT_WIDTH {
-        joined
+        first.to_owned()
     } else {
         String::from_utf16_lossy(&units[..COMMENT_WIDTH])
     }
+}
+
+/// Whether [`short`] leaves part of `description` out, so the docs say some were truncated.
+#[must_use]
+pub fn truncated(description: &str) -> bool {
+    short(description) != description
 }
 
 /// `@param` lines: blank comment lines between them when any has a description.
@@ -242,10 +239,7 @@ fn rb_class(g: &Gen<'_>, out: &mut String, indent: usize, c: &Class) {
     }
     let _ = writeln!(out, "{inner}# @!method initialize({})", sig.join(", "));
     let mut intro = Vec::new();
-    if c.fields
-        .iter()
-        .any(|f| short(&f.description) != collapse(&f.description))
-    {
+    if c.fields.iter().any(|f| truncated(&f.description)) {
         intro.extend(wrap(
             &format!(
                 "Some parameter documentations has been truncated, see {{{}}} for more details.",
@@ -557,23 +551,139 @@ fn enum_decl(g: &Gen<'_>, out: &mut String, indent: usize, e: &EnumDecl, view: V
     let _ = writeln!(out, "{pad}end");
 }
 
+/// A union variant's converter: `String`, `-> { X }`, `:text, -> { X }` with a discriminator.
+fn rb_variant(g: &Gen<'_>, v: &crate::tree::Variant) -> String {
+    let ty = match &v.ty {
+        RType::Alias(c, _) => format!("-> {{ {} }}", c.doc(&g.m)),
+        t => t.rb_field(&g.m),
+    };
+    match &v.key {
+        Some(k) => format!("{}, {ty}", crate::printer::symbol(k)),
+        None => ty,
+    }
+}
+
 fn union_decl(g: &Gen<'_>, out: &mut String, indent: usize, u: &UnionDecl, view: View) {
     let pad = " ".repeat(indent);
     let inner = " ".repeat(indent + 2);
-    if view != View::Rbs {
+    let m = &g.m;
+    let types: Vec<RType> = u
+        .variants
+        .iter()
+        .map(|v| {
+            if v.nullable {
+                RType::Nullable(Box::new(v.ty.clone()))
+            } else {
+                v.ty.clone()
+            }
+        })
+        .collect();
+    if view == View::Rbs {
+        let alias = crate::naming::rbs_alias(u.r.name());
+        let list: Vec<String> = types.iter().map(|t| t.rbs(m)).collect();
+        let _ = writeln!(out, "{pad}type {alias} = {}\n", list.join(" | "));
+    } else {
         header(g, out, indent, &u.description, u.see.as_ref(), view);
     }
     let _ = writeln!(out, "{pad}module {}", u.r.name());
-    let _ = writeln!(out, "{inner}extend {}::Internal::Type::Union", g.m);
-    if view == View::Rb {
-        for v in &u.variants {
-            out.push('\n');
-            let _ = writeln!(out, "{inner}variant {}", v.ty.rb_field(&g.m));
+    let _ = writeln!(out, "{inner}extend {m}::Internal::Type::Union");
+    match view {
+        View::Rb => {
+            if let Some(d) = &u.discriminator {
+                let _ = writeln!(out, "\n{inner}discriminator {}", crate::printer::symbol(d));
+            }
+            for v in &u.variants {
+                out.push('\n');
+                comment(out, indent + 2, &wrap(&v.description, COMMENT_WIDTH));
+                let _ = writeln!(out, "{inner}variant {}", rb_variant(g, v));
+            }
         }
+        View::Rbi => {
+            let list: Vec<String> = types.iter().map(|t| t.rbi(m)).collect();
+            let _ = writeln!(out, "\n{inner}Variants = T.type_alias {{ T.any({}) }}", list.join(", "));
+        }
+        View::Rbs => {}
     }
     for n in &u.nested {
         out.push('\n');
         decl(g, out, indent + 2, n, view);
     }
+    match view {
+        View::Rb => {
+            let list: Vec<String> = types.iter().map(|t| t.yard(m)).collect();
+            let _ = writeln!(
+                out,
+                "\n{inner}# @!method self.variants\n{inner}#   @return [Array({})]",
+                list.join(", ")
+            );
+        }
+        View::Rbi => {
+            let _ = writeln!(
+                out,
+                "\n{inner}sig {{ override.returns(T::Array[{}::Variants]) }}\n{inner}def self.variants\n{inner}end",
+                u.r.code(m)
+            );
+        }
+        View::Rbs => {
+            let _ = writeln!(out, "\n{inner}def self?.variants: -> ::Array[{}]", u.r.rbs_alias(m));
+        }
+    }
+    for c in &u.consts {
+        out.push('\n');
+        match view {
+            View::Rb => {
+                let _ = writeln!(out, "{inner}# @type [{m}::Internal::Type::Converter]");
+                let value = crate::doc::text(c.ty.rb_const(m));
+                let doc = crate::doc::assign(c.r.name(), value);
+                let _ = writeln!(out, "{inner}{}", crate::doc::print_rb(&doc, indent + 2));
+            }
+            View::Rbi => {
+                let _ = writeln!(
+                    out,
+                    "{inner}{} = T.let({}, {m}::Internal::Type::Converter)",
+                    c.r.name(),
+                    c.ty.rb_inner(m)
+                );
+            }
+            View::Rbs => {
+                let _ = writeln!(out, "{inner}{}: {m}::Internal::Type::Converter", c.r.name());
+            }
+        }
+    }
     let _ = writeln!(out, "{pad}end");
+}
+
+/// A named converter constant, after the declarations it names.
+fn alias_decl(g: &Gen<'_>, out: &mut String, indent: usize, a: &crate::tree::AliasDecl, view: View) {
+    let pad = " ".repeat(indent);
+    let m = &g.m;
+    for d in &a.before {
+        decl(g, out, indent, d, view);
+        out.push('\n');
+    }
+    let name = a.r.name();
+    match view {
+        View::Rb => {
+            comment(out, indent, &wrap(&a.description, COMMENT_WIDTH));
+            let _ = writeln!(out, "{pad}# @type [{m}::Internal::Type::Converter]");
+            let value = crate::doc::text(a.ty.rb_const(m));
+            let _ = writeln!(
+                out,
+                "{pad}{}",
+                crate::doc::print_rb(&crate::doc::assign(name, value), indent)
+            );
+        }
+        View::Rbi => {
+            comment(out, indent, &wrap(&a.description, COMMENT_WIDTH));
+            let _ = writeln!(
+                out,
+                "{pad}{name} = T.let({}, {m}::Internal::Type::Converter)",
+                a.ty.rb_inner(m)
+            );
+        }
+        View::Rbs => {
+            let _ = writeln!(out, "{pad}type {} = {}\n", crate::naming::rbs_alias(name), a.ty.rbs(m));
+            let _ = writeln!(out, "{pad}{name}: {m}::Internal::Type::Converter");
+        }
+    }
 }
