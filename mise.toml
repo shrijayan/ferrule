@@ -5,6 +5,8 @@ python = "3.12"
 uv = "0.11.28"
 lefthook = "latest"
 gitleaks = "latest"
+# Same channel as rust-toolchain.toml and the pinned Forge commit (ADR 0014).
+rust = "1.99.0"
 
 [tasks."forge:setup"]
 description = "Clone and build the pinned Forge commit into .cache/forge"
@@ -31,9 +33,15 @@ run = "pnpm -r --if-present test"
 [tasks."test:py"]
 run = "uv run pytest"
 
+[tasks."lint:rs"]
+run = ["cargo fmt --all --check", "cargo clippy --workspace --all-targets --locked -- -D warnings"]
+
+[tasks."test:rs"]
+run = "cargo test --workspace --locked"
+
 [tasks.check]
 description = "Everything ci.yml runs"
-depends = ["lint:ts", "lint:py", "typecheck:ts", "typecheck:py", "test:ts", "test:py"]
+depends = ["lint:ts", "lint:py", "lint:rs", "typecheck:ts", "typecheck:py", "test:ts", "test:py", "test:rs"]
 
 [tasks."forge:telemetry"]
 description = "Fail if Forge gains a network-capable dependency (ADR 0006)"
