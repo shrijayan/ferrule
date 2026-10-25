@@ -29,9 +29,6 @@ jobs:
       runtime: ${{ steps.rp.outputs['runtime--release_created'] }}
       runtime_tag: ${{ steps.rp.outputs['runtime--tag_name'] }}
       runtime_sha: ${{ steps.rp.outputs['runtime--sha'] }}
-      plugin: ${{ steps.rp.outputs['python-plugin--release_created'] }}
-      plugin_tag: ${{ steps.rp.outputs['python-plugin--tag_name'] }}
-      plugin_sha: ${{ steps.rp.outputs['python-plugin--sha'] }}
     steps:
       - id: rp
         uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
@@ -74,7 +71,6 @@ jobs:
       - if: steps.gate.outputs.go == 'true'
         uses: ./.github/actions/setup
         with:
-          forge: "false"
           install: "false"
       - name: Build sdist and wheel
         if: steps.gate.outputs.go == 'true'
@@ -155,37 +151,3 @@ jobs:
           TAG: ${{ steps.gate.outputs.tag }}
           REPO: ${{ github.repository }}
         run: gh release upload "$TAG" dist/*.sigstore.json sbom/*.cdx.json --repo "$REPO" --clobber
-
-  publish-npm:
-    name: publish @ferrule/python-plugin to npm
-    needs: release-please
-    if: needs.release-please.outputs.plugin == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    environment:
-      name: release
-    permissions:
-      contents: write # attach SBOM to the GitHub release
-      id-token: write # npm provenance / trusted publishing
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-          ref: ${{ needs.release-please.outputs.plugin_sha }}
-      - uses: ./.github/actions/setup
-      - name: Build
-        run: pnpm --filter @ferrule/python-plugin --if-present run build
-      - name: CycloneDX SBOM
-        working-directory: python-plugin
-        run: pnpm dlx @cyclonedx/cyclonedx-npm@4 --output-format JSON --output-file python-plugin.cdx.json --omit dev
-      - name: Publish with provenance
-        working-directory: python-plugin
-        env:
-          NPM_CONFIG_PROVENANCE: "true"
-        run: pnpm publish --access public --provenance --no-git-checks
-      - name: Attach SBOM to the GitHub release
-        env:
-          GH_TOKEN: ${{ github.token }}
-          TAG: ${{ needs.release-please.outputs.plugin_tag }}
-          REPO: ${{ github.repository }}
-        run: gh release upload "$TAG" python-plugin/python-plugin.cdx.json --repo "$REPO" --clobber

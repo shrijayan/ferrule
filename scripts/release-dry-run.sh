@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Local rehearsal of release.yml: build Python dists, dry-run npm packs, SBOM, workflow audit.
+# Local rehearsal of release.yml: build Python dists and ferrule-gen, SBOM, workflow audit.
 # Publishes nothing. Packages that do not exist yet are skipped with a note.
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -22,14 +22,9 @@ for pkg in runtime migrate; do
 done
 ls -1 dist 2>/dev/null | sed 's/^/  /' || true
 
-step "Node packages (pnpm pack --dry-run)"
-for pkg in python-plugin converter; do
-  if [ -f "$pkg/package.json" ]; then
-    (cd "$pkg" && pnpm pack --dry-run)
-  else
-    note "skip $pkg: $pkg/package.json not found"
-  fi
-done
+step "ferrule-gen (cargo build --release)"
+cargo build --release --locked --quiet -p ferrule-gen
+note "$(target/release/ferrule-gen --version)"
 
 step "CycloneDX SBOM"
 if [ "$built_py" -eq 1 ] && uvx --quiet cyclonedx-py --version >/dev/null 2>&1; then
