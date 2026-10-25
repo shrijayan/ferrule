@@ -149,13 +149,19 @@ fn ends_with_ignore_case(s: &str, suffix: &str) -> bool {
         && s[s.len() - suffix.len()..].eq_ignore_ascii_case(suffix)
 }
 
-/// The singular of the last word, as Stainless names array item classes: `agencies` -> `agency`.
+/// The singular of the last word, as Stainless names array item classes: `agencies` -> `agency`,
+/// `branches` -> `branch` (knock-mgmt `Branch`), `submatches` -> `submatch` (perplexity).
 #[must_use]
 pub fn singular<S: AsRef<str>>(words: &[S]) -> Vec<String> {
     let mut out: Vec<String> = words.iter().map(|w| w.as_ref().to_owned()).collect();
     let Some(last) = out.pop() else { return out };
     let s = if ends_with_ignore_case(&last, "ies") {
         format!("{}y", &last[..last.len() - 3])
+    } else if ["ches", "shes", "xes", "sses", "zzes"]
+        .iter()
+        .any(|x| ends_with_ignore_case(&last, x))
+    {
+        last[..last.len() - 2].to_owned()
     } else if ["ss", "us", "is"].iter().any(|x| ends_with_ignore_case(&last, x)) {
         last
     } else if ends_with_ignore_case(&last, "s") {

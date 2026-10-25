@@ -212,16 +212,21 @@ impl<'a> Named<'a> {
 
     fn visit_field<F: FieldLike>(&mut self, f: &'a F, prefix: &str) {
         let words = split_words(f.wire_name());
-        // `T[]` and `T[] | null` alike: the item class is named in the singular.
-        let in_array = match f.ty() {
+        // `T[]`, `T[] | null` and a map of `T[]` alike: the item class is named in the singular
+        // (knock-mgmt `example_payloads: Dict[str, List[ExamplePayload]]`).
+        let is_list = |t: &SdkType| match t {
             SdkType::Array(_) => true,
+            SdkType::Map(values) => matches!(**values, SdkType::Array(_)),
+            _ => false,
+        };
+        let in_array = match f.ty() {
             SdkType::Union { variants, .. } => {
                 let mut rest = variants
                     .iter()
                     .filter(|v| !matches!(v, SdkType::Primitive(SdkPrimitive::Null)));
-                matches!((rest.next(), rest.next()), (Some(SdkType::Array(_)), None))
+                matches!((rest.next(), rest.next()), (Some(t), None) if is_list(t))
             }
-            _ => false,
+            t => is_list(t),
         };
         let segment = class_segment(&if in_array { singular(&words) } else { words });
         self.visit_type(f.ty(), &format!("{prefix}{segment}"));
