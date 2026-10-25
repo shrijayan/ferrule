@@ -1,0 +1,216 @@
+{
+  "components": {
+    "schemas": {
+      "CompactedResponse": {
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "output": {
+            "items": {
+              "$ref": "#/components/schemas/OutputUnion"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "output"
+        ],
+        "type": "object",
+        "x-fern-type-name": "CompactedResponse"
+      },
+      "Compaction": {
+        "properties": {
+          "encrypted_content": {
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "compaction"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "encrypted_content",
+          "type"
+        ],
+        "type": "object"
+      },
+      "FunctionToolCall": {
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "function_call"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "type"
+        ],
+        "type": "object"
+      },
+      "MessageOutput": {
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "message"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "type"
+        ],
+        "type": "object"
+      },
+      "OutputUnion": {
+        "anyOf": [
+          {
+            "discriminator": {
+              "mapping": {
+                "function_call": "#/components/schemas/FunctionToolCall",
+                "message": "#/components/schemas/MessageOutput"
+              },
+              "propertyName": "type"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/MessageOutput"
+              },
+              {
+                "$ref": "#/components/schemas/FunctionToolCall"
+              }
+            ]
+          },
+          {
+            "$ref": "#/components/schemas/Compaction"
+          }
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "fx",
+    "version": "1"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/responses/compact": {
+      "post": {
+        "operationId": "compactResponse",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompactedResponse"
+                }
+              }
+            },
+            "description": "ok"
+          }
+        },
+        "summary": "Compacts a conversation.",
+        "x-fern-sdk-group-name": [
+          "responses"
+        ],
+        "x-fern-sdk-method-name": "compact",
+        "x-ferrule-client": {
+          "defaultEnvironment": "production",
+          "defaultHeaders": {},
+          "envPrefix": "FX",
+          "environments": [
+            {
+              "name": "production",
+              "url": "https://api.example.com"
+            }
+          ],
+          "name": "fx",
+          "omitPlatformHeaders": false,
+          "opts": [],
+          "query": {
+            "arrayFormat": "comma",
+            "nestedFormat": "brackets"
+          },
+          "retries": {
+            "initialDelaySeconds": 0.5,
+            "maxDelaySeconds": 8,
+            "maxRetries": 2
+          },
+          "security": [],
+          "securitySchemes": {},
+          "timeoutSeconds": 60
+        },
+        "x-ferrule-method-name": "compact",
+        "x-ferrule-method-order": 0,
+        "x-ferrule-models": {
+          "CompactedResponse": {
+            "module": "compacted_response",
+            "name": "CompactedResponse"
+          }
+        },
+        "x-ferrule-package": {
+          "name": "fx",
+          "repo": "fx/fx-python"
+        },
+        "x-ferrule-resource": {
+          "order": [
+            0
+          ],
+          "path": [
+            "responses"
+          ]
+        }
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.example.com"
+    }
+  ],
+  "x-ferrule-client": {
+    "defaultEnvironment": "production",
+    "defaultHeaders": {},
+    "envPrefix": "FX",
+    "environments": [
+      {
+        "name": "production",
+        "url": "https://api.example.com"
+      }
+    ],
+    "name": "fx",
+    "omitPlatformHeaders": false,
+    "opts": [],
+    "query": {
+      "arrayFormat": "comma",
+      "nestedFormat": "brackets"
+    },
+    "retries": {
+      "initialDelaySeconds": 0.5,
+      "maxDelaySeconds": 8,
+      "maxRetries": 2
+    },
+    "security": [],
+    "securitySchemes": {},
+    "timeoutSeconds": 60
+  },
+  "x-ferrule-config": {
+    "edition": "2025-10-08",
+    "packageName": "fx",
+    "projectName": "fx",
+    "pythonEdition": "python.2025-10-08",
+    "version": 1
+  }
+}

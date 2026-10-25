@@ -128,3 +128,11 @@ fn an_object_with_extra_properties_declares_pydantic_extra() {
 fn a_params_object_with_extra_properties_is_a_typed_dict_or_a_dict() {
     check("extra_properties_params");
 }
+
+/// A union member that is itself a union is flattened into it, the inner discriminator dropped
+/// (ogx `OpenAIResponseMessageOutputUnion`: `anyOf: [oneOf: [8 variants], ...]` is one
+/// `Output: TypeAlias = Union[...]` of 11 classes).
+#[test]
+fn a_union_inside_a_union_is_flattened() {
+    check("nested_union");
+}
