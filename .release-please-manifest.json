@@ -1,6 +1,4 @@
 {
   "migrate": "0.0.0",
-  "runtime": "0.0.0",
-  "python-plugin": "0.0.0",
-  "converter": "0.0.0"
+  "runtime": "0.0.0"
 }

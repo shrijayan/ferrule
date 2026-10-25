@@ -7,13 +7,37 @@
   "bump-patch-for-minor-pre-major": true,
   "sequential-calls": true,
   "changelog-sections": [
-    { "type": "feat", "section": "Features" },
-    { "type": "fix", "section": "Bug Fixes" },
-    { "type": "perf", "section": "Performance" },
-    { "type": "revert", "section": "Reverts" },
-    { "type": "docs", "section": "Documentation", "hidden": true },
-    { "type": "chore", "section": "Miscellaneous", "hidden": true },
-    { "type": "ci", "section": "CI", "hidden": true }
+    {
+      "type": "feat",
+      "section": "Features"
+    },
+    {
+      "type": "fix",
+      "section": "Bug Fixes"
+    },
+    {
+      "type": "perf",
+      "section": "Performance"
+    },
+    {
+      "type": "revert",
+      "section": "Reverts"
+    },
+    {
+      "type": "docs",
+      "section": "Documentation",
+      "hidden": true
+    },
+    {
+      "type": "chore",
+      "section": "Miscellaneous",
+      "hidden": true
+    },
+    {
+      "type": "ci",
+      "section": "CI",
+      "hidden": true
+    }
   ],
   "packages": {
     "migrate": {
@@ -25,16 +49,6 @@
       "release-type": "python",
       "package-name": "ferrule-runtime",
       "component": "ferrule-runtime"
-    },
-    "python-plugin": {
-      "release-type": "node",
-      "package-name": "@ferrule/python-plugin",
-      "component": "python-plugin"
-    },
-    "converter": {
-      "release-type": "node",
-      "package-name": "@ferrule/converter",
-      "component": "converter"
     }
   }
 }
