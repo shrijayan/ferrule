@@ -42,7 +42,7 @@ fn isaacus_matches_the_oracle() {
         assert!(differ.iter().any(|d| d == p), "{p} is listed as deliberate but matches");
     }
     // Every other oracle file is the runtime (rendered by ferrule_runtime) or listed above.
-    let runtime = support::runtime_files();
+    let runtime = support::runtime_files(ferrule_ts_plugin::Layout::Typescript);
     let missing: Vec<String> = support::tree(&o.sdk)
         .into_iter()
         .filter(|p| !files.iter().any(|(f, _)| f == p))

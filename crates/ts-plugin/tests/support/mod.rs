@@ -9,7 +9,7 @@ use std::path::{Path, PathBuf};
 use ferrule_converter::Value as CValue;
 use ferrule_sdk_model::Client;
 use ferrule_ts_plugin::meta::Stats;
-use ferrule_ts_plugin::{SpecExtras, TsMeta};
+use ferrule_ts_plugin::{Layout, SpecExtras, TsMeta};
 use serde_json::Value;
 
 pub fn root() -> PathBuf {
@@ -136,9 +136,14 @@ pub fn tree(dir: &Path) -> Vec<String> {
     out
 }
 
-/// The files `runtime/typescript/template` renders (paths from the SDK root).
-pub fn runtime_files() -> Vec<String> {
-    tree(&root().join("runtime/typescript/template"))
+/// The files the layout's runtime template renders (`runtime/typescript/template`,
+/// `runtime/typescript-node/template`; paths from the SDK root).
+pub fn runtime_files(layout: Layout) -> Vec<String> {
+    let dir = match layout {
+        Layout::Typescript => "runtime/typescript/template",
+        Layout::Node => "runtime/typescript-node/template",
+    };
+    tree(&root().join(dir))
 }
 
 /// Writes `files` under `target/ts-oracle/<name>` for inspection.

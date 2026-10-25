@@ -36,6 +36,8 @@ pub struct Args {
     pub positional: Vec<Expr>,
     /// The params object's properties, empty when there are none.
     pub props: Vec<(String, Expr)>,
+    /// Whether a value comes from an example in the spec rather than from its type.
+    pub from_spec: bool,
 }
 
 impl Args {
@@ -80,7 +82,14 @@ impl Examples<'_, '_> {
                     props: Vec::new(),
                     expanded: false,
                 }),
-                _ => Expr::Num("0".to_owned()),
+                // A number is its `minimum`, else its `maximum`, else 0 (as for Python).
+                _ => {
+                    let bound = schema
+                        .map(|s| extras.resolve(s))
+                        .and_then(|s| s.get("minimum").or_else(|| s.get("maximum")))
+                        .and_then(Value::as_f64);
+                    Expr::Num(bound.map_or_else(|| "0".to_owned(), js::number_to_string))
+                }
             },
             Type::Enum { members } => match members.first().map(|m| &m.value) {
                 Some(Literal::String(s)) => Expr::Str(s.clone()),
@@ -118,15 +127,18 @@ impl Examples<'_, '_> {
         }
     }
 
-    /// The arguments of a call to `m`.
+    /// The arguments of a call to `m`. The `node` layout uses a path parameter's example but not a
+    /// query parameter's (onebusaway-typescript: `tripId: 'tripId'` beside a spec example).
     #[must_use]
     pub fn args(&self, m: &Method, fill: Fill) -> Args {
         let extras = self.ctx.extras;
-        let positional = crate::emit::resource::positional(m)
+        let mut from_spec = false;
+        let positional = crate::emit::resource::positional(self.ctx, m)
             .iter()
             .map(|p| {
                 let schema = extras.parameter(&m.pointer, "path", &p.field.wire_name);
                 let ex = schema.and_then(|s| extras.parameter_example(s));
+                from_spec |= ex.is_some();
                 ex.map_or_else(
                     || self.value(&p.field.ty, None, &p.field.wire_name, fill),
                     |v| json_expr(&v),
@@ -134,9 +146,10 @@ impl Examples<'_, '_> {
             })
             .collect();
         let mut props = Vec::new();
-        for p in crate::emit::resource::path_in_params(m) {
+        for p in crate::emit::resource::path_in_params(self.ctx, m) {
             let schema = extras.parameter(&m.pointer, "path", &p.field.wire_name);
             let ex = schema.and_then(|s| extras.parameter_example(s));
+            from_spec |= ex.is_some();
             let value = ex.map_or_else(
                 || self.value(&p.field.ty, None, &p.field.wire_name, fill),
                 |v| json_expr(&v),
@@ -148,9 +161,15 @@ impl Examples<'_, '_> {
                 continue;
             }
             let schema = extras.parameter(&m.pointer, "query", &p.field.wire_name);
-            let ex = schema.and_then(|s| extras.parameter_example(s));
+            let ex = schema
+                .filter(|_| !self.ctx.node())
+                .and_then(|s| extras.parameter_example(s));
+            from_spec |= ex.is_some();
             let value = ex.map_or_else(
-                || self.value(&p.field.ty, None, &p.field.wire_name, fill),
+                || {
+                    let s = schema.and_then(|s| s.get("schema"));
+                    self.value(&p.field.ty, s, &p.field.wire_name, fill)
+                },
                 |v| json_expr(&v),
             );
             props.push((js::property_key(&p.field.wire_name), value));
@@ -166,16 +185,17 @@ impl Examples<'_, '_> {
                 if fill == Fill::Required && !f.required {
                     continue;
                 }
-                let value = body_example.as_ref().and_then(|e| e.get(&f.wire_name)).map_or_else(
-                    || {
-                        let s = body_schema.and_then(|b| extras.property(b, &f.wire_name));
-                        self.value(&f.ty, s, &f.wire_name, fill)
-                    },
-                    json_expr,
-                );
+                let given = body_example.as_ref().and_then(|e| e.get(&f.wire_name));
+                let s = body_schema.and_then(|b| extras.property(b, &f.wire_name));
+                from_spec |= given.is_some() || s.and_then(|s| extras.example(s)).is_some();
+                let value = given.map_or_else(|| self.value(&f.ty, s, &f.wire_name, fill), json_expr);
                 props.push((js::property_key(&f.wire_name), value));
             }
         }
-        Args { positional, props }
+        Args {
+            positional,
+            props,
+            from_spec,
+        }
     }
 }

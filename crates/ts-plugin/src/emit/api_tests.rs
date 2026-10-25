@@ -1,11 +1,16 @@
 //! `tests/api-resources/**`: one test file per resource with methods, calling each method with
-//! only its required parameters and with all of them, against the mock server.
+//! only its required parameters and with all of them, against the mock server. The `node` layout
+//! tests a method without required params by calling it bare, then passing request options in
+//! the params' place and after the params (`isRequestOptions`).
 
 use super::{File, HEADER};
 use crate::ctx::{Ctx, TsResource};
+use crate::doc::{concat, group, text};
+use crate::emit::resource::{ParamsArg, plan_methods};
 use crate::examples::{Examples, Fill};
 use crate::naming::{camel_case, words_of};
-use crate::pretty::{Expr, WIDTH, const_decl, render};
+use crate::pretty::{Expr, WIDTH, call_arguments, const_decl, render};
+use crate::types::Mapper;
 
 /// `'My API Key'` for `api_key`: the placeholder the generated tests construct the client with.
 #[must_use]
@@ -68,16 +73,100 @@ fn test_head(ctx: &Ctx<'_>, name: &str) -> Vec<String> {
     }
 }
 
+/// A test that a call with request options pointing at an unknown path fails with a 404.
+fn rejects_test(ctx: &Ctx<'_>, name: &str, callee: &str, args: Vec<Expr>) -> Vec<String> {
+    let mut t = test_head(ctx, name);
+    t.push(
+        "    // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error"
+            .to_owned(),
+    );
+    let call = Expr::Call(callee.to_owned(), args);
+    let not_found = Expr::Raw(format!("{}.NotFoundError", ctx.settings.client_class));
+    let doc = concat(vec![
+        text("await "),
+        group(vec![
+            text("expect"),
+            call_arguments(&[call]),
+            text(".rejects.toThrow"),
+            call_arguments(&[not_found]),
+        ]),
+        text(";"),
+    ]);
+    t.push(render(&doc, 4, WIDTH));
+    t.push("  });".to_owned());
+    t
+}
+
+/// The tests of a `node`-layout resource's methods.
+fn node_tests(ctx: &Ctx<'_>, r: &TsResource<'_>, accessor: &str) -> Vec<Vec<String>> {
+    let ex = Examples { ctx };
+    let mut mapper = Mapper::new(ctx, &r.module());
+    let unknown_path = || Expr::object(vec![("path".to_owned(), Expr::str("/_stainless_unknown_path"))]);
+    let mut tests: Vec<Vec<String>> = Vec::new();
+    for plan in plan_methods(ctx, r, &mut mapper) {
+        let callee = format!("{accessor}.{}", plan.name);
+        let required = ex.args(plan.m, Fill::Required);
+        let all = ex.args(plan.m, Fill::All);
+        let bare = plan.params_arg == ParamsArg::None || !plan.params_required;
+        let head = if bare {
+            plan.name.clone()
+        } else {
+            format!("{}: only required params", plan.name)
+        };
+        let mut t = test_head(ctx, &head);
+        let call = Expr::Call(callee.clone(), required.exprs());
+        t.push(render(&const_decl("responsePromise", &call), 4, WIDTH));
+        t.extend(PROMISE_CHECKS.iter().map(|l| format!("    {l}")));
+        t.push("  });".to_owned());
+        tests.push(t);
+        if !bare {
+            let mut t = test_head(ctx, &format!("{}: required and optional params", plan.name));
+            let call = Expr::Await(Box::new(Expr::Call(callee, all.exprs())));
+            t.push(render(&const_decl("response", &call), 4, WIDTH));
+            t.push("  });".to_owned());
+            tests.push(t);
+            continue;
+        }
+        let mut args = required.positional.clone();
+        args.push(unknown_path());
+        tests.push(rejects_test(
+            ctx,
+            &format!("{}: request options instead of params are passed correctly", plan.name),
+            &callee,
+            args,
+        ));
+        if plan.params_arg != ParamsArg::None {
+            let mut args = all.exprs();
+            args.push(unknown_path());
+            tests.push(rejects_test(
+                ctx,
+                &format!("{}: request options and params are passed correctly", plan.name),
+                &callee,
+                args,
+            ));
+        }
+    }
+    tests
+}
+
 /// The test file of one resource.
 #[must_use]
 pub fn emit_tests(ctx: &Ctx<'_>, r: &TsResource<'_>) -> String {
     let chain = ctx.chain(r);
     let accessor = r.accessor(&chain);
     let ex = Examples { ctx };
-    let methods = super::resource::sorted_methods(r);
-    let mut tests: Vec<Vec<String>> = Vec::new();
+    let methods = if ctx.node() {
+        Vec::new()
+    } else {
+        super::resource::sorted_methods(r)
+    };
+    let mut tests: Vec<Vec<String>> = if ctx.node() {
+        node_tests(ctx, r, &accessor)
+    } else {
+        Vec::new()
+    };
     for m in methods {
-        let name = camel_case(&words_of(&m.name), &ctx.client.casings);
+        let name = ctx.member(&words_of(&m.name));
         let callee = format!("{accessor}.{name}");
         let required = ex.args(m, Fill::Required);
         let all = ex.args(m, Fill::All);
@@ -100,8 +189,11 @@ pub fn emit_tests(ctx: &Ctx<'_>, r: &TsResource<'_>) -> String {
             "import {} from '{}';",
             ctx.settings.client_class, ctx.settings.package_name
         ),
-        String::new(),
     ];
+    if ctx.node() {
+        out.push("import { Response } from 'node-fetch';".to_owned());
+    }
+    out.push(String::new());
     out.extend(client_setup(ctx));
     out.push(String::new());
     out.push(format!(

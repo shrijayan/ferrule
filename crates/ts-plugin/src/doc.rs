@@ -198,7 +198,8 @@ pub fn will_break(doc: &Doc) -> bool {
         Doc::Text(_) | Doc::Line(Line::Normal | Line::Soft) => false,
         Doc::Line(Line::Hard) | Doc::BreakParent => true,
         Doc::Concat(parts) | Doc::Fill(parts) => parts.iter().any(will_break),
-        Doc::Group(g) => g.should_break || will_break(&g.contents) || g.expanded.iter().any(will_break),
+        // As prettier's `findInDoc`, a conditional group is searched in its first state only.
+        Doc::Group(g) => g.should_break || will_break(&g.contents),
         Doc::Indent(c) | Doc::IndentIfBreak { contents: c, .. } => will_break(c),
         Doc::IfBreak { breaks, flat, .. } => will_break(breaks) || will_break(flat),
     }

@@ -1,9 +1,11 @@
-//! Settings of the `typescript` target that the annotated spec does not carry yet.
+//! Settings of the TypeScript target that the annotated spec does not carry yet.
 //!
-//! The package name, repository and options come from the model (`Client::target("typescript")`,
-//! `x-ferrule-targets`); the version, organization, stats and README examples are not in the
-//! annotated spec yet and come in [`TsMeta`]. Every emitter reads them through [`ts_settings`]
-//! only.
+//! Stainless has two TypeScript targets: `typescript` (the current layout) and `node` (the legacy
+//! layout: `src/core.ts`, `src/_shims/**`, the client in `src/index.ts`). [`Layout`] says which
+//! one is generated; the same emitters write both. The package name, repository and options come
+//! from the model (`Client::target`, `x-ferrule-targets`); the version, organization, stats and
+//! README examples are not in the annotated spec yet and come in [`TsMeta`]. Every emitter reads
+//! them through [`ts_settings`] only.
 
 use ferrule_sdk_model::Client;
 use serde_json::Value;
@@ -12,6 +14,41 @@ use crate::naming::{split_words, type_name};
 
 /// The stainless.yml `targets` key of the current TypeScript layout.
 pub const TARGET: &str = "typescript";
+
+/// The stainless.yml `targets` key of the legacy TypeScript layout.
+pub const NODE_TARGET: &str = "node";
+
+/// Which TypeScript layout an SDK has.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Layout {
+    /// The `typescript` target: `src/client.ts`, `src/core/**`, `src/internal/**`.
+    Typescript,
+    /// The `node` target: `src/index.ts` holds the client, `src/core.ts` the request machinery,
+    /// `src/_shims/**` the fetch shims; resources take `Core.RequestOptions`.
+    Node,
+}
+
+impl Layout {
+    /// The stainless.yml `targets` key.
+    #[must_use]
+    pub const fn target(self) -> &'static str {
+        match self {
+            Self::Typescript => TARGET,
+            Self::Node => NODE_TARGET,
+        }
+    }
+
+    /// The layout of the target the config has: `typescript` when it has that target (or
+    /// neither), else `node`.
+    #[must_use]
+    pub fn of(client: &Client) -> Self {
+        if client.target(TARGET).is_none() && client.target(NODE_TARGET).is_some() {
+            Self::Node
+        } else {
+            Self::Typescript
+        }
+    }
+}
 
 /// A request from `readme.example_requests`: the endpoint (`post /embeddings`) and its params.
 #[derive(Debug, Clone, PartialEq)]
@@ -99,10 +136,12 @@ impl TsMeta {
         meta.docs_url = s(org.and_then(|o| o.get("docs")));
         meta.contact = s(org.and_then(|o| o.get("contact")));
         meta.security_contact = s(org.and_then(|o| o.get("security_contact")));
-        meta.npm_oidc = config
-            .pointer("/targets/typescript/publish/npm/auth_method")
-            .and_then(Value::as_str)
-            == Some("oidc");
+        meta.npm_oidc = [TARGET, NODE_TARGET].iter().any(|t| {
+            config
+                .pointer(&format!("/targets/{t}/publish/npm/auth_method"))
+                .and_then(Value::as_str)
+                == Some("oidc")
+        });
         let settings = config.get("settings");
         if let Some(l) = s(settings.and_then(|v| v.get("license"))) {
             meta.license = l;
@@ -170,6 +209,7 @@ fn model_homes(r: &Value, keys: &mut Vec<String>, out: &mut Vec<(String, Vec<Str
 /// The resolved settings every emitter reads.
 #[derive(Debug, Clone, PartialEq)]
 pub struct TsSettings {
+    pub layout: Layout,
     /// The npm package, such as `isaacus` or `@knocklabs/mgmt`.
     pub package_name: String,
     /// GitHub `owner/repo` of the SDK, or empty.
@@ -197,22 +237,20 @@ pub struct TsSettings {
     pub model_homes: Vec<(String, Vec<String>)>,
 }
 
-/// `knock mgmt` -> `Knock Mgmt`: each word's first letter upper-cased.
-fn title_case(s: &str) -> String {
-    s.split(' ')
-        .map(|w| {
-            let mut c = w.chars();
-            c.next()
-                .map_or_else(String::new, |f| f.to_uppercase().collect::<String>() + c.as_str())
-        })
+/// `knock mgmt` -> `Knock Mgmt`, `onebusaway sdk` -> `Onebusaway SDK`: each word spelled as in a
+/// type name (acronyms upper-cased, custom casings applied).
+fn title_case(words: &[String], casings: &[ferrule_sdk_model::model::CustomCasing]) -> String {
+    words
+        .iter()
+        .map(|w| type_name(&[w], casings))
         .collect::<Vec<_>>()
         .join(" ")
 }
 
-/// The one accessor for the target's settings (see the module docs).
+/// The one accessor for the target's settings (see the module docs), for `layout`'s target.
 #[must_use]
-pub fn ts_settings(client: &Client, meta: &TsMeta) -> TsSettings {
-    let target = client.target(TARGET);
+pub fn ts_settings(client: &Client, meta: &TsMeta, layout: Layout) -> TsSettings {
+    let target = client.target(layout.target());
     let package_name = target
         .and_then(|t| t.package_name.clone())
         .unwrap_or_else(|| client.package.name.clone());
@@ -237,13 +275,17 @@ pub fn ts_settings(client: &Client, meta: &TsMeta) -> TsSettings {
         .as_ref()
         .map_or_else(|| client_class.to_ascii_uppercase(), |s| s.env_prefix.clone());
     TsSettings {
+        layout,
         package_name,
         repo: repo.to_owned(),
         branch: branch.to_owned(),
         version: meta.version.clone(),
         client_class,
         env_prefix,
-        title: title_case(&split_words(meta.organization_name.as_deref().unwrap_or(&org)).join(" ")),
+        title: title_case(
+            &split_words(meta.organization_name.as_deref().unwrap_or(&org)),
+            &client.casings,
+        ),
         docs_url: meta.docs_url.clone(),
         contact: meta.contact.clone(),
         security_contact: meta.security_contact.clone(),

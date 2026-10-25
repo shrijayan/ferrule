@@ -121,6 +121,27 @@ pub fn camel_case<S: AsRef<str>>(words: &[S], casings: &[CustomCasing]) -> Strin
     out
 }
 
+/// `["stop", "ids", "for", "agency"]` -> `stopIdsForAgency`: camelCase as the `node` layout spells
+/// properties, methods and parameters, every word after the first capitalized (acronyms too);
+/// custom casings still apply.
+#[must_use]
+pub fn camel_case_plain<S: AsRef<str>>(words: &[S], casings: &[CustomCasing]) -> String {
+    let words = clean(words);
+    let mut out = String::new();
+    for (i, w) in words.iter().enumerate() {
+        let lower = w.to_ascii_lowercase();
+        if i == 0 {
+            out.push_str(&camel_case(&[w], casings));
+            continue;
+        }
+        match casing(casings, &lower) {
+            Some(_) => out.push_str(&type_word(w, casings)),
+            None => out.push_str(&capitalize(&lower)),
+        }
+    }
+    out
+}
+
 /// `["url", "endpoints"]` -> `url-endpoints`.
 #[must_use]
 pub fn kebab_case<S: AsRef<str>>(words: &[S]) -> String {
@@ -161,6 +182,26 @@ pub fn singular<S: AsRef<str>>(words: &[S]) -> Vec<String> {
         last[..last.len() - 1].to_owned()
     } else {
         last
+    };
+    out.push(s);
+    out
+}
+
+/// The plural of the last word, as Stainless names a list's result in an example:
+/// `agency` -> `agencies`, `departure` -> `departures`.
+#[must_use]
+pub fn plural<S: AsRef<str>>(words: &[S]) -> Vec<String> {
+    let mut out: Vec<String> = words.iter().map(|w| w.as_ref().to_owned()).collect();
+    let Some(last) = out.pop() else { return out };
+    let consonant_y = last.len() > 1
+        && ends_with_ignore_case(&last, "y")
+        && !last[..last.len() - 1].ends_with(['a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U']);
+    let s = if consonant_y {
+        format!("{}ies", &last[..last.len() - 1])
+    } else if ["s", "x", "ch", "sh"].iter().any(|x| ends_with_ignore_case(&last, x)) {
+        format!("{last}es")
+    } else {
+        format!("{last}s")
     };
     out.push(s);
     out
@@ -256,9 +297,17 @@ mod tests {
         assert_eq!(camel_case(&["url", "endpoints"], &[]), "urlEndpoints");
         assert_eq!(camel_case(&["list", "logs"], &[]), "listLogs");
         assert_eq!(camel_case(&["qa"], &casings()), "qa");
+        assert_eq!(
+            camel_case_plain(&["stop", "ids", "for", "agency"], &[]),
+            "stopIdsForAgency"
+        );
+        assert_eq!(camel_case_plain(&["agency", "id"], &[]), "agencyId");
         assert_eq!(kebab_case(&["channel", "groups"]), "channel-groups");
         assert_eq!(singular(&["embeddings"]), ["embedding"]);
         assert_eq!(singular(&["agencies"]), ["agency"]);
+        assert_eq!(plural(&["routes", "for", "agency"]), ["routes", "for", "agencies"]);
+        assert_eq!(plural(&["departure"]), ["departures"]);
+        assert_eq!(plural(&["key"]), ["keys"]);
         assert_eq!(split_words("ILGSv1Document"), ["ilg", "sv1", "document"]);
     }
 }
