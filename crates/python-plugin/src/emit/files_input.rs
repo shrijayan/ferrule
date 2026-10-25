@@ -3,8 +3,8 @@
 //! ADR 0003 amendment), so the plugin passes deterministic placeholders until it does.
 
 use super::common::{
-    leaf, method_params, method_ref, resource_class_base, resource_module, return_model, sort_fields,
-    stainless_method_order,
+    leaf, method_params, method_ref, resource_class_base, resource_module, resource_tree, return_model, sort_fields,
+    stainless_method_order, types_dir,
 };
 use super::files::input::{
     ApiKeyQueryAuth, ExampleRequest, FilesMethod, FilesParam, FilesResource, Organization, ParamLocation,
@@ -100,19 +100,38 @@ fn files_method(resource: &SdkResource, m: &SdkMethod) -> FilesMethod {
     }
 }
 
-fn files_resource(r: &SdkResource) -> FilesResource {
+/// Where the root api.md links a standalone API: `api.md` in the directory of its parent's
+/// module, as the oracles have it (`src/isaacus/resources/extractions/api.md` for
+/// `extractions.qa`, `src/isaacus/resources/api.md` for `ilgs.v1`, whose parent has no class).
+fn standalone_link(client: &SdkClient, parent: Option<&SdkResource>) -> String {
+    let module = parent.map_or_else(|| "resources.__init__".to_owned(), resource_module);
+    let dir = module.rsplit_once('.').map_or("", |(d, _)| d);
+    format!("src/{}/{}/api.md", client.package.name, dir.replace('.', "/"))
+}
+
+fn files_resource(client: &SdkClient, r: &SdkResource, parent: Option<&SdkResource>) -> FilesResource {
     let name = leaf(r).to_owned();
     let methods = stainless_method_order(&r.methods);
-    let types = methods
-        .iter()
-        .filter_map(|m| {
-            return_model(Some(r), m)
-                .filter(|ret| ret.inline.is_some())
-                .map(|ret| ret.r#ref.name)
-        })
-        .collect();
+    let dir = types_dir(r).join(".");
+    // A standalone API's directory is its own, so its named models are listed too.
+    let mut types: Vec<String> = Vec::new();
+    if r.standalone {
+        let mut named: Vec<&str> = client
+            .models
+            .iter()
+            .filter(|d| d.r#ref.module.rsplit_once('.').is_some_and(|(d, _)| d == dir))
+            .map(|d| d.r#ref.name.as_str())
+            .collect();
+        named.sort_unstable();
+        types.extend(named.into_iter().map(str::to_owned));
+    }
+    types.extend(methods.iter().filter_map(|m| {
+        return_model(Some(r), m)
+            .filter(|ret| ret.inline.is_some())
+            .map(|ret| ret.r#ref.name)
+    }));
     let mut types_module = vec!["types"];
-    types_module.extend(r.path[..r.path.len().saturating_sub(1)].iter().map(String::as_str));
+    types_module.extend(types_dir(r).iter().map(String::as_str));
     FilesResource {
         title: resource_class_base(r),
         variable: snake_case(&singular(&split_words(&name))),
@@ -120,7 +139,12 @@ fn files_resource(r: &SdkResource) -> FilesResource {
         types,
         types_module: types_module.join("."),
         methods: methods.iter().map(|m| files_method(r, m)).collect(),
-        subresources: r.subresources.iter().map(files_resource).collect(),
+        subresources: r
+            .subresources
+            .iter()
+            .map(|sub| files_resource(client, sub, Some(r)))
+            .collect(),
+        standalone_link: r.standalone.then(|| standalone_link(client, parent)),
         name,
     }
 }
@@ -200,6 +224,9 @@ pub fn to_project_files_input(client: &SdkClient, meta: &ProjectMeta) -> Option<
             .filter(|d| d.r#ref.module.starts_with("shared."))
             .map(|d| d.r#ref.name.clone())
             .collect(),
-        resources: client.resources.iter().map(files_resource).collect(),
+        resources: resource_tree(client)
+            .iter()
+            .map(|r| files_resource(client, r, None))
+            .collect(),
     })
 }

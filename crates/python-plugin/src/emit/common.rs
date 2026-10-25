@@ -1,7 +1,7 @@
 //! Helpers shared by the emitters.
 
 use crate::js;
-use crate::model::{SdkField, SdkMethod, SdkParam, SdkRef, SdkResource, SdkType};
+use crate::model::{SdkClient, SdkField, SdkMethod, SdkParam, SdkRef, SdkResource, SdkType};
 use crate::naming::{class_segment, singular, snake_case, split_words};
 
 /// First line of every generated file (no vendor branding, per the plan).
@@ -153,22 +153,61 @@ pub fn leaf(resource: &SdkResource) -> &str {
     resource.path.last().map_or("", String::as_str)
 }
 
-/// `AgenciesWithCoverage` for `["agencies_with_coverage"]`.
+/// `AgenciesWithCoverage` for `["agencies_with_coverage"]`, `QA` for `["qa"]` with the `qa`
+/// initialism (the adapter spells it).
 #[must_use]
 pub fn resource_class_base(resource: &SdkResource) -> String {
-    class_segment(&split_words(leaf(resource)))
+    resource
+        .class_segment
+        .clone()
+        .unwrap_or_else(|| class_segment(&split_words(leaf(resource))))
+}
+
+/// Whether the resource or one below it has methods, so it has a class.
+#[must_use]
+pub fn has_methods(resource: &SdkResource) -> bool {
+    !resource.methods.is_empty() || resource.subresources.iter().any(has_methods)
+}
+
+/// Every resource the config declares that the model knows of ([`SdkClient::resource_tree`]),
+/// or `resources` for a hand-built model without a tree.
+#[must_use]
+pub fn resource_tree(client: &SdkClient) -> &[SdkResource] {
+    if client.resource_tree.is_empty() {
+        &client.resources
+    } else {
+        &client.resource_tree
+    }
+}
+
+/// Whether the resource is a package (`resources/<path>/<leaf>.py` and an `__init__.py`): a
+/// standalone API, or one with subresources that have classes.
+#[must_use]
+pub fn is_package(resource: &SdkResource) -> bool {
+    resource.standalone || resource.subresources.iter().any(has_methods)
 }
 
 /// The dotted module of a resource: `resources.stop`, or `resources.generations.generations` for
-/// a resource with subresources, which becomes a package.
+/// a package ([`is_package`]).
 #[must_use]
 pub fn resource_module(resource: &SdkResource) -> String {
     let mut base: Vec<&str> = vec!["resources"];
     base.extend(resource.path.iter().map(String::as_str));
-    if !resource.subresources.is_empty() {
+    if is_package(resource) {
         base.push(leaf(resource));
     }
     base.join(".")
+}
+
+/// The directory (dotted, under `types`) of a resource's types: its parent's, or its own for a
+/// standalone API.
+#[must_use]
+pub fn types_dir(resource: &SdkResource) -> &[String] {
+    if resource.standalone {
+        &resource.path
+    } else {
+        &resource.path[..resource.path.len().saturating_sub(1)]
+    }
 }
 
 /// Standard methods come first in this order; the rest follow by name (as the oracles order).
@@ -184,12 +223,16 @@ pub fn stainless_method_order(methods: &[SdkMethod]) -> Vec<&SdkMethod> {
 
 /// A synthesized type named after its method, with the resource's last word singular as the
 /// oracles have it: `AgenciesWithCoverageListResponse`, `CardProgramListParams`. Types of a
-/// subresource sit in its parent's directory: `types/generations/video_create_params.py`.
-/// `$client` methods (no resource) are named after the method alone.
+/// subresource sit in its parent's directory: `types/generations/video_create_params.py`, those of
+/// a standalone API in its own ([`types_dir`]). `$client` methods (no resource) are named after
+/// the method alone.
 #[must_use]
 pub fn method_ref(resource: Option<&SdkResource>, method: &SdkMethod, suffix: &str) -> SdkRef {
     let words = resource.map_or_else(Vec::new, |r| singular(&split_words(leaf(r))));
-    let dir: &[String] = resource.map_or(&[], |r| &r.path[..r.path.len().saturating_sub(1)]);
+    let dir: &[String] = resource.map_or(&[], types_dir);
+    let class = resource
+        .and_then(|r| r.singular_class_segment.clone())
+        .unwrap_or_else(|| class_segment(&words));
     let lower = suffix.to_lowercase();
     let snake = snake_case(&words);
     let leaf_name: Vec<&str> = [snake.as_str(), method.name.as_str(), lower.as_str()]
@@ -199,11 +242,7 @@ pub fn method_ref(resource: Option<&SdkResource>, method: &SdkMethod, suffix: &s
     let mut module: Vec<String> = dir.to_vec();
     module.push(leaf_name.join("_"));
     SdkRef {
-        name: format!(
-            "{}{}{suffix}",
-            class_segment(&words),
-            class_segment(&split_words(&method.name))
-        ),
+        name: format!("{class}{}{suffix}", class_segment(&split_words(&method.name))),
         module: module.join("."),
     }
 }

@@ -6,7 +6,8 @@
 use super::agent::emit_agent_files;
 use super::client::emit_client_file;
 use super::common::{
-    HEADER, method_params, method_ref, py_string, resource_module, return_model, stainless_method_order,
+    HEADER, has_methods, is_package, method_params, method_ref, py_string, resource_module, resource_tree,
+    return_model, stainless_method_order,
 };
 use super::cycles::Cycles;
 use super::files::emit_project_files;
@@ -204,9 +205,17 @@ impl Out {
         }
     }
 
-    /// `types/__init__.py` and `types/<dir>/__init__.py`, re-exporting what each declares.
+    /// `types/__init__.py` and `types/<dir>/__init__.py`, re-exporting what each declares; a
+    /// directory that only holds others (`types/extractions/` above `qa/`) gets an empty one.
     fn types_inits(&mut self) {
         let pkg = self.pkg.clone();
+        let dirs: Vec<String> = self.exports.entries.iter().map(|(d, _)| d.clone()).collect();
+        for dir in dirs {
+            let parts: Vec<&str> = dir.split('.').collect();
+            for n in 1..parts.len() {
+                self.exports.entry(&parts[..n].join("."), OrderedMap::default);
+            }
+        }
         let exports = std::mem::take(&mut self.exports.entries);
         for (dir, modules) in exports {
             let init = if dir.is_empty() {
@@ -284,8 +293,9 @@ pub fn emit_code_files(client: &SdkClient, meta: Option<&ProjectMeta>) -> Result
             &module_path(&pkg, &resource_module(resource)),
             emit_resource_file(client, resource)?,
         );
-        if !resource.subresources.is_empty() {
-            let mut members: Vec<&SdkResource> = resource.subresources.iter().collect();
+        if is_package(resource) {
+            // A standalone API exports itself from its own package, not its parent's.
+            let mut members: Vec<&SdkResource> = resource.subresources.iter().filter(|r| !r.standalone).collect();
             members.push(resource);
             out.files.set_value(
                 &module_path(&pkg, &format!("resources.{}.__init__", resource.path.join("."))),
@@ -295,6 +305,15 @@ pub fn emit_code_files(client: &SdkClient, meta: Option<&ProjectMeta>) -> Result
         // In the oracles' method order, the order `types/__init__.py` rebuilds response classes in.
         for method in stainless_method_order(&resource.methods) {
             out.method_types(Some(resource), method);
+        }
+    }
+    // A standalone API with only models is an empty package (`resources/ilgs/v1/__init__.py`).
+    for resource in all_resources(resource_tree(client)) {
+        if resource.standalone && !has_methods(resource) {
+            out.files.set_value(
+                &module_path(&pkg, &format!("resources.{}.__init__", resource.path.join("."))),
+                format!("{HEADER}\n"),
+            );
         }
     }
     for method in &client.client_methods {

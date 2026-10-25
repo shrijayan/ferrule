@@ -20,7 +20,7 @@ use crate::model::{
     ApiKeyLocation, ArrayFormat, AuthRole, HttpAuthScheme, NestedFormat, OptType, PaginationScheme, ParamLocation,
     SdkAuth, SdkClientOpt, SdkEnvironment, SdkPackage, SdkSecurityScheme, SdkSend, SendLocation, StreamFormat,
 };
-use crate::naming::{snake_case, split_words};
+use crate::naming::{Casing, snake_case, split_words};
 
 /// An extension value of the wrong shape; the caller builds the FER101 diagnostic.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -70,6 +70,9 @@ pub struct RawClient {
     pub nested_format: NestedFormat,
 }
 
+/// A resource path as written in stainless.yml and the order of each segment among its siblings.
+pub type ResourcePosition = (Vec<String>, Vec<usize>);
+
 /// The `x-ferrule-*` extensions an operation carries.
 #[derive(Debug, Clone, PartialEq)]
 pub struct MethodExtensions {
@@ -88,10 +91,15 @@ pub struct MethodExtensions {
     pub models: HashMap<String, ModelName>,
     pub pagination: Option<RawPagination>,
     pub streaming: Option<RawStreaming>,
+    /// Mirrored from the root (Forge gap G2): `custom_casings` by lowercase word; empty without.
+    pub casings: Vec<(String, Casing)>,
+    /// Mirrored from the root (Forge gap G2): every `standalone_api` resource, including ones
+    /// without methods; empty without.
+    pub standalone: Vec<ResourcePosition>,
 }
 
 /// Operation-level extensions this plugin reads. Root and schema ones never reach a plugin.
-const KNOWN: [&str; 8] = [
+const KNOWN: [&str; 10] = [
     "x-ferrule-resource",
     "x-ferrule-method-name",
     "x-ferrule-method-order",
@@ -100,6 +108,8 @@ const KNOWN: [&str; 8] = [
     "x-ferrule-pagination",
     "x-ferrule-streaming",
     "x-ferrule-client",
+    "x-ferrule-casings",
+    "x-ferrule-standalone",
 ];
 
 /// The member `key` of `v` if `v` is an object (`members(v).key`), else `None` (`undefined`).
@@ -341,6 +351,15 @@ pub fn read_method_extensions(extensions: &[(&str, &Json)], pointer: &str) -> Re
         Some(raw) => Some(read_client(raw).map_err(|Malformed| bad("x-ferrule-client", "the ADR 0003 client shape"))?),
     };
 
+    let casings = read_casings(get("x-ferrule-casings")).map_err(|Malformed| {
+        bad(
+            "x-ferrule-casings",
+            "Record<word, { initialism: boolean } | { pascal: identifier }>",
+        )
+    })?;
+    let standalone = read_standalone(get("x-ferrule-standalone"))
+        .map_err(|Malformed| bad("x-ferrule-standalone", "{ path: string[], order: number[] }[]"))?;
+
     Ok(MethodExtensions {
         resource: path,
         resource_order,
@@ -351,7 +370,48 @@ pub fn read_method_extensions(extensions: &[(&str, &Json)], pointer: &str) -> Re
         models,
         pagination,
         streaming,
+        casings,
+        standalone,
     })
+}
+
+/// `x-ferrule-standalone`: each entry as `x-ferrule-resource` reads.
+fn read_standalone(raw: Option<&Json>) -> Result<Vec<ResourcePosition>, Malformed> {
+    match raw {
+        None => Ok(Vec::new()),
+        Some(Json::Array(items)) => items
+            .iter()
+            .map(|item| read_resource(Some(item)).map_err(|_| Malformed))
+            .collect(),
+        Some(_) => Err(Malformed),
+    }
+}
+
+/// `x-ferrule-casings`. A `pascal` spelling is spliced into class names, so it must be
+/// identifier characters (FER101 otherwise); words are lowercase alphanumeric.
+fn read_casings(raw: Option<&Json>) -> Result<Vec<(String, Casing)>, Malformed> {
+    let Some(raw) = raw else { return Ok(Vec::new()) };
+    let Json::Object(members) = raw else {
+        return Err(Malformed);
+    };
+    js::entries(members)
+        .into_iter()
+        .map(|(word, v)| {
+            if word.is_empty() || !word.chars().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit()) {
+                return Err(Malformed);
+            }
+            let casing = match (member(Some(v), "initialism"), member(Some(v), "pascal")) {
+                (Some(Json::Bool(b)), None) => Casing::Initialism(*b),
+                (None, Some(Json::String(p)))
+                    if !p.is_empty() && p.chars().all(|c| c.is_ascii_alphanumeric() || c == '_') =>
+                {
+                    Casing::Pascal(p.clone())
+                }
+                _ => return Err(Malformed),
+            };
+            Ok((word.to_owned(), casing))
+        })
+        .collect()
 }
 
 /// `x-ferrule-resource`: the path and the order of each segment; the shape it lacks otherwise.

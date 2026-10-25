@@ -66,10 +66,38 @@ pub fn pascal_case<S: AsRef<str>>(words: &[S]) -> String {
 /// A class-name segment: `PascalCase` with acronyms upper-cased; `ids` becomes `IDs`.
 #[must_use]
 pub fn class_segment<S: AsRef<str>>(words: &[S]) -> String {
+    class_segment_with(words, &[])
+}
+
+/// How `custom_casings` spells one word in class names (`x-ferrule-casings`).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Casing {
+    /// `initialism: true` upper-cases it (`qa` -> `QA`); `false` stops treating it as one.
+    Initialism(bool),
+    /// The spelling as written, first letter included: `LumaAI`, `v1`.
+    Pascal(String),
+}
+
+/// [`class_segment`] with custom casings by lowercase word: `["qa"]` -> `QA`, `["lumaai"]` ->
+/// `LumaAI`. A custom initialism takes a plural `s` as the built-in ones do (`QAs`).
+#[must_use]
+pub fn class_segment_with<S: AsRef<str>>(words: &[S], casings: &[(String, Casing)]) -> String {
+    let casing = |w: &str| casings.iter().find(|(k, _)| k == w).map(|(_, c)| c);
     clean(words)
         .iter()
         .map(|w| {
             let lower = w.to_ascii_lowercase();
+            match casing(&lower) {
+                Some(Casing::Pascal(p)) => return p.clone(),
+                Some(Casing::Initialism(true)) => return lower.to_ascii_uppercase(),
+                Some(Casing::Initialism(false)) => return capitalize(w),
+                None => {}
+            }
+            if let Some(stem) = lower.strip_suffix('s')
+                && matches!(casing(stem), Some(Casing::Initialism(true)))
+            {
+                return format!("{}s", stem.to_ascii_uppercase());
+            }
             if !ACRONYMS.contains(&lower.as_str()) {
                 capitalize(w)
             } else if lower.ends_with('s') && lower != "https" {
@@ -182,6 +210,23 @@ mod tests {
         assert_eq!(split_words("ABc"), ["A", "Bc"]);
         assert_eq!(split_words("aBCDe"), ["a", "BC", "De"]);
         assert_eq!(split_words("A1BC2dE"), ["A1", "BC2d", "E"]);
+    }
+
+    #[test]
+    fn spells_words_with_custom_casings() {
+        let casings = [
+            ("qa".to_owned(), Casing::Initialism(true)),
+            ("id".to_owned(), Casing::Initialism(false)),
+            ("v1".to_owned(), Casing::Pascal("v1".into())),
+            ("lumaai".to_owned(), Casing::Pascal("LumaAI".into())),
+        ];
+        assert_eq!(class_segment_with(&["qa"], &casings), "QA");
+        assert_eq!(class_segment_with(&["qas", "list"], &casings), "QAsList");
+        assert_eq!(class_segment_with(&["v1"], &casings), "v1");
+        assert_eq!(class_segment_with(&split_words("lumaai"), &casings), "LumaAI");
+        assert_eq!(class_segment_with(&["user", "id"], &casings), "UserId");
+        assert_eq!(class_segment_with(&["route", "ids"], &casings), "RouteIDs");
+        assert_eq!(class_segment_with(&["situation", "url"], &casings), "SituationURL");
     }
 
     #[test]
