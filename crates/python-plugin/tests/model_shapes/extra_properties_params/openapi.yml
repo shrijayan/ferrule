@@ -1,0 +1,32 @@
+openapi: 3.0.0
+info: {title: fx, version: '1'}
+servers: [{url: 'https://api.example.com'}]
+
+paths:
+  /objects/bulk/set:
+    post:
+      operationId: bulkSetObjects
+      summary: Sets objects in bulk.
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/BulkSetObjectsRequest'}}}
+      responses:
+        '200': {description: ok, content: {application/json: {schema: {type: object, properties: {id: {type: string}}}}}}
+components:
+  schemas:
+    BulkSetObjectsRequest:
+      description: A request to set objects in bulk.
+      type: object
+      required: [objects]
+      properties:
+        objects:
+          description: A list of objects.
+          items: {$ref: '#/components/schemas/InlineIdentifyObjectRequest'}
+          type: array
+    InlineIdentifyObjectRequest:
+      additionalProperties: true
+      description: A custom [Object](/concepts/objects) entity which belongs to a collection.
+      type: object
+      required: [id]
+      properties:
+        id: {description: Unique identifier for the object., nullable: false, type: string}
