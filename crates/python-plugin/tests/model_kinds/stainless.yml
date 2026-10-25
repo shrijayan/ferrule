@@ -23,6 +23,7 @@ resources:
     methods:
       retrieve: get /workflows/{key}
       activate: put /workflows/{key}/activate
+      list_audiences: get /audiences
 readme:
   example_requests:
     default: {type: request, endpoint: 'get /workflows/{key}', params: {}}

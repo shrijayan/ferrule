@@ -25,6 +25,20 @@ paths:
                 required: [workflow]
                 properties:
                   workflow: {$ref: '#/components/schemas/Workflow'}
+  /audiences:
+    get:
+      operationId: listAudiences
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  anyOf:
+                    - {$ref: '#/components/schemas/StaticAudience'}
+                    - {$ref: '#/components/schemas/DynamicAudience'}
 components:
   schemas:
     Workflow:
@@ -40,6 +54,12 @@ components:
         extensions: {$ref: '#/components/schemas/Extensions'}
         channel_data: {$ref: '#/components/schemas/ChannelData'}
         source: {$ref: '#/components/schemas/Source'}
+        owners:
+          type: array
+          items:
+            anyOf:
+              - {type: string}
+              - {$ref: '#/components/schemas/StaticAudience'}
     WorkflowStep:
       description: A step within a workflow.
       anyOf:
