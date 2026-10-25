@@ -180,6 +180,8 @@ fn object(out: &mut String, name: &str, fields: &[PageField], ctx: &mut crate::t
             nullable: false,
             format: None,
             doc: String::new(),
+            enum_values: Vec::new(),
+            key: "json",
         })
         .collect();
     super::decls::print_decls(

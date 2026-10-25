@@ -8,10 +8,10 @@ use ferrule_sdk_model::model::{ClientOpt, Field, Method, OptType, Scalar, Type};
 
 use super::pagination::page_of;
 use super::resource::params_decls;
-use super::{Gen, Service, method_order, params_arg};
+use super::{Gen, Service, method_order};
 use crate::naming::{exported, local, singular, split_words, words};
 use crate::printer::{ALIGN, BREAK, go_file, quote};
-use crate::types::{Ctx, Decl, Pkg};
+use crate::types::{Ctx, Decl, Pkg, opt_scalar};
 
 /// `client_test.go` after its imports; text from Stainless's Go v1 tests (OneBusAway go-sdk,
 /// Apache-2.0; see NOTICE) with the SDK's names as `{{...}}` tokens.
@@ -55,12 +55,13 @@ fn example(
     ctx: &mut Ctx<'_>,
 ) -> String {
     let pkg = &g.target.package_name;
+    let v2 = g.target.v2();
     match ty {
         Type::Nullable { inner } => example(g, wire, inner, decls, go_ty, indent, ctx),
         Type::Scalar { scalar } => match scalar {
             Scalar::Boolean => "true".to_owned(),
-            s if s.is_integer() => "int64(0)".to_owned(),
-            Scalar::Float | Scalar::Double => "0.000000".to_owned(),
+            s if s.is_integer() => if v2 { "0" } else { "int64(0)" }.to_owned(),
+            Scalar::Float | Scalar::Double => if v2 { "0" } else { "0.000000" }.to_owned(),
             Scalar::Date | Scalar::DateTime => {
                 ctx.import("time");
                 "time.Now()".to_owned()
@@ -68,6 +69,15 @@ fn example(
             Scalar::Uuid => "\"182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e\"".to_owned(),
             _ => crate::printer::quote(wire),
         },
+        // v2 params take an inline enum as a plain value.
+        Type::Enum { members } if v2 => members.first().map_or_else(
+            || crate::printer::quote(wire),
+            |m| match &m.value {
+                ferrule_sdk_model::model::Literal::String(s) => crate::printer::quote(s),
+                ferrule_sdk_model::model::Literal::Boolean(b) => b.to_string(),
+                ferrule_sdk_model::model::Literal::Number(n) => n.to_string(),
+            },
+        ),
         Type::Enum { .. } => decls
             .iter()
             .find_map(|d| match d {
@@ -127,15 +137,34 @@ fn struct_literal(
             out.push(BREAK);
         }
         after_multiline = multiline;
-        let _ = writeln!(out, "{tabs}{}:{ALIGN}{pkg}.F({value}),", f.name);
+        let value = if !g.target.v2() {
+            format!("{pkg}.F({value})")
+        } else if !f.required && opt_scalar(&f.ty) && f.enum_values.is_empty() {
+            // v2 wraps an optional scalar in its `param.Opt` constructor.
+            let ctor = match f.ty.as_str() {
+                "string" => "String",
+                "int64" => "Int",
+                "float64" => "Float",
+                "bool" => "Bool",
+                _ => "Time",
+            };
+            format!("{pkg}.{ctor}({value})")
+        } else {
+            value
+        };
+        let _ = writeln!(out, "{tabs}{}:{ALIGN}{value},", f.name);
     }
     out.push_str(&"\t".repeat(indent));
     out.push('}');
     (out, optional)
 }
 
-/// A test value for a path parameter: its wire name for a string, else the type's zero.
+/// A test value for a path parameter: its wire name for a string (Stainless's UUID for a
+/// `uuid`, knock-mgmt-go), else the type's zero.
 fn path_example(p: &ferrule_sdk_model::model::Param) -> String {
+    if matches!(p.field.ty, Type::Scalar { scalar: Scalar::Uuid }) {
+        return "\"182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e\"".to_owned();
+    }
     match super::path_param_type(&p.field.ty) {
         "int64" => "int64(0)".to_owned(),
         "float64" => "0.000000".to_owned(),
@@ -152,15 +181,16 @@ fn params_literal(
     indent: usize,
     ctx: &mut Ctx<'_>,
 ) -> Option<(String, bool)> {
-    params_arg(g.client, m)?;
+    g.params_arg(m)?;
     let mut scratch = g.ctx(Pkg::Root);
     let decls = params_decls(g, s, m, &mut scratch);
     let Some(Decl::Struct { name, fields, .. }) = decls.first() else {
         return None;
     };
-    let sources: Vec<&Field> = m
-        .query_params
+    let sources: Vec<&Field> = g
+        .path_fields(m)
         .iter()
+        .chain(&m.query_params)
         .map(|p| &p.field)
         .chain(super::body_fields(g.client, m))
         .collect();
@@ -172,7 +202,10 @@ fn params_literal(
 /// `= ` and whether the params have optional fields.
 fn call(g: &Gen<'_>, s: &Service<'_>, m: &Method, ctx_arg: &str, ctx: &mut Ctx<'_>) -> (String, bool) {
     let target = format!("{}.{}", s.accessor, g.method_name(m));
-    let path_args: Vec<String> = m.path_params.iter().map(path_example).collect();
+    let path_args: Vec<String> = m.path_params[g.path_fields(m).len()..]
+        .iter()
+        .map(path_example)
+        .collect();
     match params_literal(g, s, m, if path_args.is_empty() { 1 } else { 2 }, ctx) {
         None => {
             let mut args = vec![ctx_arg.to_owned()];
@@ -192,6 +225,16 @@ fn call(g: &Gen<'_>, s: &Service<'_>, m: &Method, ctx_arg: &str, ctx: &mut Ctx<'
 }
 
 const PREAMBLE: &str = "\tbaseURL := \"http://localhost:4010\"\n\tif envURL, ok := os.LookupEnv(\"TEST_API_BASE_URL\"); ok {\n\t\tbaseURL = envURL\n\t}\n\tif !testutil.CheckTestServer(t, baseURL) {\n\t\treturn\n\t}\n";
+
+/// The start of a test against the mock server: skipped first under
+/// `settings.disable_mock_tests`.
+fn preamble(g: &Gen<'_>) -> String {
+    if g.target.disable_mock_tests {
+        format!("\tt.Skip(\"Mock server tests are disabled\")\n{PREAMBLE}")
+    } else {
+        PREAMBLE.to_owned()
+    }
+}
 
 fn test_imports(g: &Gen<'_>, ctx: &mut Ctx<'_>) {
     for p in ["context", "os", "testing"] {
@@ -220,6 +263,7 @@ pub fn service_test_file(g: &Gen<'_>, s: &Service<'_>) -> Option<(String, String
     test_imports(g, &mut ctx);
     ctx.import("errors");
     let pkg = &g.target.package_name;
+    let preamble = preamble(g);
     let mut body = String::new();
     for m in method_order(&s.resource.methods) {
         let (call, optional) = call(g, s, m, "context.TODO()", &mut ctx);
@@ -227,7 +271,7 @@ pub fn service_test_file(g: &Gen<'_>, s: &Service<'_>) -> Option<(String, String
         let results = if m.response.is_some() { "_, err" } else { "err" };
         let _ = write!(
             body,
-            "func Test{}{}{suffix}(t *testing.T) {{\n{PREAMBLE}{}\t{results} := {call}\n\tif err != nil {{\n\t\tvar apierr *{pkg}.Error\n\t\tif errors.As(err, &apierr) {{\n\t\t\tt.Log(string(apierr.DumpRequest(true)))\n\t\t}}\n\t\tt.Fatalf(\"err should be nil: %s\", err.Error())\n\t}}\n}}\n\n",
+            "func Test{}{}{suffix}(t *testing.T) {{\n{preamble}{}\t{results} := {call}\n\tif err != nil {{\n\t\tvar apierr *{pkg}.Error\n\t\tif errors.As(err, &apierr) {{\n\t\t\tt.Log(string(apierr.DumpRequest(true)))\n\t\t}}\n\t\tt.Fatalf(\"err should be nil: %s\", err.Error())\n\t}}\n}}\n\n",
             s.prefix,
             g.method_name(m),
             new_client(g),
@@ -254,8 +298,9 @@ pub fn usage_test_file(g: &Gen<'_>) -> Option<(String, String)> {
         local(&singular(&split_words(&s.resource.name.written)), g.casings)
     };
     let (call, _) = call(g, s, m, "context.TODO()", &mut ctx);
+    let preamble = preamble(g);
     let body = format!(
-        "func TestUsage(t *testing.T) {{\n{PREAMBLE}{}\t{var}, err := {call}\n\tif err != nil {{\n\t\tt.Error(err)\n\t\treturn\n\t}}\n\tt.Logf(\"%+v\\n\", {var})\n}}\n",
+        "func TestUsage(t *testing.T) {{\n{preamble}{}\t{var}, err := {call}\n\tif err != nil {{\n\t\tt.Error(err)\n\t\treturn\n\t}}\n\tt.Logf(\"%+v\\n\", {var})\n}}\n",
         new_client(g)
     );
     let imports: Vec<String> = ctx.imports.into_iter().collect();
@@ -284,21 +329,22 @@ pub fn pagination_test_files(g: &Gen<'_>) -> Vec<(String, String)> {
     let pkg = &g.target.package_name;
     let var = local(&singular(&split_words(&s.resource.name.written)), g.casings);
     let mut args = String::from("context.TODO()");
-    if params_arg(g.client, m).is_some() {
+    if g.params_arg(m).is_some() {
         let _ = write!(args, ", {pkg}.{}{}Params{{}}", s.prefix, g.method_name(m));
     }
     let target = format!("{}.{}", s.accessor, g.method_name(m));
     let mock = "// The mock server isn't going to give us real pagination";
+    let preamble = preamble(g);
     let fatal = "t.Fatalf(\"err should be nil: %s\", err.Error())";
     let auto = format!(
-        "func TestAutoPagination(t *testing.T) {{\n{PREAMBLE}{}\titer := {target}AutoPaging({args})\n\t{mock}\n\
+        "func TestAutoPagination(t *testing.T) {{\n{preamble}{}\titer := {target}AutoPaging({args})\n\t{mock}\n\
          \tfor i := 0; i < 3 && iter.Next(); i++ {{\n\t\t{var} := iter.Current()\n\t\tt.Logf(\"%+v\\n\", {var}.{field})\n\t}}\n\
          \tif err := iter.Err(); err != nil {{\n\t\t{fatal}\n\t}}\n}}\n",
         new_client(g)
     );
     let items = &page.items;
     let manual = format!(
-        "func TestManualPagination(t *testing.T) {{\n{PREAMBLE}{}\tpage, err := {target}({args})\n\tif err != nil {{\n\t\t{fatal}\n\t}}\n\
+        "func TestManualPagination(t *testing.T) {{\n{preamble}{}\tpage, err := {target}({args})\n\tif err != nil {{\n\t\t{fatal}\n\t}}\n\
          \tfor _, {var} := range page.{items} {{\n\t\tt.Logf(\"%+v\\n\", {var}.{field})\n\t}}\n\t{mock}\n\
          \tpage, err = page.GetNextPage()\n\tif err != nil {{\n\t\t{fatal}\n\t}}\n\tif page != nil {{\n\
          \t\tfor _, {var} := range page.{items} {{\n\t\t\tt.Logf(\"%+v\\n\", {var}.{field})\n\t\t}}\n\t}}\n}}\n",
@@ -322,10 +368,10 @@ pub fn client_test_file(g: &Gen<'_>, client_name: &str) -> Option<(String, Strin
     // Path params as in the method tests; an empty params struct (the client tests only look at
     // the transport).
     let mut args = String::new();
-    for p in &m.path_params {
+    for p in &m.path_params[g.path_fields(m).len()..] {
         let _ = write!(args, ", {}", path_example(p));
     }
-    if params_arg(g.client, m).is_some() {
+    if g.params_arg(m).is_some() {
         let _ = write!(
             args,
             ", {}.{}{}Params{{}}",

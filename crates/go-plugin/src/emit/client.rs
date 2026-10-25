@@ -76,11 +76,13 @@ pub fn client_file(g: &Gen<'_>) -> (String, String) {
             g.org
         ),
     );
+    // v2 holds the client and its services by value.
+    let ptr = if g.target.v2() { "" } else { "*" };
     out.push_str("type Client struct {\n");
     let _ = writeln!(out, "\tOptions{ALIGN}[]option.RequestOption");
     let top: Vec<_> = g.services.iter().filter(|s| s.depth == 0).collect();
     for s in &top {
-        let _ = writeln!(out, "\t{}{ALIGN}*{}", s.field, s.service);
+        let _ = writeln!(out, "\t{}{ALIGN}{ptr}{}", s.field, s.service);
     }
     out.push_str("}\n\n");
 
@@ -151,12 +153,21 @@ pub fn client_file(g: &Gen<'_>) -> (String, String) {
              passed down to the services and requests that this client makes."
         ),
     );
-    out.push_str("func NewClient(opts ...option.RequestOption) (r *Client) {\n\topts = append(DefaultClientOptions(), opts...)\n\n\tr = &Client{Options: opts}\n\n");
+    let amp = if g.target.v2() { "" } else { "&" };
+    let _ = write!(
+        out,
+        "func NewClient(opts ...option.RequestOption) (r {ptr}Client) {{\n\topts = append(DefaultClientOptions(), opts...)\n\n\tr = {amp}Client{{Options: opts}}\n\n"
+    );
     for s in &top {
         let _ = writeln!(out, "\tr.{} = New{}(opts...)", s.field, s.service);
     }
     out.push_str("\n\treturn\n}\n\n");
-    out.push_str(request_methods());
+    // v2 spells `interface{}` as `any`.
+    if g.target.v2() {
+        out.push_str(&request_methods().replace("interface{}", "any"));
+    } else {
+        out.push_str(request_methods());
+    }
     let imports: Vec<String> = ctx.imports.into_iter().collect();
     ("client.go".to_owned(), go_file(&g.target.package_name, &imports, &out))
 }

@@ -34,7 +34,7 @@ const IMAGEKIT: Oracle = Oracle {
     ),
     version: "2.5.0",
     example: (&["files"], "upload"),
-    floor: 1,
+    floor: 12,
 };
 
 const KNOCK_MGMT: Oracle = Oracle {
@@ -46,7 +46,7 @@ const KNOCK_MGMT: Oracle = Oracle {
     ),
     version: "0.2.0",
     example: (&["workflows"], "list"),
-    floor: 1,
+    floor: 7,
 };
 
 fn generated(o: &Oracle) -> Option<(std::path::PathBuf, GoOutput)> {
@@ -60,6 +60,8 @@ fn generated(o: &Oracle) -> Option<(std::path::PathBuf, GoOutput)> {
             o.example.0.iter().map(|s| (*s).to_owned()).collect(),
             o.example.1.into(),
         )),
+        // `settings.disable_mock_tests: true` in both configs.
+        disable_mock_tests: true,
         ..GoMeta::default()
     };
     let out = generate(&model, &meta).expect("generates");
