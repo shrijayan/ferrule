@@ -239,6 +239,16 @@ impl Context<'_> {
     fn object_of<'t>(&'t self, ty: Option<&'t SdkType>) -> Option<&'t SdkObject> {
         match ty? {
             SdkType::Object(o) => Some(o),
+            // `T | null` (FastAPI's optional body, honcho `workspaces.list`): T's fields.
+            SdkType::Union { variants, .. } => {
+                let mut rest = variants
+                    .iter()
+                    .filter(|v| !matches!(v, SdkType::Primitive(SdkPrimitive::Null)));
+                match (rest.next(), rest.next()) {
+                    (Some(only), None) if variants.len() == 2 => self.object_of(Some(only)),
+                    _ => None,
+                }
+            }
             SdkType::Ref(r) => self
                 .decls
                 .iter()
