@@ -107,6 +107,16 @@ pub fn to_annotation(ty: &SdkType, p: &mut PythonPrinter, ctx: &dyn AnnotationCo
                 ctx.runtime(p, "_types", "SequenceNotStr");
                 return "SequenceNotStr[str]".to_owned();
             }
+            // Items that can be a string too: `SequenceNotStr[Union[str, float, bool]]` (ogx),
+            // `SequenceNotStr[Recipient]` (knock-mgmt `Recipient = Union[str, ...]`).
+            if let SdkType::Union { variants, .. } = &**items
+                && variants
+                    .iter()
+                    .any(|v| matches!(v, SdkType::Primitive(SdkPrimitive::String)))
+            {
+                ctx.runtime(p, "_types", "SequenceNotStr");
+                return format!("SequenceNotStr[{}]", to_annotation(items, p, ctx));
+            }
             p.import_from("typing", "Iterable");
             format!("Iterable[{}]", to_annotation(items, p, ctx))
         }
@@ -115,10 +125,15 @@ pub fn to_annotation(ty: &SdkType, p: &mut PythonPrinter, ctx: &dyn AnnotationCo
             format!("Dict[str, {}]", to_annotation(values, p, ctx))
         }
         SdkType::Union { variants, .. } => {
-            if let Some(alias) = ctx.union_name(ty) {
-                return alias;
-            }
             let (rest, nullable) = union_members(variants);
+            if let Some(alias) = ctx.union_name(ty) {
+                // The alias leaves `None` out (knock-mgmt `actor: Optional[Actor]`).
+                if !nullable {
+                    return alias;
+                }
+                p.import_from("typing", "Optional");
+                return format!("Optional[{alias}]");
+            }
             if rest.len() > 1 {
                 p.import_from("typing", "Union");
                 let mut parts: Vec<String> = rest.iter().map(|t| to_annotation(t, p, ctx)).collect();
@@ -162,6 +177,27 @@ pub fn union_members(variants: &[SdkType]) -> (Vec<&SdkType>, bool) {
 /// bracketed members: `Union[A, B]`, or `Annotated[Union[A, B], PropertyInfo(discriminator=...)]`
 /// when the spec names a discriminator and `discriminated` is set (responses, not params).
 pub fn union_alias_expr(ty: &SdkType, p: &mut PythonPrinter, ctx: &dyn AnnotationContext, discriminated: bool) -> Expr {
+    union_expr(ty, p, ctx, discriminated, true)
+}
+
+/// [`union_alias_expr`] for the alias of an inline union, which leaves `None` out: a field that
+/// can be null is `Optional[<alias>]` (knock-mgmt `Actor: TypeAlias = Union[str, ...]`).
+pub fn inline_union_alias_expr(
+    ty: &SdkType,
+    p: &mut PythonPrinter,
+    ctx: &dyn AnnotationContext,
+    discriminated: bool,
+) -> Expr {
+    union_expr(ty, p, ctx, discriminated, false)
+}
+
+fn union_expr(
+    ty: &SdkType,
+    p: &mut PythonPrinter,
+    ctx: &dyn AnnotationContext,
+    discriminated: bool,
+    with_null: bool,
+) -> Expr {
     let SdkType::Union {
         variants,
         discriminator,
@@ -173,7 +209,7 @@ pub fn union_alias_expr(ty: &SdkType, p: &mut PythonPrinter, ctx: &dyn Annotatio
     let plain = WithoutUnionNames(ctx);
     let (rest, nullable) = union_members(variants);
     let mut members: Vec<Expr> = rest.iter().map(|v| to_annotation(v, p, &plain).into()).collect();
-    if nullable {
+    if nullable && with_null {
         members.push("None".into());
     }
     let union = bracket("Union[", members, false, "]");
