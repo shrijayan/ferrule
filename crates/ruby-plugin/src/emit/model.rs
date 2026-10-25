@@ -174,6 +174,38 @@ pub fn param_tags(out: &mut String, pad: &str, prefix: &str, params: &[(String, 
     }
 }
 
+/// One `required`/`optional` declaration with its `@!attribute` block.
+fn rb_attribute(g: &Gen<'_>, out: &mut String, indent: usize, c: &Class, f: &RField) {
+    let pad = " ".repeat(indent);
+    let _ = writeln!(out, "{pad}# @!attribute {}", f.name);
+    for l in wrap(&f.description, COMMENT_WIDTH) {
+        if l.is_empty() {
+            let _ = writeln!(out, "{pad}#");
+        } else {
+            let _ = writeln!(out, "{pad}#   {l}");
+        }
+    }
+    let _ = writeln!(out, "{pad}#");
+    let _ = writeln!(out, "{pad}#   @return [{}]", yard_return(g, f));
+    let mut args = vec![format!(":{}", f.name), f.ty.rb_field(&g.m)];
+    if let Some(api) = f.api_name().filter(|_| !c.params) {
+        args.push(format!("api_name: {}", crate::printer::symbol(api)));
+    }
+    if f.nullable {
+        args.push("nil?: true".to_owned());
+    }
+    let keyword = if f.required { "required" } else { "optional" };
+    out.push_str(&rb_statement(indent, keyword, &args));
+}
+
+/// The fields in the order their attributes are declared: the response-only ones last.
+fn declared(c: &Class) -> impl Iterator<Item = &RField> {
+    c.fields
+        .iter()
+        .filter(|f| !f.read_only)
+        .chain(c.fields.iter().filter(|f| f.read_only))
+}
+
 fn rb_class(g: &Gen<'_>, out: &mut String, indent: usize, c: &Class) {
     let pad = " ".repeat(indent);
     let inner = " ".repeat(indent + 2);
@@ -190,43 +222,26 @@ fn rb_class(g: &Gen<'_>, out: &mut String, indent: usize, c: &Class) {
         sep(out);
         request_parameters(g, out, &inner);
     }
-    for f in &c.fields {
+    for f in c.fields.iter().filter(|f| !f.read_only) {
         sep(out);
-        let _ = writeln!(out, "{inner}# @!attribute {}", f.name);
-        for l in wrap(&f.description, COMMENT_WIDTH) {
-            if l.is_empty() {
-                let _ = writeln!(out, "{inner}#");
-            } else {
-                let _ = writeln!(out, "{inner}#   {l}");
+        rb_attribute(g, out, indent + 2, c, f);
+    }
+    if c.fields.iter().any(|f| f.read_only) {
+        sep(out);
+        let _ = writeln!(out, "{inner}response_only do");
+        for (i, f) in c.fields.iter().filter(|f| f.read_only).enumerate() {
+            if i > 0 {
+                out.push('\n');
             }
+            rb_attribute(g, out, indent + 4, c, f);
         }
-        let _ = writeln!(out, "{inner}#");
-        let _ = writeln!(out, "{inner}#   @return [{}]", yard_return(g, f));
-        let mut args = vec![format!(":{}", f.name), f.ty.rb_field(&g.m)];
-        if let Some(api) = f.api_name().filter(|_| !c.params) {
-            args.push(format!("api_name: {}", crate::printer::symbol(api)));
-        }
-        if f.nullable {
-            args.push("nil?: true".to_owned());
-        }
-        let keyword = if f.required { "required" } else { "optional" };
-        out.push_str(&rb_statement(indent + 2, keyword, &args));
+        let _ = writeln!(out, "{inner}end");
     }
     sep(out);
-    let mut sig: Vec<String> = c
-        .fields
-        .iter()
-        .map(|f| {
-            if f.required {
-                format!("{}:", f.name)
-            } else {
-                format!("{}: nil", f.name)
-            }
-        })
-        .collect();
+    let mut sig: Vec<String> = c.init_order().into_iter().map(RField::init_arg).collect();
     let mut tags: Vec<(String, String, String)> = c
-        .fields
-        .iter()
+        .init_order()
+        .into_iter()
         .map(|f| (f.name.clone(), yard_param(g, f), short(&f.description)))
         .collect();
     if c.params {
@@ -288,10 +303,10 @@ fn rbi_read(g: &Gen<'_>, c: &Class, t: &RType) -> String {
 
 /// Sorbet's writer type: a model also as a hash; for an optional field, every model inside it.
 fn rbi_writer(g: &Gen<'_>, c: &Class, f: &RField) -> String {
-    let t = if matches!(f.ty, RType::Model(_)) {
+    let t = if matches!(f.ty, RType::Model(_) | RType::Union(..)) {
         f.ty.rbi_input(&g.m)
-    } else if !f.required {
-        f.ty.rbi_with(&g.m, true, c.params)
+    } else if !f.required && !f.nullable {
+        f.ty.rbi_with(&g.m, true, true)
     } else {
         rbi_read(g, c, &f.ty)
     };
@@ -316,7 +331,7 @@ fn rbi_class(g: &Gen<'_>, out: &mut String, indent: usize, c: &Class) {
         c.r.code(&g.m),
         g.m
     );
-    for f in &c.fields {
+    for f in declared(c) {
         out.push('\n');
         comment(out, indent + 2, &wrap(&f.description, COMMENT_WIDTH));
         let reader = rbi_reader(g, c, f);
@@ -334,8 +349,8 @@ fn rbi_class(g: &Gen<'_>, out: &mut String, indent: usize, c: &Class) {
     }
     out.push('\n');
     let mut params: Vec<String> = c
-        .fields
-        .iter()
+        .init_order()
+        .into_iter()
         .map(|f| format!("{}: {}", f.name, nilable(f.ty.rbi_input(&g.m), f.nullable)))
         .collect();
     let mut hash: Vec<String> = c
@@ -344,16 +359,9 @@ fn rbi_class(g: &Gen<'_>, out: &mut String, indent: usize, c: &Class) {
         .map(|f| format!("{}: {}", f.name, nilable(rbi_read(g, c, &f.ty), f.nullable)))
         .collect();
     let mut args: Vec<(String, &str)> = c
-        .fields
-        .iter()
-        .map(|f| {
-            let a = if f.required {
-                format!("{}:", f.name)
-            } else {
-                format!("{}: nil", f.name)
-            };
-            (a, f.description.as_str())
-        })
+        .init_order()
+        .into_iter()
+        .map(|f| (f.init_arg(), f.description.as_str()))
         .collect();
     if c.params {
         params.push(format!("request_options: {}::RequestOptions::OrHash", g.m));
@@ -448,7 +456,7 @@ fn rbs_class(g: &Gen<'_>, out: &mut String, indent: usize, c: &Class) {
         sep(out);
         request_parameters(g, out, &inner);
     }
-    for f in &c.fields {
+    for f in declared(c) {
         sep(out);
         let t = f.ty.rbs(&g.m);
         let full = rbs_type(g, f);
@@ -467,10 +475,10 @@ fn rbs_class(g: &Gen<'_>, out: &mut String, indent: usize, c: &Class) {
     }
     sep(out);
     let mut args: Vec<String> = c
-        .fields
-        .iter()
+        .init_order()
+        .into_iter()
         .map(|f| {
-            let q = if f.required { "" } else { "?" };
+            let q = if f.must_pass() { "" } else { "?" };
             format!("{q}{}: {}", f.name, rbs_type(g, f))
         })
         .collect();
@@ -553,9 +561,9 @@ fn enum_decl(g: &Gen<'_>, out: &mut String, indent: usize, e: &EnumDecl, view: V
 
 /// A union variant's converter: `String`, `-> { X }`, `:text, -> { X }` with a discriminator.
 fn rb_variant(g: &Gen<'_>, v: &crate::tree::Variant) -> String {
-    let ty = match &v.ty {
-        RType::Alias(c, _) => format!("-> {{ {} }}", c.doc(&g.m)),
-        t => t.rb_field(&g.m),
+    let ty = match &v.constant {
+        Some(c) => format!("-> {{ {} }}", c.doc(&g.m)),
+        None => v.ty.rb_field(&g.m),
     };
     match &v.key {
         Some(k) => format!("{}, {ty}", crate::printer::symbol(k)),
@@ -664,7 +672,6 @@ fn alias_decl(g: &Gen<'_>, out: &mut String, indent: usize, a: &crate::tree::Ali
     let name = a.r.name();
     match view {
         View::Rb => {
-            comment(out, indent, &wrap(&a.description, COMMENT_WIDTH));
             let _ = writeln!(out, "{pad}# @type [{m}::Internal::Type::Converter]");
             let value = crate::doc::text(a.ty.rb_const(m));
             let _ = writeln!(
@@ -674,7 +681,6 @@ fn alias_decl(g: &Gen<'_>, out: &mut String, indent: usize, a: &crate::tree::Ali
             );
         }
         View::Rbi => {
-            comment(out, indent, &wrap(&a.description, COMMENT_WIDTH));
             let _ = writeln!(
                 out,
                 "{pad}{name} = T.let({}, {m}::Internal::Type::Converter)",

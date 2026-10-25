@@ -43,7 +43,7 @@ impl<'c> Args<'c> {
 
     /// Whether the method needs a params hash with required keys (no `= {}` default).
     fn required(&self) -> bool {
-        !self.path.is_empty() || self.rest.iter().any(|f| f.required)
+        !self.path.is_empty() || self.rest.iter().any(RField::must_pass)
     }
 
     /// Whether the method parses its params (`dump_request`).
@@ -54,11 +54,7 @@ impl<'c> Args<'c> {
 
 /// `name:` for a required keyword, `name: nil` for an optional one.
 fn keyword(f: &RField) -> String {
-    if f.required {
-        format!("{}:", f.name)
-    } else {
-        format!("{}: nil", f.name)
-    }
+    f.init_arg()
 }
 
 /// The method's doc text: its description, else its summary.
@@ -207,7 +203,7 @@ fn rb_method(g: &Gen<'_>, out: &mut String, indent: usize, m: &Meth<'_>) {
 fn rbi_returns(g: &Gen<'_>, m: &Meth<'_>) -> String {
     match &m.response {
         Some(RType::Model(r)) if !r.aliased => r.doc(&g.m),
-        Some(t) => t.rbi(&g.m),
+        Some(t) => t.rbi_returned(&g.m),
         None => "NilClass".to_owned(),
     }
 }
@@ -252,7 +248,7 @@ fn rbs_method(g: &Gen<'_>, out: &mut String, indent: usize, m: &Meth<'_>) {
         .map(|(f, _)| format!("{} {}", rbs(f), f.name))
         .collect();
     list.extend(args.keywords().iter().map(|(f, _)| {
-        let optional = if f.required { "" } else { "?" };
+        let optional = if f.must_pass() { "" } else { "?" };
         format!("{optional}{}: {}", f.name, rbs(f))
     }));
     list.push(format!("?request_options: {}::request_opts", g.m));

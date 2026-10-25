@@ -258,13 +258,33 @@ impl RType {
                     format!("{}::TaggedSymbol", c.code(m))
                 }
             }
-            Self::Union(c, _) => format!("{}::Variants", c.code(m)),
+            Self::Union(c, variants) => {
+                if variants.is_empty() {
+                    format!("{}::Variants", c.code(m))
+                } else {
+                    let list: Vec<String> = variants.iter().map(|v| v.rbi_with(m, or_hash, or_symbol)).collect();
+                    format!("T.any({})", list.join(", "))
+                }
+            }
             Self::Alias(_, t) => t.rbi_with(m, or_hash, or_symbol),
             Self::Nullable(t) => format!("T.nilable({})", t.rbi_with(m, or_hash, or_symbol)),
             Self::Const(v) => match Self::const_class(v) {
                 "Boolean" => "T::Boolean".to_owned(),
                 class => class.to_owned(),
             },
+        }
+    }
+
+    /// Sorbet, as a method returns it: a union as its `Variants` alias.
+    #[must_use]
+    pub fn rbi_returned(&self, m: &str) -> String {
+        match self {
+            Self::Union(c, _) => format!("{}::Variants", c.code(m)),
+            Self::Array(t) => format!("T::Array[{}]", t.rbi_returned(m)),
+            Self::Map(t) => format!("T::Hash[Symbol, {}]", t.rbi_returned(m)),
+            Self::Alias(_, t) => t.rbi_returned(m),
+            Self::Nullable(t) => format!("T.nilable({})", t.rbi_returned(m)),
+            other => other.rbi(m),
         }
     }
 

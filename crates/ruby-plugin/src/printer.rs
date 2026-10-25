@@ -31,31 +31,136 @@ pub fn len(s: &str) -> usize {
     s.encode_utf16().count()
 }
 
-/// Greedy word wrap of each paragraph of `text` at `width`; trailing blank lines dropped.
-#[must_use]
-pub fn wrap(text: &str, width: usize) -> Vec<String> {
-    let mut lines: Vec<String> = Vec::new();
-    for para in text.split('\n') {
-        let mut cur = String::new();
-        for word in para.split(ferrule_sdk_model::js::is_space).filter(|w| !w.is_empty()) {
-            if cur.is_empty() {
-                word.clone_into(&mut cur);
-            } else if len(&cur) + 1 + len(word) <= width {
-                cur.push(' ');
-                cur.push_str(word);
-            } else {
-                lines.push(std::mem::replace(&mut cur, word.to_owned()));
+/// Greedy word wrap of `words` at `width`, the first line after `first`, the others after
+/// `rest`.
+fn fill(words: &[&str], width: usize, first: &str, rest: &str, out: &mut Vec<String>) {
+    let mut cur = first.to_owned();
+    let mut empty = true;
+    for word in words {
+        if empty {
+            cur.push_str(word);
+            empty = false;
+        } else if len(&cur) + 1 + len(word) <= width {
+            cur.push(' ');
+            cur.push_str(word);
+        } else {
+            out.push(std::mem::replace(&mut cur, format!("{rest}{word}")));
+        }
+    }
+    out.push(cur);
+}
+
+/// The words of a line of markdown: whitespace-separated, but a link (`[text](url)`) or a code
+/// span (`` `a b` ``) is one word, as prettier never breaks them.
+fn tokens(line: &str) -> Vec<&str> {
+    let is_space = ferrule_sdk_model::js::is_space;
+    let mut out = Vec::new();
+    let mut start: Option<usize> = None;
+    let (mut bracket, mut paren, mut code) = (0_i32, 0_i32, false);
+    let mut prev = ' ';
+    for (i, c) in line.char_indices() {
+        if c == '`' {
+            code = !code;
+        } else if !code {
+            match c {
+                '[' => bracket += 1,
+                ']' => bracket -= 1,
+                '(' if prev == ']' || paren > 0 => paren += 1,
+                ')' if paren > 0 => paren -= 1,
+                _ => {}
             }
         }
-        lines.push(cur);
+        let inside = code || bracket > 0 || paren > 0;
+        if is_space(c) && !inside {
+            if let Some(s) = start.take() {
+                out.push(&line[s..i]);
+            }
+        } else if start.is_none() {
+            start = Some(i);
+        }
+        prev = c;
     }
-    while lines.last().is_some_and(String::is_empty) {
-        lines.pop();
+    if let Some(s) = start {
+        out.push(&line[s..]);
     }
-    while lines.first().is_some_and(String::is_empty) {
-        lines.remove(0);
+    out
+}
+
+/// The marker of a markdown list item (`- `, `* `, `1. `), if the line starts one.
+fn list_marker(line: &str) -> Option<&str> {
+    for m in ["- ", "* ", "+ "] {
+        if line.starts_with(m) {
+            return Some(&line[..2]);
+        }
     }
-    lines
+    let digits = line.chars().take_while(char::is_ascii_digit).count();
+    (digits > 0 && line[digits..].starts_with(". ")).then(|| &line[..digits + 2])
+}
+
+/// Description text as Stainless's comments lay it out: markdown reflowed at `width` (lines of a
+/// paragraph joined, each list item on its own lines with a hanging indent, fenced code as
+/// written), paragraphs separated by an empty line; leading and trailing blank lines dropped.
+#[must_use]
+pub fn wrap(text: &str, width: usize) -> Vec<String> {
+    let is_space = ferrule_sdk_model::js::is_space;
+    let mut out: Vec<String> = Vec::new();
+    // The words of the paragraph or list item being collected, and its marker.
+    let mut words: Vec<&str> = Vec::new();
+    let mut marker: Option<&str> = None;
+    let mut fenced = false;
+    let flush = |words: &mut Vec<&str>, marker: &mut Option<&str>, out: &mut Vec<String>| {
+        if !words.is_empty() {
+            match marker.take() {
+                Some(m) => fill(words, width, m, &" ".repeat(len(m)), out),
+                None => fill(words, width, "", "", out),
+            }
+            words.clear();
+        }
+    };
+    for raw in text.split('\n') {
+        let line = raw.trim_end_matches(is_space);
+        if fenced {
+            out.push(line.to_owned());
+            fenced = !line.trim_start().starts_with("```");
+            continue;
+        }
+        let trimmed = line.trim_start_matches(is_space);
+        if trimmed.is_empty() {
+            flush(&mut words, &mut marker, &mut out);
+            if out.last().is_some_and(|l| !l.is_empty()) {
+                out.push(String::new());
+            }
+            continue;
+        }
+        if trimmed.starts_with("```") {
+            flush(&mut words, &mut marker, &mut out);
+            out.push(trimmed.to_owned());
+            fenced = true;
+            continue;
+        }
+        if let Some(m) = list_marker(trimmed) {
+            // A list right after a paragraph is its own block.
+            if marker.is_none() && !words.is_empty() {
+                flush(&mut words, &mut marker, &mut out);
+                out.push(String::new());
+            }
+            flush(&mut words, &mut marker, &mut out);
+            marker = Some(m);
+            words.extend(tokens(&trimmed[m.len()..]));
+            continue;
+        }
+        if trimmed.starts_with('#') || trimmed.starts_with('|') {
+            flush(&mut words, &mut marker, &mut out);
+            out.push(trimmed.to_owned());
+            continue;
+        }
+        words.extend(tokens(trimmed));
+    }
+    flush(&mut words, &mut marker, &mut out);
+    while out.last().is_some_and(String::is_empty) {
+        out.pop();
+    }
+    out
 }
 
 /// Comment lines `# <line>` at `indent` (an empty line is `#`), each ending in a newline.
@@ -140,6 +245,13 @@ mod tests {
     fn wraps_at_the_width() {
         assert_eq!(wrap("a b c", 3), ["a b", "c"]);
         assert_eq!(wrap("a\n\nb\n", 80), ["a", "", "b"]);
+        assert_eq!(wrap("one\ntwo", 80), ["one two"]);
+        assert_eq!(wrap("see [a b](c) d", 6), ["see", "[a b](c)", "d"]);
+        assert_eq!(wrap("intro:\n- a", 80), ["intro:", "", "- a"]);
+        assert_eq!(
+            wrap("Intro.\n\n- `a` x y  \n- `b` z", 8),
+            ["Intro.", "", "- `a` x", "  y", "- `b` z"]
+        );
     }
 
     #[test]

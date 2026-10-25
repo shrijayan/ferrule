@@ -19,10 +19,27 @@ pub struct RField {
     pub nullable: bool,
     pub ty: RType,
     pub description: String,
-    pub deprecated: bool,
+    /// Sent by the server only (`readOnly`): declared in a `response_only` block.
+    pub read_only: bool,
 }
 
 impl RField {
+    /// The argument in a generated initializer: `name:`, `name: nil`, or a constant's value.
+    #[must_use]
+    pub fn init_arg(&self) -> String {
+        match &self.ty {
+            RType::Const(v) => format!("{}: {}", self.name, crate::printer::literal(v)),
+            _ if self.required => format!("{}:", self.name),
+            _ => format!("{}: nil", self.name),
+        }
+    }
+
+    /// Whether a caller must pass it (a constant has a default).
+    #[must_use]
+    pub fn must_pass(&self) -> bool {
+        self.required && !matches!(self.ty, RType::Const(_))
+    }
+
     /// `api_name: :readableTime` when the wire name is not the Ruby name.
     #[must_use]
     pub fn api_name(&self) -> Option<&str> {
@@ -95,6 +112,19 @@ pub struct Class {
     pub params: bool,
 }
 
+impl Class {
+    /// The fields in the order a generated initializer takes them: the ones a caller must
+    /// pass, the optional ones, then the constants (they have defaults).
+    #[must_use]
+    pub fn init_order(&self) -> Vec<&RField> {
+        let is_const = |f: &&RField| matches!(f.ty, RType::Const(_));
+        let mut out: Vec<&RField> = self.fields.iter().filter(|f| f.must_pass()).collect();
+        out.extend(self.fields.iter().filter(|f| !f.must_pass() && !is_const(f)));
+        out.extend(self.fields.iter().filter(is_const));
+        out
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct EnumMember {
     /// `STOP_NAME_WRONG`.
@@ -118,6 +148,8 @@ pub struct Variant {
     pub description: String,
     /// The discriminator value that selects it (`variant :text, -> { ... }`).
     pub key: Option<String>,
+    /// The converter constant an array variant is declared as (`StringArray`).
+    pub constant: Option<ClassRef>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -173,6 +205,51 @@ pub fn sort_fields(fields: &[Field]) -> Vec<&Field> {
     });
     out
 }
+
+/// Field names Stainless suffixes with `_`: Ruby's keywords and methods every model has.
+const FIELD_RESERVED: [&str; 41] = [
+    "alias",
+    "and",
+    "begin",
+    "break",
+    "case",
+    "class",
+    "def",
+    "defined?",
+    "do",
+    "else",
+    "elsif",
+    "end",
+    "ensure",
+    "false",
+    "for",
+    "if",
+    "in",
+    "module",
+    "next",
+    "nil",
+    "not",
+    "or",
+    "redo",
+    "rescue",
+    "retry",
+    "return",
+    "self",
+    "super",
+    "then",
+    "true",
+    "undef",
+    "unless",
+    "until",
+    "when",
+    "while",
+    "yield",
+    "__method__",
+    "__FILE__",
+    "format",
+    "method",
+    "y",
+];
 
 /// Builds declarations for one SDK.
 pub struct Builder<'a> {
@@ -371,15 +448,26 @@ impl<'a> Builder<'a> {
             wire: &f.wire_name,
             doc: &f.description,
         };
-        let (ty, nullable) = self.field_type(site, at, &f.ty, nested);
+        let (ty, nullable) = match &f.ty {
+            // A required field with one allowed value is a constant (`const: :S3`).
+            Type::Enum { members } if f.required && members.len() == 1 => {
+                (RType::Const(members[0].value.clone()), false)
+            }
+            ty => self.field_type(site, at, ty, nested),
+        };
+        let mut ruby = snake(&name);
+        if FIELD_RESERVED.contains(&ruby.as_str()) {
+            ruby.push('_');
+        }
         RField {
-            name: snake(&name),
+            name: ruby,
             wire: f.wire_name.clone(),
             required: f.required,
             nullable,
             ty,
             description: f.description.clone(),
-            deprecated: f.deprecated,
+
+            read_only: f.read_only,
         }
     }
 
@@ -404,6 +492,7 @@ impl<'a> Builder<'a> {
                 Type::Nullable { inner } => (&**inner, true),
                 t => (t, false),
             };
+            let mut constant = None;
             let ty = match inner {
                 Type::Enum { members } if members.len() == 1 => RType::Const(members[0].value.clone()),
                 Type::Array { items } => {
@@ -422,7 +511,8 @@ impl<'a> Builder<'a> {
                         ty: array.clone(),
                         before: Vec::new(),
                     });
-                    RType::Alias(cr, Box::new(array))
+                    constant = Some(cr);
+                    array
                 }
                 t => self.ty(&site, At::plain(&name), t, &mut nested, false),
             };
@@ -436,6 +526,7 @@ impl<'a> Builder<'a> {
                 nullable,
                 description,
                 key: u.discriminator.as_ref().and(v.discriminator_value.clone()),
+                constant,
             });
         }
         UnionDecl {
