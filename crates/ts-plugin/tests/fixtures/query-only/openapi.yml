@@ -1,0 +1,47 @@
+openapi: 3.1.0
+info:
+  title: Acme
+  version: 1.0.0
+servers:
+  - url: https://api.acme.test
+security:
+  - BearerAuth: []
+paths:
+  /commits:
+    put:
+      operationId: commitAll
+      summary: Commit all changes
+      parameters:
+        - in: query
+          name: environment
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: commit_message
+          schema:
+            type: string
+        - in: query
+          name: resource_id
+          schema:
+            type: string
+        - in: query
+          name: resource_type
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The result.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [result]
+                properties:
+                  result:
+                    type: string
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
