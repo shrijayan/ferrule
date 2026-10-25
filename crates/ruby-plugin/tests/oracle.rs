@@ -45,10 +45,23 @@ fn not_generated(path: &str, lib: &str) -> bool {
     runtime || runtime_tests || path == "CHANGELOG.md"
 }
 
-/// Project files (README, CI, scripts, gemspec) the plugin does not emit yet.
+/// Project files the plugin does not emit yet: the README and the docs, CI, release-please's
+/// files, `bin/`, and what bundler and the generator record (`Gemfile.lock`, `.stats.yml`).
 fn project_file(path: &str) -> bool {
-    !(path.starts_with("lib/") || path.starts_with("rbi/") || path.starts_with("sig/") || path.starts_with("test/"))
-        && path != "examples/.keep"
+    const NOT_YET: [&str; 11] = [
+        "README.md",
+        "CONTRIBUTING.md",
+        "SECURITY.md",
+        "LICENSE",
+        "Gemfile.lock",
+        ".stats.yml",
+        ".release-please-manifest.json",
+        "release-please-config.json",
+        "bin/check-release-environment",
+        "bin/publish-gem",
+        "scripts/utils/upload-artifact.sh",
+    ];
+    NOT_YET.contains(&path) || path.starts_with(".github/")
 }
 
 fn onebusaway() -> Option<(PathBuf, RubyOutput)> {
@@ -57,6 +70,7 @@ fn onebusaway() -> Option<(PathBuf, RubyOutput)> {
     let meta = RubyMeta {
         version: Some("1.12.0".into()),
         example: Some((vec!["current_time".into()], "retrieve".into())),
+        email: Some("info@onebusaway.org".into()),
         // The gem name comes from `targets.ruby.gem_name`.
         ..RubyMeta::default()
     };
@@ -71,7 +85,9 @@ fn compare(oracle: &std::path::Path, files: &[(String, String)], known: &[(&str,
     let mut differing = Vec::new();
     for (path, text) in files {
         let Ok(raw) = std::fs::read_to_string(oracle.join(path)) else {
-            differing.push(format!("{path} (not in the oracle)"));
+            if !known.iter().any(|(p, _)| p == path) {
+                differing.push(format!("{path} (not in the oracle)"));
+            }
             continue;
         };
         let expected = common::brand(&raw);
@@ -134,6 +150,11 @@ fn onebusaway_fills_the_runtime_options() {
 /// imagekit-ruby files that differ, with the main reason (most are gaps of the model, listed in the
 /// reasons below; the test fails when one of them starts matching).
 const IMAGEKIT_KNOWN: &[(&str, &str)] = &[
+    (".gitignore", OLDER_PROJECT),
+    ("Rakefile", OLDER_PROJECT),
+    ("scripts/test", OLDER_PROJECT),
+    ("scripts/mock", OLDER_PROJECT),
+    ("imagekitio.gemspec", WEBHOOKS),
     ("lib/imagekitio/client.rb", CUSTOM),
     ("lib/imagekitio/models/accounts/origin_delete_params.rb", PATHDOC),
     ("lib/imagekitio/models/accounts/origin_get_params.rb", PATHDOC),
@@ -241,6 +262,8 @@ const IMAGEKIT_KNOWN: &[(&str, &str)] = &[
     ("test/imagekitio/resources/folders_test.rb", EXAMPLES),
     ("test/imagekitio/resources/saved_extensions_test.rb", EXAMPLES),
 ];
+const OLDER_PROJECT: &str =
+    "older generation: imagekit's project files predate OneBusAway's (no scripts/mock, no CPU cap in the Rakefile)";
 const CUSTOM: &str =
     "hand edits imagekit keeps in the generated tree (helpers, upload serialization, base_url_overridden?)";
 const WEBHOOKS: &str = "Forge gap: webhook_unwrap methods and their event models are not in the model";
@@ -265,6 +288,7 @@ fn imagekit() -> Option<(PathBuf, RubyOutput)> {
     let meta = RubyMeta {
         version: Some("4.5.0".into()),
         example: Some((vec!["files".into()], "upload".into())),
+        email: Some("developer@imagekit.io".into()),
         disable_mock_tests: true,
         ..RubyMeta::default()
     };
