@@ -403,6 +403,16 @@ def _copy_runtime(source_root: Path, out: Path) -> tuple[str, int]:
     return package, len(copies)
 
 
+def mark_scripts_executable(out: Path) -> None:
+    """``chmod +x`` the files in ``scripts/``, as Stainless SDKs ship them (mode 100755)."""
+    scripts = out / "scripts"
+    if not scripts.is_dir():
+        return
+    for path in sorted(scripts.iterdir()):
+        if path.is_file() and not path.is_symlink():
+            path.chmod(path.stat().st_mode | 0o111)
+
+
 def generate(
     request: GenerateRequest,
     runner: Runner = run_subprocess,
@@ -431,6 +441,7 @@ def generate(
         )
     _run(sort_imports_step(request.out, request.tools), runner)
     _run(format_step(request.out, request.tools), runner)
+    mark_scripts_executable(request.out)
     return GenerateResult(
         package=package,
         files=len(relative_files(request.out)),
