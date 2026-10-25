@@ -195,6 +195,21 @@ fn counts_onebusaway_endpoints() {
     assert!(stats.starts_with("configured_endpoints: 30\n"), "{stats}");
 }
 
+#[test]
+fn counts_an_endpoint_bound_to_two_methods_once() {
+    // lumaai binds `post /generations/video` to `generations.create` and
+    // `generations.video.create` (x-forge-aliases); its .stats.yml says 13 endpoints for 14 methods.
+    let mut input = acme();
+    let mut alias = input.resources[0].methods[0].clone();
+    alias.name = "create_alias".to_owned();
+    input.resources[0].methods.push(alias);
+    assert!(
+        emit_stats(&input).starts_with("configured_endpoints: 2\n"),
+        "{}",
+        emit_stats(&input)
+    );
+}
+
 // api.md
 
 #[test]
