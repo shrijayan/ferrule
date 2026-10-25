@@ -1,6 +1,6 @@
 # opencode-python-sdk migration
 
-Nothing here was pushed to the SDK repository and no PR was opened. Decision record: ADR 0013.
+Nothing here was pushed to the SDK repository and no PR was opened. Decision record: ADR 0015.
 
 ## Target
 
@@ -81,6 +81,6 @@ type layout alone accounts for most: the SDK has 2 files under `types/`, Ferrule
    693 named types; add a rename for `shell.create(timeout)`.
 5. SDK-specific modules (RPC, PTY, server, event hub, typed errors) need custom code kept by
    `ferrule merge` (ADR 0011) or a decision to drop them.
-6. Register ADR 0013 in `docs/adr/README.md` (owner: ci-docs).
+6. ADR 0015 is registered in `docs/adr/README.md`.
 7. Wire `scripts/opencode/tests` into `pytest` testpaths and the `typecheck:py` mypy list (root
    config, not owned here). Today: `uv run python -m pytest scripts/opencode/tests`.

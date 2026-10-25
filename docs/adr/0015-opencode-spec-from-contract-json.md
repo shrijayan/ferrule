@@ -1,4 +1,4 @@
-# 0013. The opencode SDK's spec comes from our own contract.json converter
+# 0015. The opencode SDK's spec comes from our own contract.json converter
 
 - Status: Accepted
 - Date: 2026-10-23

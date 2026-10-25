@@ -12,7 +12,7 @@ It lists groups of endpoints and a ``$defs`` table of JSON Schemas. This module 
 - ``value``/``void``/``stream``/``binary`` successes and tagged errors to responses,
 - ``$defs`` to ``components.schemas``.
 
-``convert`` is pure and deterministic; only ``main`` touches files. See ADR 0013.
+``convert`` is pure and deterministic; only ``main`` touches files. See ADR 0015.
 """
 
 from __future__ import annotations
