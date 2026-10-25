@@ -17,3 +17,23 @@ and `stainless.yml` reduced from an oracle (phase 4 triage), and `annotated.json
   `maybe_transform(body, SequenceNotStr[str])` without importing its params module. honcho's map
   values are the named model `SessionPeerConfig` (`SessionPeerConfigParam` in Stainless); the
   fixture maps to strings, since `_param` twins of named models are not emitted yet.
+- `union_of_objects`: a `oneOf` of two `$ref`s beside query parameters, from knock-mgmt
+  `guides.activate` (knock-mgmt-python `resources/guides.py`, `types/guide_activate_params.py`),
+  and a discriminated `oneOf` of inline objects behind a named model, from imagekit
+  `accounts.origins.create` (imagekit-python `resources/accounts/origins.py`,
+  `types/accounts/origin_create_params.py`). Stainless writes:
+  - one `@overload` per variant, in spec order: the query parameters and the variant's fields,
+    sorted as any params (required first), with the method docstring listing them; body `...`;
+  - `@required_args` with each variant's required arguments, identical lists once, when any
+    variant has one;
+  - the implementation without a docstring: every variant's arguments once, in the order they
+    first appear, required only where every variant requires them, typed as each variant types
+    them (`Literal["S3"] | Literal["WEB_PROXY"]`); the body dict and query dict in that order;
+  - the params file: a `TypedDict` per variant (query parameters included) named after the
+    schema it comes from, or its discriminator value, each followed by its inline objects
+    (`S3Credentials`, as imagekit `ChangePublicationStatusPublish`), then
+    `OriginCreateParams: TypeAlias = Union[...]`.
+
+  Stainless names inline variants after their `title` (imagekit `GoogleCloudStorageGcs` for
+  discriminator `GCS`, `UpdateFileDetails`); Forge does not expose titles, so the fixture's
+  titles spell what the discriminator values give.
