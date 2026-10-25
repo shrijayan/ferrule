@@ -1,6 +1,17 @@
 {
-  "sha256": "8189eb088ba35d3123cda2113f5edc3045f40ef299e406f3630347664f5bb8fe",
+  "sha256": "3d62e97d96f60deb0c6fac64316e234b2aff57fc5e3f9ce0eb1dfbd8a3e72217",
   "root": {
+    "x-ferrule-casings": {
+      "ilgs": {
+        "initialism": true
+      },
+      "qa": {
+        "initialism": true
+      },
+      "v1": {
+        "pascal": "v1"
+      }
+    },
     "x-ferrule-client": {
       "defaultEnvironment": "production",
       "defaultHeaders": {},
@@ -54,7 +65,39 @@
       "projectName": "isaacus",
       "pythonEdition": "python.2025-10-08",
       "version": 1
-    }
+    },
+    "x-ferrule-standalone": [
+      {
+        "order": [
+          1,
+          0
+        ],
+        "path": [
+          "classifications",
+          "universal"
+        ]
+      },
+      {
+        "order": [
+          3,
+          0
+        ],
+        "path": [
+          "extractions",
+          "qa"
+        ]
+      },
+      {
+        "order": [
+          5,
+          0
+        ],
+        "path": [
+          "ilgs",
+          "v1"
+        ]
+      }
+    ]
   },
   "mirrored": {
     "x-ferrule-client": {
@@ -106,7 +149,7 @@
     },
     "x-ferrule-models": {
       "AnswerExtractionResponse": {
-        "module": "extractions.answer_extraction_response",
+        "module": "extractions.qa.answer_extraction_response",
         "name": "AnswerExtractionResponse"
       },
       "EmbeddingResponse": {
@@ -118,59 +161,59 @@
         "name": "EnrichmentResponse"
       },
       "ILGSv1 Crossreference": {
-        "module": "ilgs.crossreference",
+        "module": "ilgs.v1.crossreference",
         "name": "Crossreference"
       },
       "ILGSv1 Date": {
-        "module": "ilgs.date",
+        "module": "ilgs.v1.date",
         "name": "Date"
       },
       "ILGSv1 Email": {
-        "module": "ilgs.email",
+        "module": "ilgs.v1.email",
         "name": "Email"
       },
       "ILGSv1 External Document": {
-        "module": "ilgs.external_document",
+        "module": "ilgs.v1.external_document",
         "name": "ExternalDocument"
       },
       "ILGSv1 ID Number": {
-        "module": "ilgs.id_number",
-        "name": "IdNumber"
+        "module": "ilgs.v1.id_number",
+        "name": "IDNumber"
       },
       "ILGSv1 Location": {
-        "module": "ilgs.location",
+        "module": "ilgs.v1.location",
         "name": "Location"
       },
       "ILGSv1 Person": {
-        "module": "ilgs.person",
+        "module": "ilgs.v1.person",
         "name": "Person"
       },
       "ILGSv1 Phone Number": {
-        "module": "ilgs.phone_number",
+        "module": "ilgs.v1.phone_number",
         "name": "PhoneNumber"
       },
       "ILGSv1 Quote": {
-        "module": "ilgs.quote",
+        "module": "ilgs.v1.quote",
         "name": "Quote"
       },
       "ILGSv1 Segment": {
-        "module": "ilgs.segment",
+        "module": "ilgs.v1.segment",
         "name": "Segment"
       },
       "ILGSv1 Span": {
-        "module": "ilgs.span",
+        "module": "ilgs.v1.span",
         "name": "Span"
       },
       "ILGSv1 Term": {
-        "module": "ilgs.term",
+        "module": "ilgs.v1.term",
         "name": "Term"
       },
       "ILGSv1 Website": {
-        "module": "ilgs.website",
+        "module": "ilgs.v1.website",
         "name": "Website"
       },
       "ILGSv1Document": {
-        "module": "ilgs.document",
+        "module": "ilgs.v1.document",
         "name": "Document"
       },
       "RerankingResponse": {
@@ -178,7 +221,7 @@
         "name": "RerankingResponse"
       },
       "UniversalClassificationResponse": {
-        "module": "classifications.universal_classification_response",
+        "module": "classifications.universal.universal_classification_response",
         "name": "UniversalClassificationResponse"
       }
     },
@@ -194,6 +237,17 @@
         "universal"
       ],
       "x-fern-sdk-method-name": "create",
+      "x-ferrule-casings": {
+        "ilgs": {
+          "initialism": true
+        },
+        "qa": {
+          "initialism": true
+        },
+        "v1": {
+          "pascal": "v1"
+        }
+      },
       "x-ferrule-method-name": "create",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -205,13 +259,56 @@
           "classifications",
           "universal"
         ]
-      }
+      },
+      "x-ferrule-standalone": [
+        {
+          "order": [
+            1,
+            0
+          ],
+          "path": [
+            "classifications",
+            "universal"
+          ]
+        },
+        {
+          "order": [
+            3,
+            0
+          ],
+          "path": [
+            "extractions",
+            "qa"
+          ]
+        },
+        {
+          "order": [
+            5,
+            0
+          ],
+          "path": [
+            "ilgs",
+            "v1"
+          ]
+        }
+      ]
     },
     "POST /embeddings": {
       "x-fern-sdk-group-name": [
         "embeddings"
       ],
       "x-fern-sdk-method-name": "create",
+      "x-ferrule-casings": {
+        "ilgs": {
+          "initialism": true
+        },
+        "qa": {
+          "initialism": true
+        },
+        "v1": {
+          "pascal": "v1"
+        }
+      },
       "x-ferrule-method-name": "create",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -221,13 +318,56 @@
         "path": [
           "embeddings"
         ]
-      }
+      },
+      "x-ferrule-standalone": [
+        {
+          "order": [
+            1,
+            0
+          ],
+          "path": [
+            "classifications",
+            "universal"
+          ]
+        },
+        {
+          "order": [
+            3,
+            0
+          ],
+          "path": [
+            "extractions",
+            "qa"
+          ]
+        },
+        {
+          "order": [
+            5,
+            0
+          ],
+          "path": [
+            "ilgs",
+            "v1"
+          ]
+        }
+      ]
     },
     "POST /enrichments": {
       "x-fern-sdk-group-name": [
         "enrichments"
       ],
       "x-fern-sdk-method-name": "create",
+      "x-ferrule-casings": {
+        "ilgs": {
+          "initialism": true
+        },
+        "qa": {
+          "initialism": true
+        },
+        "v1": {
+          "pascal": "v1"
+        }
+      },
       "x-ferrule-method-name": "create",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -237,7 +377,39 @@
         "path": [
           "enrichments"
         ]
-      }
+      },
+      "x-ferrule-standalone": [
+        {
+          "order": [
+            1,
+            0
+          ],
+          "path": [
+            "classifications",
+            "universal"
+          ]
+        },
+        {
+          "order": [
+            3,
+            0
+          ],
+          "path": [
+            "extractions",
+            "qa"
+          ]
+        },
+        {
+          "order": [
+            5,
+            0
+          ],
+          "path": [
+            "ilgs",
+            "v1"
+          ]
+        }
+      ]
     },
     "POST /extractions/qa": {
       "x-fern-sdk-group-name": [
@@ -245,6 +417,17 @@
         "qa"
       ],
       "x-fern-sdk-method-name": "create",
+      "x-ferrule-casings": {
+        "ilgs": {
+          "initialism": true
+        },
+        "qa": {
+          "initialism": true
+        },
+        "v1": {
+          "pascal": "v1"
+        }
+      },
       "x-ferrule-method-name": "create",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -256,13 +439,56 @@
           "extractions",
           "qa"
         ]
-      }
+      },
+      "x-ferrule-standalone": [
+        {
+          "order": [
+            1,
+            0
+          ],
+          "path": [
+            "classifications",
+            "universal"
+          ]
+        },
+        {
+          "order": [
+            3,
+            0
+          ],
+          "path": [
+            "extractions",
+            "qa"
+          ]
+        },
+        {
+          "order": [
+            5,
+            0
+          ],
+          "path": [
+            "ilgs",
+            "v1"
+          ]
+        }
+      ]
     },
     "POST /rerankings": {
       "x-fern-sdk-group-name": [
         "rerankings"
       ],
       "x-fern-sdk-method-name": "create",
+      "x-ferrule-casings": {
+        "ilgs": {
+          "initialism": true
+        },
+        "qa": {
+          "initialism": true
+        },
+        "v1": {
+          "pascal": "v1"
+        }
+      },
       "x-ferrule-method-name": "create",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -272,7 +498,39 @@
         "path": [
           "rerankings"
         ]
-      }
+      },
+      "x-ferrule-standalone": [
+        {
+          "order": [
+            1,
+            0
+          ],
+          "path": [
+            "classifications",
+            "universal"
+          ]
+        },
+        {
+          "order": [
+            3,
+            0
+          ],
+          "path": [
+            "extractions",
+            "qa"
+          ]
+        },
+        {
+          "order": [
+            5,
+            0
+          ],
+          "path": [
+            "ilgs",
+            "v1"
+          ]
+        }
+      ]
     }
   }
 }
