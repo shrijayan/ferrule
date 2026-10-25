@@ -150,3 +150,16 @@ fn documents_pagination_and_streaming_when_a_method_has_them() {
     assert!(skill.contains("## Streaming"));
     assert_eq!(unparsable(&python_blocks(skill)), Vec::<String>::new());
 }
+
+/// The streaming snippet of a param-switched method passes the switch by its Python name
+/// (stagehand `sessions.act(..., stream_response=True)`), not the wire name `streamResponse`.
+#[test]
+fn switches_streaming_on_by_the_python_name() {
+    let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/headers/params/annotated.json");
+    let forge: forge::Forge = serde_json::from_slice(&fs::read(path).expect("fixture")).expect("a document");
+    let client = to_model(&forge).expect("converts").expect("has operations");
+    let c = agent_context(&client, None).expect("a context");
+    let body = c.streaming.expect("streaming").body.join("\n");
+    assert!(body.contains("stream_response=True"), "{body}");
+    assert!(!body.contains("streamResponse"), "{body}");
+}
