@@ -4,14 +4,17 @@
 use std::collections::HashSet;
 
 use super::common::{
-    HEADER, args_docstring, keyword_path_params, leaf, method_params, method_ref, py_fstring, py_string, rel_import,
-    resource_class_base, resource_module, return_model, stainless_method_order,
+    HEADER, args_docstring, is_param_switched, keyword_path_params, leaf, method_params, method_ref, py_fstring,
+    py_string, rel_import, resource_class_base, resource_module, return_model, stainless_method_order,
+    stream_event_model, stream_switch, with_bool_literal,
 };
-use super::format::{Bracket, Expr, bracket, call, flat, print_expr};
+use super::format::{Bracket, Cond, Expr, bracket, call, flat, print_expr};
 use super::models::all_list;
 use super::params::{ParamsContext, UnionBody, name_params, name_union_body};
 use crate::diagnostics::{FerCode, FerruleError};
-use crate::model::{HttpVerb, ParamLocation, SdkClient, SdkMethod, SdkParam, SdkResource, SdkType};
+use crate::model::{
+    HttpVerb, ParamLocation, SdkClient, SdkLiteral, SdkMethod, SdkParam, SdkPrimitive, SdkResource, SdkType,
+};
 use crate::printer::PythonPrinter;
 use crate::type_mapper::{AnnotationContext, is_nullable, to_annotation};
 
@@ -211,6 +214,106 @@ fn print_overloads(
     merged
 }
 
+/// The `@overload` stubs of a param-switched streaming method (ogx `responses.create`, stagehand
+/// `sessions.act`), and the implementation's arguments:
+/// - the switch `Literal[False]` (`Optional[...]` when nullable) and optional, in its place
+///   among the arguments, returning the response;
+/// - the switch `Literal[True]` and required, after the required arguments, returning
+///   `Stream[<event>]`;
+/// - the same with `bool`, returning either;
+/// - `@required_args` with the required arguments, then those and the switch; the
+///   implementation's switch is `<Literal[False] spelling> | Literal[True]`.
+fn print_stream_overloads(
+    s: &FileState<'_>,
+    p: &mut PythonPrinter,
+    method: &SdkMethod,
+    switch: &SdkParam,
+    params: &[&SdkParam],
+    sig: (bool, &[Arg], &str, &str),
+    ctx: &dyn AnnotationContext,
+) -> Vec<Arg> {
+    let (awaits, path, model, streamed) = sig;
+    let is_switch = |q: &SdkParam| std::ptr::eq(q, switch);
+    let all: Vec<&SdkParam> = keyword_path_params(method)
+        .iter()
+        .chain(params.iter().copied())
+        .collect();
+    let off = SdkParam {
+        ty: with_bool_literal(&switch.ty, false),
+        required: false,
+        ..switch.clone()
+    };
+    let off_ann = arg_of(p, &off, ctx).ann;
+    let on_ann = to_annotation(&SdkType::Literal(vec![SdkLiteral::Boolean(true)]), p, ctx);
+    let bool_ann = to_annotation(&SdkType::Primitive(SdkPrimitive::Boolean), p, ctx);
+    let required: Vec<&SdkParam> = all.iter().copied().filter(|q| q.required && !is_switch(q)).collect();
+    let optional: Vec<&SdkParam> = all.iter().copied().filter(|q| !q.required && !is_switch(q)).collect();
+    let switched_first: Vec<&SdkParam> = required
+        .iter()
+        .copied()
+        .chain([switch])
+        .chain(optional.iter().copied())
+        .collect();
+    let args_of = |p: &mut PythonPrinter, order: &[&SdkParam], switch_arg: (&str, bool)| -> Vec<Arg> {
+        order
+            .iter()
+            .map(|q| {
+                if is_switch(q) {
+                    Arg {
+                        name: q.py_name.clone(),
+                        ann: switch_arg.0.to_owned(),
+                        required: switch_arg.1,
+                    }
+                } else {
+                    arg_of(p, q, ctx)
+                }
+            })
+            .collect()
+    };
+    let either = format!("{model} | {streamed}");
+    let overloads: [(&[&SdkParam], (&str, bool), &str); 3] = [
+        (&all, (&off_ann, false), model),
+        (&switched_first, (&on_ann, true), streamed),
+        (&switched_first, (&bool_ann, true), &either),
+    ];
+    for (order, switch_arg, returns) in overloads {
+        let args = args_of(p, order, switch_arg);
+        p.line("@overload");
+        p.import_from("typing_extensions", "overload");
+        print_signature(s, p, &method.name, awaits, path, &args, returns);
+        let opened = p.open();
+        // Path parameters are not listed, as in the method docstrings without overloads.
+        let documented: Vec<&SdkParam> = order
+            .iter()
+            .copied()
+            .filter(|q| !method.path_params.iter().any(|x| std::ptr::eq(x, *q)))
+            .collect();
+        for l in args_docstring(method, Some(&documented)) {
+            p.line(&l);
+        }
+        p.line("...");
+        p.close(opened);
+        p.blank();
+    }
+    imp(s, p, "_utils", "required_args");
+    let names = |extra: Option<&SdkParam>| -> Expr {
+        let items = required
+            .iter()
+            .copied()
+            .chain(extra)
+            .map(|q| py_string(&q.py_name).into())
+            .collect();
+        bracket("[", items, false, "]").into()
+    };
+    print_expr(
+        p,
+        &call("@required_args(", vec![names(None), names(Some(switch))], false).into(),
+        "",
+        "",
+    );
+    args_of(p, &all, (&format!("{off_ann} | {on_ann}"), false))
+}
+
 /// `path_template("/a/{b_id}", b_id=b_id)`, `f"/a/{b_id}"` for a runtime without
 /// `path_template`, or the plain path string.
 fn path_expr(s: &FileState<'_>, p: &mut PythonPrinter, method: &SdkMethod) -> Expr {
@@ -287,7 +390,7 @@ fn transform_expr(
     p: &mut PythonPrinter,
     key: &str,
     params: &[&SdkParam],
-    params_name: &str,
+    against: Expr,
     awaits: bool,
 ) -> Bracket {
     let f = if awaits {
@@ -307,9 +410,44 @@ fn transform_expr(
     );
     call(
         &format!("{key}={}{f}(", if awaits { "await " } else { "" }),
-        vec![dict.into(), params_name.into()],
+        vec![dict.into(), against],
         false,
     )
+}
+
+/// FER201 for a method shape [`emit_method`] does not generate yet.
+fn check_supported(method: &SdkMethod) -> Result<(), FerruleError> {
+    let switch = stream_switch(method);
+    if is_param_switched(method) && switch.is_none() {
+        return Err(unsupported(
+            method,
+            "a param-switched streaming method whose switch is not a body parameter",
+        ));
+    }
+    if switch.is_some() && !method.body_variants.is_empty() {
+        return Err(unsupported(
+            method,
+            "a param-switched streaming method with a union body",
+        ));
+    }
+    if method.body.is_some() && method.body_params.is_empty() && method.body_variants.is_empty() {
+        return Err(unsupported(method, "a request body that is not an object"));
+    }
+    Ok(())
+}
+
+/// What the body is checked against: the params class, or for a param-switched method the
+/// class of its switch's value.
+fn body_against(switch: Option<&SdkParam>, params_name: &str) -> Expr {
+    match switch {
+        Some(sw) => Cond {
+            then: format!("{params_name}Streaming"),
+            test: sw.py_name.clone(),
+            otherwise: format!("{params_name}NonStreaming"),
+        }
+        .into(),
+        None => params_name.into(),
+    }
 }
 
 fn emit_method(
@@ -319,18 +457,11 @@ fn emit_method(
     mode: Mode,
     holder: Option<&SdkResource>,
 ) -> Result<(), FerruleError> {
+    check_supported(method)?;
     let is_async = mode.is_async();
     let page = method.pagination.as_ref();
     let stream = method.streaming.as_ref();
-    if stream
-        .and_then(|st| st.param_discriminator.as_deref())
-        .is_some_and(|d| !d.is_empty())
-    {
-        return Err(unsupported(method, "a param-switched streaming method"));
-    }
-    if method.body.is_some() && method.body_params.is_empty() && method.body_variants.is_empty() {
-        return Err(unsupported(method, "a request body that is not an object"));
-    }
+    let switch = stream_switch(method);
     let ret = return_model(holder, method);
     let union = name_union_body(method);
     let params = union.as_ref().map_or_else(|| method_params(method), |u| u.args.clone());
@@ -377,6 +508,13 @@ fn emit_method(
         imp(s, p, "_streaming", cls);
         returns = format!("{cls}[{model}]");
     }
+    // A param-switched method returns the response, or a stream of events.
+    let streamed = switch.map(|_| {
+        let event = stream_event_model(holder, method).map_or_else(|| "None".to_owned(), |r| ctx.ref_name(p, &r.r#ref));
+        let streamed = format!("{}[{event}]", if is_async { "AsyncStream" } else { "Stream" });
+        returns = format!("{model} | {streamed}");
+        streamed
+    });
     // A paginated async method is a plain def returning an AsyncPaginator.
     let awaits = is_async && page.is_none();
 
@@ -387,9 +525,12 @@ fn emit_method(
         .map(|q| arg_of(p, q, &ctx))
         .into_iter()
         .collect();
-    let args = match &union {
-        Some(u) => print_overloads(s, p, method, u, (awaits, &path, &returns), &ctx),
-        None => keyword_path_params(method)
+    let args = match (&union, switch.zip(streamed.as_deref())) {
+        (Some(u), _) => print_overloads(s, p, method, u, (awaits, &path, &returns), &ctx),
+        (None, Some((sw, streamed))) => {
+            print_stream_overloads(s, p, method, sw, &params, (awaits, &path, &model, streamed), &ctx)
+        }
+        (None, None) => keyword_path_params(method)
             .iter()
             .chain(params.iter().copied())
             .map(|q| arg_of(p, q, &ctx))
@@ -400,7 +541,7 @@ fn emit_method(
     let opened = p.open();
     let has_args = !method.path_params.is_empty() || !params.is_empty();
     // The implementation behind overloads has no docstring.
-    let doc = if union.is_some() {
+    let doc = if union.is_some() || switch.is_some() {
         Vec::new()
     } else {
         args_docstring(method, if has_args { Some(&params) } else { None })
@@ -480,7 +621,8 @@ fn emit_method(
         let open = format!("body={}{f}(", if awaits { "await " } else { "" });
         items.push(call(&open, vec!["body".into(), against.into()], false).into());
     } else if !body.is_empty() && in_body {
-        items.push(transform_expr(s, p, "body", &body, &params_name, awaits && page.is_none()).into());
+        let against = body_against(switch, &params_name);
+        items.push(transform_expr(s, p, "body", &body, against, awaits && page.is_none()).into());
     }
     imp(s, p, "_base_client", "make_request_options");
     let options: Vec<Expr> = OPTIONS_ARGS.iter().map(|&a| a.into()).collect();
@@ -488,7 +630,7 @@ fn emit_method(
         items.push(call("options=make_request_options(", options, false).into());
     } else {
         let mut options = options;
-        options.push(transform_expr(s, p, "query", &query, &params_name, awaits).into());
+        options.push(transform_expr(s, p, "query", &query, params_name.clone().into(), awaits).into());
         items.push(call("options=make_request_options(", options, true).into());
     }
     if page.is_some() {
@@ -502,7 +644,10 @@ fn emit_method(
     if page.is_some() && method.http_method != HttpVerb::Get {
         items.push(format!("method=\"{}\"", method.http_method.as_str()).into());
     }
-    if stream.is_some() {
+    if let (Some(sw), Some(streamed)) = (switch, &streamed) {
+        items.push(format!("stream={} or False", sw.py_name).into());
+        items.push(format!("stream_cls={streamed}").into());
+    } else if stream.is_some() {
         items.push("stream=True".into());
         items.push(
             format!(
