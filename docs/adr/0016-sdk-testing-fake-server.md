@@ -4,7 +4,7 @@ date: 2026-10-23
 deciders: Ferrule maintainers
 ---
 
-# 0013. Ship a `<pkg>.testing` fake server in generated SDKs
+# 0016. Ship a `<pkg>.testing` fake server in generated SDKs
 
 ## Context and problem statement
 
