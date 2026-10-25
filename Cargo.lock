@@ -49,6 +49,8 @@ version = "0.0.0"
 dependencies = [
  "ferrule-converter",
  "ferrule-python-plugin",
+ "forge",
+ "serde_json",
 ]
 
 [[package]]
