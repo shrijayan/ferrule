@@ -202,6 +202,25 @@ An alias does not inherit the operation's extensions, so each carries all of its
 operation bound once is written exactly as before. The plugin needs no change: Forge hands it
 one method per alias, with that alias's extensions.
 
+### Amendment 2026-10-25 (Phase 4): custom casings and standalone APIs
+
+stainless.yml `custom_casings` changes how words are spelled in class names (isaacus `qa:
+{ initialism: true }` gives `QAResource`; lumaai's pascal `LumaAI` names the client and
+`LumaAIError`), and `standalone_api: true` puts a resource in its own package with its own
+`api.md` (isaacus `extractions.qa`, `ilgs.v1`). Both reach the plugin as:
+
+| Extension              | Where                         | Value                                                                                   |
+| ---------------------- | ----------------------------- | --------------------------------------------------------------------------------------- |
+| `x-ferrule-casings`    | root, mirrored on every method | `Record<word, { initialism: boolean } \| { pascal: string }>`, in config order          |
+| `x-ferrule-standalone` | root, mirrored on every method | `{ path: string[], order: number[] }[]`, one per `standalone_api: true` resource, in config order |
+
+Each is written only when the config has some, so specs without them annotate exactly as
+before. Like `x-ferrule-client`, both are mirrored onto every method (and into every
+`x-forge-aliases` entry) because Forge drops root extensions (gap G2). Matching is per word
+and case-insensitive; `initialism: true` keeps a plural `s` (`QAs`). Model names from `models:`
+keys use Stainless's default initialisms plus these casings (knock-mgmt `SMSTemplate`).
+Entries Ferrule cannot apply are FER1701-FER1703 warnings and left out.
+
 ### Amendment 2026-10-26 (Phase 4): pagination maps keep config order
 
 The annotated spec is still written with sorted keys, except for three objects:
