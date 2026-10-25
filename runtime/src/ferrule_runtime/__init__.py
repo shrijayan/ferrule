@@ -4,6 +4,7 @@
 
 from ferrule_runtime._go import GoOptions, render_go_files
 from ferrule_runtime._java import JavaArrayFormat, JavaOptions, JavaTarget, render_java_files
+from ferrule_runtime._php import PhpOptions, render_php_files
 from ferrule_runtime._render import (
     Language,
     RenderError,
@@ -43,6 +44,7 @@ __all__ = [
     "PageModel",
     "PageScheme",
     "PaginationError",
+    "PhpOptions",
     "QueryArrayFormat",
     "RenderError",
     "RubyArrayFormat",
@@ -58,6 +60,7 @@ __all__ = [
     "render_java_files",
     "render_options",
     "render_pagination",
+    "render_php_files",
     "render_ruby_files",
     "render_tree",
     "render_typescript_files",

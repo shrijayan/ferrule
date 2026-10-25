@@ -56,6 +56,11 @@ Sources:
     views, and their tests), copied to runtime/ruby/template/. Modified by The Ferrule
     Authors (names replaced by tokens, #ferrule: directives and slots); marks kept in
     runtime/README.md and runtime/NOTICE.
+  - imagekit-developer/imagekit-php @ 9f9309d5b8a6a800b5787bd9d739f2f2332c73d1 (Apache-2.0,
+    Copyright 2026 Image Kit): the PHP runtime (src/Core.php, src/Core/**,
+    src/RequestOptions.php and tests/Core/**), copied to runtime/php/template/. Modified by
+    The Ferrule Authors (namespace, name and client settings replaced by tokens); marks kept
+    in runtime/README.md and runtime/NOTICE.
   - Pagination class text from lithic-python, honcho-python-core, knock-python and
     knock-mgmt-python (Apache-2.0), reproduced by runtime/src/ferrule_runtime/pagination.py.
   - MIT-licensed Stainless-generated SDKs (opencode-sdk-js, opencode-sdk-go) are compared by
