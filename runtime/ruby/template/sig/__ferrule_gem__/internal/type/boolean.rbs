@@ -1,0 +1,26 @@
+module __FerruleModule__
+  module Internal
+    module Type
+      class Boolean
+        extend __FerruleModule__::Internal::Type::Converter
+        extend __FerruleModule__::Internal::Util::SorbetRuntimeSupport
+
+        def self.===: (top other) -> bool
+
+        def self.==: (top other) -> bool
+
+        def self.coerce: (
+          bool | top value,
+          state: __FerruleModule__::Internal::Type::Converter::coerce_state
+        ) -> (bool | top)
+
+        def self.dump: (
+          bool | top value,
+          state: __FerruleModule__::Internal::Type::Converter::dump_state
+        ) -> (bool | top)
+
+        def self.to_sorbet_type: -> top
+      end
+    end
+  end
+end

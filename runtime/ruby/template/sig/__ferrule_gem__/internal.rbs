@@ -1,0 +1,14 @@
+module __FerruleModule__
+  module Internal
+    extend __FerruleModule__::Internal::Util::SorbetRuntimeSupport
+
+#ferrule:if fits
+    type file_input = Pathname | StringIO | IO | String | __FerruleModule__::FilePart
+#ferrule:else
+    type file_input =
+      Pathname | StringIO | IO | String | __FerruleModule__::FilePart
+#ferrule:endif
+
+    OMIT: Object
+  end
+end
