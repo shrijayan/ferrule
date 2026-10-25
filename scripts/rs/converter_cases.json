@@ -1,0 +1,383 @@
+[
+  {
+    "name": "cli-ok",
+    "spec": "paths:\n  /a:\n    get: { responses: {} }\n",
+    "config": "organization: { name: acme }\nenvironments: { production: https://api.acme.test }\nreadme:\n  example_requests:\n    default: { type: request, endpoint: get /a, params: {} }\n    headline: { type: request, endpoint: get /a, params: {} }\nresources:\n  a:\n    methods:\n      list: get /a\n"
+  },
+  {
+    "name": "cli-missing-endpoint",
+    "spec": "paths:\n  /a:\n    get: { responses: {} }\n",
+    "config": "organization: { name: acme }\nenvironments: { production: https://api.acme.test }\nreadme:\n  example_requests:\n    default: { type: request, endpoint: get /a, params: {} }\n    headline: { type: request, endpoint: get /a, params: {} }\nresources:\n  a:\n    methods:\n      list: get /zzz\n"
+  },
+  {
+    "name": "cli-invalid",
+    "spec": "paths:\n  /a:\n    get: { responses: {} }\n",
+    "config": "resources: {}\n"
+  },
+  {
+    "name": "opencode-missing-model",
+    "spec": "{\"openapi\": \"3.1.0\", \"paths\": {\"/a\": {\"get\": {\"responses\": {\"200\": {\"description\": \"ok\", \"content\": {\"application/json\": {\"schema\": {\"oneOf\": [{\"type\": \"string\"}, {\"type\": \"integer\"}]}}}}}}}}, \"components\": {\"schemas\": {\"App\": {\"type\": \"object\"}}}}",
+    "config": "organization: { name: acme }\nenvironments: { production: https://api.acme.test }\nreadme:\n  example_requests:\n    default: { type: request, endpoint: get /a, params: {} }\n    headline: { type: request, endpoint: get /a, params: {} }\ntargets: { python: { package_name: acme, publish: { pypi: false } } }\nresources:\n  a:\n    models: { app: App, log_level: LogLevel }\n    methods: { list: get /a }\n"
+  },
+  {
+    "name": "imagekit-webhook",
+    "spec": "{\"openapi\": \"3.1.0\", \"paths\": {\"/a\": {\"get\": {\"responses\": {\"200\": {\"description\": \"ok\", \"content\": {\"application/json\": {\"schema\": {\"oneOf\": [{\"type\": \"string\"}, {\"type\": \"integer\"}]}}}}}}}}, \"components\": {\"schemas\": {\"App\": {\"type\": \"object\"}}}}",
+    "config": "organization: { name: acme }\nenvironments: { production: https://api.acme.test }\nreadme:\n  example_requests:\n    default: { type: request, endpoint: get /a, params: {} }\n    headline: { type: request, endpoint: get /a, params: {} }\ntargets: { python: { package_name: acme, publish: { pypi: false } } }\nresources:\n  webhooks:\n    methods:\n      unwrap: { type: webhook_unwrap, discriminator: type }\n  a:\n    methods: { list: get /a }\n"
+  },
+  {
+    "name": "ogx-one-of",
+    "spec": "{\"openapi\": \"3.1.0\", \"paths\": {\"/a\": {\"get\": {\"responses\": {\"200\": {\"description\": \"ok\", \"content\": {\"application/json\": {\"schema\": {\"oneOf\": [{\"type\": \"string\"}, {\"type\": \"integer\"}]}}}}}}}}, \"components\": {\"schemas\": {\"App\": {\"type\": \"object\"}}}}",
+    "config": "organization: { name: acme }\nenvironments: { production: https://api.acme.test }\nreadme:\n  example_requests:\n    default: { type: request, endpoint: get /a, params: {} }\n    headline: { type: request, endpoint: get /a, params: {} }\ntargets: { python: { package_name: acme, publish: { pypi: false } } }\nopenapi:\n  transformations:\n    - command: oneOfToAnyOf\n      reason: prism\nresources:\n  a:\n    methods: { list: get /a }\n"
+  },
+  {
+    "name": "invalid-config",
+    "spec": "{}",
+    "config": "resources: {}"
+  },
+  {
+    "name": "transforms-and-edition",
+    "spec": "{\"paths\":{\"/x\":{\"get\":{\"responses\":{}}}}}",
+    "config": "organization:\n  name: acme\nenvironments:\n  production: https://api.acme.test\nresources: {}\nreadme:\n  example_requests:\n    default: { type: request, endpoint: get /x, params: {} }\n    headline: { type: request, endpoint: get /x, params: {} }\nedition: 2099-01-01\nopenapi:\n  transforms:\n    - command: update\n      reason: rename\n      args: { target: '$.paths[\"/x\"].get', value: { summary: hi } }\n"
+  },
+  {
+    "name": "sorted-output",
+    "spec": "{\"b\":1,\"a\":{\"d\":[{\"z\":1,\"y\":2}],\"c\":null}}",
+    "config": "organization:\n  name: acme\nenvironments:\n  production: https://api.acme.test\nresources: {}\nreadme:\n  example_requests:\n    default: { type: request, endpoint: get /x, params: {} }\n    headline: { type: request, endpoint: get /x, params: {} }\n"
+  },
+  {
+    "name": "spec-array",
+    "spec": "- 1",
+    "config": "organization:\n  name: acme\nenvironments:\n  production: https://api.acme.test\nresources: {}\nreadme:\n  example_requests:\n    default: { type: request, endpoint: get /x, params: {} }\n    headline: { type: request, endpoint: get /x, params: {} }\n"
+  },
+  {
+    "name": "spec-empty",
+    "spec": "",
+    "config": "organization:\n  name: acme\nenvironments:\n  production: https://api.acme.test\nresources: {}\nreadme:\n  example_requests:\n    default: { type: request, endpoint: get /x, params: {} }\n    headline: { type: request, endpoint: get /x, params: {} }\n"
+  },
+  {
+    "name": "spec-yaml-error",
+    "spec": "a: 1\na: 2\n",
+    "config": "organization:\n  name: acme\nenvironments:\n  production: https://api.acme.test\nresources: {}\nreadme:\n  example_requests:\n    default: { type: request, endpoint: get /x, params: {} }\n    headline: { type: request, endpoint: get /x, params: {} }\n"
+  },
+  {
+    "name": "spec-yaml-flow-error",
+    "spec": "a: [1, 2\nb: 3\n",
+    "config": "organization:\n  name: acme\nenvironments:\n  production: https://api.acme.test\nresources: {}\nreadme:\n  example_requests:\n    default: { type: request, endpoint: get /x, params: {} }\n    headline: { type: request, endpoint: get /x, params: {} }\n"
+  },
+  {
+    "name": "spec-unknown-alias",
+    "spec": "a: *x\n",
+    "config": "organization:\n  name: acme\nenvironments:\n  production: https://api.acme.test\nresources: {}\nreadme:\n  example_requests:\n    default: { type: request, endpoint: get /x, params: {} }\n    headline: { type: request, endpoint: get /x, params: {} }\n"
+  },
+  {
+    "name": "spec-scalar",
+    "spec": "openapi",
+    "config": "organization:\n  name: acme\nenvironments:\n  production: https://api.acme.test\nresources: {}\nreadme:\n  example_requests:\n    default: { type: request, endpoint: get /x, params: {} }\n    headline: { type: request, endpoint: get /x, params: {} }\n"
+  },
+  {
+    "name": "transforms",
+    "spec": "{\"openapi\": \"3.1.0\", \"servers\": [{\"url\": \"https://spec.example.com\"}], \"security\": [{\"SpecKey\": []}], \"paths\": {\"/users\": {\"parameters\": [{\"$ref\": \"#/components/parameters/Limit\"}], \"get\": {\"parameters\": [{\"name\": \"after\", \"in\": \"query\", \"schema\": {\"type\": \"string\"}}, {\"name\": \"X-Trace\", \"in\": \"header\"}], \"responses\": {\"200\": {\"$ref\": \"#/components/responses/UserPage\"}}}, \"post\": {\"requestBody\": {\"content\": {\"application/json\": {\"schema\": {\"properties\": {\"stream\": {\"type\": \"boolean\"}}}}}}, \"responses\": {\"201\": {\"description\": \"ok\"}}}}, \"/users/{id}\": {\"get\": {\"responses\": {}}}, \"/aliased\": {\"$ref\": \"#/paths/~1users~1{id}\"}, \"/stream\": {\"get\": {\"responses\": {\"200\": {\"content\": {\"application/x-ndjson\": {}}}}}}}, \"components\": {\"parameters\": {\"Limit\": {\"name\": \"limit\", \"in\": \"query\", \"schema\": {\"type\": \"integer\"}}}, \"responses\": {\"UserPage\": {\"content\": {\"application/json\": {\"schema\": {\"$ref\": \"#/components/schemas/Page\"}}}}}, \"schemas\": {\"Page\": {\"type\": \"object\", \"properties\": {\"data\": {\"type\": \"array\", \"items\": {\"$ref\": \"#/components/schemas/U\"}}, \"next_cursor\": {\"type\": \"string\"}}}, \"U\": {\"type\": \"object\", \"properties\": {\"id\": {\"type\": \"string\"}}}, \"Loop\": {\"$ref\": \"#/components/schemas/Loop\"}}, \"securitySchemes\": {\"SpecKey\": {\"type\": \"apiKey\", \"in\": \"query\", \"name\": \"key\"}, \"Bearer\": {\"type\": \"http\", \"scheme\": \"Bearer\"}, \"Broken\": {\"type\": \"mutualTLS\"}}}}",
+    "config": "organization: { name: acme }\nenvironments: { production: https://api.acme.test }\nreadme:\n  example_requests:\n    default: { type: request, endpoint: get /a, params: {} }\n    headline: { type: request, endpoint: get /a, params: {} }\ntargets: { python: { package_name: acme, publish: { pypi: false } } }\nopenapi:\n  transforms:\n    - command: update\n      reason: rename\n      args: { target: '$.paths[\"/users\"].post', value: { summary: hi } }\n    - command: update\n      reason: template\n      args: { target: '$.components.schemas.U.properties.id.type', value: '[{{value}}]', template: true }\n    - command: append\n      reason: add\n      args: { target: '$.components.schemas.Page.properties', value: { total: { type: integer } } }\n    - command: merge\n      reason: merge\n      args: { target: '$..parameters[?(@.name == \"after\")]', value: { schema: { format: uuid } } }\n    - command: remove\n      reason: drop\n      args: { target: '$.components.securitySchemes.Broken' }\n    - command: copy\n      reason: copy\n      args: { from: '$.components.schemas.U', to: ['$.components.schemas.V', '$.components.schemas.U.properties.self'] }\n    - command: move\n      reason: move\n      args: { from: '$.components.schemas.V', to: '$.components.schemas.W' }\n    - command: remove\n      reason: missing\n      args: { target: '$.nope' }\n    - command: update\n      args: { target: '$.info[', value: 1 }\n    - { command: oneOfToAnyOf, reason: legacy }\n    - command: update\n      reason: matches\n      args: { target: [{ matches_schema: '$.components.schemas.U', ignore: '$.components.schemas.U' }], value: { $ref: '#/components/schemas/U' } }\nresources:\n  users:\n    methods:\n      list: get /users\n"
+  },
+  {
+    "name": "users-client",
+    "spec": "{\"openapi\": \"3.1.0\", \"servers\": [{\"url\": \"https://spec.example.com\"}], \"security\": [{\"SpecKey\": []}], \"paths\": {\"/users\": {\"parameters\": [{\"$ref\": \"#/components/parameters/Limit\"}], \"get\": {\"parameters\": [{\"name\": \"after\", \"in\": \"query\", \"schema\": {\"type\": \"string\"}}, {\"name\": \"X-Trace\", \"in\": \"header\"}], \"responses\": {\"200\": {\"$ref\": \"#/components/responses/UserPage\"}}}, \"post\": {\"requestBody\": {\"content\": {\"application/json\": {\"schema\": {\"properties\": {\"stream\": {\"type\": \"boolean\"}}}}}}, \"responses\": {\"201\": {\"description\": \"ok\"}}}}, \"/users/{id}\": {\"get\": {\"responses\": {}}}, \"/aliased\": {\"$ref\": \"#/paths/~1users~1{id}\"}, \"/stream\": {\"get\": {\"responses\": {\"200\": {\"content\": {\"application/x-ndjson\": {}}}}}}}, \"components\": {\"parameters\": {\"Limit\": {\"name\": \"limit\", \"in\": \"query\", \"schema\": {\"type\": \"integer\"}}}, \"responses\": {\"UserPage\": {\"content\": {\"application/json\": {\"schema\": {\"$ref\": \"#/components/schemas/Page\"}}}}}, \"schemas\": {\"Page\": {\"type\": \"object\", \"properties\": {\"data\": {\"type\": \"array\", \"items\": {\"$ref\": \"#/components/schemas/U\"}}, \"next_cursor\": {\"type\": \"string\"}}}, \"U\": {\"type\": \"object\", \"properties\": {\"id\": {\"type\": \"string\"}}}, \"Loop\": {\"$ref\": \"#/components/schemas/Loop\"}}, \"securitySchemes\": {\"SpecKey\": {\"type\": \"apiKey\", \"in\": \"query\", \"name\": \"key\"}, \"Bearer\": {\"type\": \"http\", \"scheme\": \"Bearer\"}, \"Broken\": {\"type\": \"mutualTLS\"}}}}",
+    "config": "organization: { name: acme }\nenvironments: { production: https://api.acme.test }\nreadme:\n  example_requests:\n    default: { type: request, endpoint: get /a, params: {} }\n    headline: { type: request, endpoint: get /a, params: {} }\ntargets: { python: { package_name: acme, publish: { pypi: false } } }\nclient_settings:\n  idempotency: { header: Idempotency-Key }\n  default_timeout: PT1M30S\n  default_retries: { max_retries: 5, initial_delay_seconds: 1, max_delay_seconds: 30 }\n  default_headers: { X-Version: '2' }\n  opts:\n    api_key: { type: string, read_env: ACME_API_KEY, auth: { security_scheme: Bearer }, nullable: false }\n    region: { type: string, nullable: true, default: us }\nsecurity:\n  - Bearer: []\nsecurity_schemes:\n  Bearer: { type: http, scheme: bearer }\nquery_settings: { nested_format: dots, array_format: indices }\nstreaming:\n  on_event:\n    - { data_starts_with: '[DONE]', handle: done }\n    - { event_type: error, handle: error, error_property: message }\npagination:\n  - name: cursor_page\n    type: cursor\n    request:\n      after: { type: string, x-stainless-pagination-property: { purpose: next_cursor_param } }\n      limit: { type: integer }\n    response:\n      data: { type: array, x-stainless-pagination-property: { purpose: items } }\n      next_cursor: { type: string, x-stainless-pagination-property: { purpose: next_cursor_field } }\nresources:\n  $shared:\n    models: { page: Page }\n  users:\n    models: { user: U, loop: Loop, ghost: Ghost }\n    methods:\n      list: get /users\n      create: { endpoint: post /users, streaming: { param_discriminator: stream, stream_event_model: users.user } }\n      retrieve: { endpoint: 'get /users/{id}', paginated: cursor_page }\n      bad: { endpoint: 'get /users/{id}', paginated: nope }\n      alias: get /aliased\n      stream: { endpoint: get /stream, streaming: { stream_event_model: users.nope } }\n    subresources:\n      posts:\n        methods:\n          list_posts: { endpoint: GET /users, paginated: true }\n  $client:\n    methods:\n      ping: get /users/{id}\n  ferrule_client: {}\n"
+  },
+  {
+    "name": "swagger2",
+    "spec": "{\"swagger\": \"2.0\", \"host\": \"localhost\", \"basePath\": \"/v1.41\", \"schemes\": [\"http\", \"https\"], \"consumes\": [\"application/json\"], \"definitions\": {\"Config\": {\"type\": \"object\", \"properties\": {\"Image\": {\"type\": \"string\", \"x-nullable\": true}}}, \"Container\": {\"allOf\": [{\"$ref\": \"#/definitions/Config\"}], \"discriminator\": \"Kind\"}, \"Upload\": {\"type\": \"file\"}}, \"parameters\": {\"limit\": {\"name\": \"limit\", \"in\": \"query\", \"type\": \"integer\", \"default\": 10}, \"config\": {\"name\": \"config\", \"in\": \"body\", \"required\": true, \"schema\": {\"$ref\": \"#/definitions/Config\"}}}, \"responses\": {\"NotFound\": {\"description\": \"no\", \"schema\": {\"type\": \"string\"}}}, \"securityDefinitions\": {\"key\": {\"type\": \"apiKey\", \"in\": \"header\", \"name\": \"X-Key\"}, \"basic\": {\"type\": \"basic\", \"description\": \"b\"}, \"oauth\": {\"type\": \"oauth2\", \"flow\": \"application\", \"tokenUrl\": \"/t\", \"scopes\": {\"a\": \"b\"}}}, \"paths\": {\"/containers/create\": {\"parameters\": [{\"$ref\": \"#/parameters/limit\"}, {\"$ref\": \"#/parameters/config\"}], \"post\": {\"parameters\": [{\"name\": \"ids\", \"in\": \"query\", \"type\": \"array\", \"items\": {\"type\": \"string\"}, \"collectionFormat\": \"csv\"}, {\"name\": \"X-Trace\", \"in\": \"header\", \"type\": \"string\", \"allowEmptyValue\": true}], \"responses\": {\"201\": {\"description\": \"created\", \"schema\": {\"$ref\": \"#/definitions/Container\"}, \"headers\": {\"X-Id\": {\"type\": \"string\"}}}, \"404\": {\"$ref\": \"#/responses/NotFound\"}}}}, \"/files.upload\": {\"post\": {\"consumes\": [\"application/x-www-form-urlencoded\"], \"parameters\": [{\"name\": \"token\", \"in\": \"formData\", \"type\": \"string\", \"required\": true, \"description\": \"t\"}, {\"name\": \"file\", \"in\": \"formData\", \"type\": \"file\"}], \"responses\": {\"200\": {\"description\": \"ok\", \"schema\": {\"type\": \"object\"}, \"examples\": {\"a\": 1}}}}}, \"/empty-body\": {\"put\": {\"parameters\": [{\"name\": \"b\", \"in\": \"body\"}], \"responses\": {}}}}}",
+    "config": "organization: { name: acme }\nenvironments: { production: https://api.acme.test }\nreadme:\n  example_requests:\n    default: { type: request, endpoint: get /a, params: {} }\n    headline: { type: request, endpoint: get /a, params: {} }\ntargets: { python: { package_name: acme, publish: { pypi: false } } }\nresources:\n  containers:\n    methods:\n      create: post /containers/create\n"
+  },
+  {
+    "name": "normalize",
+    "spec": "{\"openapi\": \"3.1.0\", \"paths\": {\"/Recordings.json\": {\"parameters\": [{\"name\": \"DateCreated\", \"in\": \"query\", \"schema\": {\"type\": \"string\"}}], \"get\": {\"parameters\": [{\"$ref\": \"#/components/parameters/lt\"}, {\"name\": \"DateCreated>\", \"in\": \"query\", \"schema\": {\"type\": \"string\"}}, {\"name\": \"date-created\", \"in\": \"header\", \"schema\": {\"type\": \"string\"}}, {\"name\": \"expand\", \"in\": \"query\", \"style\": \"deepObject\", \"explode\": true}]}}}, \"components\": {\"parameters\": {\"lt\": {\"name\": \"DateCreated<\", \"in\": \"query\", \"schema\": {\"type\": \"string\"}}}, \"schemas\": {\"reactions\": {\"properties\": {\"+1\": {\"type\": \"integer\"}, \"-1\": {\"type\": \"integer\"}, \"laugh\": {}}}, \"hook\": {\"properties\": {\"notificationUrl\": {}, \"notification_url\": {}, \"NotificationURL\": {}}}, \"Refund\": {\"properties\": {\"fee\": {\"type\": \"array\", \"items\": {\"$ref\": \"#/components/schemas/Gone\"}}}}, \"F\": {\"properties\": {\"tags\": {\"type\": [\"array\", null], \"items\": [{\"type\": \"string\"}, {\"type\": \"null\"}]}}}, \"R\": {\"oneOf\": [], \"discriminator\": \"__typename\", \"x-ferrule-normalized\": [\"earlier\"]}, \"L\": {\"properties\": {\"default\": {\"additionalProperties\": {\"$ref\": \"#/components/schemas/Q\"}}}}, \"200\": {\"type\": \"object\"}, \"$weird\": {\"enum\": [{\"type\": [null]}], \"example\": {\"discriminator\": \"x\"}}}}, \"\": {\"__proto__\": {\"a\": 1}}, \"numbers\": [1.0, -0.0, 1e+21, 1e-07, 0.1, 123456789012345678901234567890, 5e-324], \"keys\": {\"b\": 1, \"10\": 2, \"2\": 3, \"a\": 4, \"\\uff61\": 5, \"\\ud83d\\ude00\": 6, \"01\": 7}}",
+    "config": "organization: { name: acme }\nenvironments: { production: https://api.acme.test }\nreadme:\n  example_requests:\n    default: { type: request, endpoint: get /a, params: {} }\n    headline: { type: request, endpoint: get /a, params: {} }\ntargets: { python: { package_name: acme, publish: { pypi: false } } }\nresources:\n  r:\n    methods:\n      list: get /Recordings.json\n"
+  },
+  {
+    "name": "no-python-target",
+    "spec": "{\"openapi\": \"3.1.0\", \"servers\": [{\"url\": \"https://spec.example.com\"}], \"security\": [{\"SpecKey\": []}], \"paths\": {\"/users\": {\"parameters\": [{\"$ref\": \"#/components/parameters/Limit\"}], \"get\": {\"parameters\": [{\"name\": \"after\", \"in\": \"query\", \"schema\": {\"type\": \"string\"}}, {\"name\": \"X-Trace\", \"in\": \"header\"}], \"responses\": {\"200\": {\"$ref\": \"#/components/responses/UserPage\"}}}, \"post\": {\"requestBody\": {\"content\": {\"application/json\": {\"schema\": {\"properties\": {\"stream\": {\"type\": \"boolean\"}}}}}}, \"responses\": {\"201\": {\"description\": \"ok\"}}}}, \"/users/{id}\": {\"get\": {\"responses\": {}}}, \"/aliased\": {\"$ref\": \"#/paths/~1users~1{id}\"}, \"/stream\": {\"get\": {\"responses\": {\"200\": {\"content\": {\"application/x-ndjson\": {}}}}}}}, \"components\": {\"parameters\": {\"Limit\": {\"name\": \"limit\", \"in\": \"query\", \"schema\": {\"type\": \"integer\"}}}, \"responses\": {\"UserPage\": {\"content\": {\"application/json\": {\"schema\": {\"$ref\": \"#/components/schemas/Page\"}}}}}, \"schemas\": {\"Page\": {\"type\": \"object\", \"properties\": {\"data\": {\"type\": \"array\", \"items\": {\"$ref\": \"#/components/schemas/U\"}}, \"next_cursor\": {\"type\": \"string\"}}}, \"U\": {\"type\": \"object\", \"properties\": {\"id\": {\"type\": \"string\"}}}, \"Loop\": {\"$ref\": \"#/components/schemas/Loop\"}}, \"securitySchemes\": {\"SpecKey\": {\"type\": \"apiKey\", \"in\": \"query\", \"name\": \"key\"}, \"Bearer\": {\"type\": \"http\", \"scheme\": \"Bearer\"}, \"Broken\": {\"type\": \"mutualTLS\"}}}}",
+    "config": "organization: { name: acme }\nenvironments: { production: https://api.acme.test }\nreadme:\n  example_requests:\n    default: { type: request, endpoint: get /a, params: {} }\n    headline: { type: request, endpoint: get /a, params: {} }\nresources:\n  users:\n    methods:\n      list: get /users\n"
+  },
+  {
+    "name": "edition-new",
+    "spec": "{\"openapi\": \"3.1.0\", \"servers\": [{\"url\": \"https://spec.example.com\"}], \"security\": [{\"SpecKey\": []}], \"paths\": {\"/users\": {\"parameters\": [{\"$ref\": \"#/components/parameters/Limit\"}], \"get\": {\"parameters\": [{\"name\": \"after\", \"in\": \"query\", \"schema\": {\"type\": \"string\"}}, {\"name\": \"X-Trace\", \"in\": \"header\"}], \"responses\": {\"200\": {\"$ref\": \"#/components/responses/UserPage\"}}}, \"post\": {\"requestBody\": {\"content\": {\"application/json\": {\"schema\": {\"properties\": {\"stream\": {\"type\": \"boolean\"}}}}}}, \"responses\": {\"201\": {\"description\": \"ok\"}}}}, \"/users/{id}\": {\"get\": {\"responses\": {}}}, \"/aliased\": {\"$ref\": \"#/paths/~1users~1{id}\"}, \"/stream\": {\"get\": {\"responses\": {\"200\": {\"content\": {\"application/x-ndjson\": {}}}}}}}, \"components\": {\"parameters\": {\"Limit\": {\"name\": \"limit\", \"in\": \"query\", \"schema\": {\"type\": \"integer\"}}}, \"responses\": {\"UserPage\": {\"content\": {\"application/json\": {\"schema\": {\"$ref\": \"#/components/schemas/Page\"}}}}}, \"schemas\": {\"Page\": {\"type\": \"object\", \"properties\": {\"data\": {\"type\": \"array\", \"items\": {\"$ref\": \"#/components/schemas/U\"}}, \"next_cursor\": {\"type\": \"string\"}}}, \"U\": {\"type\": \"object\", \"properties\": {\"id\": {\"type\": \"string\"}}}, \"Loop\": {\"$ref\": \"#/components/schemas/Loop\"}}, \"securitySchemes\": {\"SpecKey\": {\"type\": \"apiKey\", \"in\": \"query\", \"name\": \"key\"}, \"Bearer\": {\"type\": \"http\", \"scheme\": \"Bearer\"}, \"Broken\": {\"type\": \"mutualTLS\"}}}}",
+    "config": "organization: { name: acme }\nenvironments: { production: https://api.acme.test }\nreadme:\n  example_requests:\n    default: { type: request, endpoint: get /a, params: {} }\n    headline: { type: request, endpoint: get /a, params: {} }\nedition: 2026-05-06\ntargets:\n  python:\n    package_name: acme\n    project_name: acme-sdk\n    edition: python.2025-11-20\n    production_repo: acme/acme-python\nresources:\n  users:\n    methods:\n      list: get /users\n"
+  },
+  {
+    "name": "yaml-unclosed",
+    "spec": "{}",
+    "config": "organization:\n  name: [unclosed\n"
+  },
+  {
+    "name": "yaml-duplicate",
+    "spec": "{}",
+    "config": "organization:\n  name: acme\nenvironments:\n  production: https://api.acme.test\nresources: {}\nreadme:\n  example_requests:\n    default: { type: request, endpoint: get /x, params: {} }\n    headline: { type: request, endpoint: get /x, params: {} }\nreadme: {}\n"
+  },
+  {
+    "name": "yaml-duplicate-flow",
+    "spec": "{}",
+    "config": "{\"a\": 1, \"a\": 2}"
+  },
+  {
+    "name": "yaml-tabs",
+    "spec": "{}",
+    "config": "a:\n\t- b\n"
+  },
+  {
+    "name": "yaml-quote",
+    "spec": "{}",
+    "config": "a: \"unterminated\n"
+  },
+  {
+    "name": "yaml-squote",
+    "spec": "{}",
+    "config": "a: 'x\n"
+  },
+  {
+    "name": "yaml-flow-map",
+    "spec": "{}",
+    "config": "a: {b: 1\n"
+  },
+  {
+    "name": "yaml-multi-doc",
+    "spec": "{}",
+    "config": "---\na: 1\n---\nb: 2\n"
+  },
+  {
+    "name": "yaml-unknown-alias",
+    "spec": "{}",
+    "config": "a: *nope\n"
+  },
+  {
+    "name": "yaml-reserved",
+    "spec": "{}",
+    "config": "a: @x\n"
+  },
+  {
+    "name": "yaml-empty",
+    "spec": "{}",
+    "config": ""
+  },
+  {
+    "name": "yaml-comment-only",
+    "spec": "{}",
+    "config": "# nothing\n"
+  },
+  {
+    "name": "yaml-not-a-map",
+    "spec": "{}",
+    "config": "- a\n- b\n"
+  },
+  {
+    "name": "yaml-scalar-root",
+    "spec": "{}",
+    "config": "hello\n"
+  },
+  {
+    "name": "yaml-type",
+    "spec": "{}",
+    "config": "organization:\n  name: 42\nenvironments:\n  production: https://api.acme.test\nresources: {}\nreadme:\n  example_requests:\n    default: { type: request, endpoint: get /x, params: {} }\n    headline: { type: request, endpoint: get /x, params: {} }\n"
+  },
+  {
+    "name": "yaml-required",
+    "spec": "{}",
+    "config": "organization:\n  name: acme\nresources: {}\n"
+  },
+  {
+    "name": "yaml-enum",
+    "spec": "{}",
+    "config": "organization:\n  name: acme\nenvironments:\n  production: https://api.acme.test\nresources: {}\nreadme:\n  example_requests:\n    default: { type: request, endpoint: get /x, params: {} }\n    headline: { type: request, endpoint: get /x, params: {} }\nquery_settings:\n  array_format: repeet\n"
+  },
+  {
+    "name": "yaml-enum-far",
+    "spec": "{}",
+    "config": "organization:\n  name: acme\nenvironments:\n  production: https://api.acme.test\nresources: {}\nreadme:\n  example_requests:\n    default: { type: request, endpoint: get /x, params: {} }\n    headline: { type: request, endpoint: get /x, params: {} }\nquery_settings:\n  array_format: zzzzzzzzzzzz\n"
+  },
+  {
+    "name": "yaml-string-format",
+    "spec": "{}",
+    "config": "organization:\n  name: acme\nenvironments:\n  production: https://api.acme.test\nresources: {}\nreadme:\n  example_requests:\n    default: { type: request, endpoint: get /x, params: {} }\n    headline: { type: request, endpoint: get /x, params: {} }\ntargets:\n  python:\n    production_repo: not a repo\n  java:\n    reverse_domain: Org.Acme\n"
+  },
+  {
+    "name": "yaml-min-length",
+    "spec": "{}",
+    "config": "organization:\n  name: ''\nenvironments:\n  production: https://api.acme.test\nresources: {}\nreadme:\n  example_requests:\n    default: { type: request, endpoint: get /x, params: {} }\n    headline: { type: request, endpoint: get /x, params: {} }\n"
+  },
+  {
+    "name": "yaml-range",
+    "spec": "{}",
+    "config": "organization:\n  name: acme\nenvironments:\n  production: https://api.acme.test\nresources: {}\nreadme:\n  example_requests:\n    default: { type: request, endpoint: get /x, params: {} }\n    headline: { type: request, endpoint: get /x, params: {} }\nclient_settings:\n  default_retries:\n    max_retries: -1\n    initial_delay_seconds: 1\n    max_delay_seconds: 2\n"
+  },
+  {
+    "name": "yaml-property-names",
+    "spec": "{}",
+    "config": "organization:\n  name: acme\nenvironments:\n  eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee: https://api.acme.test\nresources: {}\nreadme:\n  example_requests:\n    default: { type: request, endpoint: get /x, params: {} }\n    headline: { type: request, endpoint: get /x, params: {} }\n"
+  },
+  {
+    "name": "yaml-unknown-key",
+    "spec": "{}",
+    "config": "organization:\n  name: acme\nenvironments:\n  production: https://api.acme.test\nresources: {}\nreadme:\n  example_requests:\n    default: { type: request, endpoint: get /x, params: {} }\n    headline: { type: request, endpoint: get /x, params: {} }\ntargets:\n  terraform:\n    options:\n      data_source:\n        filtering: {}\n        response_items: {}\n        filterng: {}\n"
+  },
+  {
+    "name": "yaml-unknown-key-far",
+    "spec": "{}",
+    "config": "organization:\n  name: acme\nenvironments:\n  production: https://api.acme.test\nresources: {}\nreadme:\n  example_requests:\n    default: { type: request, endpoint: get /x, params: {} }\n    headline: { type: request, endpoint: get /x, params: {} }\ntargets:\n  terraform:\n    options:\n      data_source:\n        filtering: {}\n        response_items: {}\n        zzzzzzzzzz: {}\n"
+  },
+  {
+    "name": "yaml-deprecated",
+    "spec": "{}",
+    "config": "organization:\n  name: acme\nenvironments:\n  production: https://api.acme.test\nresources: {}\nreadme:\n  example_requests:\n    default: { type: request, endpoint: get /x, params: {} }\n    headline: { type: request, endpoint: get /x, params: {} }\nsettings:\n  disable_tests: true\n"
+  },
+  {
+    "name": "yaml-anyof-branch",
+    "spec": "{}",
+    "config": "organization:\n  name: acme\nenvironments:\n  production: https://api.acme.test\nresources:\n  users:\n    methods:\n      list:\n        paginated: false\n\nreadme:\n  example_requests:\n    default: { type: request, endpoint: get /x, params: {} }\n    headline: { type: request, endpoint: get /x, params: {} }\n"
+  },
+  {
+    "name": "yaml-no-alternative",
+    "spec": "{}",
+    "config": "organization:\n  name: acme\nenvironments:\n  production: https://api.acme.test\nresources:\n  users:\n    methods:\n      list: 3\n\nreadme:\n  example_requests:\n    default: { type: request, endpoint: get /x, params: {} }\n    headline: { type: request, endpoint: get /x, params: {} }\n"
+  },
+  {
+    "name": "yaml-alias",
+    "spec": "{}",
+    "config": "organization: &org\n  name: 1\nenvironments:\n  production: https://api.acme.test\nresources: {}\nreadme:\n  example_requests:\n    default: { type: request, endpoint: get /x, params: {} }\n    headline: { type: request, endpoint: get /x, params: {} }\nsettings:\n  x: *org\n"
+  },
+  {
+    "name": "yaml-sequence-position",
+    "spec": "{}",
+    "config": "organization:\n  name: acme\nenvironments:\n  production: https://api.acme.test\nresources: {}\nreadme:\n  example_requests:\n    default: { type: request, endpoint: get /x, params: {} }\n    headline: { type: request, endpoint: get /x, params: {} }\npagination:\n  - name: p\n    type: 1\n"
+  },
+  {
+    "name": "yaml-webhook-unwrap",
+    "spec": "{}",
+    "config": "organization:\n  name: acme\nenvironments:\n  production: https://api.acme.test\nresources: { a: { methods: { hook: { type: webhook_unwrap } } } }\nreadme:\n  example_requests:\n    default: { type: request, endpoint: get /x, params: {} }\n    headline: { type: request, endpoint: get /x, params: {} }\n"
+  },
+  {
+    "name": "yaml-legacy-transformations",
+    "spec": "{}",
+    "config": "organization:\n  name: acme\nenvironments:\n  production: https://api.acme.test\nresources: {}\nreadme:\n  example_requests:\n    default: { type: request, endpoint: get /x, params: {} }\n    headline: { type: request, endpoint: get /x, params: {} }\nopenapi:\n  transformations:\n    - { command: oneOfToAnyOf, reason: r }\n"
+  },
+  {
+    "name": "yaml-legacy-in-transforms",
+    "spec": "{}",
+    "config": "organization:\n  name: acme\nenvironments:\n  production: https://api.acme.test\nresources: {}\nreadme:\n  example_requests:\n    default: { type: request, endpoint: get /x, params: {} }\n    headline: { type: request, endpoint: get /x, params: {} }\nopenapi:\n  transforms:\n    - { command: oneOfToAnyOf, reason: r }\n"
+  },
+  {
+    "name": "yaml-edition-unknown",
+    "spec": "{}",
+    "config": "organization:\n  name: acme\nenvironments:\n  production: https://api.acme.test\nresources: {}\nreadme:\n  example_requests:\n    default: { type: request, endpoint: get /x, params: {} }\n    headline: { type: request, endpoint: get /x, params: {} }\nedition: 2026-05-07\n"
+  },
+  {
+    "name": "yaml-edition-far",
+    "spec": "{}",
+    "config": "organization:\n  name: acme\nenvironments:\n  production: https://api.acme.test\nresources: {}\nreadme:\n  example_requests:\n    default: { type: request, endpoint: get /x, params: {} }\n    headline: { type: request, endpoint: get /x, params: {} }\nedition: 2030-01-01-preview\ntargets:\n  python:\n    edition: python.2099-01-01\n"
+  },
+  {
+    "name": "yaml-empty-value",
+    "spec": "{}",
+    "config": "organization:\n  name: acme\nenvironments:\n  production: https://api.acme.test\nresources: {}\nreadme:\n  example_requests:\n    default: { type: request, endpoint: get /x, params: {} }\n    headline: { type: request, endpoint: get /x, params: {} }\nclient_settings:\n  opts:\n    x:\n      type:\n"
+  },
+  {
+    "name": "yaml-block-scalar",
+    "spec": "{}",
+    "config": "organization:\n  name: acme\nenvironments:\n  production: https://api.acme.test\nresources: {}\nreadme:\n  example_requests:\n    default: { type: request, endpoint: get /x, params: {} }\n    headline: { type: request, endpoint: get /x, params: {} }\nclient_settings:\n  opts:\n    x:\n      type: |\n        multi\n"
+  },
+  {
+    "name": "yaml-unicode",
+    "spec": "{}",
+    "config": "organization:\n  name: 'é😀'\nenvironments:\n  production: https://api.acme.test\nresources: {}\nreadme:\n  example_requests:\n    default: { type: request, endpoint: get /x, params: {} }\n    headline: { type: request, endpoint: get /x, params: {} }\nenvironments:\n  ü: 1\n"
+  },
+  {
+    "name": "yaml-flow-dedent",
+    "spec": "{}",
+    "config": "a: [1, 2\nb: 3\n"
+  },
+  {
+    "name": "yaml-flow-nested-dedent",
+    "spec": "{}",
+    "config": "a:\n  b: [1,\n   2]\n"
+  },
+  {
+    "name": "yaml-flow-map-eof",
+    "spec": "{}",
+    "config": "a: {b: 1\n"
+  },
+  {
+    "name": "yaml-flow-inner-outer",
+    "spec": "{}",
+    "config": "a: [x, {y: 1\n"
+  },
+  {
+    "name": "yaml-flow-root-seq",
+    "spec": "{}",
+    "config": "[1, 2\n"
+  },
+  {
+    "name": "yaml-flow-root-map",
+    "spec": "{}",
+    "config": "{a: 1\n"
+  },
+  {
+    "name": "yaml-tab-after-spaces",
+    "spec": "{}",
+    "config": "a:\n  \tb: 1\n"
+  },
+  {
+    "name": "yaml-quote-multiline",
+    "spec": "{}",
+    "config": "a: \"x\n  y\n"
+  },
+  {
+    "name": "yaml-squote-escaped",
+    "spec": "{}",
+    "config": "a: 'it''s\n"
+  },
+  {
+    "name": "yaml-backtick",
+    "spec": "{}",
+    "config": "a: `x\n"
+  },
+  {
+    "name": "yaml-percent",
+    "spec": "{}",
+    "config": "a: %x\n"
+  },
+  {
+    "name": "yaml-bad-escape",
+    "spec": "{}",
+    "config": "a: \"\\q\"\n"
+  },
+  {
+    "name": "yaml-doc-end-marker",
+    "spec": "{}",
+    "config": "a: 1\n...\nb: 2\n"
+  },
+  {
+    "name": "yaml-doc-start-twice",
+    "spec": "{}",
+    "config": "a: 1\n---\nb: 2\n"
+  },
+  {
+    "name": "yaml-dup-explicit",
+    "spec": "{}",
+    "config": "? a\n? a\n"
+  },
+  {
+    "name": "yaml-dup-flow-map",
+    "spec": "{}",
+    "config": "a: {b: 1, b: 2}\n"
+  },
+  {
+    "name": "yaml-dup-numbers",
+    "spec": "{}",
+    "config": "1: a\n1.0: b\n"
+  },
+  {
+    "name": "yaml-plain-brace-in-flow",
+    "spec": "{}",
+    "config": "x: { endpoint: get /users/{id}, p: 1 }\n",
+    "known_difference": "yaml reports a cascade of 7 errors for a { inside a plain scalar in a flow map; the Rust reader reports the first one, with its own message"
+  }
+]
