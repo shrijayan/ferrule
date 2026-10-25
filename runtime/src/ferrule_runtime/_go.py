@@ -1,10 +1,12 @@
 # Copyright 2026 Ferrule contributors
 # SPDX-License-Identifier: Apache-2.0
-"""Render the Go runtime (``runtime/go/template``) for one generated SDK (Stainless Go v1).
+"""Render the Go runtime for one generated SDK, in Stainless's Go v1 or v2 layout.
 
-The template is the runtime of the Stainless-generated OneBusAway Go SDK: ``internal/**``
-(without ``internal/version.go``), ``option/**``, ``field.go`` and ``default_http_client.go``;
-see ``runtime/NOTICE``. Paths are relative to the module root.
+v1 (``runtime/go/template``) is the runtime of the Stainless-generated OneBusAway Go SDK; v2
+(``runtime/go-v2/template``, ``targets.go.options.enable_v2``) is imagekit-go's. Each is
+``internal/**`` (without ``internal/version.go``), ``option/**``, ``field.go`` and
+``default_http_client.go``, and v2 adds ``packages/param`` and ``packages/respjson``; see
+``runtime/NOTICE``. Paths are relative to the module root.
 
 Two runtime files carry config-dependent code that the plugin generates: the client settings
 in ``internal/requestconfig/requestconfig.go`` and the environment and client-setting options
@@ -16,12 +18,14 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from typing import Literal
 
 from ferrule_runtime._render import RenderError, render_tree, template_root
 
 __all__ = ["GoOptions", "render_go_files"]
 
 MODULE_PLACEHOLDER = "__ferrule_module__"
+DOCS_MODULE_PLACEHOLDER = "__ferrule_docs_module__"
 PKG_PLACEHOLDER = "__ferrule_pkg__"
 CLIENT_PLACEHOLDER = "__FerruleClient__"
 ORG_PLACEHOLDER = "__FERRULE_ORG__"
@@ -43,6 +47,9 @@ _REQUEST_CONFIG = "internal/requestconfig/requestconfig.go"
 # The runtime lines ending the runs `config_fields` and `config_clone` extend.
 _REALIGNED = ("\tMiddlewares ", "\t\tMiddlewares: ")
 _ALIGNED = re.compile(r"^(\t+)([A-Za-z_][A-Za-z0-9_]*:?) +(\S.*)$")
+_MAJOR_SUFFIX = re.compile(r"/v[0-9]+$")
+GoLayout = Literal["v1", "v2"]
+_LAYOUTS: tuple[GoLayout, ...] = ("v1", "v2")
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -68,10 +75,26 @@ class GoOptions:
     """The same fields in ``RequestConfig.Clone`` (``\\t\\tAPIKey:         cfg.APIKey,\\n``)."""
     client_options: str = ""
     """Appended to ``option/requestoption.go``: ``WithEnvironment*`` and client-setting options,
-    starting with the blank line that separates them from ``WithRequestTimeout``."""
+    starting with the blank line that separates them from ``WithRequestTimeout``. In v2, a
+    ``base64.`` in it imports ``encoding/base64`` (HTTP Basic auth)."""
+    layout: GoLayout = "v1"
+    """``v2`` for ``targets.go.options.enable_v2`` (``packages/param``, ``packages/respjson``)."""
+    new_file: bool = False
+    """v2 only: name ``field.go``'s file helper ``NewFile`` instead of ``File``, as Stainless does
+    when the root package declares a type ``File`` (imagekit-go, ogx-client-go)."""
+
+
+def _check_layout(options: GoOptions) -> None:
+    if options.layout not in _LAYOUTS:
+        msg = f"layout must be one of {_LAYOUTS}, got {options.layout!r}"
+        raise RenderError(msg)
+    if options.new_file and options.layout != "v2":
+        msg = "new_file applies to the v2 layout only"
+        raise RenderError(msg)
 
 
 def _check(options: GoOptions) -> None:
+    _check_layout(options)
     if not _MODULE.match(options.module_path):
         msg = f"module_path must be a Go module path, got {options.module_path!r}"
         raise RenderError(msg)
@@ -135,11 +158,16 @@ def render_go_files(options: GoOptions) -> dict[str, str]:
     """Render the Go runtime (pure): ``{path from the module root: exact text}``."""
     _check(options)
     module = options.module_path
+    v2 = options.layout == "v2"
+    # field.go imports the module's `param` package beside `io`.
+    param = f"{module}/packages/param" if v2 else f"{module}/internal/param"
     files = render_tree(
-        template_root("go"),
+        template_root("go-v2" if v2 else "go"),
         comment="//",
         replacements={
             MAX_RETRIES_PLACEHOLDER: str(options.max_retries),
+            # pkg.go.dev's README anchors name the module without its `/vN` (imagekit-go/v2).
+            DOCS_MODULE_PLACEHOLDER: _MAJOR_SUFFIX.sub("", module),
             MODULE_PLACEHOLDER: module,
             CLIENT_PLACEHOLDER: options.client_name,
             SENSITIVE_HEADERS_PLACEHOLDER: _sensitive_headers(options.redacted_headers),
@@ -149,8 +177,10 @@ def render_go_files(options: GoOptions) -> dict[str, str]:
         # gofmt sorts the imports of a group by path; these two groups mix the module's own
         # packages with another import.
         flags={
-            "module_before_io": f"{module}/internal/param" < "io",
+            "module_before_io": param < "io",
             "module_before_sjson": f"{module}/internal/requestconfig" < "github.com/tidwall/sjson",
+            "base64": "base64." in options.client_options,
+            "new_file": options.new_file,
         },
         slots={name: getattr(options, name) for name in _SLOTS},
     )

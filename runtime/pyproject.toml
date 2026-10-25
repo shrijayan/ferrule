@@ -27,6 +27,7 @@ packages = ["src/ferrule_runtime"]
 "typescript/template" = "ferrule_runtime/typescript/template"
 "typescript-node/template" = "ferrule_runtime/typescript-node/template"
 "go/template" = "ferrule_runtime/go/template"
+"go-v2/template" = "ferrule_runtime/go-v2/template"
 "java/template" = "ferrule_runtime/java/template"
 "ruby/template" = "ferrule_runtime/ruby/template"
 "php/template" = "ferrule_runtime/php/template"
