@@ -128,7 +128,7 @@ fn rejects_malformed_extensions() {
         ("x-ferrule-models", Some(json!([])), "FER101 #/p/x-ferrule-models"),
         (
             "x-ferrule-models",
-            Some(json!({ "A": { "name": "A", "module": "Bad-Mod" } })),
+            Some(json!({ "A": { "name": "A", "module": "Bad Mod" } })),
             "FER101 #/p/x-ferrule-models",
         ),
         (
@@ -200,6 +200,62 @@ fn treats_null_like_the_typescript_nullish_defaults() {
         code(read(&with("x-ferrule-pagination", Some(Value::Null)))),
         "FER101 #/p/x-ferrule-pagination"
     );
+}
+
+/// imagekit writes `production_repo: imagekit-developer/imagekit-python#master`; Stainless
+/// links `owner/name` (pyproject Homepage, README issues, docstrings).
+#[test]
+fn strips_a_branch_from_the_production_repo() {
+    let e = read(&with(
+        "x-ferrule-package",
+        Some(json!({ "name": "fx", "repo": "acme/fx-python#master" })),
+    ))
+    .expect("a repo with a branch");
+    assert_eq!(e.package.repo, "acme/fx-python");
+    for bad in ["acme/fx#", "acme/fx#a b", "acme/fx#a#b", "#master"] {
+        assert_eq!(
+            code(read(&with(
+                "x-ferrule-package",
+                Some(json!({ "name": "fx", "repo": bad }))
+            ))),
+            "FER101 #/p/x-ferrule-package",
+            "{bad}"
+        );
+    }
+}
+
+/// `module` segments are stainless.yml keys as written (opencode `assistantMessage`, imagekit
+/// `File`, `accounts.UrlEndpointResponse`); Stainless writes `types/assistant_message.py`,
+/// `types/file.py` and `types/accounts/url_endpoint_response.py`.
+#[test]
+fn snake_cases_model_modules_written_as_config_keys() {
+    let e = read(&with(
+        "x-ferrule-models",
+        Some(json!({
+            "AssistantMessage": { "name": "AssistantMessage", "module": "assistantMessage" },
+            "FileDetails": { "name": "File", "module": "File" },
+            "UrlEndpointResponse": { "name": "UrlEndpointResponse", "module": "accounts.UrlEndpointResponse" },
+            "Stop": { "name": "Stop", "module": "trip-details.stop" },
+            "Reference": { "name": "Reference", "module": "shared.references" },
+        })),
+    ))
+    .expect("config keys as modules");
+    let module = |schema: &str| e.models[schema].module.clone().expect("a module");
+    assert_eq!(module("AssistantMessage"), "assistant_message");
+    assert_eq!(module("FileDetails"), "file");
+    assert_eq!(module("UrlEndpointResponse"), "accounts.url_endpoint_response");
+    assert_eq!(module("Stop"), "trip_details.stop");
+    assert_eq!(module("Reference"), "shared.references");
+    for bad in ["a..b", "a b", ".a", "a;b", "1a"] {
+        assert_eq!(
+            code(read(&with(
+                "x-ferrule-models",
+                Some(json!({ "A": { "name": "A", "module": bad } }))
+            ))),
+            "FER101 #/p/x-ferrule-models",
+            "{bad}"
+        );
+    }
 }
 
 fn client() -> Value {
