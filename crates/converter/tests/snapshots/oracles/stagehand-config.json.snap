@@ -1,5 +1,5 @@
 {
-  "sha256": "861e0a35b7c7266bb082a3f960c1317d5cea6ace44ddeed83924bd2e3dd174d6",
+  "sha256": "163ad50afc31306f00a49329b46fed7f2d1431a8093b63a7ad184d9cca88981e",
   "root": {
     "x-ferrule-client": {
       "defaultEnvironment": "production",
@@ -104,6 +104,75 @@
       "projectName": "stagehand",
       "pythonEdition": "python.2025-11-20",
       "version": 1
+    },
+    "x-ferrule-targets": {
+      "csharp": {
+        "edition": "csharp.2025-10-08",
+        "options": {},
+        "package_name": "stagehand",
+        "production_repo": "browserbase/stagehand-net"
+      },
+      "go": {
+        "edition": "go.2025-10-08",
+        "options": {
+          "options": {
+            "enable_v2": true
+          }
+        },
+        "package_name": "stagehand",
+        "production_repo": "browserbase/stagehand-go"
+      },
+      "java": {
+        "edition": "java.2025-10-08",
+        "options": {
+          "reverse_domain": "com.browserbase.api"
+        },
+        "package_name": "stagehand",
+        "production_repo": "browserbase/stagehand-java"
+      },
+      "kotlin": {
+        "edition": "kotlin.2025-10-08",
+        "options": {
+          "reverse_domain": "com.browserbase.api"
+        },
+        "package_name": "stagehand",
+        "production_repo": "browserbase/stagehand-kotlin"
+      },
+      "php": {
+        "edition": "php.2025-10-08",
+        "options": {
+          "composer_package_name": "browserbase/stagehand"
+        },
+        "package_name": "stagehand",
+        "production_repo": "browserbase/stagehand-php"
+      },
+      "python": {
+        "edition": "python.2025-11-20",
+        "options": {
+          "options": {
+            "use_uv": true
+          },
+          "project_name": "stagehand"
+        },
+        "package_name": "stagehand",
+        "production_repo": "browserbase/stagehand-python"
+      },
+      "ruby": {
+        "edition": "ruby.2025-10-08",
+        "options": {
+          "gem_name": "stagehand"
+        },
+        "production_repo": "browserbase/stagehand-ruby"
+      },
+      "typescript": {
+        "edition": "typescript.2025-10-10",
+        "options": {
+          "options": {
+            "mcp_server": false
+          }
+        },
+        "package_name": "stagehand-sdk"
+      }
     }
   },
   "mirrored": {
@@ -238,6 +307,75 @@
         "path": [
           "sessions"
         ]
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "stagehand",
+          "production_repo": "browserbase/stagehand-net"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "stagehand",
+          "production_repo": "browserbase/stagehand-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "com.browserbase.api"
+          },
+          "package_name": "stagehand",
+          "production_repo": "browserbase/stagehand-java"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "com.browserbase.api"
+          },
+          "package_name": "stagehand",
+          "production_repo": "browserbase/stagehand-kotlin"
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "browserbase/stagehand"
+          },
+          "package_name": "stagehand",
+          "production_repo": "browserbase/stagehand-php"
+        },
+        "python": {
+          "edition": "python.2025-11-20",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "stagehand"
+          },
+          "package_name": "stagehand",
+          "production_repo": "browserbase/stagehand-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "stagehand"
+          },
+          "production_repo": "browserbase/stagehand-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-10",
+          "options": {
+            "options": {
+              "mcp_server": false
+            }
+          },
+          "package_name": "stagehand-sdk"
+        }
       }
     },
     "POST /v1/sessions/{id}/act": {
@@ -279,6 +417,75 @@
         "paramDiscriminator": "streamResponse",
         "paramsTypeName": "streamResponse",
         "synthesizeEventAndData": false
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "stagehand",
+          "production_repo": "browserbase/stagehand-net"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "stagehand",
+          "production_repo": "browserbase/stagehand-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "com.browserbase.api"
+          },
+          "package_name": "stagehand",
+          "production_repo": "browserbase/stagehand-java"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "com.browserbase.api"
+          },
+          "package_name": "stagehand",
+          "production_repo": "browserbase/stagehand-kotlin"
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "browserbase/stagehand"
+          },
+          "package_name": "stagehand",
+          "production_repo": "browserbase/stagehand-php"
+        },
+        "python": {
+          "edition": "python.2025-11-20",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "stagehand"
+          },
+          "package_name": "stagehand",
+          "production_repo": "browserbase/stagehand-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "stagehand"
+          },
+          "production_repo": "browserbase/stagehand-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-10",
+          "options": {
+            "options": {
+              "mcp_server": false
+            }
+          },
+          "package_name": "stagehand-sdk"
+        }
       }
     },
     "POST /v1/sessions/{id}/agentExecute": {
@@ -320,6 +527,75 @@
         "paramDiscriminator": "streamResponse",
         "paramsTypeName": "streamResponse",
         "synthesizeEventAndData": false
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "stagehand",
+          "production_repo": "browserbase/stagehand-net"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "stagehand",
+          "production_repo": "browserbase/stagehand-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "com.browserbase.api"
+          },
+          "package_name": "stagehand",
+          "production_repo": "browserbase/stagehand-java"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "com.browserbase.api"
+          },
+          "package_name": "stagehand",
+          "production_repo": "browserbase/stagehand-kotlin"
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "browserbase/stagehand"
+          },
+          "package_name": "stagehand",
+          "production_repo": "browserbase/stagehand-php"
+        },
+        "python": {
+          "edition": "python.2025-11-20",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "stagehand"
+          },
+          "package_name": "stagehand",
+          "production_repo": "browserbase/stagehand-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "stagehand"
+          },
+          "production_repo": "browserbase/stagehand-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-10",
+          "options": {
+            "options": {
+              "mcp_server": false
+            }
+          },
+          "package_name": "stagehand-sdk"
+        }
       }
     },
     "POST /v1/sessions/{id}/end": {
@@ -336,6 +612,75 @@
         "path": [
           "sessions"
         ]
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "stagehand",
+          "production_repo": "browserbase/stagehand-net"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "stagehand",
+          "production_repo": "browserbase/stagehand-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "com.browserbase.api"
+          },
+          "package_name": "stagehand",
+          "production_repo": "browserbase/stagehand-java"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "com.browserbase.api"
+          },
+          "package_name": "stagehand",
+          "production_repo": "browserbase/stagehand-kotlin"
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "browserbase/stagehand"
+          },
+          "package_name": "stagehand",
+          "production_repo": "browserbase/stagehand-php"
+        },
+        "python": {
+          "edition": "python.2025-11-20",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "stagehand"
+          },
+          "package_name": "stagehand",
+          "production_repo": "browserbase/stagehand-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "stagehand"
+          },
+          "production_repo": "browserbase/stagehand-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-10",
+          "options": {
+            "options": {
+              "mcp_server": false
+            }
+          },
+          "package_name": "stagehand-sdk"
+        }
       }
     },
     "POST /v1/sessions/{id}/extract": {
@@ -377,6 +722,75 @@
         "paramDiscriminator": "streamResponse",
         "paramsTypeName": "streamResponse",
         "synthesizeEventAndData": false
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "stagehand",
+          "production_repo": "browserbase/stagehand-net"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "stagehand",
+          "production_repo": "browserbase/stagehand-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "com.browserbase.api"
+          },
+          "package_name": "stagehand",
+          "production_repo": "browserbase/stagehand-java"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "com.browserbase.api"
+          },
+          "package_name": "stagehand",
+          "production_repo": "browserbase/stagehand-kotlin"
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "browserbase/stagehand"
+          },
+          "package_name": "stagehand",
+          "production_repo": "browserbase/stagehand-php"
+        },
+        "python": {
+          "edition": "python.2025-11-20",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "stagehand"
+          },
+          "package_name": "stagehand",
+          "production_repo": "browserbase/stagehand-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "stagehand"
+          },
+          "production_repo": "browserbase/stagehand-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-10",
+          "options": {
+            "options": {
+              "mcp_server": false
+            }
+          },
+          "package_name": "stagehand-sdk"
+        }
       }
     },
     "POST /v1/sessions/{id}/navigate": {
@@ -393,6 +807,75 @@
         "path": [
           "sessions"
         ]
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "stagehand",
+          "production_repo": "browserbase/stagehand-net"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "stagehand",
+          "production_repo": "browserbase/stagehand-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "com.browserbase.api"
+          },
+          "package_name": "stagehand",
+          "production_repo": "browserbase/stagehand-java"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "com.browserbase.api"
+          },
+          "package_name": "stagehand",
+          "production_repo": "browserbase/stagehand-kotlin"
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "browserbase/stagehand"
+          },
+          "package_name": "stagehand",
+          "production_repo": "browserbase/stagehand-php"
+        },
+        "python": {
+          "edition": "python.2025-11-20",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "stagehand"
+          },
+          "package_name": "stagehand",
+          "production_repo": "browserbase/stagehand-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "stagehand"
+          },
+          "production_repo": "browserbase/stagehand-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-10",
+          "options": {
+            "options": {
+              "mcp_server": false
+            }
+          },
+          "package_name": "stagehand-sdk"
+        }
       }
     },
     "POST /v1/sessions/{id}/observe": {
@@ -434,6 +917,75 @@
         "paramDiscriminator": "streamResponse",
         "paramsTypeName": "streamResponse",
         "synthesizeEventAndData": false
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "stagehand",
+          "production_repo": "browserbase/stagehand-net"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "stagehand",
+          "production_repo": "browserbase/stagehand-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "com.browserbase.api"
+          },
+          "package_name": "stagehand",
+          "production_repo": "browserbase/stagehand-java"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "com.browserbase.api"
+          },
+          "package_name": "stagehand",
+          "production_repo": "browserbase/stagehand-kotlin"
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "browserbase/stagehand"
+          },
+          "package_name": "stagehand",
+          "production_repo": "browserbase/stagehand-php"
+        },
+        "python": {
+          "edition": "python.2025-11-20",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "stagehand"
+          },
+          "package_name": "stagehand",
+          "production_repo": "browserbase/stagehand-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "stagehand"
+          },
+          "production_repo": "browserbase/stagehand-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-10",
+          "options": {
+            "options": {
+              "mcp_server": false
+            }
+          },
+          "package_name": "stagehand-sdk"
+        }
       }
     },
     "GET /v1/sessions/{id}/replay": {
@@ -450,6 +1002,75 @@
         "path": [
           "sessions"
         ]
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "stagehand",
+          "production_repo": "browserbase/stagehand-net"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "stagehand",
+          "production_repo": "browserbase/stagehand-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "com.browserbase.api"
+          },
+          "package_name": "stagehand",
+          "production_repo": "browserbase/stagehand-java"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "com.browserbase.api"
+          },
+          "package_name": "stagehand",
+          "production_repo": "browserbase/stagehand-kotlin"
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "browserbase/stagehand"
+          },
+          "package_name": "stagehand",
+          "production_repo": "browserbase/stagehand-php"
+        },
+        "python": {
+          "edition": "python.2025-11-20",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "stagehand"
+          },
+          "package_name": "stagehand",
+          "production_repo": "browserbase/stagehand-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "stagehand"
+          },
+          "production_repo": "browserbase/stagehand-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-10",
+          "options": {
+            "options": {
+              "mcp_server": false
+            }
+          },
+          "package_name": "stagehand-sdk"
+        }
       }
     }
   }

@@ -2234,6 +2234,55 @@
           "path": [
             "agencies_with_coverage"
           ]
+        },
+        "x-ferrule-targets": {
+          "go": {
+            "edition": "go.2025-10-08",
+            "options": {
+              "skip": false
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/go-sdk"
+          },
+          "java": {
+            "edition": "java.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/java-sdk"
+          },
+          "kotlin": {
+            "edition": "kotlin.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/kotlin-sdk"
+          },
+          "node": {
+            "edition": "node.2025-10-08",
+            "options": {},
+            "package_name": "onebusaway-sdk",
+            "production_repo": "OneBusAway/js-sdk"
+          },
+          "python": {
+            "edition": "python.2025-10-08",
+            "options": {
+              "options": {
+                "use_uv": false
+              }
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/python-sdk"
+          },
+          "ruby": {
+            "edition": "ruby.2025-10-08",
+            "options": {
+              "gem_name": "onebusaway-sdk"
+            },
+            "production_repo": "OneBusAway/ruby-sdk"
+          }
         }
       }
     },
@@ -2357,6 +2406,55 @@
           "path": [
             "agency"
           ]
+        },
+        "x-ferrule-targets": {
+          "go": {
+            "edition": "go.2025-10-08",
+            "options": {
+              "skip": false
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/go-sdk"
+          },
+          "java": {
+            "edition": "java.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/java-sdk"
+          },
+          "kotlin": {
+            "edition": "kotlin.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/kotlin-sdk"
+          },
+          "node": {
+            "edition": "node.2025-10-08",
+            "options": {},
+            "package_name": "onebusaway-sdk",
+            "production_repo": "OneBusAway/js-sdk"
+          },
+          "python": {
+            "edition": "python.2025-10-08",
+            "options": {
+              "options": {
+                "use_uv": false
+              }
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/python-sdk"
+          },
+          "ruby": {
+            "edition": "ruby.2025-10-08",
+            "options": {
+              "gem_name": "onebusaway-sdk"
+            },
+            "production_repo": "OneBusAway/ruby-sdk"
+          }
         }
       }
     },
@@ -2524,6 +2622,55 @@
           "path": [
             "arrival_and_departure"
           ]
+        },
+        "x-ferrule-targets": {
+          "go": {
+            "edition": "go.2025-10-08",
+            "options": {
+              "skip": false
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/go-sdk"
+          },
+          "java": {
+            "edition": "java.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/java-sdk"
+          },
+          "kotlin": {
+            "edition": "kotlin.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/kotlin-sdk"
+          },
+          "node": {
+            "edition": "node.2025-10-08",
+            "options": {},
+            "package_name": "onebusaway-sdk",
+            "production_repo": "OneBusAway/js-sdk"
+          },
+          "python": {
+            "edition": "python.2025-10-08",
+            "options": {
+              "options": {
+                "use_uv": false
+              }
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/python-sdk"
+          },
+          "ruby": {
+            "edition": "ruby.2025-10-08",
+            "options": {
+              "gem_name": "onebusaway-sdk"
+            },
+            "production_repo": "OneBusAway/ruby-sdk"
+          }
         }
       }
     },
@@ -2751,6 +2898,55 @@
           "path": [
             "arrivals_and_departures_for_location"
           ]
+        },
+        "x-ferrule-targets": {
+          "go": {
+            "edition": "go.2025-10-08",
+            "options": {
+              "skip": false
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/go-sdk"
+          },
+          "java": {
+            "edition": "java.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/java-sdk"
+          },
+          "kotlin": {
+            "edition": "kotlin.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/kotlin-sdk"
+          },
+          "node": {
+            "edition": "node.2025-10-08",
+            "options": {},
+            "package_name": "onebusaway-sdk",
+            "production_repo": "OneBusAway/js-sdk"
+          },
+          "python": {
+            "edition": "python.2025-10-08",
+            "options": {
+              "options": {
+                "use_uv": false
+              }
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/python-sdk"
+          },
+          "ruby": {
+            "edition": "ruby.2025-10-08",
+            "options": {
+              "gem_name": "onebusaway-sdk"
+            },
+            "production_repo": "OneBusAway/ruby-sdk"
+          }
         }
       }
     },
@@ -2906,6 +3102,55 @@
           "path": [
             "arrival_and_departure"
           ]
+        },
+        "x-ferrule-targets": {
+          "go": {
+            "edition": "go.2025-10-08",
+            "options": {
+              "skip": false
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/go-sdk"
+          },
+          "java": {
+            "edition": "java.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/java-sdk"
+          },
+          "kotlin": {
+            "edition": "kotlin.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/kotlin-sdk"
+          },
+          "node": {
+            "edition": "node.2025-10-08",
+            "options": {},
+            "package_name": "onebusaway-sdk",
+            "production_repo": "OneBusAway/js-sdk"
+          },
+          "python": {
+            "edition": "python.2025-10-08",
+            "options": {
+              "options": {
+                "use_uv": false
+              }
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/python-sdk"
+          },
+          "ruby": {
+            "edition": "ruby.2025-10-08",
+            "options": {
+              "gem_name": "onebusaway-sdk"
+            },
+            "production_repo": "OneBusAway/ruby-sdk"
+          }
         }
       }
     },
@@ -3017,6 +3262,55 @@
           "path": [
             "block"
           ]
+        },
+        "x-ferrule-targets": {
+          "go": {
+            "edition": "go.2025-10-08",
+            "options": {
+              "skip": false
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/go-sdk"
+          },
+          "java": {
+            "edition": "java.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/java-sdk"
+          },
+          "kotlin": {
+            "edition": "kotlin.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/kotlin-sdk"
+          },
+          "node": {
+            "edition": "node.2025-10-08",
+            "options": {},
+            "package_name": "onebusaway-sdk",
+            "production_repo": "OneBusAway/js-sdk"
+          },
+          "python": {
+            "edition": "python.2025-10-08",
+            "options": {
+              "options": {
+                "use_uv": false
+              }
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/python-sdk"
+          },
+          "ruby": {
+            "edition": "ruby.2025-10-08",
+            "options": {
+              "gem_name": "onebusaway-sdk"
+            },
+            "production_repo": "OneBusAway/ruby-sdk"
+          }
         }
       },
       "parameters": [
@@ -3142,6 +3436,55 @@
           "path": [
             "config"
           ]
+        },
+        "x-ferrule-targets": {
+          "go": {
+            "edition": "go.2025-10-08",
+            "options": {
+              "skip": false
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/go-sdk"
+          },
+          "java": {
+            "edition": "java.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/java-sdk"
+          },
+          "kotlin": {
+            "edition": "kotlin.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/kotlin-sdk"
+          },
+          "node": {
+            "edition": "node.2025-10-08",
+            "options": {},
+            "package_name": "onebusaway-sdk",
+            "production_repo": "OneBusAway/js-sdk"
+          },
+          "python": {
+            "edition": "python.2025-10-08",
+            "options": {
+              "options": {
+                "use_uv": false
+              }
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/python-sdk"
+          },
+          "ruby": {
+            "edition": "ruby.2025-10-08",
+            "options": {
+              "gem_name": "onebusaway-sdk"
+            },
+            "production_repo": "OneBusAway/ruby-sdk"
+          }
         }
       }
     },
@@ -3256,6 +3599,55 @@
           "path": [
             "current_time"
           ]
+        },
+        "x-ferrule-targets": {
+          "go": {
+            "edition": "go.2025-10-08",
+            "options": {
+              "skip": false
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/go-sdk"
+          },
+          "java": {
+            "edition": "java.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/java-sdk"
+          },
+          "kotlin": {
+            "edition": "kotlin.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/kotlin-sdk"
+          },
+          "node": {
+            "edition": "node.2025-10-08",
+            "options": {},
+            "package_name": "onebusaway-sdk",
+            "production_repo": "OneBusAway/js-sdk"
+          },
+          "python": {
+            "edition": "python.2025-10-08",
+            "options": {
+              "options": {
+                "use_uv": false
+              }
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/python-sdk"
+          },
+          "ruby": {
+            "edition": "ruby.2025-10-08",
+            "options": {
+              "gem_name": "onebusaway-sdk"
+            },
+            "production_repo": "OneBusAway/ruby-sdk"
+          }
         }
       }
     },
@@ -3419,6 +3811,55 @@
           "path": [
             "report_problem_with_stop"
           ]
+        },
+        "x-ferrule-targets": {
+          "go": {
+            "edition": "go.2025-10-08",
+            "options": {
+              "skip": false
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/go-sdk"
+          },
+          "java": {
+            "edition": "java.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/java-sdk"
+          },
+          "kotlin": {
+            "edition": "kotlin.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/kotlin-sdk"
+          },
+          "node": {
+            "edition": "node.2025-10-08",
+            "options": {},
+            "package_name": "onebusaway-sdk",
+            "production_repo": "OneBusAway/js-sdk"
+          },
+          "python": {
+            "edition": "python.2025-10-08",
+            "options": {
+              "options": {
+                "use_uv": false
+              }
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/python-sdk"
+          },
+          "ruby": {
+            "edition": "ruby.2025-10-08",
+            "options": {
+              "gem_name": "onebusaway-sdk"
+            },
+            "production_repo": "OneBusAway/ruby-sdk"
+          }
         }
       }
     },
@@ -3629,6 +4070,55 @@
           "path": [
             "report_problem_with_trip"
           ]
+        },
+        "x-ferrule-targets": {
+          "go": {
+            "edition": "go.2025-10-08",
+            "options": {
+              "skip": false
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/go-sdk"
+          },
+          "java": {
+            "edition": "java.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/java-sdk"
+          },
+          "kotlin": {
+            "edition": "kotlin.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/kotlin-sdk"
+          },
+          "node": {
+            "edition": "node.2025-10-08",
+            "options": {},
+            "package_name": "onebusaway-sdk",
+            "production_repo": "OneBusAway/js-sdk"
+          },
+          "python": {
+            "edition": "python.2025-10-08",
+            "options": {
+              "options": {
+                "use_uv": false
+              }
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/python-sdk"
+          },
+          "ruby": {
+            "edition": "ruby.2025-10-08",
+            "options": {
+              "gem_name": "onebusaway-sdk"
+            },
+            "production_repo": "OneBusAway/ruby-sdk"
+          }
         }
       }
     },
@@ -3740,6 +4230,55 @@
           "path": [
             "route_ids_for_agency"
           ]
+        },
+        "x-ferrule-targets": {
+          "go": {
+            "edition": "go.2025-10-08",
+            "options": {
+              "skip": false
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/go-sdk"
+          },
+          "java": {
+            "edition": "java.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/java-sdk"
+          },
+          "kotlin": {
+            "edition": "kotlin.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/kotlin-sdk"
+          },
+          "node": {
+            "edition": "node.2025-10-08",
+            "options": {},
+            "package_name": "onebusaway-sdk",
+            "production_repo": "OneBusAway/js-sdk"
+          },
+          "python": {
+            "edition": "python.2025-10-08",
+            "options": {
+              "options": {
+                "use_uv": false
+              }
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/python-sdk"
+          },
+          "ruby": {
+            "edition": "ruby.2025-10-08",
+            "options": {
+              "gem_name": "onebusaway-sdk"
+            },
+            "production_repo": "OneBusAway/ruby-sdk"
+          }
         }
       },
       "parameters": [
@@ -3875,6 +4414,55 @@
           "path": [
             "route"
           ]
+        },
+        "x-ferrule-targets": {
+          "go": {
+            "edition": "go.2025-10-08",
+            "options": {
+              "skip": false
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/go-sdk"
+          },
+          "java": {
+            "edition": "java.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/java-sdk"
+          },
+          "kotlin": {
+            "edition": "kotlin.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/kotlin-sdk"
+          },
+          "node": {
+            "edition": "node.2025-10-08",
+            "options": {},
+            "package_name": "onebusaway-sdk",
+            "production_repo": "OneBusAway/js-sdk"
+          },
+          "python": {
+            "edition": "python.2025-10-08",
+            "options": {
+              "options": {
+                "use_uv": false
+              }
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/python-sdk"
+          },
+          "ruby": {
+            "edition": "ruby.2025-10-08",
+            "options": {
+              "gem_name": "onebusaway-sdk"
+            },
+            "production_repo": "OneBusAway/ruby-sdk"
+          }
         }
       }
     },
@@ -4001,6 +4589,55 @@
           "path": [
             "routes_for_agency"
           ]
+        },
+        "x-ferrule-targets": {
+          "go": {
+            "edition": "go.2025-10-08",
+            "options": {
+              "skip": false
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/go-sdk"
+          },
+          "java": {
+            "edition": "java.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/java-sdk"
+          },
+          "kotlin": {
+            "edition": "kotlin.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/kotlin-sdk"
+          },
+          "node": {
+            "edition": "node.2025-10-08",
+            "options": {},
+            "package_name": "onebusaway-sdk",
+            "production_repo": "OneBusAway/js-sdk"
+          },
+          "python": {
+            "edition": "python.2025-10-08",
+            "options": {
+              "options": {
+                "use_uv": false
+              }
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/python-sdk"
+          },
+          "ruby": {
+            "edition": "ruby.2025-10-08",
+            "options": {
+              "gem_name": "onebusaway-sdk"
+            },
+            "production_repo": "OneBusAway/ruby-sdk"
+          }
         }
       }
     },
@@ -4171,6 +4808,55 @@
           "path": [
             "routes_for_location"
           ]
+        },
+        "x-ferrule-targets": {
+          "go": {
+            "edition": "go.2025-10-08",
+            "options": {
+              "skip": false
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/go-sdk"
+          },
+          "java": {
+            "edition": "java.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/java-sdk"
+          },
+          "kotlin": {
+            "edition": "kotlin.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/kotlin-sdk"
+          },
+          "node": {
+            "edition": "node.2025-10-08",
+            "options": {},
+            "package_name": "onebusaway-sdk",
+            "production_repo": "OneBusAway/js-sdk"
+          },
+          "python": {
+            "edition": "python.2025-10-08",
+            "options": {
+              "options": {
+                "use_uv": false
+              }
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/python-sdk"
+          },
+          "ruby": {
+            "edition": "ruby.2025-10-08",
+            "options": {
+              "gem_name": "onebusaway-sdk"
+            },
+            "production_repo": "OneBusAway/ruby-sdk"
+          }
         }
       }
     },
@@ -4310,6 +4996,55 @@
           "path": [
             "schedule_for_route"
           ]
+        },
+        "x-ferrule-targets": {
+          "go": {
+            "edition": "go.2025-10-08",
+            "options": {
+              "skip": false
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/go-sdk"
+          },
+          "java": {
+            "edition": "java.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/java-sdk"
+          },
+          "kotlin": {
+            "edition": "kotlin.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/kotlin-sdk"
+          },
+          "node": {
+            "edition": "node.2025-10-08",
+            "options": {},
+            "package_name": "onebusaway-sdk",
+            "production_repo": "OneBusAway/js-sdk"
+          },
+          "python": {
+            "edition": "python.2025-10-08",
+            "options": {
+              "options": {
+                "use_uv": false
+              }
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/python-sdk"
+          },
+          "ruby": {
+            "edition": "ruby.2025-10-08",
+            "options": {
+              "gem_name": "onebusaway-sdk"
+            },
+            "production_repo": "OneBusAway/ruby-sdk"
+          }
         }
       }
     },
@@ -4442,6 +5177,55 @@
           "path": [
             "schedule_for_stop"
           ]
+        },
+        "x-ferrule-targets": {
+          "go": {
+            "edition": "go.2025-10-08",
+            "options": {
+              "skip": false
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/go-sdk"
+          },
+          "java": {
+            "edition": "java.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/java-sdk"
+          },
+          "kotlin": {
+            "edition": "kotlin.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/kotlin-sdk"
+          },
+          "node": {
+            "edition": "node.2025-10-08",
+            "options": {},
+            "package_name": "onebusaway-sdk",
+            "production_repo": "OneBusAway/js-sdk"
+          },
+          "python": {
+            "edition": "python.2025-10-08",
+            "options": {
+              "options": {
+                "use_uv": false
+              }
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/python-sdk"
+          },
+          "ruby": {
+            "edition": "ruby.2025-10-08",
+            "options": {
+              "gem_name": "onebusaway-sdk"
+            },
+            "production_repo": "OneBusAway/ruby-sdk"
+          }
         }
       }
     },
@@ -4574,6 +5358,55 @@
           "path": [
             "search_for_route"
           ]
+        },
+        "x-ferrule-targets": {
+          "go": {
+            "edition": "go.2025-10-08",
+            "options": {
+              "skip": false
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/go-sdk"
+          },
+          "java": {
+            "edition": "java.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/java-sdk"
+          },
+          "kotlin": {
+            "edition": "kotlin.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/kotlin-sdk"
+          },
+          "node": {
+            "edition": "node.2025-10-08",
+            "options": {},
+            "package_name": "onebusaway-sdk",
+            "production_repo": "OneBusAway/js-sdk"
+          },
+          "python": {
+            "edition": "python.2025-10-08",
+            "options": {
+              "options": {
+                "use_uv": false
+              }
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/python-sdk"
+          },
+          "ruby": {
+            "edition": "ruby.2025-10-08",
+            "options": {
+              "gem_name": "onebusaway-sdk"
+            },
+            "production_repo": "OneBusAway/ruby-sdk"
+          }
         }
       }
     },
@@ -4706,6 +5539,55 @@
           "path": [
             "search_for_stop"
           ]
+        },
+        "x-ferrule-targets": {
+          "go": {
+            "edition": "go.2025-10-08",
+            "options": {
+              "skip": false
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/go-sdk"
+          },
+          "java": {
+            "edition": "java.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/java-sdk"
+          },
+          "kotlin": {
+            "edition": "kotlin.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/kotlin-sdk"
+          },
+          "node": {
+            "edition": "node.2025-10-08",
+            "options": {},
+            "package_name": "onebusaway-sdk",
+            "production_repo": "OneBusAway/js-sdk"
+          },
+          "python": {
+            "edition": "python.2025-10-08",
+            "options": {
+              "options": {
+                "use_uv": false
+              }
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/python-sdk"
+          },
+          "ruby": {
+            "edition": "ruby.2025-10-08",
+            "options": {
+              "gem_name": "onebusaway-sdk"
+            },
+            "production_repo": "OneBusAway/ruby-sdk"
+          }
         }
       }
     },
@@ -4829,6 +5711,55 @@
           "path": [
             "shape"
           ]
+        },
+        "x-ferrule-targets": {
+          "go": {
+            "edition": "go.2025-10-08",
+            "options": {
+              "skip": false
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/go-sdk"
+          },
+          "java": {
+            "edition": "java.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/java-sdk"
+          },
+          "kotlin": {
+            "edition": "kotlin.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/kotlin-sdk"
+          },
+          "node": {
+            "edition": "node.2025-10-08",
+            "options": {},
+            "package_name": "onebusaway-sdk",
+            "production_repo": "OneBusAway/js-sdk"
+          },
+          "python": {
+            "edition": "python.2025-10-08",
+            "options": {
+              "options": {
+                "use_uv": false
+              }
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/python-sdk"
+          },
+          "ruby": {
+            "edition": "ruby.2025-10-08",
+            "options": {
+              "gem_name": "onebusaway-sdk"
+            },
+            "production_repo": "OneBusAway/ruby-sdk"
+          }
         }
       }
     },
@@ -4940,6 +5871,55 @@
           "path": [
             "stop_ids_for_agency"
           ]
+        },
+        "x-ferrule-targets": {
+          "go": {
+            "edition": "go.2025-10-08",
+            "options": {
+              "skip": false
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/go-sdk"
+          },
+          "java": {
+            "edition": "java.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/java-sdk"
+          },
+          "kotlin": {
+            "edition": "kotlin.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/kotlin-sdk"
+          },
+          "node": {
+            "edition": "node.2025-10-08",
+            "options": {},
+            "package_name": "onebusaway-sdk",
+            "production_repo": "OneBusAway/js-sdk"
+          },
+          "python": {
+            "edition": "python.2025-10-08",
+            "options": {
+              "options": {
+                "use_uv": false
+              }
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/python-sdk"
+          },
+          "ruby": {
+            "edition": "ruby.2025-10-08",
+            "options": {
+              "gem_name": "onebusaway-sdk"
+            },
+            "production_repo": "OneBusAway/ruby-sdk"
+          }
         }
       },
       "parameters": [
@@ -5062,6 +6042,55 @@
           "path": [
             "stop"
           ]
+        },
+        "x-ferrule-targets": {
+          "go": {
+            "edition": "go.2025-10-08",
+            "options": {
+              "skip": false
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/go-sdk"
+          },
+          "java": {
+            "edition": "java.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/java-sdk"
+          },
+          "kotlin": {
+            "edition": "kotlin.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/kotlin-sdk"
+          },
+          "node": {
+            "edition": "node.2025-10-08",
+            "options": {},
+            "package_name": "onebusaway-sdk",
+            "production_repo": "OneBusAway/js-sdk"
+          },
+          "python": {
+            "edition": "python.2025-10-08",
+            "options": {
+              "options": {
+                "use_uv": false
+              }
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/python-sdk"
+          },
+          "ruby": {
+            "edition": "ruby.2025-10-08",
+            "options": {
+              "gem_name": "onebusaway-sdk"
+            },
+            "production_repo": "OneBusAway/ruby-sdk"
+          }
         }
       },
       "parameters": [
@@ -5184,6 +6213,55 @@
           "path": [
             "stops_for_agency"
           ]
+        },
+        "x-ferrule-targets": {
+          "go": {
+            "edition": "go.2025-10-08",
+            "options": {
+              "skip": false
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/go-sdk"
+          },
+          "java": {
+            "edition": "java.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/java-sdk"
+          },
+          "kotlin": {
+            "edition": "kotlin.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/kotlin-sdk"
+          },
+          "node": {
+            "edition": "node.2025-10-08",
+            "options": {},
+            "package_name": "onebusaway-sdk",
+            "production_repo": "OneBusAway/js-sdk"
+          },
+          "python": {
+            "edition": "python.2025-10-08",
+            "options": {
+              "options": {
+                "use_uv": false
+              }
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/python-sdk"
+          },
+          "ruby": {
+            "edition": "ruby.2025-10-08",
+            "options": {
+              "gem_name": "onebusaway-sdk"
+            },
+            "production_repo": "OneBusAway/ruby-sdk"
+          }
         }
       },
       "parameters": [
@@ -5372,6 +6450,55 @@
           "path": [
             "stops_for_location"
           ]
+        },
+        "x-ferrule-targets": {
+          "go": {
+            "edition": "go.2025-10-08",
+            "options": {
+              "skip": false
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/go-sdk"
+          },
+          "java": {
+            "edition": "java.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/java-sdk"
+          },
+          "kotlin": {
+            "edition": "kotlin.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/kotlin-sdk"
+          },
+          "node": {
+            "edition": "node.2025-10-08",
+            "options": {},
+            "package_name": "onebusaway-sdk",
+            "production_repo": "OneBusAway/js-sdk"
+          },
+          "python": {
+            "edition": "python.2025-10-08",
+            "options": {
+              "options": {
+                "use_uv": false
+              }
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/python-sdk"
+          },
+          "ruby": {
+            "edition": "ruby.2025-10-08",
+            "options": {
+              "gem_name": "onebusaway-sdk"
+            },
+            "production_repo": "OneBusAway/ruby-sdk"
+          }
         }
       }
     },
@@ -5483,6 +6610,55 @@
           "path": [
             "stops_for_route"
           ]
+        },
+        "x-ferrule-targets": {
+          "go": {
+            "edition": "go.2025-10-08",
+            "options": {
+              "skip": false
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/go-sdk"
+          },
+          "java": {
+            "edition": "java.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/java-sdk"
+          },
+          "kotlin": {
+            "edition": "kotlin.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/kotlin-sdk"
+          },
+          "node": {
+            "edition": "node.2025-10-08",
+            "options": {},
+            "package_name": "onebusaway-sdk",
+            "production_repo": "OneBusAway/js-sdk"
+          },
+          "python": {
+            "edition": "python.2025-10-08",
+            "options": {
+              "options": {
+                "use_uv": false
+              }
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/python-sdk"
+          },
+          "ruby": {
+            "edition": "ruby.2025-10-08",
+            "options": {
+              "gem_name": "onebusaway-sdk"
+            },
+            "production_repo": "OneBusAway/ruby-sdk"
+          }
         }
       },
       "parameters": [
@@ -5684,6 +6860,55 @@
           "path": [
             "trip-details"
           ]
+        },
+        "x-ferrule-targets": {
+          "go": {
+            "edition": "go.2025-10-08",
+            "options": {
+              "skip": false
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/go-sdk"
+          },
+          "java": {
+            "edition": "java.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/java-sdk"
+          },
+          "kotlin": {
+            "edition": "kotlin.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/kotlin-sdk"
+          },
+          "node": {
+            "edition": "node.2025-10-08",
+            "options": {},
+            "package_name": "onebusaway-sdk",
+            "production_repo": "OneBusAway/js-sdk"
+          },
+          "python": {
+            "edition": "python.2025-10-08",
+            "options": {
+              "options": {
+                "use_uv": false
+              }
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/python-sdk"
+          },
+          "ruby": {
+            "edition": "ruby.2025-10-08",
+            "options": {
+              "gem_name": "onebusaway-sdk"
+            },
+            "production_repo": "OneBusAway/ruby-sdk"
+          }
         }
       }
     },
@@ -5842,6 +7067,55 @@
           "path": [
             "trip_for_vehicle"
           ]
+        },
+        "x-ferrule-targets": {
+          "go": {
+            "edition": "go.2025-10-08",
+            "options": {
+              "skip": false
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/go-sdk"
+          },
+          "java": {
+            "edition": "java.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/java-sdk"
+          },
+          "kotlin": {
+            "edition": "kotlin.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/kotlin-sdk"
+          },
+          "node": {
+            "edition": "node.2025-10-08",
+            "options": {},
+            "package_name": "onebusaway-sdk",
+            "production_repo": "OneBusAway/js-sdk"
+          },
+          "python": {
+            "edition": "python.2025-10-08",
+            "options": {
+              "options": {
+                "use_uv": false
+              }
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/python-sdk"
+          },
+          "ruby": {
+            "edition": "ruby.2025-10-08",
+            "options": {
+              "gem_name": "onebusaway-sdk"
+            },
+            "production_repo": "OneBusAway/ruby-sdk"
+          }
         }
       }
     },
@@ -5953,6 +7227,55 @@
           "path": [
             "trip"
           ]
+        },
+        "x-ferrule-targets": {
+          "go": {
+            "edition": "go.2025-10-08",
+            "options": {
+              "skip": false
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/go-sdk"
+          },
+          "java": {
+            "edition": "java.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/java-sdk"
+          },
+          "kotlin": {
+            "edition": "kotlin.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/kotlin-sdk"
+          },
+          "node": {
+            "edition": "node.2025-10-08",
+            "options": {},
+            "package_name": "onebusaway-sdk",
+            "production_repo": "OneBusAway/js-sdk"
+          },
+          "python": {
+            "edition": "python.2025-10-08",
+            "options": {
+              "options": {
+                "use_uv": false
+              }
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/python-sdk"
+          },
+          "ruby": {
+            "edition": "ruby.2025-10-08",
+            "options": {
+              "gem_name": "onebusaway-sdk"
+            },
+            "production_repo": "OneBusAway/ruby-sdk"
+          }
         }
       },
       "parameters": [
@@ -6148,6 +7471,55 @@
           "path": [
             "trips_for_location"
           ]
+        },
+        "x-ferrule-targets": {
+          "go": {
+            "edition": "go.2025-10-08",
+            "options": {
+              "skip": false
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/go-sdk"
+          },
+          "java": {
+            "edition": "java.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/java-sdk"
+          },
+          "kotlin": {
+            "edition": "kotlin.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/kotlin-sdk"
+          },
+          "node": {
+            "edition": "node.2025-10-08",
+            "options": {},
+            "package_name": "onebusaway-sdk",
+            "production_repo": "OneBusAway/js-sdk"
+          },
+          "python": {
+            "edition": "python.2025-10-08",
+            "options": {
+              "options": {
+                "use_uv": false
+              }
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/python-sdk"
+          },
+          "ruby": {
+            "edition": "ruby.2025-10-08",
+            "options": {
+              "gem_name": "onebusaway-sdk"
+            },
+            "production_repo": "OneBusAway/ruby-sdk"
+          }
         }
       }
     },
@@ -6319,6 +7691,55 @@
           "path": [
             "trips_for_route"
           ]
+        },
+        "x-ferrule-targets": {
+          "go": {
+            "edition": "go.2025-10-08",
+            "options": {
+              "skip": false
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/go-sdk"
+          },
+          "java": {
+            "edition": "java.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/java-sdk"
+          },
+          "kotlin": {
+            "edition": "kotlin.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/kotlin-sdk"
+          },
+          "node": {
+            "edition": "node.2025-10-08",
+            "options": {},
+            "package_name": "onebusaway-sdk",
+            "production_repo": "OneBusAway/js-sdk"
+          },
+          "python": {
+            "edition": "python.2025-10-08",
+            "options": {
+              "options": {
+                "use_uv": false
+              }
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/python-sdk"
+          },
+          "ruby": {
+            "edition": "ruby.2025-10-08",
+            "options": {
+              "gem_name": "onebusaway-sdk"
+            },
+            "production_repo": "OneBusAway/ruby-sdk"
+          }
         }
       }
     },
@@ -6430,6 +7851,55 @@
           "path": [
             "vehicles_for_agency"
           ]
+        },
+        "x-ferrule-targets": {
+          "go": {
+            "edition": "go.2025-10-08",
+            "options": {
+              "skip": false
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/go-sdk"
+          },
+          "java": {
+            "edition": "java.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/java-sdk"
+          },
+          "kotlin": {
+            "edition": "kotlin.2025-10-08",
+            "options": {
+              "reverse_domain": "org.onebusaway",
+              "skip": false
+            },
+            "production_repo": "OneBusAway/kotlin-sdk"
+          },
+          "node": {
+            "edition": "node.2025-10-08",
+            "options": {},
+            "package_name": "onebusaway-sdk",
+            "production_repo": "OneBusAway/js-sdk"
+          },
+          "python": {
+            "edition": "python.2025-10-08",
+            "options": {
+              "options": {
+                "use_uv": false
+              }
+            },
+            "package_name": "onebusaway",
+            "production_repo": "OneBusAway/python-sdk"
+          },
+          "ruby": {
+            "edition": "ruby.2025-10-08",
+            "options": {
+              "gem_name": "onebusaway-sdk"
+            },
+            "production_repo": "OneBusAway/ruby-sdk"
+          }
         }
       },
       "parameters": [
@@ -6521,5 +7991,54 @@
     "projectName": "onebusaway",
     "pythonEdition": "python.2025-10-08",
     "version": 1
+  },
+  "x-ferrule-targets": {
+    "go": {
+      "edition": "go.2025-10-08",
+      "options": {
+        "skip": false
+      },
+      "package_name": "onebusaway",
+      "production_repo": "OneBusAway/go-sdk"
+    },
+    "java": {
+      "edition": "java.2025-10-08",
+      "options": {
+        "reverse_domain": "org.onebusaway",
+        "skip": false
+      },
+      "production_repo": "OneBusAway/java-sdk"
+    },
+    "kotlin": {
+      "edition": "kotlin.2025-10-08",
+      "options": {
+        "reverse_domain": "org.onebusaway",
+        "skip": false
+      },
+      "production_repo": "OneBusAway/kotlin-sdk"
+    },
+    "node": {
+      "edition": "node.2025-10-08",
+      "options": {},
+      "package_name": "onebusaway-sdk",
+      "production_repo": "OneBusAway/js-sdk"
+    },
+    "python": {
+      "edition": "python.2025-10-08",
+      "options": {
+        "options": {
+          "use_uv": false
+        }
+      },
+      "package_name": "onebusaway",
+      "production_repo": "OneBusAway/python-sdk"
+    },
+    "ruby": {
+      "edition": "ruby.2025-10-08",
+      "options": {
+        "gem_name": "onebusaway-sdk"
+      },
+      "production_repo": "OneBusAway/ruby-sdk"
+    }
   }
 }

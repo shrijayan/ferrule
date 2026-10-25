@@ -1,5 +1,5 @@
 {
-  "sha256": "e7133167e9a54df58771342052544e6dda396063e44d0c5f2c1b2ca36482635e",
+  "sha256": "b12012d650480a054f434582a46ce91d968527136ec274ab549caf194079b91c",
   "root": {
     "x-ferrule-client": {
       "defaultEnvironment": "production",
@@ -53,6 +53,51 @@
       "projectName": "knockapi",
       "pythonEdition": "python.2025-10-08",
       "version": 1
+    },
+    "x-ferrule-targets": {
+      "go": {
+        "edition": "go.2025-10-08",
+        "options": {
+          "skip": false
+        },
+        "package_name": "knock",
+        "production_repo": "knocklabs/knock-go"
+      },
+      "java": {
+        "edition": "java.2025-10-08",
+        "options": {
+          "reverse_domain": "app.knock.api",
+          "skip": false
+        },
+        "production_repo": "knocklabs/knock-java"
+      },
+      "python": {
+        "edition": "python.2025-10-08",
+        "options": {
+          "options": {
+            "use_uv": false
+          },
+          "project_name": "knockapi",
+          "skip": false
+        },
+        "package_name": "knockapi",
+        "production_repo": "knocklabs/knock-python"
+      },
+      "ruby": {
+        "edition": "ruby.2025-10-08",
+        "options": {
+          "gem_name": "knockapi"
+        },
+        "production_repo": "knocklabs/knock-ruby"
+      },
+      "typescript": {
+        "edition": "typescript.2025-10-08",
+        "options": {
+          "skip": false
+        },
+        "package_name": "@knocklabs/node",
+        "production_repo": "knocklabs/knock-node"
+      }
     }
   },
   "mirrored": {
@@ -265,6 +310,51 @@
           "audiences"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
+      },
       "x-ratelimit-tier": 3
     },
     "GET /v1/audiences/{key}/members": {
@@ -281,6 +371,51 @@
         "path": [
           "audiences"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
       },
       "x-ratelimit-tier": 4
     },
@@ -299,6 +434,51 @@
           "audiences"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
+      },
       "x-ratelimit-tier": 3
     },
     "GET /v1/bulk_operations/{id}": {
@@ -315,6 +495,51 @@
         "path": [
           "bulk_operations"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
       },
       "x-ratelimit-tier": 4
     },
@@ -335,6 +560,51 @@
           "channels",
           "bulk"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
       },
       "x-ratelimit-tier": 2,
       "x-retention-policy": true
@@ -357,6 +627,51 @@
           "census"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
+      },
       "x-ratelimit-tier": 3
     },
     "POST /v1/integrations/hightouch/embedded-destination": {
@@ -376,6 +691,51 @@
           "integrations",
           "hightouch"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
       },
       "x-ratelimit-tier": 3
     },
@@ -409,6 +769,51 @@
           "messages"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
+      },
       "x-ratelimit-tier": 4,
       "x-retention-policy": true
     },
@@ -430,6 +835,51 @@
           "batch"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
+      },
       "x-ratelimit-tier": 3
     },
     "GET /v1/messages/batch/content": {
@@ -449,6 +899,51 @@
           "messages",
           "batch"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
       },
       "x-ratelimit-tier": 4,
       "x-retention-policy": true
@@ -471,6 +966,51 @@
           "batch"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
+      },
       "x-ratelimit-tier": 3
     },
     "POST /v1/messages/batch/read": {
@@ -490,6 +1030,51 @@
           "messages",
           "batch"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
       },
       "x-ratelimit-tier": 3
     },
@@ -511,6 +1096,51 @@
           "batch"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
+      },
       "x-ratelimit-tier": 3
     },
     "POST /v1/messages/batch/unarchived": {
@@ -530,6 +1160,51 @@
           "messages",
           "batch"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
       },
       "x-ratelimit-tier": 3
     },
@@ -551,6 +1226,51 @@
           "batch"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
+      },
       "x-ratelimit-tier": 3
     },
     "POST /v1/messages/batch/unseen": {
@@ -571,6 +1291,51 @@
           "batch"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
+      },
       "x-ratelimit-tier": 3
     },
     "GET /v1/messages/{message_id}": {
@@ -587,6 +1352,51 @@
         "path": [
           "messages"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
       },
       "x-ratelimit-tier": 4,
       "x-retention-policy": true
@@ -621,6 +1431,51 @@
           "messages"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
+      },
       "x-ratelimit-tier": 4,
       "x-retention-policy": true
     },
@@ -639,6 +1494,51 @@
           "messages"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
+      },
       "x-ratelimit-tier": 2
     },
     "PUT /v1/messages/{message_id}/archived": {
@@ -656,6 +1556,51 @@
           "messages"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
+      },
       "x-ratelimit-tier": 2
     },
     "GET /v1/messages/{message_id}/content": {
@@ -672,6 +1617,51 @@
         "path": [
           "messages"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
       },
       "x-ratelimit-tier": 4,
       "x-retention-policy": true
@@ -706,6 +1696,51 @@
           "messages"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
+      },
       "x-ratelimit-tier": 3,
       "x-retention-policy": true
     },
@@ -739,6 +1774,51 @@
           "messages"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
+      },
       "x-ratelimit-tier": 3,
       "x-retention-policy": true
     },
@@ -757,6 +1837,51 @@
           "messages"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
+      },
       "x-ratelimit-tier": 2
     },
     "DELETE /v1/messages/{message_id}/read": {
@@ -773,6 +1898,51 @@
         "path": [
           "messages"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
       },
       "x-ratelimit-tier": 2
     },
@@ -791,6 +1961,51 @@
           "messages"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
+      },
       "x-ratelimit-tier": 2
     },
     "DELETE /v1/messages/{message_id}/seen": {
@@ -808,6 +2023,51 @@
           "messages"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
+      },
       "x-ratelimit-tier": 2
     },
     "PUT /v1/messages/{message_id}/seen": {
@@ -824,6 +2084,51 @@
         "path": [
           "messages"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
       },
       "x-ratelimit-tier": 2
     },
@@ -872,6 +2177,51 @@
           "objects"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
+      },
       "x-ratelimit-tier": 4
     },
     "POST /v1/objects/{collection}/bulk/delete": {
@@ -891,6 +2241,51 @@
           "objects",
           "bulk"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
       },
       "x-ratelimit-tier": 1
     },
@@ -912,6 +2307,51 @@
           "bulk"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
+      },
       "x-ratelimit-tier": 1
     },
     "POST /v1/objects/{collection}/bulk/subscriptions/add": {
@@ -932,6 +2372,51 @@
           "bulk"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
+      },
       "x-ratelimit-tier": 1
     },
     "DELETE /v1/objects/{collection}/{id}": {
@@ -948,6 +2433,51 @@
         "path": [
           "objects"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
       },
       "x-ratelimit-tier": 3
     },
@@ -966,6 +2496,51 @@
           "objects"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
+      },
       "x-ratelimit-tier": 4
     },
     "PUT /v1/objects/{collection}/{id}": {
@@ -982,6 +2557,51 @@
         "path": [
           "objects"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
       },
       "x-ratelimit-tier": 3
     },
@@ -1014,6 +2634,51 @@
         "path": [
           "objects"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
       },
       "x-ratelimit-tier": 4,
       "x-retention-policy": true
@@ -1048,6 +2713,51 @@
           "objects"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
+      },
       "x-ratelimit-tier": 4
     },
     "DELETE /v1/objects/{collection}/{object_id}/channel_data/{channel_id}": {
@@ -1064,6 +2774,51 @@
         "path": [
           "objects"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
       },
       "x-ratelimit-tier": 3
     },
@@ -1082,6 +2837,51 @@
           "objects"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
+      },
       "x-ratelimit-tier": 4
     },
     "PUT /v1/objects/{collection}/{object_id}/channel_data/{channel_id}": {
@@ -1098,6 +2898,51 @@
         "path": [
           "objects"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
       },
       "x-ratelimit-tier": 3
     },
@@ -1116,6 +2961,51 @@
           "objects"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
+      },
       "x-ratelimit-tier": 4
     },
     "GET /v1/objects/{collection}/{object_id}/preferences/{id}": {
@@ -1133,6 +3023,51 @@
           "objects"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
+      },
       "x-ratelimit-tier": 4
     },
     "PUT /v1/objects/{collection}/{object_id}/preferences/{id}": {
@@ -1149,6 +3084,51 @@
         "path": [
           "objects"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
       },
       "x-ratelimit-tier": 3
     },
@@ -1185,6 +3165,51 @@
           "objects"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
+      },
       "x-ratelimit-tier": 3
     },
     "GET /v1/objects/{collection}/{object_id}/subscriptions": {
@@ -1217,6 +3242,51 @@
           "objects"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
+      },
       "x-ratelimit-tier": 4
     },
     "POST /v1/objects/{collection}/{object_id}/subscriptions": {
@@ -1233,6 +3303,51 @@
         "path": [
           "objects"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
       },
       "x-ratelimit-tier": 3
     },
@@ -1254,6 +3369,51 @@
           "ms_teams"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
+      },
       "x-ratelimit-tier": 2
     },
     "GET /v1/providers/ms-teams/{channel_id}/channels": {
@@ -1274,6 +3434,51 @@
           "ms_teams"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
+      },
       "x-ratelimit-tier": 2
     },
     "PUT /v1/providers/ms-teams/{channel_id}/revoke_access": {
@@ -1293,6 +3498,51 @@
           "providers",
           "ms_teams"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
       },
       "x-ratelimit-tier": 2
     },
@@ -1328,6 +3578,51 @@
           "ms_teams"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
+      },
       "x-ratelimit-tier": 2
     },
     "GET /v1/providers/slack/{channel_id}/auth_check": {
@@ -1347,6 +3642,51 @@
           "providers",
           "slack"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
       },
       "x-ratelimit-tier": 2
     },
@@ -1382,6 +3722,51 @@
           "slack"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
+      },
       "x-ratelimit-tier": 2
     },
     "PUT /v1/providers/slack/{channel_id}/revoke_access": {
@@ -1402,6 +3787,51 @@
           "slack"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
+      },
       "x-ratelimit-tier": 2
     },
     "DELETE /v1/schedules": {
@@ -1418,6 +3848,51 @@
         "path": [
           "schedules"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
       },
       "x-ratelimit-tier": 3
     },
@@ -1451,6 +3926,51 @@
           "schedules"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
+      },
       "x-ratelimit-tier": 4
     },
     "POST /v1/schedules": {
@@ -1468,6 +3988,51 @@
           "schedules"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
+      },
       "x-ratelimit-tier": 3
     },
     "PUT /v1/schedules": {
@@ -1484,6 +4049,51 @@
         "path": [
           "schedules"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
       },
       "x-ratelimit-tier": 3
     },
@@ -1504,6 +4114,51 @@
           "schedules",
           "bulk"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
       },
       "x-ratelimit-tier": 1
     },
@@ -1537,6 +4192,51 @@
           "tenants"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
+      },
       "x-ratelimit-tier": 4
     },
     "POST /v1/tenants/bulk/delete": {
@@ -1556,6 +4256,51 @@
           "tenants",
           "bulk"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
       },
       "x-ratelimit-tier": 1
     },
@@ -1577,6 +4322,51 @@
           "bulk"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
+      },
       "x-ratelimit-tier": 1
     },
     "DELETE /v1/tenants/{id}": {
@@ -1593,6 +4383,51 @@
         "path": [
           "tenants"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
       },
       "x-ratelimit-tier": 2
     },
@@ -1611,6 +4446,51 @@
           "tenants"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
+      },
       "x-ratelimit-tier": 4
     },
     "PUT /v1/tenants/{id}": {
@@ -1627,6 +4507,51 @@
         "path": [
           "tenants"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
       },
       "x-ratelimit-tier": 3
     },
@@ -1660,6 +4585,51 @@
           "users"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
+      },
       "x-ratelimit-tier": 4
     },
     "POST /v1/users/bulk/delete": {
@@ -1679,6 +4649,51 @@
           "users",
           "bulk"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
       },
       "x-ratelimit-tier": 1
     },
@@ -1700,6 +4715,51 @@
           "bulk"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
+      },
       "x-ratelimit-tier": 1
     },
     "POST /v1/users/bulk/preferences": {
@@ -1720,6 +4780,51 @@
           "bulk"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
+      },
       "x-ratelimit-tier": 1
     },
     "DELETE /v1/users/{user_id}": {
@@ -1736,6 +4841,51 @@
         "path": [
           "users"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
       },
       "x-ratelimit-tier": 2
     },
@@ -1754,6 +4904,51 @@
           "users"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
+      },
       "x-ratelimit-tier": 4
     },
     "PUT /v1/users/{user_id}": {
@@ -1770,6 +4965,51 @@
         "path": [
           "users"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
       },
       "x-ratelimit-tier": 3
     },
@@ -1788,6 +5028,51 @@
           "users"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
+      },
       "x-ratelimit-tier": 3
     },
     "GET /v1/users/{user_id}/channel_data/{channel_id}": {
@@ -1805,6 +5090,51 @@
           "users"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
+      },
       "x-ratelimit-tier": 4
     },
     "PUT /v1/users/{user_id}/channel_data/{channel_id}": {
@@ -1821,6 +5151,51 @@
         "path": [
           "users"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
       },
       "x-ratelimit-tier": 3
     },
@@ -1857,6 +5232,51 @@
           "feeds"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
+      },
       "x-ratelimit-tier": 2
     },
     "GET /v1/users/{user_id}/feeds/{id}/settings": {
@@ -1876,6 +5296,51 @@
           "users",
           "feeds"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
       },
       "x-ratelimit-tier": 4
     },
@@ -1897,6 +5362,51 @@
           "guides"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
+      },
       "x-ratelimit-tier": 2
     },
     "PUT /v1/users/{user_id}/guides/messages/{message_id}/interacted": {
@@ -1916,6 +5426,51 @@
           "users",
           "guides"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
       },
       "x-ratelimit-tier": 2
     },
@@ -1937,6 +5492,51 @@
           "guides"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
+      },
       "x-ratelimit-tier": 2
     },
     "GET /v1/users/{user_id}/guides/{channel_id}": {
@@ -1957,6 +5557,51 @@
           "guides"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
+      },
       "x-ratelimit-tier": 2
     },
     "GET /v1/users/{user_id}/in-app-messages/{channel_id}/{message_type}": {
@@ -1976,6 +5621,51 @@
         "path": [
           "users"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
       },
       "x-ratelimit-tier": 2
     },
@@ -2009,6 +5699,51 @@
           "users"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
+      },
       "x-ratelimit-tier": 4,
       "x-retention-policy": true
     },
@@ -2027,6 +5762,51 @@
           "users"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
+      },
       "x-ratelimit-tier": 4
     },
     "GET /v1/users/{user_id}/preferences/{id}": {
@@ -2044,6 +5824,51 @@
           "users"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
+      },
       "x-ratelimit-tier": 4
     },
     "PUT /v1/users/{user_id}/preferences/{id}": {
@@ -2060,6 +5885,51 @@
         "path": [
           "users"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
       },
       "x-ratelimit-tier": 3
     },
@@ -2111,6 +5981,51 @@
           "users"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
+      },
       "x-ratelimit-tier": 4
     },
     "GET /v1/users/{user_id}/subscriptions": {
@@ -2143,6 +6058,51 @@
           "users"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
+      },
       "x-ratelimit-tier": 4
     },
     "POST /v1/workflows/{key}/cancel": {
@@ -2160,6 +6120,51 @@
           "workflows"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
+      },
       "x-ratelimit-tier": 5
     },
     "POST /v1/workflows/{key}/trigger": {
@@ -2176,6 +6181,51 @@
         "path": [
           "workflows"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "knock",
+          "production_repo": "knocklabs/knock-go"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "app.knock.api",
+            "skip": false
+          },
+          "production_repo": "knocklabs/knock-java"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "knockapi",
+            "skip": false
+          },
+          "package_name": "knockapi",
+          "production_repo": "knocklabs/knock-python"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "knockapi"
+          },
+          "production_repo": "knocklabs/knock-ruby"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "skip": false
+          },
+          "package_name": "@knocklabs/node",
+          "production_repo": "knocklabs/knock-node"
+        }
       },
       "x-idempotent": true,
       "x-ratelimit-tier": 5

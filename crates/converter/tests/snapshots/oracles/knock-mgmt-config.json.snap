@@ -1,5 +1,5 @@
 {
-  "sha256": "fcb5db2050f7e34a919e39211e365c81e1a9c4d2baeb40771dc8f30829d71606",
+  "sha256": "9acfa99719c58b050126d7ca160ac5c28581c01988102b2095972e7f76bae098",
   "root": {
     "x-ferrule-client": {
       "defaultEnvironment": "production",
@@ -53,6 +53,34 @@
       "projectName": "knock_mapi",
       "pythonEdition": "python.2025-10-08",
       "version": 1
+    },
+    "x-ferrule-targets": {
+      "go": {
+        "edition": "go.2025-10-08",
+        "options": {
+          "options": {
+            "enable_v2": true
+          }
+        },
+        "package_name": "knock-mapi",
+        "production_repo": "knocklabs/knock-mgmt-go"
+      },
+      "python": {
+        "edition": "python.2025-10-08",
+        "options": {
+          "options": {
+            "use_uv": false
+          }
+        },
+        "package_name": "knock_mapi",
+        "production_repo": "knocklabs/knock-mgmt-python"
+      },
+      "typescript": {
+        "edition": "typescript.2025-10-08",
+        "options": {},
+        "package_name": "@knocklabs/mgmt",
+        "production_repo": "knocklabs/knock-mgmt-node"
+      }
     }
   },
   "mirrored": {
@@ -473,6 +501,34 @@
           "api_keys"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
+      },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.APIKeys.Exchange(context.TODO(), knockmapi.APIKeyExchangeParams{\n\t\tEnvironment: \"development\",\n\t})\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.APIKey)\n}\n",
         "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nresponse = client.api_keys.exchange(\n    environment=\"development\",\n)\nprint(response.api_key)",
@@ -509,6 +565,34 @@
           "audiences"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
+      },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tpage, err := client.Audiences.List(context.TODO(), knockmapi.AudienceListParams{\n\t\tEnvironment: \"development\",\n\t})\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", page)\n}\n",
         "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\npage = client.audiences.list(\n    environment=\"development\",\n)\npage = page.entries[0]\nprint(page)",
@@ -529,6 +613,34 @@
         "path": [
           "audiences"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
       },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.Audiences.Archive(\n\t\tcontext.TODO(),\n\t\t\"audience_key\",\n\t\tknockmapi.AudienceArchiveParams{\n\t\t\tEnvironment: \"development\",\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.Result)\n}\n",
@@ -551,6 +663,34 @@
           "audiences"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
+      },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\taudience, err := client.Audiences.Get(\n\t\tcontext.TODO(),\n\t\t\"audience_key\",\n\t\tknockmapi.AudienceGetParams{\n\t\t\tEnvironment: \"development\",\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", audience)\n}\n",
         "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\naudience = client.audiences.retrieve(\n    audience_key=\"audience_key\",\n    environment=\"development\",\n)\nprint(audience)",
@@ -572,6 +712,34 @@
           "audiences"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
+      },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.Audiences.Upsert(\n\t\tcontext.TODO(),\n\t\t\"audience_key\",\n\t\tknockmapi.AudienceUpsertParams{\n\t\t\tEnvironment: \"development\",\n\t\t\tAudience: knockmapi.AudienceUpsertParamsAudienceUnion{\n\t\t\t\tOfDynamic: &knockmapi.AudienceUpsertParamsAudienceDynamic{\n\t\t\t\t\tName: \"Premium users\",\n\t\t\t\t},\n\t\t\t},\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.Audience)\n}\n",
         "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nresponse = client.audiences.upsert(\n    audience_key=\"audience_key\",\n    environment=\"development\",\n    audience={\n        \"name\": \"Premium users\",\n        \"type\": \"dynamic\",\n    },\n)\nprint(response.audience)",
@@ -592,6 +760,34 @@
         "path": [
           "audiences"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
       },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.Audiences.Validate(\n\t\tcontext.TODO(),\n\t\t\"audience_key\",\n\t\tknockmapi.AudienceValidateParams{\n\t\t\tEnvironment: \"development\",\n\t\t\tAudience: knockmapi.AudienceValidateParamsAudienceUnion{\n\t\t\t\tOfDynamic: &knockmapi.AudienceValidateParamsAudienceDynamic{\n\t\t\t\t\tName: \"Premium users\",\n\t\t\t\t},\n\t\t\t},\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.Audience)\n}\n",
@@ -629,6 +825,34 @@
           "branches"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
+      },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tpage, err := client.Branches.List(context.TODO(), knockmapi.BranchListParams{\n\t\tEnvironment: \"development\",\n\t})\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", page)\n}\n",
         "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\npage = client.branches.list(\n    environment=\"development\",\n)\npage = page.entries[0]\nprint(page.created_at)",
@@ -649,6 +873,34 @@
         "path": [
           "branches"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
       },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\terr := client.Branches.Delete(\n\t\tcontext.TODO(),\n\t\t\"feature-branch\",\n\t\tknockmapi.BranchDeleteParams{\n\t\t\tEnvironment: \"development\",\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n}\n",
@@ -671,6 +923,34 @@
           "branches"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
+      },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tbranch, err := client.Branches.Get(\n\t\tcontext.TODO(),\n\t\t\"feature-branch\",\n\t\tknockmapi.BranchGetParams{\n\t\t\tEnvironment: \"development\",\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", branch.CreatedAt)\n}\n",
         "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nbranch = client.branches.retrieve(\n    branch_slug=\"feature-branch\",\n    environment=\"development\",\n)\nprint(branch.created_at)",
@@ -691,6 +971,34 @@
         "path": [
           "branches"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
       },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tbranch, err := client.Branches.New(\n\t\tcontext.TODO(),\n\t\t\"feature-branch\",\n\t\tknockmapi.BranchNewParams{\n\t\t\tEnvironment: \"development\",\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", branch.CreatedAt)\n}\n",
@@ -728,6 +1036,34 @@
           "broadcasts"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
+      },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tpage, err := client.Broadcasts.List(context.TODO(), knockmapi.BroadcastListParams{\n\t\tEnvironment: \"development\",\n\t})\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", page)\n}\n",
         "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\npage = client.broadcasts.list(\n    environment=\"development\",\n)\npage = page.entries[0]\nprint(page.valid)",
@@ -748,6 +1084,34 @@
         "path": [
           "broadcasts"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
       },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tbroadcast, err := client.Broadcasts.Get(\n\t\tcontext.TODO(),\n\t\t\"broadcast_key\",\n\t\tknockmapi.BroadcastGetParams{\n\t\t\tEnvironment: \"development\",\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", broadcast.Valid)\n}\n",
@@ -770,6 +1134,34 @@
           "broadcasts"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
+      },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.Broadcasts.Upsert(\n\t\tcontext.TODO(),\n\t\t\"broadcast_key\",\n\t\tknockmapi.BroadcastUpsertParams{\n\t\t\tEnvironment: \"development\",\n\t\t\tBroadcast: knockmapi.BroadcastRequestParam{\n\t\t\t\tName: \"My Broadcast\",\n\t\t\t\tSteps: []knockmapi.BroadcastRequestStepUnionParam{{\n\t\t\t\t\tOfWorkflowInAppFeedStep: &knockmapi.WorkflowInAppFeedStepParam{\n\t\t\t\t\t\tRef: \"channel_1\",\n\t\t\t\t\t\tTemplate: knockmapi.InAppFeedTemplateParam{\n\t\t\t\t\t\t\tMarkdownBody: \"Hello **{{ recipient.name }}**\",\n\t\t\t\t\t\t},\n\t\t\t\t\t\tType: knockmapi.WorkflowInAppFeedStepTypeChannel,\n\t\t\t\t\t},\n\t\t\t\t}},\n\t\t\t},\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.Broadcast)\n}\n",
         "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nresponse = client.broadcasts.upsert(\n    broadcast_key=\"broadcast_key\",\n    environment=\"development\",\n    broadcast={\n        \"name\": \"My Broadcast\",\n        \"steps\": [{\n            \"ref\": \"channel_1\",\n            \"template\": {\n                \"markdown_body\": \"Hello **{{ recipient.name }}**\"\n            },\n            \"type\": \"channel\",\n        }],\n    },\n)\nprint(response.broadcast)",
@@ -790,6 +1182,34 @@
         "path": [
           "broadcasts"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
       },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.Broadcasts.Cancel(\n\t\tcontext.TODO(),\n\t\t\"broadcast_key\",\n\t\tknockmapi.BroadcastCancelParams{\n\t\t\tEnvironment: \"development\",\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.Broadcast)\n}\n",
@@ -812,6 +1232,34 @@
           "broadcasts"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
+      },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.Broadcasts.Send(\n\t\tcontext.TODO(),\n\t\t\"broadcast_key\",\n\t\tknockmapi.BroadcastSendParams{\n\t\t\tEnvironment: \"development\",\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.Broadcast)\n}\n",
         "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nresponse = client.broadcasts.send(\n    broadcast_key=\"broadcast_key\",\n    environment=\"development\",\n)\nprint(response.broadcast)",
@@ -832,6 +1280,34 @@
         "path": [
           "broadcasts"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
       },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.Broadcasts.Validate(\n\t\tcontext.TODO(),\n\t\t\"broadcast_key\",\n\t\tknockmapi.BroadcastValidateParams{\n\t\t\tEnvironment: \"development\",\n\t\t\tBroadcast: knockmapi.BroadcastRequestParam{\n\t\t\t\tName: \"My Broadcast\",\n\t\t\t\tSteps: []knockmapi.BroadcastRequestStepUnionParam{{\n\t\t\t\t\tOfWorkflowInAppFeedStep: &knockmapi.WorkflowInAppFeedStepParam{\n\t\t\t\t\t\tRef: \"channel_1\",\n\t\t\t\t\t\tTemplate: knockmapi.InAppFeedTemplateParam{\n\t\t\t\t\t\t\tMarkdownBody: \"Hello **{{ recipient.name }}**\",\n\t\t\t\t\t\t},\n\t\t\t\t\t\tType: knockmapi.WorkflowInAppFeedStepTypeChannel,\n\t\t\t\t\t},\n\t\t\t\t}},\n\t\t\t},\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.Broadcast)\n}\n",
@@ -869,6 +1345,34 @@
           "channel_groups"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
+      },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tpage, err := client.ChannelGroups.List(context.TODO(), knockmapi.ChannelGroupListParams{})\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", page)\n}\n",
         "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\npage = client.channel_groups.list()\npage = page.entries[0]\nprint(page.channel_rules)",
@@ -889,6 +1393,34 @@
         "path": [
           "channel_groups"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
       },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\terr := client.ChannelGroups.Delete(context.TODO(), \"channel_group_key\")\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n}\n",
@@ -911,6 +1443,34 @@
           "channel_groups"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
+      },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tchannelGroup, err := client.ChannelGroups.Get(context.TODO(), \"channel_group_key\")\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", channelGroup.ChannelRules)\n}\n",
         "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nchannel_group = client.channel_groups.retrieve(\n    \"channel_group_key\",\n)\nprint(channel_group.channel_rules)",
@@ -931,6 +1491,34 @@
         "path": [
           "channel_groups"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
       },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.ChannelGroups.Upsert(\n\t\tcontext.TODO(),\n\t\t\"channel_group_key\",\n\t\tknockmapi.ChannelGroupUpsertParams{\n\t\t\tChannelGroup: knockmapi.ChannelGroupUpsertParamsChannelGroup{\n\t\t\t\tChannelType: \"push\",\n\t\t\t\tName:        \"Push Notification Group\",\n\t\t\t},\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.ChannelGroup)\n}\n",
@@ -968,6 +1556,34 @@
           "channels"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
+      },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tpage, err := client.Channels.List(context.TODO(), knockmapi.ChannelListParams{})\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", page)\n}\n",
         "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\npage = client.channels.list()\npage = page.entries[0]\nprint(page.id)",
@@ -988,6 +1604,34 @@
         "path": [
           "channels"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
       },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tchannel, err := client.Channels.Get(context.TODO(), \"channel_key\")\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", channel.ID)\n}\n",
@@ -1025,6 +1669,34 @@
           "commits"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
+      },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tpage, err := client.Commits.List(context.TODO(), knockmapi.CommitListParams{\n\t\tEnvironment: \"development\",\n\t})\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", page)\n}\n",
         "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\npage = client.commits.list(\n    environment=\"development\",\n)\npage = page.entries[0]\nprint(page.id)",
@@ -1045,6 +1717,34 @@
         "path": [
           "commits"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
       },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.Commits.CommitAll(context.TODO(), knockmapi.CommitCommitAllParams{\n\t\tEnvironment: \"development\",\n\t})\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.Result)\n}\n",
@@ -1067,6 +1767,34 @@
           "commits"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
+      },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.Commits.PromoteAll(context.TODO(), knockmapi.CommitPromoteAllParams{\n\t\tToEnvironment: \"to_environment\",\n\t})\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.Result)\n}\n",
         "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nresponse = client.commits.promote_all(\n    to_environment=\"to_environment\",\n)\nprint(response.result)",
@@ -1088,6 +1816,34 @@
           "commits"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
+      },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tcommit, err := client.Commits.Get(context.TODO(), \"182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e\")\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", commit.ID)\n}\n",
         "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\ncommit = client.commits.retrieve(\n    \"182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e\",\n)\nprint(commit.id)",
@@ -1108,6 +1864,34 @@
         "path": [
           "commits"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
       },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.Commits.PromoteOne(context.TODO(), \"id\")\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.Commit)\n}\n",
@@ -1145,6 +1929,34 @@
           "email_layouts"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
+      },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tpage, err := client.EmailLayouts.List(context.TODO(), knockmapi.EmailLayoutListParams{\n\t\tEnvironment: \"development\",\n\t})\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", page)\n}\n",
         "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\npage = client.email_layouts.list(\n    environment=\"development\",\n)\npage = page.entries[0]\nprint(page.branding_overrides)",
@@ -1165,6 +1977,34 @@
         "path": [
           "email_layouts"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
       },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\temailLayout, err := client.EmailLayouts.Get(\n\t\tcontext.TODO(),\n\t\t\"email_layout_key\",\n\t\tknockmapi.EmailLayoutGetParams{\n\t\t\tEnvironment: \"development\",\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", emailLayout.BrandingOverrides)\n}\n",
@@ -1187,6 +2027,34 @@
           "email_layouts"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
+      },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.EmailLayouts.Upsert(\n\t\tcontext.TODO(),\n\t\t\"email_layout_key\",\n\t\tknockmapi.EmailLayoutUpsertParams{\n\t\t\tEnvironment: \"development\",\n\t\t\tEmailLayout: knockmapi.EmailLayoutUpsertParamsEmailLayout{\n\t\t\t\tHTMLLayout: \"<html><body>Hello, world!</body></html>\",\n\t\t\t\tName:       \"Transactional\",\n\t\t\t\tTextLayout: \"Hello, world!\",\n\t\t\t},\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.EmailLayout)\n}\n",
         "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nresponse = client.email_layouts.upsert(\n    email_layout_key=\"email_layout_key\",\n    environment=\"development\",\n    email_layout={\n        \"html_layout\": \"<html><body>Hello, world!</body></html>\",\n        \"name\": \"Transactional\",\n        \"text_layout\": \"Hello, world!\",\n    },\n)\nprint(response.email_layout)",
@@ -1207,6 +2075,34 @@
         "path": [
           "email_layouts"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
       },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.EmailLayouts.Validate(\n\t\tcontext.TODO(),\n\t\t\"email_layout_key\",\n\t\tknockmapi.EmailLayoutValidateParams{\n\t\t\tEnvironment: \"development\",\n\t\t\tEmailLayout: knockmapi.EmailLayoutValidateParamsEmailLayout{\n\t\t\t\tHTMLLayout: \"<html><body>Hello, world!</body></html>\",\n\t\t\t\tName:       \"Transactional\",\n\t\t\t\tTextLayout: \"Hello, world!\",\n\t\t\t},\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.EmailLayout)\n}\n",
@@ -1244,6 +2140,34 @@
           "environments"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
+      },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tpage, err := client.Environments.List(context.TODO(), knockmapi.EnvironmentListParams{})\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", page)\n}\n",
         "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\npage = client.environments.list()\npage = page.entries[0]\nprint(page.hide_pii_data)",
@@ -1264,6 +2188,34 @@
         "path": [
           "environments"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
       },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tenvironment, err := client.Environments.Get(context.TODO(), \"development\")\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", environment.HidePiiData)\n}\n",
@@ -1301,6 +2253,34 @@
           "guides"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
+      },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tpage, err := client.Guides.List(context.TODO(), knockmapi.GuideListParams{\n\t\tEnvironment: \"development\",\n\t})\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", page)\n}\n",
         "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\npage = client.guides.list(\n    environment=\"development\",\n)\npage = page.entries[0]\nprint(page.valid)",
@@ -1321,6 +2301,34 @@
         "path": [
           "guides"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
       },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.Guides.Archive(context.TODO(), \"guide_key\")\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.Result)\n}\n",
@@ -1343,6 +2351,34 @@
           "guides"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
+      },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tguide, err := client.Guides.Get(\n\t\tcontext.TODO(),\n\t\t\"guide_key\",\n\t\tknockmapi.GuideGetParams{\n\t\t\tEnvironment: \"development\",\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", guide.Valid)\n}\n",
         "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nguide = client.guides.retrieve(\n    guide_key=\"guide_key\",\n    environment=\"development\",\n)\nprint(guide.valid)",
@@ -1363,6 +2399,34 @@
         "path": [
           "guides"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
       },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.Guides.Upsert(\n\t\tcontext.TODO(),\n\t\t\"guide_key\",\n\t\tknockmapi.GuideUpsertParams{\n\t\t\tEnvironment: \"development\",\n\t\t\tGuide: knockmapi.GuideUpsertParamsGuide{\n\t\t\t\tChannelKey: \"in-app-guide\",\n\t\t\t\tName:       \"Getting Started Guide\",\n\t\t\t\tSteps: []knockmapi.GuideStepParam{{\n\t\t\t\t\tRef:              \"welcome-step\",\n\t\t\t\t\tSchemaKey:        \"tooltip\",\n\t\t\t\t\tSchemaSemver:     \"1.0.0\",\n\t\t\t\t\tSchemaVariantKey: \"default\",\n\t\t\t\t}},\n\t\t\t},\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.Guide)\n}\n",
@@ -1385,6 +2449,34 @@
           "guides"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
+      },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.Guides.Activate(\n\t\tcontext.TODO(),\n\t\t\"guide_key\",\n\t\tknockmapi.GuideActivateParams{\n\t\t\tEnvironment: \"development\",\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.Guide)\n}\n",
         "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nresponse = client.guides.activate(\n    guide_key=\"guide_key\",\n    environment=\"development\",\n    status=True,\n)\nprint(response.guide)",
@@ -1405,6 +2497,34 @@
         "path": [
           "guides"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
       },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.Guides.Validate(\n\t\tcontext.TODO(),\n\t\t\"guide_key\",\n\t\tknockmapi.GuideValidateParams{\n\t\t\tEnvironment: \"development\",\n\t\t\tGuide: knockmapi.GuideValidateParamsGuide{\n\t\t\t\tChannelKey: \"in-app-guide\",\n\t\t\t\tName:       \"Getting Started Guide\",\n\t\t\t\tSteps: []knockmapi.GuideStepParam{{\n\t\t\t\t\tRef:              \"welcome-step\",\n\t\t\t\t\tSchemaKey:        \"tooltip\",\n\t\t\t\t\tSchemaSemver:     \"1.0.0\",\n\t\t\t\t\tSchemaVariantKey: \"default\",\n\t\t\t\t}},\n\t\t\t},\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.Guide)\n}\n",
@@ -1442,6 +2562,34 @@
           "members"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
+      },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tpage, err := client.Members.List(context.TODO(), knockmapi.MemberListParams{})\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", page)\n}\n",
         "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\npage = client.members.list()\npage = page.entries[0]\nprint(page.id)",
@@ -1463,6 +2611,34 @@
           "members"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
+      },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\terr := client.Members.Delete(context.TODO(), \"182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e\")\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n}\n",
         "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nclient.members.delete(\n    \"182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e\",\n)",
@@ -1483,6 +2659,34 @@
         "path": [
           "members"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
       },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tmember, err := client.Members.Get(context.TODO(), \"182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e\")\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", member.ID)\n}\n",
@@ -1520,6 +2724,34 @@
           "message_types"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
+      },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tpage, err := client.MessageTypes.List(context.TODO(), knockmapi.MessageTypeListParams{\n\t\tEnvironment: \"development\",\n\t})\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", page)\n}\n",
         "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\npage = client.message_types.list(\n    environment=\"development\",\n)\npage = page.entries[0]\nprint(page.valid)",
@@ -1540,6 +2772,34 @@
         "path": [
           "message_types"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
       },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tmessageType, err := client.MessageTypes.Get(\n\t\tcontext.TODO(),\n\t\t\"email\",\n\t\tknockmapi.MessageTypeGetParams{\n\t\t\tEnvironment: \"development\",\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", messageType.Valid)\n}\n",
@@ -1562,6 +2822,34 @@
           "message_types"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
+      },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.MessageTypes.Upsert(\n\t\tcontext.TODO(),\n\t\t\"email\",\n\t\tknockmapi.MessageTypeUpsertParams{\n\t\t\tEnvironment: \"development\",\n\t\t\tMessageType: knockmapi.MessageTypeUpsertParamsMessageType{\n\t\t\t\tDescription: knockmapi.String(\"This is a message type\"),\n\t\t\t\tName:        \"My Message Type\",\n\t\t\t\tPreview:     \"<div>Hello, world!</div>\",\n\t\t\t},\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.MessageType)\n}\n",
         "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nresponse = client.message_types.upsert(\n    message_type_key=\"email\",\n    environment=\"development\",\n    message_type={\n        \"description\": \"This is a message type\",\n        \"name\": \"My Message Type\",\n        \"preview\": \"<div>Hello, world!</div>\",\n    },\n)\nprint(response.message_type)",
@@ -1582,6 +2870,34 @@
         "path": [
           "message_types"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
       },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.MessageTypes.Validate(\n\t\tcontext.TODO(),\n\t\t\"email\",\n\t\tknockmapi.MessageTypeValidateParams{\n\t\t\tEnvironment: \"development\",\n\t\t\tMessageType: knockmapi.MessageTypeValidateParamsMessageType{\n\t\t\t\tDescription: knockmapi.String(\"This is a message type\"),\n\t\t\t\tName:        \"My Message Type\",\n\t\t\t\tPreview:     \"<div>Hello, world!</div>\",\n\t\t\t},\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.MessageType)\n}\n",
@@ -1619,6 +2935,34 @@
           "partials"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
+      },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tpage, err := client.Partials.List(context.TODO(), knockmapi.PartialListParams{\n\t\tEnvironment: \"development\",\n\t})\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", page)\n}\n",
         "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\npage = client.partials.list(\n    environment=\"development\",\n)\npage = page.entries[0]\nprint(page.valid)",
@@ -1639,6 +2983,34 @@
         "path": [
           "partials"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
       },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tpartial, err := client.Partials.Get(\n\t\tcontext.TODO(),\n\t\t\"partial_key\",\n\t\tknockmapi.PartialGetParams{\n\t\t\tEnvironment: \"development\",\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", partial.Valid)\n}\n",
@@ -1661,6 +3033,34 @@
           "partials"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
+      },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.Partials.Upsert(\n\t\tcontext.TODO(),\n\t\t\"partial_key\",\n\t\tknockmapi.PartialUpsertParams{\n\t\t\tEnvironment: \"development\",\n\t\t\tPartial: knockmapi.PartialUpsertParamsPartial{\n\t\t\t\tContent: \"<p>Hello, world!</p>\",\n\t\t\t\tName:    \"My Partial\",\n\t\t\t\tType:    \"html\",\n\t\t\t},\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.Partial)\n}\n",
         "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nresponse = client.partials.upsert(\n    partial_key=\"partial_key\",\n    environment=\"development\",\n    partial={\n        \"content\": \"<p>Hello, world!</p>\",\n        \"name\": \"My Partial\",\n        \"type\": \"html\",\n    },\n)\nprint(response.partial)",
@@ -1681,6 +3081,34 @@
         "path": [
           "partials"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
       },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.Partials.Validate(\n\t\tcontext.TODO(),\n\t\t\"partial_key\",\n\t\tknockmapi.PartialValidateParams{\n\t\t\tEnvironment: \"development\",\n\t\t\tPartial: knockmapi.PartialValidateParamsPartial{\n\t\t\t\tContent: \"<p>Hello, world!</p>\",\n\t\t\t\tName:    \"My Partial\",\n\t\t\t\tType:    \"html\",\n\t\t\t},\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.Partial)\n}\n",
@@ -1703,6 +3131,34 @@
           "data_sources"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
+      },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tsourceProvidersResponse, err := client.DataSources.ListProviders(context.TODO())\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", sourceProvidersResponse.Entries)\n}\n",
         "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nsource_providers_response = client.data_sources.list_providers()\nprint(source_providers_response.entries)",
@@ -1723,6 +3179,34 @@
         "path": [
           "data_sources"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
       },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tsourceProviderResponse, err := client.DataSources.GetProvider(\n\t\tcontext.TODO(),\n\t\t\"key\",\n\t\tknockmapi.DataSourceGetProviderParams{},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", sourceProviderResponse.Provider)\n}\n",
@@ -1745,6 +3229,34 @@
           "data_sources"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
+      },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tsourcesResponse, err := client.DataSources.ListSources(context.TODO(), knockmapi.DataSourceListSourcesParams{})\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", sourcesResponse.Entries)\n}\n",
         "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nsources_response = client.data_sources.list_sources()\nprint(sources_response.entries)",
@@ -1765,6 +3277,34 @@
         "path": [
           "data_sources"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
       },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tsource, err := client.DataSources.Get(\n\t\tcontext.TODO(),\n\t\t\"key\",\n\t\tknockmapi.DataSourceGetParams{\n\t\t\tEnvironment: \"development\",\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", source.CreatedAt)\n}\n",
@@ -1787,6 +3327,34 @@
           "data_sources"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
+      },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.DataSources.Upsert(\n\t\tcontext.TODO(),\n\t\t\"key\",\n\t\tknockmapi.DataSourceUpsertParams{\n\t\t\tEnvironment: \"development\",\n\t\t\tSource: knockmapi.SourceRequestParam{\n\t\t\t\tName: \"Universal HTTP Source\",\n\t\t\t},\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.Source)\n}\n",
         "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nresponse = client.data_sources.upsert(\n    key=\"key\",\n    environment=\"development\",\n    source={\n        \"name\": \"Universal HTTP Source\"\n    },\n)\nprint(response.source)",
@@ -1807,6 +3375,34 @@
         "path": [
           "data_sources"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
       },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tsourceEventsResponse, err := client.DataSources.ListEvents(\n\t\tcontext.TODO(),\n\t\t\"key\",\n\t\tknockmapi.DataSourceListEventsParams{},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", sourceEventsResponse.Entries)\n}\n",
@@ -1844,6 +3440,34 @@
           "data_sources"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
+      },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tpage, err := client.DataSources.ListLogs(\n\t\tcontext.TODO(),\n\t\t\"key\",\n\t\tknockmapi.DataSourceListLogsParams{\n\t\t\tEnvironment: \"development\",\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", page)\n}\n",
         "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\npage = client.data_sources.list_logs(\n    key=\"key\",\n    environment=\"development\",\n)\npage = page.entries[0]\nprint(page.id)",
@@ -1865,6 +3489,34 @@
           "data_sources"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
+      },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tsourceRehearseResponse, err := client.DataSources.Rehearse(\n\t\tcontext.TODO(),\n\t\t\"key\",\n\t\tknockmapi.DataSourceRehearseParams{\n\t\t\tEnvironment: \"development\",\n\t\t\tSourceRehearseRequest: knockmapi.SourceRehearseRequestParam{\n\t\t\t\tPayload: map[string]any{\n\t\t\t\t\t\"body\":    \"bar\",\n\t\t\t\t\t\"headers\": \"bar\",\n\t\t\t\t},\n\t\t\t},\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", sourceRehearseResponse.LogID)\n}\n",
         "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nsource_rehearse_response = client.data_sources.rehearse(\n    key=\"key\",\n    environment=\"development\",\n    payload={\n        \"body\": \"bar\",\n        \"headers\": \"bar\",\n    },\n)\nprint(source_rehearse_response.log_id)",
@@ -1885,6 +3537,34 @@
         "path": [
           "data_sources"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
       },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tsourceStatusResponse, err := client.DataSources.GetStatus(\n\t\tcontext.TODO(),\n\t\t\"key\",\n\t\tknockmapi.DataSourceGetStatusParams{},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", sourceStatusResponse.EventsCount)\n}\n",
@@ -1922,6 +3602,34 @@
           "translations"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
+      },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tpage, err := client.Translations.List(context.TODO(), knockmapi.TranslationListParams{\n\t\tEnvironment: \"development\",\n\t})\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", page)\n}\n",
         "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\npage = client.translations.list(\n    environment=\"development\",\n)\npage = page.entries[0]\nprint(page.content)",
@@ -1942,6 +3650,34 @@
         "path": [
           "translations"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
       },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\ttranslation, err := client.Translations.Get(\n\t\tcontext.TODO(),\n\t\t\"locale_code\",\n\t\tknockmapi.TranslationGetParams{\n\t\t\tEnvironment: \"development\",\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", translation.Translation)\n}\n",
@@ -1964,6 +3700,34 @@
           "translations"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
+      },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.Translations.Upsert(\n\t\tcontext.TODO(),\n\t\t\"locale_code\",\n\t\tknockmapi.TranslationUpsertParams{\n\t\t\tEnvironment: \"development\",\n\t\t\tNamespace:   \"namespace\",\n\t\t\tTranslation: knockmapi.TranslationUpsertParamsTranslation{\n\t\t\t\tContent: `{\"hello\":\"Hello, world!\"}`,\n\t\t\t\tFormat:  \"json\",\n\t\t\t},\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.Translation)\n}\n",
         "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nresponse = client.translations.upsert(\n    locale_code=\"locale_code\",\n    environment=\"development\",\n    namespace=\"namespace\",\n    translation={\n        \"content\": \"{\\\"hello\\\":\\\"Hello, world!\\\"}\",\n        \"format\": \"json\",\n    },\n)\nprint(response.translation)",
@@ -1984,6 +3748,34 @@
         "path": [
           "translations"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
       },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.Translations.Validate(\n\t\tcontext.TODO(),\n\t\t\"locale_code\",\n\t\tknockmapi.TranslationValidateParams{\n\t\t\tEnvironment: \"development\",\n\t\t\tTranslation: knockmapi.TranslationValidateParamsTranslation{\n\t\t\t\tContent: `{\"hello\":\"Hello, world!\"}`,\n\t\t\t\tFormat:  \"json\",\n\t\t\t},\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.Translation)\n}\n",
@@ -2021,6 +3813,34 @@
           "variables"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
+      },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tpage, err := client.Variables.List(context.TODO(), knockmapi.VariableListParams{\n\t\tEnvironment: \"development\",\n\t})\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", page)\n}\n",
         "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\npage = client.variables.list(\n    environment=\"development\",\n)\npage = page.entries[0]\nprint(page.inserted_at)",
@@ -2042,6 +3862,34 @@
           "variables"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
+      },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tvariable, err := client.Variables.Get(context.TODO(), \"key\")\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", variable.InsertedAt)\n}\n",
         "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nvariable = client.variables.retrieve(\n    \"key\",\n)\nprint(variable.inserted_at)",
@@ -2062,6 +3910,34 @@
         "path": [
           "auth"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
       },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.Auth.Verify(context.TODO())\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.UserID)\n}\n",
@@ -2099,6 +3975,34 @@
           "workflows"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
+      },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tpage, err := client.Workflows.List(context.TODO(), knockmapi.WorkflowListParams{\n\t\tEnvironment: \"development\",\n\t})\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", page)\n}\n",
         "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\npage = client.workflows.list(\n    environment=\"development\",\n)\npage = page.entries[0]\nprint(page.valid)",
@@ -2119,6 +4023,34 @@
         "path": [
           "workflows"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
       },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tworkflow, err := client.Workflows.Get(\n\t\tcontext.TODO(),\n\t\t\"workflow_key\",\n\t\tknockmapi.WorkflowGetParams{\n\t\t\tEnvironment: \"development\",\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", workflow.Valid)\n}\n",
@@ -2141,6 +4073,34 @@
           "workflows"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
+      },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.Workflows.Upsert(\n\t\tcontext.TODO(),\n\t\t\"workflow_key\",\n\t\tknockmapi.WorkflowUpsertParams{\n\t\t\tEnvironment: \"development\",\n\t\t\tWorkflow: knockmapi.WorkflowUpsertParamsWorkflow{\n\t\t\t\tName: \"My Workflow\",\n\t\t\t\tSteps: []knockmapi.WorkflowStepUnionParam{{\n\t\t\t\t\tOfWorkflowInAppFeedStep: &knockmapi.WorkflowInAppFeedStepParam{\n\t\t\t\t\t\tRef: \"channel_1\",\n\t\t\t\t\t\tTemplate: knockmapi.InAppFeedTemplateParam{\n\t\t\t\t\t\t\tMarkdownBody: \"Hello **{{ recipient.name }}**\",\n\t\t\t\t\t\t},\n\t\t\t\t\t\tType: knockmapi.WorkflowInAppFeedStepTypeChannel,\n\t\t\t\t\t},\n\t\t\t\t}},\n\t\t\t},\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.Workflow)\n}\n",
         "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nresponse = client.workflows.upsert(\n    workflow_key=\"workflow_key\",\n    environment=\"development\",\n    workflow={\n        \"name\": \"My Workflow\",\n        \"steps\": [{\n            \"ref\": \"channel_1\",\n            \"template\": {\n                \"markdown_body\": \"Hello **{{ recipient.name }}**\"\n            },\n            \"type\": \"channel\",\n        }],\n    },\n)\nprint(response.workflow)",
@@ -2162,6 +4122,34 @@
           "workflows"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
+      },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.Workflows.Activate(\n\t\tcontext.TODO(),\n\t\t\"workflow_key\",\n\t\tknockmapi.WorkflowActivateParams{\n\t\t\tEnvironment: \"development\",\n\t\t\tStatus:      true,\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.Workflow)\n}\n",
         "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nresponse = client.workflows.activate(\n    workflow_key=\"workflow_key\",\n    environment=\"development\",\n    status=True,\n)\nprint(response.workflow)",
@@ -2182,6 +4170,34 @@
         "path": [
           "workflows"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
       },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.Workflows.Run(\n\t\tcontext.TODO(),\n\t\t\"workflow_key\",\n\t\tknockmapi.WorkflowRunParams{\n\t\t\tEnvironment: \"development\",\n\t\t\tRecipients: []knockmapi.WorkflowRunParamsRecipientUnion{{\n\t\t\t\tOfString: knockmapi.String(\"dnedry\"),\n\t\t\t}},\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.WorkflowRunID)\n}\n",
@@ -2207,6 +4223,34 @@
           "steps"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
+      },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.Workflows.Steps.PreviewTemplate(\n\t\tcontext.TODO(),\n\t\t\"step_ref\",\n\t\tknockmapi.WorkflowStepPreviewTemplateParams{\n\t\t\tWorkflowKey: \"workflow_key\",\n\t\t\tEnvironment: \"development\",\n\t\t\tRecipient: knockmapi.WorkflowStepPreviewTemplateParamsRecipientUnion{\n\t\t\t\tOfString: knockmapi.String(\"dnedry\"),\n\t\t\t},\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.ContentType)\n}\n",
         "python": "import os\nfrom knock_mapi import KnockMgmt\n\nclient = KnockMgmt(\n    service_token=os.environ.get(\"KNOCK_SERVICE_TOKEN\"),  # This is the default and can be omitted\n)\nresponse = client.workflows.steps.preview_template(\n    step_ref=\"step_ref\",\n    workflow_key=\"workflow_key\",\n    environment=\"development\",\n    recipient=\"dnedry\",\n)\nprint(response.content_type)",
@@ -2227,6 +4271,34 @@
         "path": [
           "workflows"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "knock-mapi",
+          "production_repo": "knocklabs/knock-mgmt-go"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "knock_mapi",
+          "production_repo": "knocklabs/knock-mgmt-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@knocklabs/mgmt",
+          "production_repo": "knocklabs/knock-mgmt-node"
+        }
       },
       "x-stainless-snippets": {
         "go": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/knocklabs/knock-mgmt-go\"\n\t\"github.com/knocklabs/knock-mgmt-go/option\"\n)\n\nfunc main() {\n\tclient := knockmapi.NewClient(\n\t\toption.WithServiceToken(\"My Service Token\"),\n\t)\n\tresponse, err := client.Workflows.Validate(\n\t\tcontext.TODO(),\n\t\t\"workflow_key\",\n\t\tknockmapi.WorkflowValidateParams{\n\t\t\tEnvironment: \"development\",\n\t\t\tWorkflow: knockmapi.WorkflowValidateParamsWorkflow{\n\t\t\t\tName: \"My Workflow\",\n\t\t\t\tSteps: []knockmapi.WorkflowStepUnionParam{{\n\t\t\t\t\tOfWorkflowInAppFeedStep: &knockmapi.WorkflowInAppFeedStepParam{\n\t\t\t\t\t\tRef: \"channel_1\",\n\t\t\t\t\t\tTemplate: knockmapi.InAppFeedTemplateParam{\n\t\t\t\t\t\t\tMarkdownBody: \"Hello **{{ recipient.name }}**\",\n\t\t\t\t\t\t},\n\t\t\t\t\t\tType: knockmapi.WorkflowInAppFeedStepTypeChannel,\n\t\t\t\t\t},\n\t\t\t\t}},\n\t\t\t},\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", response.Workflow)\n}\n",
