@@ -12,8 +12,10 @@
 pub mod adapter;
 pub mod diagnostics;
 pub mod js;
+pub mod json;
 pub mod model;
 
 pub use adapter::{forge_to_model, group_to_model, methods_to_model};
 pub use diagnostics::{FerCode, FerruleError};
-pub use model::{Client, to_json};
+pub use json::to_json;
+pub use model::Client;
