@@ -26,7 +26,7 @@ from ferrule.adopt import (
     workflow_text,
 )
 from ferrule.errors import FerruleError
-from ferrule.generate import Tools
+from ferrule.generate import GenVersion, Tools
 from ferrule.lock import Lock, parse
 from ferrule.verify import Change, Report
 
@@ -34,6 +34,7 @@ SPEC = b'{"openapi": "3.1.0"}\n'
 MD5 = hashlib.md5(SPEC, usedforsecurity=False).hexdigest()
 BASE_FOO = "".join(f"line{i}\n" for i in range(1, 9))
 ENV = {"FERRULE_FORGE_COMMIT": "f" * 40, "PATH": "/usr/bin:/bin", "HOME": "/nonexistent"}
+REV = "91f52a40c746e8a2ac0271d8be0b7c82cdf28798"
 
 
 def write(path: Path, text: str = "") -> Path:
@@ -85,7 +86,9 @@ def repo(tmp_path: Path) -> Path:
 
 def fake_runner(foo: str = BASE_FOO.replace("line1", "gen1")):  # noqa: ANN201
     def run(argv: Sequence[str]) -> subprocess.CompletedProcess[str]:
-        if "--target" in argv:
+        if tuple(argv[1:]) == ("--version",):
+            return subprocess.CompletedProcess(argv, 0, f"ferrule-gen 0.0.0 forge {REV}\n", "")
+        if argv[1] == "generate":
             out = Path(argv[argv.index("--out") + 1])
             write(out / "src/acme/__init__.py", "from acme._client import Acme\n")
             write(out / "src/acme/_client.py", "class Acme:\n    def ping(self) -> None: ...\n")
@@ -112,13 +115,7 @@ def fetch(url: str, limit: int, timeout: float) -> bytes:
 
 @pytest.fixture
 def tools(tmp_path: Path) -> Tools:
-    return Tools(
-        node=sys.executable,
-        converter=write(tmp_path / "tools/cli.ts"),
-        forge=write(tmp_path / "tools/forge"),
-        plugin=write(tmp_path / "tools/plugin.wasm", "wasm"),
-        ruff=sys.executable,
-    )
+    return Tools(gen=write(tmp_path / "tools/ferrule-gen"), ruff=sys.executable)
 
 
 def run_adopt(repo: Path, tools: Tools, **kwargs: object):  # noqa: ANN201
@@ -139,7 +136,7 @@ def test_adopt_end_to_end(repo: Path, tools: Tools) -> None:
     assert result.patches == ["0001-src-acme-resources-foo-py.patch"]
     assert lines[0].startswith("✓ read .stats.yml")
     assert "✓ found 1 hand edits → .ferrule/patches/" in lines
-    assert "✓ generated via forge + ferrule-python" in lines
+    assert "✓ generated via ferrule-gen (forge + ferrule-python)" in lines
     # the user's checkout is untouched
     assert sh(repo, "rev-parse", "HEAD") == head
     assert sh(repo, "status", "--porcelain") == ""
@@ -155,8 +152,12 @@ def test_adopt_end_to_end(repo: Path, tools: Tools) -> None:
     assert show(repo, "src/acme/_types.py") == "RUNTIME = 1"
     assert show(repo, "openapi.json") == SPEC.decode().strip()
     assert "custom8" in show(repo, ".ferrule/patches/0001-src-acme-resources-foo-py.patch")
-    lock = parse(show(repo, "ferrule.lock") + "\n")
+    lock_text = show(repo, "ferrule.lock") + "\n"
+    lock = parse(lock_text)
     assert lock.forge_commit == "f" * 40
+    assert lock.generator == "ferrule-gen 0.0.0"
+    assert json.loads(lock_text)["lock_version"] == 2
+    assert "plugin_sha256" not in lock_text
     assert "src/acme/lib/custom.py" not in lock.files
     assert "README.md" not in lock.files
     assert set(lock.files) == {
@@ -300,29 +301,72 @@ def test_names() -> None:
     assert patch_name(12, PurePosixPath("a/b.py")) == "0012-a-b-py.patch"
 
 
-def test_forge_commit(tmp_path: Path, tools: Tools) -> None:
-    assert forge_commit(tools, {"FERRULE_FORGE_COMMIT": "abc"}) == "abc"
-    assert forge_commit(tools, {"PATH": ENV["PATH"]}) == "unknown"
-    checkout = tmp_path / "forge"
-    sh(tmp_path, "init", "-q", str(checkout))
-    write(checkout / "x", "x")
-    commit(checkout, "x", "Dev <dev@example.com>")
-    binary = write(checkout / "target/release/forge")
-    built = Tools(tools.node, tools.converter, binary, tools.plugin, tools.ruff)
-    assert forge_commit(built, ENV | {"FERRULE_FORGE_COMMIT": ""}) == sh(
-        checkout, "rev-parse", "HEAD"
-    )
+def test_forge_commit() -> None:
+    version = GenVersion("0.0.0", REV)
+    assert forge_commit(version, {"FERRULE_FORGE_COMMIT": "abc"}) == "abc"
+    assert forge_commit(version, {"FERRULE_FORGE_COMMIT": ""}) == REV
+    assert forge_commit(version, {}) == REV
+
+
+def test_adopt_lock_names_the_forge_rev_of_ferrule_gen(repo: Path, tools: Tools) -> None:
+    env = {k: v for k, v in ENV.items() if k != "FERRULE_FORGE_COMMIT"}
+    adopt(AdoptRequest(repo, tools), runner=fake_runner(), fetch=fetch, env=env)
+    lock = parse(show(repo, "ferrule.lock") + "\n")
+    assert (lock.forge_commit, lock.generator) == (REV, "ferrule-gen 0.0.0")
+
+
+def test_adopt_refuses_a_gen_without_a_forge_rev(repo: Path, tools: Tools) -> None:
+    generate = fake_runner()
+
+    def old_binary(argv: Sequence[str]) -> subprocess.CompletedProcess[str]:
+        if tuple(argv[1:]) == ("--version",):
+            return subprocess.CompletedProcess(argv, 0, "ferrule-gen 0.0.0\n", "")
+        return generate(argv)
+
+    with pytest.raises(FerruleError, match="FER4002 at FERRULE_GEN"):
+        adopt(AdoptRequest(repo, tools), runner=old_binary, fetch=fetch, env=ENV)
+    assert sh(repo, "branch", "--list", BRANCH) == ""
 
 
 def test_lock_is_deterministic() -> None:
-    a = Lock("0.0.0", "f", "p", "s", "c", {"b.py": "2", "a.py": "1"})
-    b = Lock("0.0.0", "f", "p", "s", "c", {"a.py": "1", "b.py": "2"})
+    a = Lock("0.0.0", "f", "ferrule-gen 0.0.0", "s", "c", {"b.py": "2", "a.py": "1"})
+    b = Lock("0.0.0", "f", "ferrule-gen 0.0.0", "s", "c", {"a.py": "1", "b.py": "2"})
     assert a.render() == b.render()
     assert a.render().endswith("}\n")
     assert list(json.loads(a.render())["files"]) == ["a.py", "b.py"]
-    assert parse(a.render()) == Lock("0.0.0", "f", "p", "s", "c", {"a.py": "1", "b.py": "2"})
+    assert parse(a.render()) == a
+    assert a.render() == (
+        "{\n"
+        '  "config_sha256": "c",\n'
+        '  "ferrule_version": "0.0.0",\n'
+        '  "files": {\n'
+        '    "a.py": "1",\n'
+        '    "b.py": "2"\n'
+        "  },\n"
+        '  "forge_commit": "f",\n'
+        '  "generator": "ferrule-gen 0.0.0",\n'
+        '  "lock_version": 2,\n'
+        '  "spec_sha256": "s"\n'
+        "}\n"
+    )
     with pytest.raises(TypeError):
         parse(json.dumps({**json.loads(a.render()), "files": []}))
+
+
+def test_lock_reads_version_1() -> None:
+    # Repos adopted before ferrule-gen carry plugin.wasm's hash; it is ignored, not an error.
+    v1 = {
+        "config_sha256": "c",
+        "ferrule_version": "0.0.0",
+        "files": {"a.py": "1"},
+        "forge_commit": REV,
+        "lock_version": 1,
+        "plugin_sha256": "9" * 64,
+        "spec_sha256": "s",
+    }
+    lock = parse(json.dumps(v1, indent=2, sort_keys=True) + "\n")
+    assert lock == Lock("0.0.0", REV, "unknown", "s", "c", {"a.py": "1"})
+    assert "plugin_sha256" not in lock.render()
 
 
 def test_cli_adopt(

@@ -14,13 +14,17 @@ from ferrule.errors import FerruleError
 from ferrule.generate import (
     GenerateRequest,
     GenerateResult,
+    GenVersion,
     Tools,
     ensure_inside,
     format_step,
+    gen_version,
     generate,
+    is_generate_step,
     is_runtime_path,
     kept_copies,
     load_renderer,
+    parse_gen_version,
     pick_package,
     plan_steps,
     relative_files,
@@ -32,6 +36,7 @@ from ferrule.generate import (
 )
 
 P = PurePosixPath
+REV = "91f52a40c746e8a2ac0271d8be0b7c82cdf28798"
 
 
 def write(path: Path, text: str = "") -> Path:
@@ -43,7 +48,7 @@ def write(path: Path, text: str = "") -> Path:
 def fake_runner(calls: list[tuple[str, ...]]):  # noqa: ANN201
     def run(argv: Sequence[str]) -> subprocess.CompletedProcess[str]:
         calls.append(tuple(argv))
-        if "--target" in argv:
+        if argv[1] == "generate":
             out = Path(argv[argv.index("--out") + 1])
             write(out / "src/acme/__init__.py", "from acme._client import Acme\n")
             write(out / "src/acme/_client.py", "class Acme: ...\n")
@@ -55,13 +60,7 @@ def fake_runner(calls: list[tuple[str, ...]]):  # noqa: ANN201
 
 @pytest.fixture
 def inputs(tmp_path: Path) -> tuple[GenerateRequest, Path]:
-    tools = Tools(
-        node=sys.executable,
-        converter=write(tmp_path / "tools/cli.ts"),
-        forge=write(tmp_path / "tools/forge"),
-        plugin=write(tmp_path / "tools/plugin.wasm"),
-        ruff=sys.executable,
-    )
+    tools = Tools(gen=write(tmp_path / "tools/ferrule-gen"), ruff=sys.executable)
     sdk = tmp_path / "sdk"
     write(sdk / "src/acme/__init__.py", "old\n")
     write(sdk / "src/acme/_client.py", "old\n")
@@ -81,24 +80,96 @@ def inputs(tmp_path: Path) -> tuple[GenerateRequest, Path]:
 
 
 def test_resolve_tools_precedence(tmp_path: Path) -> None:
-    env = {"FERRULE_FORGE": "/env/forge", "FERRULE_RUFF": "myruff"}
-    tools = resolve_tools(env, root=tmp_path, plugin=Path("/arg/plugin.wasm"))
-    assert tools.forge == Path("/env/forge")
-    assert tools.plugin == Path("/arg/plugin.wasm")
-    assert tools.ruff == "myruff"
-    assert tools.node == "node"
-    assert tools.converter == tmp_path / "converter/src/cli.ts"
-    assert resolve_tools({}, root=tmp_path).forge == tmp_path / ".cache/forge/target/release/forge"
+    env = {"FERRULE_GEN": "/env/ferrule-gen", "FERRULE_RUFF": "myruff"}
+    tools = resolve_tools(env, root=tmp_path)
+    assert tools == Tools(gen=Path("/env/ferrule-gen"), ruff="myruff")
+    assert resolve_tools(env, gen=Path("/arg/gen")).gen == Path("/arg/gen")
+    default = resolve_tools({"FERRULE_GEN": ""}, root=tmp_path)
+    assert default == Tools(gen=tmp_path / "target/release/ferrule-gen", ruff="ruff")
 
 
 def test_plan_steps(inputs: tuple[GenerateRequest, Path]) -> None:
     request, tmp = inputs
-    convert, forge = plan_steps(request, tmp / "work")
-    assert convert.argv[-2:] == ("-o", str(tmp / "work/annotated.json"))
-    assert forge.argv[0] == str(request.tools.forge)
-    assert f"wasm://{request.tools.plugin}" in forge.argv
-    assert forge.argv[-1] == str(request.out)
+    convert, gen = plan_steps(request, tmp / "work")
+    annotated = str(tmp / "work/annotated.json")
+    assert convert.argv == (
+        str(request.tools.gen),
+        "convert",
+        str(request.spec),
+        str(request.config),
+        "-o",
+        annotated,
+    )
+    assert gen.name == "generate"
+    assert gen.argv == (str(request.tools.gen), "generate", annotated, "--out", str(request.out))
+    assert is_generate_step(gen.argv, request.tools)
+    assert not is_generate_step(convert.argv, request.tools)
     assert format_step(request.out, request.tools).argv[1:3] == ("format", "--no-cache")
+
+
+def test_convert_override(inputs: tuple[GenerateRequest, Path]) -> None:
+    # FERRULE_CONVERT swaps only the convert command (the TS converter until the port lands).
+    request, tmp = inputs
+    tools = resolve_tools({"FERRULE_CONVERT": "node 'converter/src/cli.ts'"}, gen=Path("/g"))
+    assert tools.convert == ("node", "converter/src/cli.ts")
+    convert, gen = plan_steps(replace(request, tools=tools), tmp / "work")
+    assert convert.argv[:3] == ("node", "converter/src/cli.ts", str(request.spec))
+    assert gen.argv[:2] == ("/g", "generate")
+
+
+def test_convert_override_must_be_on_path(inputs: tuple[GenerateRequest, Path]) -> None:
+    request, _ = inputs
+    tools = replace(request.tools, convert=("definitely-not-a-node-binary", "cli.ts"))
+    with pytest.raises(FerruleError, match="FER4002 at FERRULE_CONVERT"):
+        generate(replace(request, tools=tools), runner=fake_runner([]))
+    calls: list[tuple[str, ...]] = []
+    tools = replace(request.tools, convert=(sys.executable, "cli.ts"))
+    generate(replace(request, tools=tools), runner=fake_runner(calls))
+    assert calls[0][:2] == (sys.executable, "cli.ts")
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        (f"ferrule-gen 0.1.0 forge {REV}\n", GenVersion("0.1.0", REV)),
+        (f"ferrule-gen 1.2.3-rc.1 forge {REV}", GenVersion("1.2.3-rc.1", REV)),
+        ("ferrule-gen 0.0.0\n", None),
+        (f"ferrule-gen 0.0.0 forge {REV[:12]}", None),
+        (f"ferrule-gen 0.0.0 forge {REV.upper()}", None),
+        (f"forge 0.0.0 forge {REV}", None),
+        (f"ferrule-gen 0.0.0 forge {REV} extra", None),
+        ("", None),
+    ],
+)
+def test_parse_gen_version(text: str, expected: GenVersion | None) -> None:
+    assert parse_gen_version(text) == expected
+
+
+def test_gen_version(inputs: tuple[GenerateRequest, Path]) -> None:
+    request, _ = inputs
+    tools = request.tools
+
+    def printing(stdout: str, code: int = 0):  # noqa: ANN202
+        def run(argv: Sequence[str]) -> subprocess.CompletedProcess[str]:
+            assert tuple(argv) == (str(tools.gen), "--version")
+            return subprocess.CompletedProcess(argv, code, stdout, "boom" if code else "")
+
+        return run
+
+    version = gen_version(tools, printing(f"ferrule-gen 0.0.0 forge {REV}\n"))
+    assert version.generator == "ferrule-gen 0.0.0"
+    assert version.forge == REV
+    old = r"FER4002 at FERRULE_GEN: .*printed 'ferrule-gen 0\.0\.0'"
+    with pytest.raises(FerruleError, match=old):
+        gen_version(tools, printing("ferrule-gen 0.0.0\n"))
+    with pytest.raises(
+        FerruleError, match=r"printed 'nothing'.*cargo build --release -p ferrule-gen"
+    ):
+        gen_version(tools, printing(""))
+    with pytest.raises(FerruleError, match="FER4003 at version: version failed: boom"):
+        gen_version(tools, printing("", 1))
+    with pytest.raises(FerruleError, match="FER4002 at FERRULE_GEN"):
+        gen_version(replace(tools, gen=Path("/nope")), printing(""))
 
 
 @pytest.mark.parametrize(
@@ -152,7 +223,8 @@ def test_generate_copies_runtime_and_formats(inputs: tuple[GenerateRequest, Path
     calls: list[tuple[str, ...]] = []
     result = generate(request, runner=fake_runner(calls))
     assert len(calls) == 4
-    assert calls[0][1] == str(request.tools.converter)
+    assert calls[0][:2] == (str(request.tools.gen), "convert")
+    assert calls[1][:2] == (str(request.tools.gen), "generate")
     # Imports are sorted (as Stainless's own `ruff check --fix` does) before formatting.
     assert calls[2][1:5] == ("check", "--select", "I", "--fix")
     assert calls[3][1] == "format"
@@ -241,11 +313,11 @@ def test_generate_input_errors(
 def test_generate_tool_errors(inputs: tuple[GenerateRequest, Path]) -> None:
     request, _ = inputs
     tools = request.tools
-    for bad in (
-        replace(tools, forge=Path("/nope")),
-        replace(tools, ruff="definitely-not-a-ruff-binary"),
+    for bad, fix in (
+        (replace(tools, gen=Path("/nope")), "cargo build --release -p ferrule-gen"),
+        (replace(tools, ruff="definitely-not-a-ruff-binary"), "set FERRULE_RUFF"),
     ):
-        with pytest.raises(FerruleError, match="FER4002"):
+        with pytest.raises(FerruleError, match=f"FER4002.*{fix}"):
             generate(replace(request, tools=bad), runner=fake_runner([]))
 
 
@@ -286,15 +358,19 @@ def test_cli_generate(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     request, _ = inputs
+    seen: list[Tools] = []
 
     def fake(request: GenerateRequest, **_: object) -> GenerateResult:
-        del request
+        seen.append(request.tools)
         return GenerateResult("acme", 5, 2, "abc")
 
     monkeypatch.setattr(cli, "generate", fake)
+    monkeypatch.setenv("FERRULE_GEN", "/env/ferrule-gen")
     argv = ["generate", "--spec", str(request.spec), "--config", str(request.config), "--out", "o"]
     assert cli.main(argv) == 0
     assert "generated acme: 5 files (2 runtime) sha256 abc" in capsys.readouterr().out
+    assert cli.main([*argv, "--gen", "/arg/ferrule-gen"]) == 0
+    assert [t.gen for t in seen] == [Path("/env/ferrule-gen"), Path("/arg/ferrule-gen")]
 
 
 def test_cli_generate_error(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:

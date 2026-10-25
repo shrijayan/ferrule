@@ -3,6 +3,11 @@
 """``ferrule.lock``: what produced an adopted SDK, so a regeneration can be reproduced.
 
 JSON with sorted keys and a trailing newline: the same inputs give byte-identical locks.
+
+Version 2 names the generator (``ferrule-gen <version>``) and the Forge rev it was built with,
+both from ``ferrule-gen --version``; a hash of the native binary would differ per platform.
+Version 1 locks (``plugin_sha256`` of plugin.wasm) still parse: that hash is ignored and the
+generator reads as ``unknown``.
 """
 
 from __future__ import annotations
@@ -17,7 +22,8 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 LOCK_FILE = "ferrule.lock"
-LOCK_VERSION = 1
+LOCK_VERSION = 2
+UNKNOWN_GENERATOR = "unknown"
 
 
 def sha256_bytes(data: bytes) -> str:
@@ -36,7 +42,7 @@ class Lock:
 
     ferrule_version: str
     forge_commit: str
-    plugin_sha256: str
+    generator: str
     spec_sha256: str
     config_sha256: str
     files: Mapping[str, str] = field(default_factory=dict[str, str])
@@ -47,7 +53,7 @@ class Lock:
             "lock_version": LOCK_VERSION,
             "ferrule_version": self.ferrule_version,
             "forge_commit": self.forge_commit,
-            "plugin_sha256": self.plugin_sha256,
+            "generator": self.generator,
             "spec_sha256": self.spec_sha256,
             "config_sha256": self.config_sha256,
             "files": dict(sorted(self.files.items())),
@@ -56,7 +62,7 @@ class Lock:
 
 
 def parse(text: str) -> Lock:
-    """Read a lock written by :meth:`Lock.render`."""
+    """Read a lock written by :meth:`Lock.render`, or a version 1 lock (see the module doc)."""
     doc: dict[str, object] = json.loads(text)
     files = doc.get("files", {})
     if not isinstance(files, dict):
@@ -65,7 +71,7 @@ def parse(text: str) -> Lock:
     return Lock(
         ferrule_version=str(doc["ferrule_version"]),
         forge_commit=str(doc["forge_commit"]),
-        plugin_sha256=str(doc["plugin_sha256"]),
+        generator=str(doc.get("generator", UNKNOWN_GENERATOR)),
         spec_sha256=str(doc["spec_sha256"]),
         config_sha256=str(doc["config_sha256"]),
         files={str(k): str(v) for k, v in cast("dict[object, object]", files).items()},

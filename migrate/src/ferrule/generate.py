@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: Apache-2.0
 """``ferrule generate``: spec + stainless.yml -> a formatted Python SDK tree.
 
-Pipeline: converter CLI -> Forge with the Python plugin -> runtime -> ruff import sort and
-``ruff format``.
+Pipeline: ``ferrule-gen convert`` -> ``ferrule-gen generate`` (Forge with the Python plugin,
+in one native binary, ADR 0014) -> runtime -> ruff import sort and ``ruff format``.
 
 The planning functions here are pure; :func:`generate` is the only place that touches the
 file system or runs processes, and it takes the process runner and the runtime renderer as
@@ -15,6 +15,8 @@ from __future__ import annotations
 import hashlib
 import importlib
 import os
+import re
+import shlex
 import shutil
 import subprocess
 import tempfile
@@ -76,13 +78,33 @@ type Runner = Callable[[Sequence[str]], subprocess.CompletedProcess[str]]
 
 @dataclass(frozen=True)
 class Tools:
-    """Executables and artifacts the pipeline runs."""
+    """Executables the pipeline runs.
 
-    node: str
-    converter: Path
-    forge: Path
-    plugin: Path
+    ``convert`` overrides the command prefix of the convert step (``$FERRULE_CONVERT``, e.g.
+    ``node converter/src/cli.ts``) while the converter port is unfinished; empty means
+    ``<gen> convert``.
+    """
+
+    gen: Path
     ruff: str
+    convert: tuple[str, ...] = ()
+
+    def convert_command(self) -> tuple[str, ...]:
+        """Return the convert step's command prefix; spec, config and ``-o`` follow."""
+        return self.convert or (str(self.gen), "convert")
+
+
+@dataclass(frozen=True)
+class GenVersion:
+    """What ``ferrule-gen --version`` reports."""
+
+    version: str
+    forge: str
+
+    @property
+    def generator(self) -> str:
+        """``ferrule-gen <version>``, as ``ferrule.lock`` records it."""
+        return f"ferrule-gen {self.version}"
 
 
 @dataclass(frozen=True)
@@ -117,34 +139,45 @@ class GenerateResult:
 def resolve_tools(
     env: Mapping[str, str],
     root: Path = REPO_ROOT,
-    forge: Path | None = None,
-    plugin: Path | None = None,
+    gen: Path | None = None,
 ) -> Tools:
     """Pick tool paths: explicit argument, then ``FERRULE_*`` env var, then repo default."""
     return Tools(
-        node=env.get("FERRULE_NODE", "node"),
-        converter=Path(env.get("FERRULE_CONVERTER", str(root / "converter" / "src" / "cli.ts"))),
-        forge=forge
-        or Path(env.get("FERRULE_FORGE", str(root / ".cache/forge/target/release/forge"))),
-        plugin=plugin
-        or Path(env.get("FERRULE_PLUGIN", str(root / "python-plugin/dist/plugin.wasm"))),
+        gen=gen or Path(env.get("FERRULE_GEN") or root / "target/release/ferrule-gen"),
         ruff=env.get("FERRULE_RUFF", "ruff"),
+        convert=tuple(shlex.split(env.get("FERRULE_CONVERT", ""))),
     )
 
 
 def plan_steps(request: GenerateRequest, work: Path) -> tuple[Step, Step]:
-    """Plan the converter and Forge commands, writing the annotated spec into ``work``."""
+    """Plan ``ferrule-gen convert`` and ``generate``, the annotated spec written into ``work``."""
     annotated = work / "annotated.json"
     t = request.tools
     convert = Step(
         "convert",
-        (t.node, str(t.converter), str(request.spec), str(request.config), "-o", str(annotated)),
+        (*t.convert_command(), str(request.spec), str(request.config), "-o", str(annotated)),
     )
-    forge = Step(
-        "forge",
-        (str(t.forge), str(annotated), "--target", f"wasm://{t.plugin}", "--out", str(request.out)),
-    )
-    return convert, forge
+    gen = Step("generate", (str(t.gen), "generate", str(annotated), "--out", str(request.out)))
+    return convert, gen
+
+
+def is_generate_step(argv: Sequence[str], tools: Tools) -> bool:
+    """Whether ``argv`` is the ``generate`` step :func:`plan_steps` planned for ``tools``."""
+    return tuple(argv[:2]) == (str(tools.gen), "generate")
+
+
+def version_step(tools: Tools) -> Step:
+    """``ferrule-gen --version``."""
+    return Step("version", (str(tools.gen), "--version"))
+
+
+_VERSION = re.compile(r"ferrule-gen (?P<version>\S+) forge (?P<forge>[0-9a-f]{40})")
+
+
+def parse_gen_version(text: str) -> GenVersion | None:
+    """Parse ``ferrule-gen <version> forge <40-hex rev>``; ``None`` for anything else."""
+    match = _VERSION.fullmatch(text.strip())
+    return None if match is None else GenVersion(match["version"], match["forge"])
 
 
 def sort_imports_step(out: Path, tools: Tools) -> Step:
@@ -267,17 +300,12 @@ def _check_inputs(request: GenerateRequest) -> None:
     for label, path in (("--spec", request.spec), ("--config", request.config)):
         if not path.is_file():
             raise fail(MISSING_INPUT, f"{path} does not exist", label, "pass an existing file")
+    _check_gen(request.tools)
     t = request.tools
-    for label, path in (("FERRULE_FORGE", t.forge), ("FERRULE_PLUGIN", t.plugin)):
-        if not path.is_file():
-            raise fail(
-                TOOL_NOT_FOUND,
-                f"{path} does not exist",
-                label,
-                "run `mise run forge:setup` and `pnpm --filter @ferrule/python-plugin build`, "
-                f"or set {label}",
-            )
-    for label, exe in (("FERRULE_NODE", t.node), ("FERRULE_RUFF", t.ruff)):
+    on_path = [("FERRULE_RUFF", t.ruff)]
+    if t.convert:
+        on_path.insert(0, ("FERRULE_CONVERT", t.convert[0]))
+    for label, exe in on_path:
         if shutil.which(exe) is None:
             raise fail(TOOL_NOT_FOUND, f"{exe} is not on PATH", label, f"install it or set {label}")
     if request.out.exists() and any(request.out.iterdir()):
@@ -291,7 +319,15 @@ def _check_inputs(request: GenerateRequest) -> None:
         )
 
 
-def _run(step: Step, runner: Runner) -> None:
+_BUILD_GEN = "run `cargo build --release -p ferrule-gen`, or set FERRULE_GEN"
+
+
+def _check_gen(tools: Tools) -> None:
+    if not tools.gen.is_file():
+        raise fail(TOOL_NOT_FOUND, f"{tools.gen} does not exist", "FERRULE_GEN", _BUILD_GEN)
+
+
+def _run(step: Step, runner: Runner) -> str:
     proc = runner(step.argv)
     if proc.returncode != 0:
         detail = (proc.stderr or proc.stdout).strip().splitlines()
@@ -302,6 +338,24 @@ def _run(step: Step, runner: Runner) -> None:
             step.name,
             f"fix the error {step.name} reported",
         )
+    return proc.stdout
+
+
+def gen_version(tools: Tools, runner: Runner = run_subprocess) -> GenVersion:
+    """Run ``ferrule-gen --version``; refuse a binary that does not name its Forge rev."""
+    _check_gen(tools)
+    text = _run(version_step(tools), runner)
+    version = parse_gen_version(text)
+    if version is None:
+        printed = text.strip().splitlines()[0] if text.strip() else "nothing"
+        raise fail(
+            TOOL_NOT_FOUND,
+            f"{tools.gen} --version printed {printed!r}, "
+            "expected 'ferrule-gen <version> forge <40-hex rev>'",
+            "FERRULE_GEN",
+            _BUILD_GEN,
+        )
+    return version
 
 
 def _src_packages(root: Path) -> list[str]:

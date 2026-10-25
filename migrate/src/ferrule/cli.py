@@ -51,8 +51,7 @@ def build_parser() -> argparse.ArgumentParser:
     gen.add_argument("--config", type=Path, required=True, help="stainless.yml")
     gen.add_argument("--out", type=Path, required=True, help="new, empty output directory")
     gen.add_argument("--runtime-from", type=Path, help="copy the runtime from this SDK checkout")
-    gen.add_argument("--forge", type=Path, help="Forge CLI (default: $FERRULE_FORGE)")
-    gen.add_argument("--plugin", type=Path, help="plugin.wasm (default: $FERRULE_PLUGIN)")
+    gen.add_argument("--gen", type=Path, help="ferrule-gen binary (default: $FERRULE_GEN)")
 
     ver = subs["verify"]
     ver.add_argument("--against", required=True, help="old SDK: a directory or a git ref")
@@ -70,8 +69,7 @@ def build_parser() -> argparse.ArgumentParser:
     ado.add_argument("--config", type=Path, help="stainless.yml (default: REPO/stainless.yml)")
     ado.add_argument("--spec", type=Path, help="OpenAPI spec (default: rescue it)")
     ado.add_argument("--dry-run", action="store_true", help="report the plan, change nothing")
-    ado.add_argument("--forge", type=Path, help="Forge CLI (default: $FERRULE_FORGE)")
-    ado.add_argument("--plugin", type=Path, help="plugin.wasm (default: $FERRULE_PLUGIN)")
+    ado.add_argument("--gen", type=Path, help="ferrule-gen binary (default: $FERRULE_GEN)")
 
     mrg = subs["merge"]
     mrg.add_argument("--base", required=True, help="previous generation: a directory or ref")
@@ -100,7 +98,7 @@ def _say(line: str) -> None:
 def _adopt(args: argparse.Namespace) -> int:
     request = AdoptRequest(
         repo=args.repo,
-        tools=resolve_tools(os.environ, forge=args.forge, plugin=args.plugin),
+        tools=resolve_tools(os.environ, gen=args.gen),
         config=args.config,
         spec=args.spec,
         dry_run=args.dry_run,
@@ -124,7 +122,7 @@ def _generate(args: argparse.Namespace) -> int:
         spec=args.spec,
         config=args.config,
         out=args.out,
-        tools=resolve_tools(os.environ, forge=args.forge, plugin=args.plugin),
+        tools=resolve_tools(os.environ, gen=args.gen),
         runtime_from=args.runtime_from,
     )
     result = generate(request, renderer=load_renderer())
