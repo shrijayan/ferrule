@@ -2,7 +2,7 @@
 //!
 //! ```text
 //! ferrule-gen convert openapi.yml stainless.yml -o annotated.json
-//! ferrule-gen generate annotated.json --out sdk [--target python|typescript]
+//! ferrule-gen generate annotated.json --out sdk [--target python|typescript|node]
 //!     [--config stainless.yml] [--openapi openapi.yml]
 //! ferrule-gen model annotated.json
 //! ```
@@ -11,10 +11,11 @@
 //! input (a JSON document, or `-` for standard input), the same output directory handling
 //! (`forge::write`), errors on standard error as `ferrule-gen: <error>` with exit code 1, and
 //! exit code 2 for a usage error. `--target` names the SDK language (ADR 0017): `python` (the
-//! default) and `typescript` (`crates/ts-plugin`, the current `typescript` layout) have plugins;
-//! the others fail with FER202.
+//! default), `typescript` and `node` (`crates/ts-plugin`) have plugins; the others fail with
+//! FER202. `node` writes Stainless's legacy TypeScript layout; `typescript` writes the layout of
+//! the TypeScript target the config has (`targets.typescript`, else the legacy `targets.node`).
 //!
-//! For `typescript` only, until the annotated spec carries them: `--config` reads the version-less
+//! For `typescript` and `node` only, until the annotated spec carries them: `--config` reads the version-less
 //! project settings (organization, README examples, license) from the stainless.yml, and
 //! `--openapi` reads examples, tag descriptions and the written property order from the original
 //! spec (the annotated one is written with sorted keys). Without them the plugin uses
@@ -40,8 +41,8 @@ Commands:
   generate  Generate an SDK from an annotated spec (a JSON document, or - for stdin)
   model     Print the language-neutral SDK model of an annotated spec as JSON
 
-Targets: python (default), typescript; node, go, java, kotlin, ruby, php, csharp, cli and
-terraform are planned and not supported yet";
+Targets: python (default), typescript, node (the legacy TypeScript layout); go, java, kotlin,
+ruby, php, csharp, cli and terraform are planned and not supported yet";
 
 /// `ferrule-gen <crate version> forge <40-hex rev>`: the rev is the Forge commit pinned in the
 /// workspace `Cargo.lock` (read by `build.rs`). `ferrule.lock` records both parts.
@@ -52,7 +53,7 @@ const VERSION: &str = concat!(
     env!("FERRULE_FORGE_REV")
 );
 
-/// The SDK languages `--target` accepts, by their stainless.yml `targets` key; the first two
+/// The SDK languages `--target` accepts, by their stainless.yml `targets` key; the first three
 /// have plugins.
 const TARGETS: [&str; 11] = [
     "python",
@@ -71,6 +72,8 @@ const TARGETS: [&str; 11] = [
 const DEFAULT_TARGET: &str = "python";
 
 const TYPESCRIPT: &str = "typescript";
+
+const NODE: &str = "node";
 
 fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().skip(1).collect();
@@ -208,7 +211,9 @@ fn unsupported_target(target: &str) -> FerruleError {
         FerCode::Fer202,
         "--target",
         format!("target {target} is not supported yet"),
-        format!("generate with --target {DEFAULT_TARGET} or --target {TYPESCRIPT}, the targets with a plugin so far"),
+        format!(
+            "generate with --target {DEFAULT_TARGET}, --target {TYPESCRIPT} or --target {NODE}, the targets with a plugin so far"
+        ),
     )
 }
 
@@ -219,7 +224,8 @@ fn generate(args: &[String], stderr: &mut dyn Write) -> i32 {
     };
     let written = match args.target.as_str() {
         DEFAULT_TARGET => write_sdk(&args),
-        TYPESCRIPT => write_typescript(&args),
+        TYPESCRIPT => write_typescript(&args, None),
+        NODE => write_typescript(&args, Some(ferrule_ts_plugin::Layout::Node)),
         other => return fail(stderr, &unsupported_target(other)),
     };
     match written {
@@ -277,8 +283,10 @@ fn converter_json(v: &ferrule_converter::Value) -> serde_json::Value {
 }
 
 /// Reads the annotated spec, maps it to the neutral model and writes the TypeScript SDK's files
-/// (the runtime comes from `ferrule_runtime.render_typescript_files`, as Python's does).
-fn write_typescript(args: &GenerateArgs) -> Result<(), forge::Err> {
+/// in `layout`, else the layout of the config's TypeScript target (the runtime comes from
+/// `ferrule_runtime.render_typescript_files` or `render_typescript_node_files`, as Python's
+/// does).
+fn write_typescript(args: &GenerateArgs, layout: Option<ferrule_ts_plugin::Layout>) -> Result<(), forge::Err> {
     let forge = read(&args.spec)?;
     let Some(client) = ferrule_sdk_model::forge_to_model(&forge)? else {
         return forge::write(&args.out, Vec::<TsFile>::new());
@@ -292,7 +300,8 @@ fn write_typescript(args: &GenerateArgs) -> Result<(), forge::Err> {
         None => read_document(&args.spec)?,
     };
     let extras = ferrule_ts_plugin::SpecExtras::new(doc);
-    let files = ferrule_ts_plugin::generate(&client, &meta, &extras);
+    let layout = layout.unwrap_or_else(|| ferrule_ts_plugin::Layout::of(&client));
+    let files = ferrule_ts_plugin::generate_layout(&client, &meta, &extras, layout);
     let executable: Vec<String> = files
         .iter()
         .map(|(p, _)| p.clone())
