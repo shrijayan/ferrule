@@ -82,13 +82,22 @@ pub fn lib_file(g: &Gen<'_>) -> (String, String) {
 /// name ignoring case; `true` marks a module (an enum, union or namespace).
 fn aliases(g: &Gen<'_>) -> Vec<(String, bool)> {
     let mut out: Vec<(String, bool)> = Vec::new();
-    for f in &g.models {
-        let r = f.decl.r();
+    // A converter constant's item models (`LabelsItem` before `Labels`) are top-level too.
+    let before = |d: &'_ Decl| match d {
+        Decl::Alias(a) => a.before.clone(),
+        _ => Vec::new(),
+    };
+    for decl in g
+        .models
+        .iter()
+        .flat_map(|f| before(&f.decl).into_iter().chain([f.decl.clone()]))
+    {
+        let r = decl.r();
         if !r.aliased {
             continue;
         }
         let top = r.segs[0].clone();
-        let module = r.segs.len() > 1 || !matches!(f.decl, Decl::Class(_));
+        let module = r.segs.len() > 1 || !matches!(decl, Decl::Class(_));
         if !out.iter().any(|(n, _)| *n == top) {
             out.push((top, module));
         }
