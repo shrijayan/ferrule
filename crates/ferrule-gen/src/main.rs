@@ -11,15 +11,20 @@
 //! input (a JSON document, or `-` for standard input), the same output directory handling
 //! (`forge::write`), errors on standard error as `ferrule-gen: <error>` with exit code 1, and
 //! exit code 2 for a usage error. `--target` names the SDK language (ADR 0017): `python` (the
-//! default), `typescript` and `node` (`crates/ts-plugin`) have plugins; the others fail with
-//! FER202. `node` writes Stainless's legacy TypeScript layout; `typescript` writes the layout of
-//! the TypeScript target the config has (`targets.typescript`, else the legacy `targets.node`).
+//! default), `typescript` and `node` (`crates/ts-plugin`) and `go` (`crates/go-plugin`) have
+//! plugins; the others fail with FER202. `node` writes Stainless's legacy TypeScript layout;
+//! `typescript` writes the layout of the TypeScript target the config has (`targets.typescript`,
+//! else the legacy `targets.node`).
 //!
 //! For `typescript` and `node` only, until the annotated spec carries them: `--config` reads the version-less
 //! project settings (organization, README examples, license) from the stainless.yml, and
 //! `--openapi` reads examples, tag descriptions and the written property order from the original
 //! spec (the annotated one is written with sorted keys). Without them the plugin uses
 //! placeholders and the annotated spec.
+//!
+//! For Go, the output holds the generated files and [`GO_RUNTIME_OPTIONS`], the options the Go
+//! runtime template is rendered with (`ferrule_runtime.render_go_files`); `ferrule generate`
+//! renders the runtime from it and removes it, as it renders Python's runtime.
 //!
 //! `model` prints the language-neutral SDK model (`ferrule-sdk-model`) of an annotated spec as
 //! deterministic JSON, for debugging and for plugin tests.
@@ -41,7 +46,7 @@ Commands:
   generate  Generate an SDK from an annotated spec (a JSON document, or - for stdin)
   model     Print the language-neutral SDK model of an annotated spec as JSON
 
-Targets: python (default), typescript, node (the legacy TypeScript layout); go, java, kotlin,
+Targets: python (default), typescript, node (the legacy TypeScript layout), go; java, kotlin,
 ruby, php, csharp, cli and terraform are planned and not supported yet";
 
 /// `ferrule-gen <crate version> forge <40-hex rev>`: the rev is the Forge commit pinned in the
@@ -53,8 +58,8 @@ const VERSION: &str = concat!(
     env!("FERRULE_FORGE_REV")
 );
 
-/// The SDK languages `--target` accepts, by their stainless.yml `targets` key; the first three
-/// have plugins.
+/// The SDK languages `--target` accepts, by their stainless.yml `targets` key; [`PLUGINS`] have a
+/// plugin.
 const TARGETS: [&str; 11] = [
     "python",
     "typescript",
@@ -74,6 +79,14 @@ const DEFAULT_TARGET: &str = "python";
 const TYPESCRIPT: &str = "typescript";
 
 const NODE: &str = "node";
+
+const GO: &str = "go";
+
+/// The targets with a plugin.
+const PLUGINS: [&str; 4] = [DEFAULT_TARGET, TYPESCRIPT, NODE, GO];
+
+/// Where `generate --target go` writes the Go runtime's options (JSON), relative to `--out`.
+pub const GO_RUNTIME_OPTIONS: &str = ".ferrule/go-runtime.json";
 
 fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().skip(1).collect();
@@ -212,7 +225,8 @@ fn unsupported_target(target: &str) -> FerruleError {
         "--target",
         format!("target {target} is not supported yet"),
         format!(
-            "generate with --target {DEFAULT_TARGET}, --target {TYPESCRIPT} or --target {NODE}, the targets with a plugin so far"
+            "generate with --target {}, the targets with a plugin so far",
+            PLUGINS.join(" or ")
         ),
     )
 }
@@ -226,6 +240,7 @@ fn generate(args: &[String], stderr: &mut dyn Write) -> i32 {
         DEFAULT_TARGET => write_sdk(&args),
         TYPESCRIPT => write_typescript(&args, None),
         NODE => write_typescript(&args, Some(ferrule_ts_plugin::Layout::Node)),
+        GO => write_go(&args),
         other => return fail(stderr, &unsupported_target(other)),
     };
     match written {
@@ -330,6 +345,42 @@ fn make_executable(_: &Path) -> Result<(), forge::Err> {
     Ok(())
 }
 
+/// One file of the Go plugin's output, for `forge::write`.
+struct GoFile {
+    path: String,
+    content: String,
+}
+
+impl forge::File for GoFile {
+    fn path(&self) -> &str {
+        &self.path
+    }
+
+    fn content(&self) -> Result<std::borrow::Cow<'_, [u8]>, forge::Err> {
+        Ok(std::borrow::Cow::Borrowed(self.content.as_bytes()))
+    }
+}
+
+/// Reads the annotated spec, maps it to the neutral model and writes the Go plugin's files with
+/// the runtime options; nothing for a document without operations.
+fn write_go(args: &GenerateArgs) -> Result<(), forge::Err> {
+    let forge = read(&args.spec)?;
+    let Some(client) = ferrule_sdk_model::forge_to_model(&forge)? else {
+        return forge::write(&args.out, Vec::<GoFile>::new());
+    };
+    let out = ferrule_go_plugin::generate(&client, &ferrule_go_plugin::GoMeta::default())?;
+    let mut files: Vec<GoFile> = out
+        .files
+        .into_iter()
+        .map(|(path, content)| GoFile { path, content })
+        .collect();
+    files.push(GoFile {
+        path: GO_RUNTIME_OPTIONS.to_owned(),
+        content: out.runtime.to_json(),
+    });
+    forge::write(&args.out, files)
+}
+
 fn parse_model(args: &[String]) -> Result<PathBuf, String> {
     match args {
         [spec] if !spec.starts_with('-') || spec == "-" => Ok(PathBuf::from(spec)),
@@ -417,6 +468,7 @@ mod tests {
     fn rejects_unknown_targets_and_missing_values() {
         let err = parse_generate(&strings(&["a.json", "--out", "sdk", "--target", "cobol"])).expect_err("unknown");
         assert!(err.contains("possible values: python, typescript"), "{err}");
+        assert!(unsupported_target("ruby").fix.contains("python or go"));
         let err = parse_generate(&strings(&["a.json", "--out", "sdk", "--target"])).expect_err("no value");
         assert!(err.contains("'--target <TARGET>'"), "{err}");
     }
