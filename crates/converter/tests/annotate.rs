@@ -786,8 +786,9 @@ resources: { a: { models: { thing: { type: { $ref: \"#/components/schemas/Thing\
 }
 
 /// imagekit `$shared.models`: `Transformation: { openapi_uri: '#/components/schemas/Transformation' }`
-/// is a model (Stainless writes `types/shared/transformation.py`); `only:` or `skip:` leaving
-/// Python out (`AITag: { only: [go, ruby, java] }`) is not one in Python, and says nothing.
+/// is a model (Stainless writes `types/shared/transformation.py`); `only:` or `skip:` lists give
+/// the targets that generate it (`x-ferrule-targets-only`). One no target generates is left out,
+/// and one leaving Python out never replaces a Python model of the same schema.
 #[test]
 fn reads_the_object_model_form_and_honours_only_and_skip() {
     let config = parse_config(
@@ -810,13 +811,13 @@ resources:
         ext(&r.spec, "/a", "x-ferrule-models"),
         Some(&v(&json!({
             "Thing": {"name": "Transformation", "module": "shared.transformation"},
-            "Ref": {"name": "References", "module": "shared.references"}
+            "Ref": {"name": "References", "module": "shared.references", "x-ferrule-targets-only": ["python", "go"]}
         })))
     );
 }
 
 /// `openapi_uri` into a sub-schema (`#/components/schemas/Extensions/items`) or a query, and
-/// `type: alias`, are not read yet: FER1004 at the entry, when the entry is for Python.
+/// `type: alias`, are not read yet: FER1004 at the entry, when some target generates it.
 #[test]
 fn warns_on_object_models_it_cannot_read() {
     let config = parse_config(
@@ -837,6 +838,7 @@ resources:
         [
             ("FER1004", "warning".to_owned(), "/resources/a/models/item"),
             ("FER1004", "warning".to_owned(), "/resources/a/models/old"),
+            ("FER1004", "warning".to_owned(), "/resources/a/models/java_only"),
         ]
     );
     assert_eq!(ext(&r.spec, "/a", "x-ferrule-models"), Some(&v(&json!({}))));
