@@ -6,14 +6,10 @@ const PY_KEYWORDS: [&str; 35] = [
     "not", "or", "pass", "raise", "return", "try", "while", "with", "yield",
 ];
 
-/// Words Stainless spells upper-case inside class names, such as `SituationURL`.
-const ACRONYMS: [&str; 11] = [
-    "id", "ids", "url", "uri", "api", "http", "https", "ip", "json", "uuid", "sdk",
-];
-
-/// Words Stainless spells upper-case in class names it makes from a schema name, as listed in the
-/// `initialism` description of the public stainless.yml schema (the converter's
-/// `DEFAULT_INITIALISMS`, which it applies to model names).
+/// Words Stainless spells upper-case in class names (`SituationURL`, knock `SMS`), as listed in
+/// the `initialism` description of the public stainless.yml schema (the converter's
+/// `DEFAULT_INITIALISMS`, which it applies to model names). `json` is not one: groq and
+/// perplexity name `json_schema` `JsonSchema`.
 const DEFAULT_INITIALISMS: [&str; 39] = [
     "3ds", "ach", "acl", "ai", "api", "ats", "cpu", "crm", "db", "dns", "e2e", "eeoc", "gb", "gpu", "hd", "hris",
     "html", "http", "https", "id", "ip", "iso", "jsonl", "kb", "kyb", "kyc", "lfs", "mb", "mp3", "mp4", "nft", "saml",
@@ -107,12 +103,14 @@ pub fn class_segment_with<S: AsRef<str>>(words: &[S], casings: &[(String, Casing
             {
                 return format!("{}s", stem.to_ascii_uppercase());
             }
-            if !ACRONYMS.contains(&lower.as_str()) {
-                capitalize(w)
-            } else if lower.ends_with('s') && lower != "https" {
-                format!("{}s", lower[..lower.len() - 1].to_ascii_uppercase())
-            } else {
+            if DEFAULT_INITIALISMS.contains(&lower.as_str()) {
                 lower.to_ascii_uppercase()
+            } else if let Some(stem) = lower.strip_suffix('s')
+                && DEFAULT_INITIALISMS.contains(&stem)
+            {
+                format!("{}s", stem.to_ascii_uppercase())
+            } else {
+                capitalize(w)
             }
         })
         .collect()
