@@ -352,17 +352,36 @@ impl Context<'_> {
         }))
     }
 
-    fn to_streaming(&self, response: Option<&SdkType>) -> Option<SdkStreaming> {
-        let raw = self.ext.streaming.as_ref()?;
+    fn read_streaming(
+        &mut self,
+        method: Method<'_>,
+        response: Option<&SdkType>,
+    ) -> Result<Option<SdkStreaming>, FerruleError> {
+        let ext = self.ext;
+        let Some(raw) = ext.streaming.as_ref() else {
+            return Ok(None);
+        };
         let event = match &raw.event_schema {
             None => response.cloned(),
-            Some(schema) => self.ref_for(schema).map(SdkType::Ref),
+            Some(schema) => {
+                // A response media type whose schema is the event model (ogx `text/event-stream`
+                // of `OpenAIChatCompletionChunk`) declares it, so its module is emitted.
+                let declared = method
+                    .responses()
+                    .flat_map(forge::Response::contents)
+                    .map(forge::Content::ty)
+                    .find(|t| matches!(t, Type::Model(m) if m.schema_name() == schema.as_str()));
+                match declared {
+                    Some(t) => Some(self.read_type(t)?),
+                    None => self.ref_for(schema).map(SdkType::Ref),
+                }
+            }
         };
-        Some(SdkStreaming {
+        Ok(Some(SdkStreaming {
             format: raw.format,
             param_discriminator: raw.param_discriminator.clone(),
             event,
-        })
+        }))
     }
 
     fn read_method(&mut self, method: Method<'_>) -> Result<SdkMethod, FerruleError> {
@@ -416,7 +435,7 @@ impl Context<'_> {
         let body_whole = whole.is_some();
         let body_params = whole.map_or(body_params, |p| vec![p]);
         let pagination = self.to_pagination(response.as_ref())?;
-        let streaming = self.to_streaming(response.as_ref());
+        let streaming = self.read_streaming(method, response.as_ref())?;
         Ok(SdkMethod {
             name: self.ext.method_name.clone(),
             pointer: self.pointer.to_owned(),

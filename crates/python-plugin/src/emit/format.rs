@@ -12,6 +12,22 @@ use crate::printer::{LINE_LENGTH, PythonPrinter};
 pub enum Expr {
     Atom(String),
     Bracket(Bracket),
+    /// `then if test else otherwise`, split with each part leading a line of its own.
+    Cond(Cond),
+}
+
+/// A conditional expression, such as the params class of a param-switched streaming method.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Cond {
+    pub then: String,
+    pub test: String,
+    pub otherwise: String,
+}
+
+impl From<Cond> for Expr {
+    fn from(c: Cond) -> Self {
+        Self::Cond(c)
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -61,7 +77,7 @@ pub fn bracket(open: &str, items: Vec<Expr>, magic: bool, close: &str) -> Bracke
 
 fn has_magic(e: &Expr) -> bool {
     match e {
-        Expr::Atom(_) => false,
+        Expr::Atom(_) | Expr::Cond(_) => false,
         Expr::Bracket(b) => b.magic || b.items.iter().any(has_magic),
     }
 }
@@ -71,6 +87,7 @@ fn has_magic(e: &Expr) -> bool {
 pub fn flat(e: &Expr) -> String {
     match e {
         Expr::Atom(s) => s.clone(),
+        Expr::Cond(c) => format!("{} if {} else {}", c.then, c.test, c.otherwise),
         Expr::Bracket(b) => format!(
             "{}{}{}",
             b.open,
@@ -89,6 +106,17 @@ fn fits(line: &str) -> bool {
 pub fn format_expr(e: &Expr, indent: &str, prefix: &str, suffix: &str) -> Vec<String> {
     let b = match e {
         Expr::Atom(s) => return vec![format!("{indent}{prefix}{s}{suffix}")],
+        Expr::Cond(c) => {
+            let one = format!("{indent}{prefix}{}{suffix}", flat(e));
+            if fits(&one) {
+                return vec![one];
+            }
+            return vec![
+                format!("{indent}{prefix}{}", c.then),
+                format!("{indent}if {}", c.test),
+                format!("{indent}else {}{suffix}", c.otherwise),
+            ];
+        }
         Expr::Bracket(b) => b,
     };
     let one = format!("{indent}{prefix}{}{suffix}", flat(e));
@@ -148,5 +176,32 @@ mod tests {
             format_expr(&one_dict.into(), "", "", ""),
             ["f(", "    {", "        a,", "        b,", "    }", ")"]
         );
+    }
+
+    #[test]
+    fn splits_a_conditional_expression_before_if_and_else() {
+        let cond = Cond {
+            then: "a".repeat(60),
+            test: "b".into(),
+            otherwise: "c".repeat(60),
+        };
+        let split = call("f(", vec!["x".into(), cond.into()], true);
+        assert_eq!(
+            format_expr(&split.into(), "", "", ""),
+            [
+                "f(".to_owned(),
+                "    x,".to_owned(),
+                format!("    {}", "a".repeat(60)),
+                "    if b".to_owned(),
+                format!("    else {},", "c".repeat(60)),
+                ")".to_owned(),
+            ]
+        );
+        let short = Cond {
+            then: "a".into(),
+            test: "b".into(),
+            otherwise: "c".into(),
+        };
+        assert_eq!(format_expr(&short.into(), "", "", ","), ["a if b else c,"]);
     }
 }

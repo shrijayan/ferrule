@@ -5,7 +5,8 @@ use std::collections::{HashMap, HashSet};
 use std::ops::Range;
 
 use super::common::{
-    FieldLike, HEADER, keyword_path_params, method_params, method_ref, py_string, rel_import, sort_fields, typed_extra,
+    FieldLike, HEADER, keyword_path_params, method_params, method_ref, py_string, rel_import, sort_fields,
+    stream_switch, typed_extra, with_bool_literal,
 };
 use super::format::{bracket, print_expr};
 use super::models::{all_list, docstring};
@@ -447,19 +448,67 @@ pub fn emit_params_file(resource: Option<&SdkResource>, method: &SdkMethod) -> S
         here,
         shadowed: fields.iter().map(|q| q.py_name.clone()).collect(),
     };
-    let mut exported = vec![r.name.clone()];
+    let switch = stream_switch(method);
+    let root = if switch.is_some() {
+        format!("{}Base", r.name)
+    } else {
+        r.name.clone()
+    };
+    let mut exported = vec![root.clone()];
     exported.extend(named.preorder().iter().map(|d| d.name().to_owned()));
+    if switch.is_some() {
+        exported.push(format!("{}NonStreaming", r.name));
+        exported.push(format!("{}Streaming", r.name));
+    }
     for l in all_list(&exported) {
         p.line(&l);
     }
     p.blank().blank();
-    p.block(&format!("class {}(TypedDict, total=False):", r.name), |p| {
+    fields.retain(|q| !switch.is_some_and(|s| std::ptr::eq(*q, s)));
+    p.block(&format!("class {root}(TypedDict, total=False):"), |p| {
         fields_in_order(p, &fields, &ctx);
     });
     for decl in named.postorder() {
         print_decl(&mut p, decl, &ctx);
     }
+    if let Some(s) = switch {
+        print_stream_variants(&mut p, &r.name, s, &ctx);
+    }
     p.render()
+}
+
+/// The two params classes of a param-switched streaming method after its `<Params>Base`: the
+/// switch `Literal[False]` (nullable as the spec has it) and optional, then `Literal[True]` and
+/// required, and `<Params> = Union[...]` of both (ogx `response_create_params.py`, stagehand
+/// `session_act_params.py`).
+fn print_stream_variants(p: &mut PythonPrinter, name: &str, switch: &SdkParam, ctx: &ParamsContext<'_, '_>) {
+    let off = SdkParam {
+        ty: with_bool_literal(&switch.ty, false),
+        required: false,
+        ..switch.clone()
+    };
+    let on = SdkParam {
+        ty: SdkType::Literal(vec![SdkLiteral::Boolean(true)]),
+        required: true,
+        ..switch.clone()
+    };
+    p.blank().blank();
+    p.block(&format!("class {name}NonStreaming({name}Base, total=False):"), |p| {
+        fields_in_order(p, &[&off], ctx);
+    });
+    p.blank().blank();
+    p.block(&format!("class {name}Streaming({name}Base):"), |p| {
+        fields_in_order(p, &[&on], ctx);
+    });
+    p.blank().blank();
+    p.import_from("typing", "Union");
+    let variants = vec![format!("{name}NonStreaming").into(), format!("{name}Streaming").into()];
+    print_expr(
+        p,
+        &bracket("Union[", variants, false, "]").into(),
+        &format!("{name} = "),
+        "",
+    );
 }
 
 /// Declares one inline object or object-union alias of a params file.

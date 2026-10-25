@@ -1,7 +1,9 @@
 //! Helpers shared by the emitters.
 
 use crate::js;
-use crate::model::{SdkClient, SdkField, SdkMethod, SdkObject, SdkParam, SdkRef, SdkResource, SdkType};
+use crate::model::{
+    SdkClient, SdkField, SdkLiteral, SdkMethod, SdkObject, SdkParam, SdkPrimitive, SdkRef, SdkResource, SdkType,
+};
 use crate::naming::{class_segment, singular, snake_case, split_words};
 
 /// First line of every generated file (no vendor branding, per the plan).
@@ -272,27 +274,87 @@ pub struct ReturnModel<'a> {
     pub inline: Option<&'a SdkType>,
 }
 
-/// What a method returns: for a paginated method, one item; for a streaming one, one event;
-/// otherwise the response. A named model stays a ref; an inline object becomes a synthesized
-/// `<Resource><Method>Response`.
+/// What a method returns: for a paginated method, one item; for one that always streams, one
+/// event; otherwise (a param-switched streaming method too) the response. A named model stays a
+/// ref; an inline object becomes a synthesized `<Resource><Method>Response`.
 #[must_use]
 pub fn return_model<'a>(resource: Option<&SdkResource>, method: &'a SdkMethod) -> Option<ReturnModel<'a>> {
     let t = method
         .pagination
         .as_ref()
         .map(|p| &p.item)
-        .or_else(|| method.streaming.as_ref().and_then(|s| s.event.as_ref()))
+        .or_else(|| {
+            method
+                .streaming
+                .as_ref()
+                .filter(|_| !is_param_switched(method))
+                .and_then(|s| s.event.as_ref())
+        })
         .or(method.response.as_ref())?;
+    Some(typed_return(resource, method, t))
+}
+
+/// Whether a streaming method streams only when a body parameter says so (`streaming.
+/// param_discriminator`): Stainless then writes an overload per value of that parameter.
+#[must_use]
+pub fn is_param_switched(method: &SdkMethod) -> bool {
+    method
+        .streaming
+        .as_ref()
+        .and_then(|s| s.param_discriminator.as_deref())
+        .is_some_and(|d| !d.is_empty())
+}
+
+/// The body parameter that switches a param-switched streaming method to streaming (ogx
+/// `responses.create(stream=...)`, stagehand `sessions.act(stream_response=...)`), or `None`
+/// when the method is not param-switched or no body parameter has that wire name.
+#[must_use]
+pub fn stream_switch(method: &SdkMethod) -> Option<&SdkParam> {
+    let wire = method.streaming.as_ref()?.param_discriminator.as_deref()?;
+    method.body_params.iter().find(|q| q.wire_name == wire)
+}
+
+/// The type of one event of a param-switched streaming method: the named event model, else
+/// (no `stream_event_model`) the response, as ogx `completions.create` returns
+/// `Stream[CompletionCreateResponse]`.
+#[must_use]
+pub fn stream_event_model<'a>(resource: Option<&SdkResource>, method: &'a SdkMethod) -> Option<ReturnModel<'a>> {
+    let t = method
+        .streaming
+        .as_ref()
+        .and_then(|s| s.event.as_ref())
+        .or(method.response.as_ref())?;
+    Some(typed_return(resource, method, t))
+}
+
+/// `ty` with `bool` narrowed to `Literal[value]`, a nullable `bool` staying nullable: the
+/// switch of a param-switched streaming method in one overload (`Optional[Literal[False]]`).
+#[must_use]
+pub fn with_bool_literal(ty: &SdkType, value: bool) -> SdkType {
+    match ty {
+        SdkType::Primitive(SdkPrimitive::Boolean) => SdkType::Literal(vec![SdkLiteral::Boolean(value)]),
+        SdkType::Union {
+            variants,
+            discriminator,
+        } => SdkType::Union {
+            variants: variants.iter().map(|v| with_bool_literal(v, value)).collect(),
+            discriminator: discriminator.clone(),
+        },
+        other => other.clone(),
+    }
+}
+
+fn typed_return<'a>(resource: Option<&SdkResource>, method: &SdkMethod, t: &'a SdkType) -> ReturnModel<'a> {
     if let SdkType::Ref(r) = t {
-        return Some(ReturnModel {
+        return ReturnModel {
             r#ref: r.clone(),
             inline: None,
-        });
+        };
     }
-    Some(ReturnModel {
+    ReturnModel {
         r#ref: method_ref(resource, method, "Response"),
         inline: Some(t),
-    })
+    }
 }
 
 /// The path parameters before the last, in path order: Stainless makes only the last one
