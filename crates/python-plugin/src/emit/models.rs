@@ -1,0 +1,519 @@
+//! Pydantic model files under `types/`: one root model and the inline objects it contains.
+//! Port of `python-plugin/src/emit/models.ts`.
+
+use super::common::{HEADER, escape_docstring, py_string, rel_import, sort_fields, wrap};
+use super::format::{Expr, bracket, format_expr};
+use super::params::{Decl, Named, name_params};
+use crate::js;
+use crate::model::{SdkField, SdkObject, SdkRef, SdkType};
+use crate::printer::{LINE_LENGTH, PythonPrinter};
+use crate::type_mapper::{AnnotationContext, WithoutUnionNames, is_nullable, to_annotation};
+
+/// Wrap width of docstring text (measured on the oracles).
+const DOC_WIDTH: usize = 80;
+/// Longest first sentence still printed as a summary line.
+const SUMMARY_MAX: usize = 82;
+
+pub struct ModelFile<'a> {
+    /// The root class and its module under `types`.
+    pub r#ref: &'a SdkRef,
+    pub ty: &'a SdkObject,
+    /// Whether nested classes carry the root's name: true for types synthesized from a method
+    /// (`AgenciesWithCoverageListResponseData`), false for models the config names (`Agency`
+    /// inside `References`).
+    pub prefix_children: bool,
+}
+
+/// Names the root and its inline objects; see [`name_params`] for the rules.
+fn name_objects<'a>(file: &ModelFile<'a>) -> Named<'a> {
+    let fields: Vec<&'a SdkField> = file.ty.fields.iter().collect();
+    let mut named = name_params(&fields, if file.prefix_children { &file.r#ref.name } else { "" });
+    named.add_root(file.ty, &file.r#ref.name);
+    named
+}
+
+struct ModelContext<'n, 'a> {
+    named: &'n Named<'a>,
+    here: String,
+    module: &'n str,
+}
+
+impl AnnotationContext for ModelContext<'_, '_> {
+    fn object_name(&self, obj: &SdkObject) -> String {
+        self.named.name_of(obj).unwrap_or("").to_owned()
+    }
+    fn ref_name(&self, p: &mut PythonPrinter, r: &SdkRef) -> String {
+        if r.module != self.module {
+            p.import_from(&rel_import(&self.here, &format!("types.{}", r.module)), &r.name);
+        }
+        r.name.clone()
+    }
+    fn runtime(&self, p: &mut PythonPrinter, module: &str, name: &str) {
+        p.import_from(&rel_import(&self.here, module), name);
+    }
+    fn union_name(&self, union: &SdkType) -> Option<String> {
+        self.named.alias_of(union).map(str::to_owned)
+    }
+}
+
+fn field_lines(p: &mut PythonPrinter, field: &SdkField, ctx: &dyn AnnotationContext, indent: &str) -> Vec<String> {
+    let mut ann = to_annotation(&field.ty, p, ctx);
+    if !field.required && !is_nullable(&field.ty) {
+        // A plain union takes `None` as one more member: `Union[A, B, None]`.
+        if matches!(field.ty, SdkType::Union { .. }) && ann.starts_with("Union[") {
+            ann = format!("{}, None]", &ann[..ann.len() - 1]);
+        } else {
+            p.import_from("typing", "Optional");
+            ann = format!("Optional[{ann}]");
+        }
+    }
+    // Optional fields, and required nullable ones (as the oracles print them), default to None.
+    let has_default = !field.required || is_nullable(&field.ty);
+    let alias = field.py_name != field.wire_name;
+    if alias {
+        p.import_from("pydantic", "Field as FieldInfo");
+    }
+    let mut args: Vec<String> = Vec::new();
+    if alias {
+        args.push(format!("alias={}", py_string(&field.wire_name)));
+    }
+    if has_default {
+        args.push("default=None".to_owned());
+    }
+    let args = args.join(", ");
+    let head = format!("{indent}{}: {ann}", field.py_name);
+    let one = format!("{head} = FieldInfo({args})");
+    let mut lines = if !alias {
+        vec![if has_default { format!("{head} = None") } else { head }]
+    } else if js::len(&one) <= LINE_LENGTH {
+        vec![one]
+    } else {
+        vec![
+            format!("{head} = FieldInfo("),
+            format!("{indent}    {args}"),
+            format!("{indent})"),
+        ]
+    };
+    lines.extend(docstring(&field.description, indent));
+    lines
+}
+
+/// `text.split(/\n\s*\n/)`.
+fn split_paragraphs(text: &str) -> Vec<String> {
+    let chars: Vec<char> = text.chars().collect();
+    let mut out = Vec::new();
+    let mut start = 0;
+    let mut i = 0;
+    while i < chars.len() {
+        if chars[i] == '\n' {
+            let mut j = i + 1;
+            let mut last_newline = None;
+            while j < chars.len() && js::is_space(chars[j]) {
+                if chars[j] == '\n' {
+                    last_newline = Some(j);
+                }
+                j += 1;
+            }
+            if let Some(k) = last_newline {
+                out.push(chars[start..i].iter().collect());
+                start = k + 1;
+                i = k + 1;
+                continue;
+            }
+        }
+        i += 1;
+    }
+    out.push(chars[start..].iter().collect());
+    out
+}
+
+/// `text.replace(/\s+/g, ' ')`.
+fn collapse_spaces(text: &str) -> String {
+    let mut out = String::with_capacity(text.len());
+    let mut in_space = false;
+    for c in text.chars() {
+        if js::is_space(c) {
+            if !in_space {
+                out.push(' ');
+            }
+            in_space = true;
+        } else {
+            out.push(c);
+            in_space = false;
+        }
+    }
+    out
+}
+
+/// `/^(.+?[.!?])\s+(?=\S)(.*)$/.exec(text)` on text whose spaces are collapsed: the first
+/// sentence and the rest.
+fn first_sentence(text: &str) -> Option<(String, String)> {
+    let chars: Vec<char> = text.chars().collect();
+    for i in 1..chars.len() {
+        if !matches!(chars[i], '.' | '!' | '?') {
+            continue;
+        }
+        let mut j = i + 1;
+        while j < chars.len() && js::is_space(chars[j]) {
+            j += 1;
+        }
+        if j > i + 1 && j < chars.len() {
+            return Some((chars[..=i].iter().collect(), chars[j..].iter().collect()));
+        }
+    }
+    None
+}
+
+fn indented(lines: &[String], indent: &str) -> Vec<String> {
+    lines
+        .iter()
+        .map(|l| {
+            if l.is_empty() {
+                String::new()
+            } else {
+                format!("{indent}{l}")
+            }
+        })
+        .collect()
+}
+
+/// Wrapped paragraphs with a blank line between them.
+fn paragraphs(paras: &[String]) -> Vec<String> {
+    let mut out = Vec::new();
+    for (i, para) in paras.iter().enumerate() {
+        if i > 0 {
+            out.push(String::new());
+        }
+        out.extend(wrap(para, DOC_WIDTH));
+    }
+    out
+}
+
+/// A docstring: one line when it fits, otherwise wrapped with the quotes on their own line.
+#[must_use]
+pub fn docstring(text: &str, indent: &str) -> Vec<String> {
+    let clean = escape_docstring(js::trim(text));
+    if clean.is_empty() {
+        return Vec::new();
+    }
+    let body = wrap(&clean, DOC_WIDTH);
+    let one = format!("{indent}\"\"\"{}\"\"\"", body.join(" "));
+    if body.len() == 1 && js::len(&one) <= LINE_LENGTH {
+        return vec![one];
+    }
+    // Summary style when the first paragraph's first sentence is short and more text follows.
+    let mut paras = split_paragraphs(&clean);
+    let para = paras.remove(0);
+    let flat_para = collapse_spaces(&para);
+    let m = first_sentence(&flat_para);
+    let summary = m.as_ref().map_or_else(|| flat_para.clone(), |(s, _)| s.clone());
+    let mut rest_paras: Vec<String> = m
+        .iter()
+        .map(|(_, rest)| rest.clone())
+        .filter(|r| !r.is_empty())
+        .collect();
+    rest_paras.extend(paras.iter().cloned());
+    if !rest_paras.is_empty() && js::len(&summary) <= SUMMARY_MAX {
+        let wrapped = wrap(&summary, DOC_WIDTH);
+        let mut out = vec![format!("{indent}\"\"\"{}", wrapped.first().map_or("", String::as_str))];
+        out.extend(indented(&wrapped[wrapped.len().min(1)..], indent));
+        out.push(String::new());
+        out.extend(indented(&paragraphs(&rest_paras), indent));
+        out.push(format!("{indent}\"\"\""));
+        return out;
+    }
+    let mut all = vec![para];
+    all.extend(paras);
+    let mut out = vec![format!("{indent}\"\"\"")];
+    out.extend(indented(&paragraphs(&all), indent));
+    out.push(format!("{indent}\"\"\""));
+    out
+}
+
+/// The `__all__` list, wrapped one name per line when it doesn't fit.
+#[must_use]
+pub fn all_list<S: AsRef<str>>(names: &[S]) -> Vec<String> {
+    let quoted: Vec<String> = names.iter().map(|n| py_string(n.as_ref())).collect();
+    let one = format!("__all__ = [{}]", quoted.join(", "));
+    if js::len(&one) <= LINE_LENGTH {
+        return vec![one];
+    }
+    let mut out = vec!["__all__ = [".to_owned()];
+    out.extend(quoted.iter().map(|q| format!("    {q},")));
+    out.push("]".to_owned());
+    out
+}
+
+/// Renders one model file, `types/<module>.py`.
+#[must_use]
+pub fn emit_model_file(file: &ModelFile<'_>) -> String {
+    let here = format!("types.{}", file.r#ref.module);
+    let mut p = PythonPrinter::new(&[HEADER]);
+    let named = name_objects(file);
+    let ctx = ModelContext {
+        named: &named,
+        here: here.clone(),
+        module: &file.r#ref.module,
+    };
+    let classes: Vec<Vec<String>> = named
+        .postorder()
+        .into_iter()
+        .map(|decl| match decl {
+            Decl::Alias { name, union } => alias_lines(&mut p, name, union, &ctx),
+            Decl::Class { name, obj } => {
+                let mut bases: Vec<String> = obj.bases.iter().map(|b| ctx.ref_name(&mut p, b)).collect();
+                if bases.is_empty() {
+                    p.import_from(&rel_import(&here, "_models"), "BaseModel");
+                    bases.push("BaseModel".to_owned());
+                }
+                let fields: Vec<Vec<String>> = sort_fields(&obj.fields)
+                    .into_iter()
+                    .map(|f| field_lines(&mut p, f, &ctx, "    "))
+                    .collect();
+                let doc = docstring(obj.description.as_deref().unwrap_or(""), "    ");
+                let body: Vec<Vec<String>> = if fields.is_empty() && doc.is_empty() {
+                    vec![vec!["    pass".to_owned()]]
+                } else {
+                    let mut b = Vec::new();
+                    if !doc.is_empty() {
+                        b.push(doc);
+                    }
+                    b.extend(fields);
+                    b
+                };
+                let mut lines = vec![format!("class {name}({}):", bases.join(", "))];
+                for (i, f) in body.into_iter().enumerate() {
+                    if i > 0 {
+                        lines.push(String::new());
+                    }
+                    lines.extend(f);
+                }
+                lines
+            }
+        })
+        .collect();
+    let exported: Vec<&str> = named.preorder().iter().map(Decl::name).collect();
+    for line in all_list(&exported) {
+        p.line(&line);
+    }
+    for cls in classes {
+        p.blank().blank();
+        for line in cls {
+            p.line(&line);
+        }
+    }
+    p.render()
+}
+
+struct AliasContext {
+    here: String,
+}
+
+impl AnnotationContext for AliasContext {
+    fn object_name(&self, _: &SdkObject) -> String {
+        "object".to_owned()
+    }
+    fn ref_name(&self, p: &mut PythonPrinter, r: &SdkRef) -> String {
+        p.import_from(&rel_import(&self.here, &format!("types.{}", r.module)), &r.name);
+        r.name.clone()
+    }
+}
+
+/// A response that is not an object: `Name: TypeAlias = <annotation>`.
+#[must_use]
+pub fn emit_alias_file(r: &SdkRef, ty: &SdkType) -> String {
+    let mut p = PythonPrinter::new(&[HEADER]);
+    p.import_from("typing_extensions", "TypeAlias");
+    let ann = to_annotation(
+        ty,
+        &mut p,
+        &AliasContext {
+            here: format!("types.{}", r.module),
+        },
+    );
+    for l in all_list(&[&r.name]) {
+        p.line(&l);
+    }
+    p.blank();
+    p.line(&format!("{}: TypeAlias = {ann}", r.name));
+    p.render()
+}
+
+/// `Name: TypeAlias = Union[...]`, `Annotated` with its discriminator when the spec names one.
+fn alias_lines(p: &mut PythonPrinter, name: &str, u: &SdkType, ctx: &dyn AnnotationContext) -> Vec<String> {
+    p.import_from("typing_extensions", "TypeAlias");
+    p.import_from("typing", "Union");
+    let plain = WithoutUnionNames(ctx);
+    let (variants, discriminator): (Vec<Expr>, Option<&String>) = match u {
+        SdkType::Union {
+            variants,
+            discriminator,
+        } => (
+            variants.iter().map(|v| to_annotation(v, p, &plain).into()).collect(),
+            discriminator.as_ref(),
+        ),
+        _ => (Vec::new(), None),
+    };
+    let union = bracket("Union[", variants, false, "]");
+    let prefix = format!("{name}: TypeAlias = ");
+    let Some(d) = discriminator else {
+        return format_expr(&union.into(), "", &prefix, "");
+    };
+    p.import_from("typing_extensions", "Annotated");
+    ctx.runtime(p, "_utils", "PropertyInfo");
+    let annotated = bracket(
+        "Annotated[",
+        vec![
+            union.into(),
+            format!("PropertyInfo(discriminator={})", py_string(d)).into(),
+        ],
+        false,
+        "]",
+    );
+    format_expr(&annotated.into(), "", &prefix, "")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::model::SdkPrimitive;
+
+    fn field(wire: &str, required: bool, ty: SdkType) -> SdkField {
+        SdkField {
+            wire_name: wire.into(),
+            py_name: wire.into(),
+            required,
+            description: String::new(),
+            ty,
+        }
+    }
+
+    #[test]
+    fn wraps_long_docstrings() {
+        assert_eq!(docstring("", ""), Vec::<String>::new());
+        let word = "word ".repeat(30);
+        assert_eq!(
+            docstring(&word, "    "),
+            [
+                "    \"\"\"".to_owned(),
+                format!("    {}", "word ".repeat(16).trim()),
+                format!("    {}", "word ".repeat(14).trim()),
+                "    \"\"\"".to_owned(),
+            ]
+        );
+        assert_eq!(
+            docstring("Short first. Then more.\n\nAnd a paragraph.", ""),
+            ["\"\"\"Short first.", "", "Then more.", "", "And a paragraph.", "\"\"\""]
+        );
+    }
+
+    #[test]
+    fn escapes_docstrings_so_the_spec_cannot_close_them() {
+        let lines = docstring("x \"\"\" + __import__(\"os\").system(\"id\") + \"\"\"", "    ");
+        let text = lines.join("\n");
+        let text = text.trim();
+        assert!(!text[3..text.len() - 3].contains("\"\"\""));
+        assert!(text.contains("\\\"\\\"\\\""));
+        assert_eq!(docstring("ends with \"", ""), ["\"\"\"ends with \\\"\"\"\""]);
+    }
+
+    #[test]
+    fn prints_pass_for_empty_classes() {
+        let r = SdkRef {
+            name: "Empty".into(),
+            module: "empty".into(),
+        };
+        let obj = SdkObject {
+            fields: vec![
+                field(
+                    "items",
+                    true,
+                    SdkType::Map(Box::new(SdkType::Object(SdkObject::default()))),
+                ),
+                field("same", false, SdkType::Ref(r.clone())),
+            ],
+            ..SdkObject::default()
+        };
+        let out = emit_model_file(&ModelFile {
+            r#ref: &r,
+            ty: &obj,
+            prefix_children: true,
+        });
+        assert!(out.contains("class EmptyItems(BaseModel):\n    pass\n"), "{out}");
+        assert!(out.contains("items: Dict[str, EmptyItems]\n"));
+        assert!(out.contains("same: Optional[Empty] = None\n"));
+    }
+
+    #[test]
+    fn names_union_variants_after_their_schemas() {
+        let variant = |hint: &str, tag: &str| {
+            SdkType::Object(SdkObject {
+                hint: Some(hint.into()),
+                description: Some(format!("{hint} object")),
+                fields: vec![field(
+                    "type",
+                    true,
+                    SdkType::Literal(vec![crate::model::SdkLiteral::String(tag.into())]),
+                )],
+                ..SdkObject::default()
+            })
+        };
+        let obj = SdkObject {
+            description: Some("A thing.".into()),
+            fields: vec![
+                field(
+                    "frame",
+                    false,
+                    SdkType::Union {
+                        variants: vec![variant("ImageRef", "image"), variant("VideoRef", "video")],
+                        discriminator: Some("type".into()),
+                    },
+                ),
+                field(
+                    "n",
+                    false,
+                    SdkType::Union {
+                        variants: vec![
+                            SdkType::Primitive(SdkPrimitive::String),
+                            SdkType::Primitive(SdkPrimitive::Integer),
+                        ],
+                        discriminator: None,
+                    },
+                ),
+            ],
+            ..SdkObject::default()
+        };
+        let r = SdkRef {
+            name: "Thing".into(),
+            module: "thing".into(),
+        };
+        let model = emit_model_file(&ModelFile {
+            r#ref: &r,
+            ty: &obj,
+            prefix_children: false,
+        });
+        assert!(
+            model.contains("class Thing(BaseModel):\n    \"\"\"A thing.\"\"\""),
+            "{model}"
+        );
+        assert!(model.contains(
+            "Frame: TypeAlias = Annotated[Union[FrameImageRef, FrameVideoRef], PropertyInfo(discriminator=\"type\")]"
+        ));
+        assert!(model.contains("n: Union[str, int, None] = None"));
+    }
+
+    #[test]
+    fn aliases_non_object_responses() {
+        let out = emit_alias_file(
+            &SdkRef {
+                name: "Ids".into(),
+                module: "ids".into(),
+            },
+            &SdkType::Array(Box::new(SdkType::Ref(SdkRef {
+                name: "Id".into(),
+                module: "shared.id".into(),
+            }))),
+        );
+        assert!(out.contains("from .shared.id import Id"), "{out}");
+    }
+}

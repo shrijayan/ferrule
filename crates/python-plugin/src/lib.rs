@@ -8,3 +8,4 @@ pub mod js;
 pub mod model;
 pub mod naming;
 pub mod printer;
+pub mod type_mapper;
