@@ -1,6 +1,6 @@
 ---
 
-status: Accepted
+status: Accepted, amended by [0014](./0014-rust-for-converter-and-plugin.md)
 date: 2026-10-22
 deciders: Ferrule maintainers
 ---
@@ -8,6 +8,9 @@ deciders: Ferrule maintainers
 # 0001. Languages: TypeScript for converter and plugin, Python for runtime and migration tools
 
 Supersedes the Python-core decision in plan draft 2.
+
+Amended by [ADR 0014](./0014-rust-for-converter-and-plugin.md): the converter and the plugin
+move to Rust. The runtime and the migration tools stay Python.
 
 ## Context and problem statement
 
