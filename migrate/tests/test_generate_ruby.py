@@ -17,6 +17,7 @@ from ferrule.generate_ruby import (
     hide_aliases,
     load_ruby_renderer,
     plan_ruby_steps,
+    resolve_formatter,
     restore_aliases,
 )
 
@@ -140,6 +141,23 @@ def test_needs_the_formatters(request_: RubyRequest) -> None:
     )
     with pytest.raises(FerruleError, match="FERRULE_STREE"):
         generate_ruby(missing, fake_runner([], {}), renderer)
+
+
+def test_resolves_the_formatters(tmp_path: Path) -> None:
+    write(tmp_path / "stree")
+    env = {"FERRULE_RUBOCOP": "bundle exec rubocop"}
+    assert resolve_formatter(env, "FERRULE_STREE", "stree", tmp_path) == (str(tmp_path / "stree"),)
+    assert resolve_formatter(env, "FERRULE_RUBOCOP", "rubocop", tmp_path) == (
+        "bundle",
+        "exec",
+        "rubocop",
+    )
+    assert resolve_formatter({}, "FERRULE_RUBOCOP", "rubocop", tmp_path) == ("rubocop",)
+
+
+def test_defaults_to_the_repository_wrappers() -> None:
+    stree = resolve_formatter({}, "FERRULE_STREE", "stree")
+    assert stree[0].endswith("crates/ruby-plugin/tools/bin/stree")
 
 
 def test_needs_the_ruby_renderer(request_: RubyRequest) -> None:
