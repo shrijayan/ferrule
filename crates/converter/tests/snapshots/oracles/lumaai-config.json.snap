@@ -1,6 +1,11 @@
 {
-  "sha256": "19677e7b0b5eb46a022ae3750016b68740b3b5636ddbb68c4b3d67392f993816",
+  "sha256": "9f95e75134e76688334af1104369c6a0080ebf837db5ca29c8cdbd663e48d726",
   "root": {
+    "x-ferrule-casings": {
+      "lumaai": {
+        "pascal": "LumaAI"
+      }
+    },
     "x-ferrule-client": {
       "defaultEnvironment": "production",
       "defaultHeaders": {},
@@ -119,6 +124,11 @@
         "credits"
       ],
       "x-fern-sdk-method-name": "get",
+      "x-ferrule-casings": {
+        "lumaai": {
+          "pascal": "LumaAI"
+        }
+      },
       "x-ferrule-method-name": "get",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -135,6 +145,11 @@
         "generations"
       ],
       "x-fern-sdk-method-name": "list",
+      "x-ferrule-casings": {
+        "lumaai": {
+          "pascal": "LumaAI"
+        }
+      },
       "x-ferrule-method-name": "list",
       "x-ferrule-method-order": 3,
       "x-ferrule-resource": {
@@ -152,6 +167,11 @@
         "concepts"
       ],
       "x-fern-sdk-method-name": "list",
+      "x-ferrule-casings": {
+        "lumaai": {
+          "pascal": "LumaAI"
+        }
+      },
       "x-ferrule-method-name": "list",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -171,6 +191,11 @@
         "image"
       ],
       "x-fern-sdk-method-name": "create",
+      "x-ferrule-casings": {
+        "lumaai": {
+          "pascal": "LumaAI"
+        }
+      },
       "x-ferrule-method-name": "create",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -190,6 +215,11 @@
         "image"
       ],
       "x-fern-sdk-method-name": "reframe",
+      "x-ferrule-casings": {
+        "lumaai": {
+          "pascal": "LumaAI"
+        }
+      },
       "x-ferrule-method-name": "reframe",
       "x-ferrule-method-order": 1,
       "x-ferrule-resource": {
@@ -210,6 +240,11 @@
             "generations"
           ],
           "x-fern-sdk-method-name": "create",
+          "x-ferrule-casings": {
+            "lumaai": {
+              "pascal": "LumaAI"
+            }
+          },
           "x-ferrule-client": {
             "defaultEnvironment": "production",
             "defaultHeaders": {},
@@ -283,6 +318,11 @@
             "video"
           ],
           "x-fern-sdk-method-name": "create",
+          "x-ferrule-casings": {
+            "lumaai": {
+              "pascal": "LumaAI"
+            }
+          },
           "x-ferrule-client": {
             "defaultEnvironment": "production",
             "defaultHeaders": {},
@@ -360,6 +400,11 @@
         "video"
       ],
       "x-fern-sdk-method-name": "modify",
+      "x-ferrule-casings": {
+        "lumaai": {
+          "pascal": "LumaAI"
+        }
+      },
       "x-ferrule-method-name": "modify",
       "x-ferrule-method-order": 2,
       "x-ferrule-resource": {
@@ -379,6 +424,11 @@
         "video"
       ],
       "x-fern-sdk-method-name": "reframe",
+      "x-ferrule-casings": {
+        "lumaai": {
+          "pascal": "LumaAI"
+        }
+      },
       "x-ferrule-method-name": "reframe",
       "x-ferrule-method-order": 1,
       "x-ferrule-resource": {
@@ -397,6 +447,11 @@
         "generations"
       ],
       "x-fern-sdk-method-name": "delete",
+      "x-ferrule-casings": {
+        "lumaai": {
+          "pascal": "LumaAI"
+        }
+      },
       "x-ferrule-method-name": "delete",
       "x-ferrule-method-order": 2,
       "x-ferrule-resource": {
@@ -413,6 +468,11 @@
         "generations"
       ],
       "x-fern-sdk-method-name": "get",
+      "x-ferrule-casings": {
+        "lumaai": {
+          "pascal": "LumaAI"
+        }
+      },
       "x-ferrule-method-name": "get",
       "x-ferrule-method-order": 1,
       "x-ferrule-resource": {
@@ -429,6 +489,11 @@
         "generations"
       ],
       "x-fern-sdk-method-name": "audio",
+      "x-ferrule-casings": {
+        "lumaai": {
+          "pascal": "LumaAI"
+        }
+      },
       "x-ferrule-method-name": "audio",
       "x-ferrule-method-order": 5,
       "x-ferrule-resource": {
@@ -445,6 +510,11 @@
         "generations"
       ],
       "x-fern-sdk-method-name": "upscale",
+      "x-ferrule-casings": {
+        "lumaai": {
+          "pascal": "LumaAI"
+        }
+      },
       "x-ferrule-method-name": "upscale",
       "x-ferrule-method-order": 4,
       "x-ferrule-resource": {
@@ -461,6 +531,11 @@
         "ping"
       ],
       "x-fern-sdk-method-name": "check",
+      "x-ferrule-casings": {
+        "lumaai": {
+          "pascal": "LumaAI"
+        }
+      },
       "x-ferrule-method-name": "check",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {

@@ -1,5 +1,5 @@
 {
-  "sha256": "e5cb67159caa6728d11852ccd24cfc4da207406fa7d8ba677f110718f37af059",
+  "sha256": "47bf8c6d5206b5d1dfb5fecdb4410d50e2b42b6c5b833baec8b90ca9e097e151",
   "root": {
     "x-ferrule-client": {
       "defaultEnvironment": "production",
@@ -189,7 +189,7 @@
       },
       "GuideActivationUrlPattern": {
         "module": "guide_activation_url_pattern",
-        "name": "GuideActivationUrlPattern"
+        "name": "GuideActivationURLPattern"
       },
       "GuideStep": {
         "module": "guide_step",
@@ -253,7 +253,7 @@
       },
       "MessageTypeUrlField": {
         "module": "shared.message_type_url_field",
-        "name": "MessageTypeUrlField"
+        "name": "MessageTypeURLField"
       },
       "MessageTypeVariant": {
         "module": "message_type_variant",
@@ -285,11 +285,11 @@
       },
       "SmsChannelSettings": {
         "module": "sms_channel_settings",
-        "name": "SmsChannelSettings"
+        "name": "SMSChannelSettings"
       },
       "SmsTemplate": {
         "module": "sms_template",
-        "name": "SmsTemplate"
+        "name": "SMSTemplate"
       },
       "Source": {
         "module": "source",
@@ -377,7 +377,7 @@
       },
       "WorkflowAIAgentStep": {
         "module": "workflow_ai_agent_step",
-        "name": "WorkflowAiAgentStep"
+        "name": "WorkflowAIAgentStep"
       },
       "WorkflowBatchStep": {
         "module": "workflow_batch_step",
@@ -417,7 +417,7 @@
       },
       "WorkflowSmsStep": {
         "module": "workflow_sms_step",
-        "name": "WorkflowSmsStep"
+        "name": "WorkflowSMSStep"
       },
       "WorkflowStep": {
         "module": "workflow_step",
