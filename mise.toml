@@ -42,6 +42,10 @@ run = ["cargo fmt --all --check", "cargo clippy --workspace --all-targets --lock
 [tasks."test:rs"]
 run = "cargo test --workspace --locked"
 
+[tasks."ruby:tools"]
+description = "Install the Ruby plugin's formatters (crates/ruby-plugin/tools/Gemfile.lock) into .cache/ruby-tools"
+run = "bash crates/ruby-plugin/tools/install.sh"
+
 [tasks.check]
 description = "Everything ci.yml runs"
 depends = ["lint:ts", "lint:py", "lint:rs", "typecheck:py", "test:py", "test:rs"]

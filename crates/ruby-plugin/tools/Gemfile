@@ -2,9 +2,9 @@
 
 # The formatters of a Stainless Ruby gem's `rake format` (`syntax_tree` for `.rbi` and `.rbs`,
 # rubocop for `.rb`), at the versions OneBusAway ruby-sdk's Gemfile.lock pins (46a574dd).
-# `ferrule generate --target ruby` and the oracle tests run them:
-#   BUNDLE_GEMFILE=crates/ruby-plugin/tools/Gemfile bundle install
-#   FERRULE_STREE="bundle exec stree" FERRULE_RUBOCOP="bundle exec rubocop" ...
+# `mise run ruby:tools` installs them into .cache/ruby-tools; bin/stree and bin/rubocop run them,
+# and `ferrule generate --target ruby` and the tests find them there (see the crate README).
+# $FERRULE_STREE and $FERRULE_RUBOCOP override them.
 
 source "https://rubygems.org"
 
