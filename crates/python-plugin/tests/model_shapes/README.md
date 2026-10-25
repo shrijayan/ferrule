@@ -55,3 +55,9 @@ oracle file named below (knock-mgmt-python 0.1.0-alpha.2), not generated.
   `types/inline_object_request_param.py`, papr-python `types/memory_metadata_param.py`). The
   `TypedDict` is `ObjectTyped`, without a docstring, and `Object: TypeAlias = Union[ObjectTyped,
   Dict[str, object]]` takes its place. From knock, not knock-mgmt.
+- `nested_union`: `OpenAICompactedResponse.output`, whose items are `anyOf: [oneOf: [...] with a
+  discriminator, $ref, ...]` (ogx-client-python `types/compacted_response.py`, also
+  `response_list_response.py`, `responses/input_item_list_response.py`). Stainless flattens the
+  inner union into the outer one: `Output: TypeAlias = Union[...]` lists every variant class,
+  each named `Output<Schema>`, in order, and drops the inner discriminator, since the outer
+  union has none. From ogx, not knock-mgmt.
