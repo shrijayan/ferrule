@@ -24,6 +24,7 @@ The report is written even when a step fails; the step's error is recorded in it
 from __future__ import annotations
 
 import argparse
+import contextlib
 import json
 import os
 import shutil
@@ -105,13 +106,42 @@ def wait_for_port(port: int, proc: subprocess.Popen[bytes], timeout: float) -> b
     return False
 
 
+def port_in_use(port: int) -> bool:
+    """Whether something already listens on ``port`` (then it is not our mock)."""
+    with socket.socket() as s:
+        s.settimeout(0.5)
+        return s.connect_ex((MOCK_HOST, port)) == 0
+
+
+def stop_mock(proc: subprocess.Popen[bytes]) -> None:
+    """Stop the mock's process group; a mock that already exited needs nothing."""
+    if proc.poll() is None:
+        with contextlib.suppress(ProcessLookupError, PermissionError):
+            os.killpg(proc.pid, signal.SIGTERM)
+    proc.wait(timeout=30)
+
+
+def refusal(sdk_dir: Path) -> dict[str, object] | None:
+    """Why step 4 must not start: oracle symlinks, or a port the mock can't own."""
+    linked = symlinks(sdk_dir / "tests")
+    if linked:
+        return {"status": "refused", "error": f"FER4007 symlinks in oracle tests/: {linked}"}
+    if port_in_use(MOCK_PORT):
+        return {
+            "status": "mock-port-busy",
+            "error": f"FER4021 something already listens on {MOCK_HOST}:{MOCK_PORT}; "
+            "the oracle's tests would run against it, not the mock. Stop it and rerun.",
+        }
+    return None
+
+
 def run_tests(
     out: Path, sdk_dir: Path, spec: Path, work: Path, package_dist: str
 ) -> dict[str, object]:
     """Run step 4 (venv, mock, pytest); return counts or the failing step."""
-    linked = symlinks(sdk_dir / "tests")
-    if linked:
-        return {"status": "refused", "error": f"FER4007 symlinks in oracle tests/: {linked}"}
+    refused = refusal(sdk_dir)
+    if refused is not None:
+        return refused
     shutil.rmtree(out / "tests", ignore_errors=True)
     shutil.copytree(sdk_dir / "tests", out / "tests", symlinks=True)
     venv = work / "venv"
@@ -176,8 +206,7 @@ def run_tests(
         status = "passed" if proc.returncode == 0 else f"pytest exit {proc.returncode}"
         return {"status": status, "install": installed, "mock": " ".join(cmd), **counts.as_dict()}
     finally:
-        os.killpg(mock.pid, signal.SIGTERM)
-        mock.wait(timeout=30)
+        stop_mock(mock)
         mock_log.close()
 
 
