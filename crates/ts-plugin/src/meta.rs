@@ -58,6 +58,13 @@ pub struct TsMeta {
     pub license: String,
     /// `settings.disable_mock_tests`: generated tests are `test.skip`.
     pub disable_mock_tests: bool,
+    /// `settings.sort_schema_properties` (default `true`): properties sorted by name, else in
+    /// the order the spec writes them.
+    pub sort_schema_properties: bool,
+    /// Where stainless.yml declares each model: (`components.schemas` key, resource keys).
+    /// `TypeRef.path` is the Python module path, which loses the resource of a model declared by
+    /// a non-standalone resource.
+    pub model_homes: Vec<(String, Vec<String>)>,
 }
 
 impl TsMeta {
@@ -76,6 +83,8 @@ impl TsMeta {
             readme_examples: Vec::new(),
             license: "Apache-2.0".to_owned(),
             disable_mock_tests: false,
+            sort_schema_properties: true,
+            model_homes: Vec::new(),
         }
     }
 
@@ -102,6 +111,15 @@ impl TsMeta {
             .and_then(|v| v.get("disable_mock_tests"))
             .and_then(Value::as_bool)
             .unwrap_or(false);
+        meta.sort_schema_properties = settings
+            .and_then(|v| v.get("sort_schema_properties"))
+            .and_then(Value::as_bool)
+            .unwrap_or(true);
+        if let Some(resources) = config.get("resources").and_then(Value::as_object) {
+            for (key, r) in resources {
+                model_homes(r, &mut vec![key.clone()], &mut meta.model_homes);
+            }
+        }
         if let Some(examples) = config
             .get("readme")
             .and_then(|r| r.get("example_requests"))
@@ -124,6 +142,31 @@ impl TsMeta {
     }
 }
 
+/// The `components.schemas` key a `models` entry names: `X`, `#/components/schemas/X` or
+/// `{ openapi_uri: ... }`.
+fn model_schema(v: &Value) -> Option<String> {
+    let uri = v.as_str().or_else(|| v.get("openapi_uri").and_then(Value::as_str))?;
+    Some(uri.strip_prefix("#/components/schemas/").unwrap_or(uri).to_owned())
+}
+
+/// Collects the models of resource `r` (at `keys`) and of its subresources.
+fn model_homes(r: &Value, keys: &mut Vec<String>, out: &mut Vec<(String, Vec<String>)>) {
+    if let Some(models) = r.get("models").and_then(Value::as_object) {
+        for v in models.values() {
+            if let Some(schema) = model_schema(v) {
+                out.push((schema, keys.clone()));
+            }
+        }
+    }
+    if let Some(subs) = r.get("subresources").and_then(Value::as_object) {
+        for (k, s) in subs {
+            keys.push(k.clone());
+            model_homes(s, keys, out);
+            keys.pop();
+        }
+    }
+}
+
 /// The resolved settings every emitter reads.
 #[derive(Debug, Clone, PartialEq)]
 pub struct TsSettings {
@@ -131,6 +174,8 @@ pub struct TsSettings {
     pub package_name: String,
     /// GitHub `owner/repo` of the SDK, or empty.
     pub repo: String,
+    /// Its default branch: `production_repo`'s `#branch`, else `main`.
+    pub branch: String,
     pub version: String,
     /// The client class, such as `Isaacus`.
     pub client_class: String,
@@ -148,6 +193,8 @@ pub struct TsSettings {
     pub mcp_server: Option<McpServer>,
     pub license: String,
     pub disable_mock_tests: bool,
+    pub sort_schema_properties: bool,
+    pub model_homes: Vec<(String, Vec<String>)>,
 }
 
 /// `knock mgmt` -> `Knock Mgmt`: each word's first letter upper-cased.
@@ -169,10 +216,8 @@ pub fn ts_settings(client: &Client, meta: &TsMeta) -> TsSettings {
     let package_name = target
         .and_then(|t| t.package_name.clone())
         .unwrap_or_else(|| client.package.name.clone());
-    let repo = target
-        .and_then(|t| t.production_repo.as_deref())
-        .map(|r| r.split('#').next().unwrap_or_default().to_owned())
-        .unwrap_or_default();
+    let production = target.and_then(|t| t.production_repo.as_deref()).unwrap_or_default();
+    let (repo, branch) = production.split_once('#').unwrap_or((production, "main"));
     // A target's own `options:` block is `options.options`.
     let mcp_server = target
         .and_then(|t| t.options.get("options"))
@@ -193,11 +238,12 @@ pub fn ts_settings(client: &Client, meta: &TsMeta) -> TsSettings {
         .map_or_else(|| client_class.to_ascii_uppercase(), |s| s.env_prefix.clone());
     TsSettings {
         package_name,
-        repo,
+        repo: repo.to_owned(),
+        branch: branch.to_owned(),
         version: meta.version.clone(),
         client_class,
         env_prefix,
-        title: title_case(meta.organization_name.as_deref().unwrap_or(&org)),
+        title: title_case(&split_words(meta.organization_name.as_deref().unwrap_or(&org)).join(" ")),
         docs_url: meta.docs_url.clone(),
         contact: meta.contact.clone(),
         security_contact: meta.security_contact.clone(),
@@ -208,5 +254,7 @@ pub fn ts_settings(client: &Client, meta: &TsMeta) -> TsSettings {
         mcp_server,
         license: meta.license.clone(),
         disable_mock_tests: meta.disable_mock_tests,
+        sort_schema_properties: meta.sort_schema_properties,
+        model_homes: meta.model_homes.clone(),
     }
 }

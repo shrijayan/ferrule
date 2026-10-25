@@ -96,18 +96,29 @@ impl<'c, 'a> Mapper<'c, 'a> {
     pub fn model_name(&mut self, r: &TypeRef) -> String {
         let module = self.ctx.model_module(r);
         if module == self.module {
-            return r.name.written.clone();
+            return self.ctx.type_of(r);
         }
         let ns = self.ctx.model_namespace(r);
         if !self.imports.iter().any(|(n, _)| *n == ns) {
             self.imports.push((ns.clone(), module));
         }
-        format!("{ns}.{}", r.name.written)
+        format!("{ns}.{}", self.ctx.type_of(r))
     }
 
     /// The fields of an object in the order the spec writes them.
     #[must_use]
     pub fn ordered<'o>(&self, fields: &'o [Field]) -> Vec<&'o Field> {
+        if self.ctx.settings.sort_schema_properties {
+            // Required first; within each, `id` first, then by name ignoring case.
+            let mut out: Vec<&Field> = fields.iter().collect();
+            out.sort_by(|a, b| {
+                b.required
+                    .cmp(&a.required)
+                    .then_with(|| (b.wire_name == "id").cmp(&(a.wire_name == "id")))
+                    .then_with(|| ferrule_sdk_model::js::cmp(&a.wire_name.to_lowercase(), &b.wire_name.to_lowercase()))
+            });
+            return out;
+        }
         let names: Vec<&str> = fields.iter().map(|f| f.wire_name.as_str()).collect();
         match self.ctx.extras.property_order(&names) {
             Some(order) => order
@@ -253,11 +264,15 @@ impl<'c, 'a> Mapper<'c, 'a> {
             Type::Object(o) if !(o.fields.is_empty() && o.bases.is_empty()) => {
                 self.interface(name, o, description.to_owned(), deprecated, component)
             }
-            Type::Object(o) if o.extra.is_none() => Decl {
+            // An object with no properties: an empty interface, whatever its other keys.
+            Type::Object(_) => Decl {
                 name: name.to_owned(),
                 description: description.to_owned(),
                 deprecated,
-                kind: DeclKind::Alias(Ty::name("unknown")),
+                kind: DeclKind::Interface {
+                    extends: Vec::new(),
+                    fields: Vec::new(),
+                },
                 nested: Vec::new(),
             },
             other => {

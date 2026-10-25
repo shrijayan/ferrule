@@ -98,6 +98,39 @@ impl SpecExtras {
         media.get("schema").map(|s| self.resolve(s))
     }
 
+    /// The JSON request body's example: the media type's `example` (or first `examples` value),
+    /// else the schema's.
+    #[must_use]
+    pub fn body_example(&self, op: &str) -> Option<Value> {
+        let body = self.resolve(self.operation(op)?.get("requestBody")?);
+        let content = body.get("content")?.as_object()?;
+        let media = content.get("application/json").or_else(|| content.values().next())?;
+        media
+            .get("example")
+            .cloned()
+            .or_else(|| {
+                media
+                    .get("examples")?
+                    .as_object()?
+                    .values()
+                    .next()
+                    .map(|e| self.resolve(e))?
+                    .get("value")
+                    .cloned()
+            })
+            .or_else(|| self.example(media.get("schema")?))
+    }
+
+    /// The schema of the first 2xx JSON response of an operation.
+    #[must_use]
+    pub fn response_schema(&self, op: &str) -> Option<&Value> {
+        let responses = self.operation(op)?.get("responses")?.as_object()?;
+        let (_, response) = responses.iter().find(|(status, _)| status.starts_with('2'))?;
+        let response = self.resolve(response);
+        let media = response.get("content")?.get("application/json")?;
+        media.get("schema").map(|s| self.resolve(s))
+    }
+
     /// A parameter of an operation (or of its path item), by `in` and name.
     #[must_use]
     pub fn parameter(&self, op: &str, location: &str, name: &str) -> Option<&Value> {

@@ -217,7 +217,19 @@ impl<'a> Ctx<'a> {
         for decl in &self.client.models {
             let r = &decl.r#ref;
             let dirs = ref_dirs(r);
-            let home = if dirs.first().is_some_and(|d| d == "shared") {
+            let declared = self
+                .settings
+                .model_homes
+                .iter()
+                .find(|(s, _)| *s == r.schema)
+                .map(|(_, k)| k);
+            let home = if let Some(keys) = declared {
+                if keys.first().is_some_and(|k| k == "$shared") {
+                    Home::Shared
+                } else {
+                    Home::Resource(keys.clone())
+                }
+            } else if dirs.first().is_some_and(|d| d == "shared") {
                 Home::Shared
             } else if let Some(standalone) = all.iter().find(|x| x.keys == dirs && x.res.standalone) {
                 Home::Resource(standalone.keys.clone())
@@ -245,6 +257,13 @@ impl<'a> Ctx<'a> {
         homes
     }
 
+    /// A model's TypeScript name: its `models` key in type-name spelling (`URLEndpointRequest`
+    /// for `url_endpoint_request`), as Stainless's TypeScript generator spells it.
+    #[must_use]
+    pub fn type_of(&self, r: &TypeRef) -> String {
+        type_name(&words_of(&r.name), &self.client.casings)
+    }
+
     /// Where `r` is declared.
     #[must_use]
     pub fn home(&self, r: &TypeRef) -> Home {
@@ -260,7 +279,7 @@ impl<'a> Ctx<'a> {
             .iter()
             .filter(|d| self.home(&d.r#ref) == Home::Resource(keys.to_vec()))
             .collect();
-        out.sort_by(|a, b| a.r#ref.name.written.cmp(&b.r#ref.name.written));
+        out.sort_by_key(|d| self.type_of(&d.r#ref));
         out
     }
 
@@ -273,7 +292,7 @@ impl<'a> Ctx<'a> {
             .iter()
             .filter(|d| self.home(&d.r#ref) == Home::Shared)
             .collect();
-        out.sort_by(|a, b| a.r#ref.name.written.cmp(&b.r#ref.name.written));
+        out.sort_by_key(|d| self.type_of(&d.r#ref));
         out
     }
 

@@ -344,6 +344,7 @@ pub fn project_files(ctx: &Ctx<'_>) -> Vec<File> {
     };
     let mut owned: Vec<(&str, String)> = vec![
         ("REPO", s.repo.clone()),
+        ("BRANCH", s.branch.clone()),
         ("REPO_NAME", repo_name),
         ("MCP_BUNDLE", bundle),
         ("MCP_PACKAGE", mcp_package),
