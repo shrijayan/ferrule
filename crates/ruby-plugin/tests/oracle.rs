@@ -70,7 +70,10 @@ fn compare(oracle: &std::path::Path, files: &[(String, String)], known: &[(&str,
     let mut identical = 0;
     let mut differing = Vec::new();
     for (path, text) in files {
-        let raw = std::fs::read_to_string(oracle.join(path)).unwrap_or_else(|e| panic!("oracle has no {path}: {e}"));
+        let Ok(raw) = std::fs::read_to_string(oracle.join(path)) else {
+            differing.push(format!("{path} (not in the oracle)"));
+            continue;
+        };
         let expected = common::brand(&raw);
         let is_known = known.iter().find(|(p, _)| p == path);
         match (text == &expected, is_known) {
@@ -126,4 +129,159 @@ fn onebusaway_fills_the_runtime_options() {
         r.base_model_example
             .contains("`references` is a `OnebusawaySDK::References`")
     );
+}
+
+/// imagekit-ruby files that differ, with the main reason (most are gaps of the model, listed in the
+/// reasons below; the test fails when one of them starts matching).
+const IMAGEKIT_KNOWN: &[(&str, &str)] = &[
+    ("lib/imagekitio/client.rb", CUSTOM),
+    ("lib/imagekitio/models/accounts/origin_delete_params.rb", PATHDOC),
+    ("lib/imagekitio/models/accounts/origin_get_params.rb", PATHDOC),
+    ("lib/imagekitio/models/accounts/origin_update_params.rb", PATHDOC),
+    ("lib/imagekitio/models/accounts/url_endpoint_delete_params.rb", PATHDOC),
+    ("lib/imagekitio/models/accounts/url_endpoint_get_params.rb", PATHDOC),
+    ("lib/imagekitio/models/accounts/url_endpoint_update_params.rb", PATHDOC),
+    ("lib/imagekitio/models/asset_list_response.rb", MAPPING),
+    ("lib/imagekitio/models/beta/v2/file_upload_params.rb", CUSTOM),
+    ("lib/imagekitio/models/custom_metadata_field.rb", VARIANT_NAME),
+    (
+        "lib/imagekitio/models/custom_metadata_field_create_params.rb",
+        VARIANT_NAME,
+    ),
+    (
+        "lib/imagekitio/models/custom_metadata_field_update_params.rb",
+        VARIANT_NAME,
+    ),
+    ("lib/imagekitio/models/extension_config.rb", VARIANT_NAME),
+    ("lib/imagekitio/models/extensions.rb", EXT_ITEM),
+    ("lib/imagekitio/models/file_upload_params.rb", CUSTOM),
+    ("lib/imagekitio/models/folder.rb", TITLE),
+    ("lib/imagekitio/models/selected_fields_schema.rb", VARIANT_NAME),
+    (
+        "lib/imagekitio/models/solid_color_overlay_transformation.rb",
+        VARIANT_ORDER,
+    ),
+    ("lib/imagekitio/models/text_overlay_transformation.rb", VARIANT_ORDER),
+    ("lib/imagekitio/models/transformation.rb", VARIANT_ORDER),
+    ("lib/imagekitio/models/update_file_request.rb", VARIANT_NAME),
+    ("lib/imagekitio/models.rb", WEBHOOKS),
+    ("lib/imagekitio/resources/assets.rb", MAPPING),
+    ("lib/imagekitio/resources/beta/v2/files.rb", HARDBREAK),
+    ("lib/imagekitio/resources/files.rb", VARIANT_NAME),
+    ("lib/imagekitio.rb", WEBHOOKS),
+    ("rbi/imagekitio/client.rbi", CUSTOM),
+    ("rbi/imagekitio/models/accounts/origin_delete_params.rbi", PATHDOC),
+    ("rbi/imagekitio/models/accounts/origin_get_params.rbi", PATHDOC),
+    ("rbi/imagekitio/models/accounts/origin_update_params.rbi", PATHDOC),
+    ("rbi/imagekitio/models/accounts/url_endpoint_delete_params.rbi", PATHDOC),
+    ("rbi/imagekitio/models/accounts/url_endpoint_get_params.rbi", PATHDOC),
+    ("rbi/imagekitio/models/accounts/url_endpoint_update_params.rbi", PATHDOC),
+    ("rbi/imagekitio/models/asset_list_response.rbi", MAPPING),
+    ("rbi/imagekitio/models/beta/v2/file_upload_params.rbi", TOKEN),
+    ("rbi/imagekitio/models/custom_metadata_field.rbi", VARIANT_NAME),
+    (
+        "rbi/imagekitio/models/custom_metadata_field_create_params.rbi",
+        VARIANT_NAME,
+    ),
+    (
+        "rbi/imagekitio/models/custom_metadata_field_update_params.rbi",
+        VARIANT_NAME,
+    ),
+    ("rbi/imagekitio/models/extension_config.rbi", VARIANT_NAME),
+    ("rbi/imagekitio/models/extensions.rbi", EXT_ITEM),
+    ("rbi/imagekitio/models/file_upload_params.rbi", TOKEN),
+    ("rbi/imagekitio/models/folder.rbi", TITLE),
+    ("rbi/imagekitio/models/image_overlay.rbi", RECURSIVE),
+    ("rbi/imagekitio/models/selected_fields_schema.rbi", VARIANT_NAME),
+    (
+        "rbi/imagekitio/models/solid_color_overlay_transformation.rbi",
+        VARIANT_ORDER,
+    ),
+    ("rbi/imagekitio/models/text_overlay_transformation.rbi", VARIANT_ORDER),
+    ("rbi/imagekitio/models/transformation.rbi", VARIANT_ORDER),
+    ("rbi/imagekitio/models/update_file_request.rbi", VARIANT_NAME),
+    ("rbi/imagekitio/models/video_overlay.rbi", RECURSIVE),
+    ("rbi/imagekitio/models.rbi", WEBHOOKS),
+    ("rbi/imagekitio/resources/beta/v2/files.rbi", HARDBREAK),
+    ("rbi/imagekitio/resources/files.rbi", VARIANT_NAME),
+    ("sig/imagekitio/client.rbs", CUSTOM),
+    ("sig/imagekitio/models/asset_list_response.rbs", MAPPING),
+    ("sig/imagekitio/models/beta/v2/file_upload_params.rbs", TOKEN),
+    ("sig/imagekitio/models/custom_metadata_field.rbs", VARIANT_NAME),
+    (
+        "sig/imagekitio/models/custom_metadata_field_create_params.rbs",
+        VARIANT_NAME,
+    ),
+    (
+        "sig/imagekitio/models/custom_metadata_field_update_params.rbs",
+        VARIANT_NAME,
+    ),
+    ("sig/imagekitio/models/extension_config.rbs", VARIANT_NAME),
+    ("sig/imagekitio/models/extensions.rbs", EXT_ITEM),
+    ("sig/imagekitio/models/file_upload_params.rbs", TOKEN),
+    ("sig/imagekitio/models/selected_fields_schema.rbs", VARIANT_NAME),
+    (
+        "sig/imagekitio/models/solid_color_overlay_transformation.rbs",
+        VARIANT_ORDER,
+    ),
+    ("sig/imagekitio/models/text_overlay_transformation.rbs", VARIANT_ORDER),
+    ("sig/imagekitio/models/transformation.rbs", VARIANT_ORDER),
+    ("sig/imagekitio/models/update_file_request.rbs", VARIANT_NAME),
+    ("sig/imagekitio/models.rbs", WEBHOOKS),
+    ("sig/imagekitio/resources/beta/v2/files.rbs", TOKEN),
+    ("sig/imagekitio/resources/files.rbs", TOKEN),
+    ("test/imagekitio/client_test.rb", MULTIPART),
+    ("test/imagekitio/resources/accounts/origins_test.rb", EXAMPLES),
+    ("test/imagekitio/resources/accounts/url_endpoints_test.rb", EXAMPLES),
+    ("test/imagekitio/resources/cache/invalidation_test.rb", EXAMPLES),
+    ("test/imagekitio/resources/custom_metadata_fields_test.rb", EXAMPLES),
+    ("test/imagekitio/resources/files/bulk_test.rb", EXAMPLES),
+    ("test/imagekitio/resources/files/metadata_test.rb", EXAMPLES),
+    ("test/imagekitio/resources/files_test.rb", EXAMPLES),
+    ("test/imagekitio/resources/folders_test.rb", EXAMPLES),
+    ("test/imagekitio/resources/saved_extensions_test.rb", EXAMPLES),
+];
+const CUSTOM: &str =
+    "hand edits imagekit keeps in the generated tree (helpers, upload serialization, base_url_overridden?)";
+const WEBHOOKS: &str = "Forge gap: webhook_unwrap methods and their event models are not in the model";
+const PATHDOC: &str = "model gap: a path parameter's description is kept only when declared on the operation, which the model does not record";
+const VARIANT_NAME: &str =
+    "model gap: x-stainless-variantName and schema titles (Mixed, UpdateFileDetails) are not in the model";
+const VARIANT_ORDER: &str = "model gap: the adapter lists a union's const variants last, Stainless in spec order";
+const MAPPING: &str =
+    "model gap: a discriminator mapping with several values for one schema (file, file-version) is not in the model";
+const EXT_ITEM: &str = "converter gap FER1004: the ExtensionItem model's object form is not supported";
+const TITLE: &str = "model gap: a schema title is read as its description";
+const TOKEN: &str = "unexplained: Stainless keeps `token` third among the upload fields, out of alphabetical order";
+const RECURSIVE: &str = "unexplained: Sorbet input types drop OrHash for the recursive Transformation model";
+const EXAMPLES: &str = "Forge gap G18: parameter examples are not in the model";
+const MULTIPART: &str = "hand edit: the multipart redirect test skips the body comparison";
+const HARDBREAK: &str =
+    "unexplained: text after a markdown hard break (a trailing backslash) keeps its source line breaks";
+
+fn imagekit() -> Option<(PathBuf, RubyOutput)> {
+    let oracle = common::oracle("imagekit-ruby")?;
+    let annotated = common::annotated("imagekit-config", "openapi/v1.0.0.yaml", "stainless-config/main.yaml")?;
+    let meta = RubyMeta {
+        version: Some("4.5.0".into()),
+        example: Some((vec!["files".into()], "upload".into())),
+        disable_mock_tests: true,
+        ..RubyMeta::default()
+    };
+    let out = generate(&common::model(&annotated), &meta).expect("generates");
+    Some((oracle, out))
+}
+
+#[test]
+fn imagekit_matches_the_oracle_but_for_the_known_differences() {
+    let Some((oracle, out)) = imagekit() else { return };
+    common::dump("FERRULE_RUBY_DUMP_RAW", &out.files);
+    let Some(files) = common::format(&out.files) else {
+        eprintln!("skipped: the gem's formatters are not installed (FERRULE_STREE, FERRULE_RUBOCOP)");
+        return;
+    };
+    let (identical, differing) = compare(&oracle, &files, IMAGEKIT_KNOWN);
+    eprintln!("imagekit-ruby: {identical}/{} generated files identical", files.len());
+    assert!(differing.is_empty(), "differ from the oracle: {differing:#?}");
+    assert_eq!(identical + IMAGEKIT_KNOWN.len(), files.len());
 }
