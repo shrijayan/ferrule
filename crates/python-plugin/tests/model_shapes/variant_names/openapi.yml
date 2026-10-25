@@ -1,0 +1,52 @@
+openapi: 3.0.0
+info: {title: fx, version: '1'}
+servers: [{url: 'https://api.example.com'}]
+
+paths:
+  /templates/{key}:
+    get:
+      operationId: getTemplate
+      summary: Gets a template.
+      parameters:
+        - {name: key, in: path, required: true, schema: {type: string}}
+      responses:
+        '200': {description: ok, content: {application/json: {schema: {$ref: '#/components/schemas/EmailTemplate'}}}}
+components:
+  schemas:
+    EmailTemplate:
+      description: An email message template.
+      type: object
+      properties:
+        visual_blocks:
+          anyOf:
+            - $ref: '#/components/schemas/EmailVisualBlocks'
+            - {nullable: true, x-struct: null, x-validate: null}
+          description: The visual blocks that make up the email template.
+          type: object
+    EmailVisualBlocks:
+      description: The visual blocks that make up the email template.
+      type: array
+      items:
+        anyOf:
+          - $ref: '#/components/schemas/EmailDividerBlock'
+          - $ref: '#/components/schemas/EmailHtmlBlock'
+        type: object
+    EmailDividerBlock:
+      description: A divider block in an email template.
+      type: object
+      required: [type]
+      properties:
+        type: {description: The type of the block., enum: [divider], type: string}
+    EmailHtmlBlock:
+      description: An HTML block in an email template.
+      type: object
+      required: [content, type]
+      properties:
+        content: {description: The HTML content of the block., type: string}
+        layout_attrs:
+          description: The layout attributes of the block.
+          type: object
+          required: [padding_top]
+          properties:
+            padding_top: {description: The padding_top layout attribute of the block., type: integer}
+        type: {description: The type of the block., enum: [html], type: string}
