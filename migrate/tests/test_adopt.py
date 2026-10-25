@@ -174,6 +174,22 @@ def test_adopt_end_to_end(repo: Path, tools: Tools) -> None:
     assert result.against == sh(repo, "rev-parse", "HEAD~1")
 
 
+def test_adopt_keeps_a_hand_edit_a_later_stainless_commit_carried(repo: Path, tools: Tools) -> None:
+    # Stainless merges custom code into every later generation, so the last bot commit already
+    # holds the edit and diffing from it finds nothing. Reduced from isaacus-python 0.22.0:
+    # Span.decode, added by a maintainer in bc41468, carried by the bot from 75d28d4 on.
+    carried = BASE_FOO.replace("line2", "bot2").replace("line8", "custom8")
+    write(repo / "src/acme/resources/foo.py", carried)
+    commit(repo, "codegen", "stainless-app[bot] <bot@stainless.example>")
+    runner = fake_runner(BASE_FOO.replace("line1", "gen1").replace("line2", "bot2"))
+    result = adopt(AdoptRequest(repo, tools), runner=runner, fetch=fetch, env=ENV)
+    assert result.patches == ["0001-src-acme-resources-foo-py.patch"]
+    foo = show(repo, "src/acme/resources/foo.py")
+    assert foo == BASE_FOO.replace("line1", "gen1").replace("line2", "bot2").replace(
+        "line8", "custom8"
+    ).rstrip("\n")
+
+
 def test_adopt_dry_run(repo: Path, tools: Tools) -> None:
     result, _ = run_adopt(repo, tools, dry_run=True)
     assert result.branch is None
