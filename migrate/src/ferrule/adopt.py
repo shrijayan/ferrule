@@ -28,11 +28,14 @@ from ferrule import __version__
 from ferrule.errors import MISSING_INPUT, SYMLINK_REFUSED, fail
 from ferrule.generate import (
     GenerateRequest,
+    GenVersion,
     Runner,
     RuntimeRenderer,
     Tools,
     ensure_inside,
+    gen_version,
     generate,
+    is_generate_step,
     relative_files,
     run_subprocess,
 )
@@ -268,12 +271,12 @@ def _check_repo(git: Git) -> None:
         )
 
 
-def _recording(runner: Runner, seen: list[PurePosixPath]) -> Runner:
-    """Wrap ``runner`` to note the files Forge wrote (the generator's paths)."""
+def _recording(runner: Runner, tools: Tools, seen: list[PurePosixPath]) -> Runner:
+    """Wrap ``runner`` to note the files ``ferrule-gen generate`` wrote (the generator's paths)."""
 
     def run(argv: Sequence[str]) -> subprocess.CompletedProcess[str]:
         proc = runner(argv)
-        if "--target" in argv and proc.returncode == 0:
+        if is_generate_step(argv, tools) and proc.returncode == 0:
             seen[:] = relative_files(Path(argv[argv.index("--out") + 1]))
         return proc
 
@@ -294,16 +297,9 @@ def hand_edits(git: Git, base: str, paths: Iterable[PurePosixPath]) -> list[tupl
     return patches
 
 
-def forge_commit(tools: Tools, env: Mapping[str, str]) -> str:
-    """Return ``$FERRULE_FORGE_COMMIT``, else the commit of the checkout Forge was built in."""
-    if env.get("FERRULE_FORGE_COMMIT"):
-        return env["FERRULE_FORGE_COMMIT"]
-    checkout = tools.forge.resolve().parents[2]
-    if (checkout / ".git").exists():
-        proc = Git(checkout, env).run("rev-parse", "HEAD", check=False)
-        if proc.returncode == 0:
-            return proc.stdout.strip()
-    return "unknown"
+def forge_commit(version: GenVersion, env: Mapping[str, str]) -> str:
+    """Return ``$FERRULE_FORGE_COMMIT``, else the Forge rev ``ferrule-gen --version`` names."""
+    return env.get("FERRULE_FORGE_COMMIT") or version.forge
 
 
 def _write(root: Path, rel: PurePosixPath, data: bytes) -> None:
@@ -393,14 +389,14 @@ def adopt(  # noqa: PLR0913 - every collaborator is injectable for tests
         out = tmp / "out"
         result = generate(
             GenerateRequest(spec_file, config_file, out, request.tools, runtime_from=repo),
-            runner=_recording(runner, seen),
+            runner=_recording(runner, request.tools, seen),
             renderer=renderer,
         )
         say("✓ copied runtime from your repo (you own it)")
         generated = [p for p in seen if not is_protected(p, keep)]
         patches = hand_edits(git, base, generated)
         say(f"✓ found {len(patches)} hand edits → {PATCH_DIR}/")
-        say("✓ generated via forge + ferrule-python")
+        say("✓ generated via ferrule-gen (forge + ferrule-python)")
         adopted = AdoptResult(
             repo=repo,
             base=base,
@@ -411,10 +407,11 @@ def adopt(  # noqa: PLR0913 - every collaborator is injectable for tests
         )
         if request.dry_run:
             return adopted
+        version = gen_version(request.tools, runner)
         lock = Lock(
             ferrule_version=__version__,
-            forge_commit=forge_commit(request.tools, env),
-            plugin_sha256=sha256_file(request.tools.plugin),
+            forge_commit=forge_commit(version, env),
+            generator=version.generator,
             spec_sha256=sha256_bytes(inputs.spec_data),
             config_sha256=sha256_bytes(inputs.config_text.encode()),
             files={str(p): sha256_file(out / p) for p in generated},
