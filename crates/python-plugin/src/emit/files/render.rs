@@ -1,11 +1,17 @@
 //! The template language of the project files: `%%NAME%%` is replaced by `vars[NAME]`, and a line
 //! starting with `%%isort%%` is a one-line `from x import a, b` whose names are re-sorted the way
 //! the oracle's ruff isort config (`length-sort = true`) orders them once the tokens are filled.
+//!
+//! Lines `%%if NAME%%` (or `%%if !NAME%%`), `%%else%%` and `%%end%%` keep or drop the lines between
+//! them by whether `vars[NAME]` is non-empty; they nest. A line starting with `%%wrap%%` (or
+//! `%%wrapmd%%`) is one Python statement laid out by [`super::layout`] within 120 columns (the
+//! SDK's ruff `line-length`; 88 for README examples, ruff's default) once the tokens are filled.
 
 use std::cmp::Ordering;
 use std::collections::BTreeMap;
 use std::fmt;
 
+use super::layout::layout;
 use crate::js;
 
 /// Token name -> value.
@@ -18,6 +24,8 @@ pub enum RenderError {
     UnknownToken(String),
     /// A `%%isort%%` line that is not `from <module> import <names>`.
     NotAnImport(String),
+    /// An `%%else%%` or `%%end%%` without its `%%if%%`, or an `%%if%%` without its `%%end%%`.
+    Unbalanced(String),
 }
 
 impl fmt::Display for RenderError {
@@ -27,6 +35,7 @@ impl fmt::Display for RenderError {
             Self::NotAnImport(line) => {
                 write!(f, "%%isort%% on a line that is not a one-line import: {line}")
             }
+            Self::Unbalanced(line) => write!(f, "unbalanced conditional at: {line}"),
         }
     }
 }
@@ -82,20 +91,62 @@ fn token_at(s: &str) -> Option<(&str, usize)> {
     (n > 0 && rest[n..].starts_with("%%")).then(|| (&rest[..n], n + 4))
 }
 
+/// Line markers kept through token substitution and acted on afterwards.
+const MARKERS: [&str; 3] = ["isort", "wrap", "wrapmd"];
+
+fn flag(vars: &BTreeMap<&str, String>, name: &str, line: &str) -> Result<bool, RenderError> {
+    let (negated, name) = name.strip_prefix('!').map_or((false, name), |n| (true, n));
+    let value = vars
+        .get(name)
+        .ok_or_else(|| RenderError::UnknownToken(line.to_owned()))?;
+    Ok(value.is_empty() == negated)
+}
+
+/// `template` without the lines its conditionals drop, nor the conditional lines themselves.
+fn select(template: &str, vars: &BTreeMap<&str, String>) -> Result<String, RenderError> {
+    let mut out = String::with_capacity(template.len());
+    // Per open `%%if%%`: (whether its condition holds, whether the enclosing lines are kept).
+    let mut open: Vec<(bool, bool)> = Vec::new();
+    let mut keep = true;
+    for line in template.split_inclusive('\n') {
+        let body = line.trim_end_matches('\n');
+        if let Some(name) = body.strip_prefix("%%if ").and_then(|r| r.strip_suffix("%%")) {
+            let holds = flag(vars, name, body)?;
+            open.push((holds, keep));
+            keep = keep && holds;
+        } else if body == "%%else%%" {
+            let &(holds, outer) = open.last().ok_or_else(|| RenderError::Unbalanced(body.to_owned()))?;
+            keep = outer && !holds;
+        } else if body == "%%end%%" {
+            let (_, outer) = open.pop().ok_or_else(|| RenderError::Unbalanced(body.to_owned()))?;
+            keep = outer;
+        } else if keep {
+            out.push_str(line);
+        }
+    }
+    if open.is_empty() {
+        Ok(out)
+    } else {
+        Err(RenderError::Unbalanced("end of template".to_owned()))
+    }
+}
+
 /// Fills `template` with `vars`.
 ///
 /// # Errors
 ///
-/// A token without a value, or a `%%isort%%` line that is not a one-line import.
+/// A token without a value, a `%%isort%%` line that is not a one-line import, or an unbalanced
+/// conditional.
 pub fn render(template: &str, vars: &BTreeMap<&str, String>) -> Result<String, RenderError> {
-    let mut filled = String::with_capacity(template.len());
-    let mut rest = template;
+    let selected = select(template, vars)?;
+    let mut filled = String::with_capacity(selected.len());
+    let mut rest = selected.as_str();
     while let Some(at) = rest.find("%%") {
         filled.push_str(&rest[..at]);
         rest = &rest[at..];
         if let Some((name, n)) = token_at(rest) {
             let token = &rest[..n];
-            if name == "isort" {
+            if MARKERS.contains(&name) {
                 filled.push_str(token);
             } else {
                 let value = vars
@@ -118,9 +169,14 @@ pub fn render(template: &str, vars: &BTreeMap<&str, String>) -> Result<String, R
         let body = segment.trim_end_matches(js::is_line_terminator);
         // `split_inclusive` keeps at most one terminator per segment.
         let terminator = &segment[body.len()..];
-        match body.strip_prefix("%%isort%%") {
-            Some(line) => out.push_str(&sort_import_line(line)?),
-            None => out.push_str(body),
+        if let Some(line) = body.strip_prefix("%%isort%%") {
+            out.push_str(&sort_import_line(line)?);
+        } else if let Some(line) = body.strip_prefix("%%wrapmd%%") {
+            out.push_str(&layout(line, 88));
+        } else if let Some(line) = body.strip_prefix("%%wrap%%") {
+            out.push_str(&layout(line, 120));
+        } else {
+            out.push_str(body);
         }
         out.push_str(terminator);
     }
@@ -149,6 +205,32 @@ mod tests {
         assert_eq!(
             render("%%isort%%from m import", &vars),
             Err(RenderError::NotAnImport("from m import".to_owned()))
+        );
+    }
+
+    #[test]
+    fn keeps_the_lines_of_true_conditions() {
+        let vars = TemplateVars::from([("A", "1".to_owned()), ("B", String::new())]);
+        let t = "x\n%%if A%%\na\n%%if B%%\nab\n%%else%%\nanb\n%%end%%\n%%end%%\n%%if !A%%\nna\n%%end%%\ny\n";
+        assert_eq!(render(t, &vars), Ok("x\na\nanb\ny\n".to_owned()));
+        assert!(matches!(render("%%end%%\n", &vars), Err(RenderError::Unbalanced(_))));
+        assert!(matches!(render("%%if A%%\n", &vars), Err(RenderError::Unbalanced(_))));
+        assert!(matches!(
+            render("%%if C%%\n%%end%%\n", &vars),
+            Err(RenderError::UnknownToken(_))
+        ));
+    }
+
+    #[test]
+    fn lays_out_wrap_lines() {
+        let vars = TemplateVars::from([("C", "Client".to_owned())]);
+        assert_eq!(
+            render("%%wrap%%x = %%C%%(a)\n", &vars),
+            Ok("x = Client(a)\n".to_owned())
+        );
+        assert_eq!(
+            render("%%wrapmd%%x = f(a,)\n", &vars),
+            Ok("x = f(\n    a,\n)\n".to_owned())
         );
     }
 

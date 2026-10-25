@@ -4,6 +4,7 @@
 pub mod api_md;
 pub mod api_tests;
 pub mod input;
+pub mod layout;
 pub mod render;
 pub mod templates;
 
