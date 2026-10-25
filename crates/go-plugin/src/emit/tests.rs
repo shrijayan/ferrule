@@ -6,6 +6,7 @@ use std::fmt::Write as _;
 
 use ferrule_sdk_model::model::{ClientOpt, Field, Method, OptType, Scalar, Type};
 
+use super::pagination::page_of;
 use super::resource::params_decls;
 use super::{Gen, Service, method_order, params_arg};
 use crate::naming::{exported, local, singular, split_words, words};
@@ -246,7 +247,12 @@ pub fn usage_test_file(g: &Gen<'_>) -> Option<(String, String)> {
     m.response.as_ref()?;
     let mut ctx = g.ctx(Pkg::Root);
     test_imports(g, &mut ctx);
-    let var = local(&singular(&split_words(&s.resource.name.written)), g.casings);
+    // A page is logged as `page` (knock-mgmt-go).
+    let var = if page_of(g, m).is_some() {
+        "page".to_owned()
+    } else {
+        local(&singular(&split_words(&s.resource.name.written)), g.casings)
+    };
     let (call, _) = call(g, s, m, "context.TODO()", &mut ctx);
     let body = format!(
         "func TestUsage(t *testing.T) {{\n{PREAMBLE}{}\t{var}, err := {call}\n\tif err != nil {{\n\t\tt.Error(err)\n\t\treturn\n\t}}\n\tt.Logf(\"%+v\\n\", {var})\n}}\n",
@@ -257,6 +263,55 @@ pub fn usage_test_file(g: &Gen<'_>) -> Option<(String, String)> {
         "usage_test.go".to_owned(),
         go_file(&format!("{}_test", g.target.package_name), &imports, &body),
     ))
+}
+
+/// `paginationauto_test.go` and `paginationmanual_test.go`: the README's pagination example
+/// (`meta.pagination_example`, else the first paginated method without path params or required
+/// params) against the mock server, logging each item's `ID`. Not emitted when the items have
+/// no `id` (what the oracles log then is unverified for v1).
+#[must_use]
+pub fn pagination_test_files(g: &Gen<'_>) -> Vec<(String, String)> {
+    let Some((s, m, page)) = g.pagination_example() else {
+        return Vec::new();
+    };
+    let Some(item) = m.pagination.as_ref().and_then(|p| g.client.object_of(&p.item)) else {
+        return Vec::new();
+    };
+    let Some(id) = item.fields.iter().find(|f| f.wire_name == "id") else {
+        return Vec::new();
+    };
+    let field = exported(&words(&id.name), g.casings);
+    let pkg = &g.target.package_name;
+    let var = local(&singular(&split_words(&s.resource.name.written)), g.casings);
+    let mut args = String::from("context.TODO()");
+    if params_arg(g.client, m).is_some() {
+        let _ = write!(args, ", {pkg}.{}{}Params{{}}", s.prefix, g.method_name(m));
+    }
+    let target = format!("{}.{}", s.accessor, g.method_name(m));
+    let mock = "// The mock server isn't going to give us real pagination";
+    let fatal = "t.Fatalf(\"err should be nil: %s\", err.Error())";
+    let auto = format!(
+        "func TestAutoPagination(t *testing.T) {{\n{PREAMBLE}{}\titer := {target}AutoPaging({args})\n\t{mock}\n\
+         \tfor i := 0; i < 3 && iter.Next(); i++ {{\n\t\t{var} := iter.Current()\n\t\tt.Logf(\"%+v\\n\", {var}.{field})\n\t}}\n\
+         \tif err := iter.Err(); err != nil {{\n\t\t{fatal}\n\t}}\n}}\n",
+        new_client(g)
+    );
+    let items = &page.items;
+    let manual = format!(
+        "func TestManualPagination(t *testing.T) {{\n{PREAMBLE}{}\tpage, err := {target}({args})\n\tif err != nil {{\n\t\t{fatal}\n\t}}\n\
+         \tfor _, {var} := range page.{items} {{\n\t\tt.Logf(\"%+v\\n\", {var}.{field})\n\t}}\n\t{mock}\n\
+         \tpage, err = page.GetNextPage()\n\tif err != nil {{\n\t\t{fatal}\n\t}}\n\tif page != nil {{\n\
+         \t\tfor _, {var} := range page.{items} {{\n\t\t\tt.Logf(\"%+v\\n\", {var}.{field})\n\t\t}}\n\t}}\n}}\n",
+        new_client(g)
+    );
+    let mut ctx = g.ctx(Pkg::Root);
+    test_imports(g, &mut ctx);
+    let imports: Vec<String> = ctx.imports.into_iter().collect();
+    let file = |body: &str| go_file(&format!("{pkg}_test"), &imports, body);
+    vec![
+        ("paginationauto_test.go".to_owned(), file(&auto)),
+        ("paginationmanual_test.go".to_owned(), file(&manual)),
+    ]
 }
 
 /// `client_test.go`, calling the README example method.

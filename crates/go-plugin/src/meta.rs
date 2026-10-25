@@ -20,6 +20,9 @@ pub struct GoMeta {
     /// the README, `usage_test.go` and `client_test.go` call. Defaults to the first method without
     /// required parameters.
     pub example: Option<(Vec<String>, String)>,
+    /// `readme.example_requests.pagination`, as for `example`: the method the pagination tests
+    /// call. Defaults to the first paginated method without path params or required params.
+    pub pagination_example: Option<(Vec<String>, String)>,
 }
 
 /// The Go settings of one SDK.
@@ -29,6 +32,7 @@ pub struct GoTarget {
     pub package_name: String,
     pub version: String,
     pub example: Option<(Vec<String>, String)>,
+    pub pagination_example: Option<(Vec<String>, String)>,
 }
 
 fn is_identifier(s: &str) -> bool {
@@ -74,5 +78,6 @@ pub fn go_target(client: &Client, meta: &GoMeta) -> Result<GoTarget, FerruleErro
         package_name,
         version: meta.version.clone().unwrap_or_else(|| "0.0.1".to_owned()),
         example: meta.example.clone(),
+        pagination_example: meta.pagination_example.clone(),
     })
 }

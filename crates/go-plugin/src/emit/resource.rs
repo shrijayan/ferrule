@@ -6,6 +6,7 @@ use std::fmt::Write as _;
 use ferrule_sdk_model::model::{Field, HttpMethod, Method, Object, Type};
 
 use super::decls::print_decls;
+use super::pagination::page_of;
 use super::{Gen, Service, body_fields, method_order, params_arg};
 use crate::naming::exported;
 use crate::printer::{ALIGN, comment, go_file};
@@ -16,14 +17,28 @@ pub enum Returns {
     None,
     /// `*T`.
     Pointer(String),
+    /// `*pagination.<page>[<item>]`, with a `<Method>AutoPaging` twin.
+    Page {
+        page: String,
+        item: String,
+    },
 }
 
-/// The Go return type of `m` and the declarations it introduces.
+/// The Go return type of `m` and the declarations it introduces. A page's item type takes the
+/// response's name (`UserFeedListItemsResponse` in knock-go).
 pub fn returns(g: &Gen<'_>, s: &Service<'_>, m: &Method, ctx: &mut Ctx<'_>) -> (Returns, Vec<Decl>) {
     let Some(resp) = &m.response else {
         return (Returns::None, Vec::new());
     };
     let name = format!("{}{}Response", s.prefix, g.method_name(m));
+    if let (Some(page), Some(p)) = (page_of(g, m), &m.pagination) {
+        let mapped = map_type(&p.item, &Position::exact(&name), "", Mode::Response, ctx);
+        let returns = Returns::Page {
+            page: page.name,
+            item: mapped.ty,
+        };
+        return (returns, mapped.decls);
+    }
     let mapped = map_type(&resp.ty, &Position::exact(&name), "", Mode::Response, ctx);
     (Returns::Pointer(mapped.ty), mapped.decls)
 }
@@ -72,6 +87,34 @@ pub fn method_doc(m: &Method) -> &str {
     }
 }
 
+/// `path := ...`: the path as a literal, or `fmt.Sprintf` over the path params.
+fn path_line(m: &Method, path_params: &[(String, &'static str)], ctx: &mut Ctx<'_>) -> String {
+    let template = m.path.trim_start_matches('/');
+    if path_params.is_empty() {
+        return format!("\tpath := {}\n", crate::printer::quote(template));
+    }
+    ctx.import("fmt");
+    let mut fmt_path = String::new();
+    let mut tail = template;
+    let mut names = Vec::new();
+    while let Some(start) = tail.find('{') {
+        let Some(end) = tail[start..].find('}') else { break };
+        fmt_path.push_str(&tail[..start]);
+        let wire = &tail[start + 1..start + end];
+        let idx = m.path_params.iter().position(|p| p.field.wire_name == wire);
+        let verb = idx.map_or("%s", |i| if path_params[i].1 == "string" { "%s" } else { "%v" });
+        fmt_path.push_str(verb);
+        names.push(idx.map_or_else(|| wire.to_owned(), |i| path_params[i].0.clone()));
+        tail = &tail[start + end + 1..];
+    }
+    fmt_path.push_str(tail);
+    format!(
+        "\tpath := fmt.Sprintf({}, {})\n",
+        crate::printer::quote(&fmt_path),
+        names.join(", ")
+    )
+}
+
 fn method(out: &mut String, g: &Gen<'_>, s: &Service<'_>, m: &Method, ret: &Returns, ctx: &mut Ctx<'_>) {
     ctx.import("context");
     ctx.import("net/http");
@@ -89,11 +132,24 @@ fn method(out: &mut String, g: &Gen<'_>, s: &Service<'_>, m: &Method, ret: &Retu
     args.push("opts ...option.RequestOption".to_owned());
     let (results, ok_return, err_return) = match ret {
         Returns::Pointer(t) => (format!("(res *{t}, err error)"), "return res, err", "return nil, err"),
+        Returns::Page { page, item } => {
+            ctx.import_module("packages/pagination");
+            (
+                format!("(res *pagination.{page}[{item}], err error)"),
+                "return res, nil",
+                "return nil, err",
+            )
+        }
         Returns::None => ("(err error)".to_owned(), "return err", "return err"),
     };
     comment(out, 0, method_doc(m));
     let _ = writeln!(out, "func (r *{}) {name}({}) {results} {{", s.service, args.join(", "));
-    out.push_str("\topts = slices.Concat(r.Options, opts)\n");
+    if matches!(ret, Returns::Page { .. }) {
+        out.push_str("\tvar raw *http.Response\n\topts = slices.Concat(r.Options, opts)\n");
+        out.push_str("\topts = append([]option.RequestOption{option.WithResponseInto(&raw)}, opts...)\n");
+    } else {
+        out.push_str("\topts = slices.Concat(r.Options, opts)\n");
+    }
     if matches!(ret, Returns::None) {
         out.push_str("\topts = append([]option.RequestOption{option.WithHeader(\"Accept\", \"\")}, opts...)\n");
     }
@@ -108,40 +164,38 @@ fn method(out: &mut String, g: &Gen<'_>, s: &Service<'_>, m: &Method, ret: &Retu
             );
         }
     }
-    let template = m.path.trim_start_matches('/');
-    if path_params.is_empty() {
-        let _ = writeln!(out, "\tpath := {}", crate::printer::quote(template));
-    } else {
-        ctx.import("fmt");
-        let mut fmt_path = String::new();
-        let mut tail = template;
-        let mut names = Vec::new();
-        while let Some(start) = tail.find('{') {
-            let Some(end) = tail[start..].find('}') else { break };
-            fmt_path.push_str(&tail[..start]);
-            let wire = &tail[start + 1..start + end];
-            let idx = m.path_params.iter().position(|p| p.field.wire_name == wire);
-            let verb = idx.map_or("%s", |i| if path_params[i].1 == "string" { "%s" } else { "%v" });
-            fmt_path.push_str(verb);
-            names.push(idx.map_or_else(|| wire.to_owned(), |i| path_params[i].0.clone()));
-            tail = &tail[start + end + 1..];
-        }
-        fmt_path.push_str(tail);
+    out.push_str(&path_line(m, &path_params, ctx));
+    let res = if matches!(ret, Returns::None) { "nil" } else { "&res" };
+    let verb = http_method(m.http_method);
+    let params = arg.unwrap_or("nil");
+    let Returns::Page { page, item } = ret else {
         let _ = writeln!(
             out,
-            "\tpath := fmt.Sprintf({}, {})",
-            crate::printer::quote(&fmt_path),
-            names.join(", ")
+            "\terr = requestconfig.ExecuteNewRequest(ctx, {verb}, path, {params}, {res}, opts...)"
         );
-    }
-    let res = if matches!(ret, Returns::None) { "nil" } else { "&res" };
-    let _ = writeln!(
+        let _ = write!(out, "\t{ok_return}\n}}\n\n");
+        return;
+    };
+    let _ = write!(
         out,
-        "\terr = requestconfig.ExecuteNewRequest(ctx, {}, path, {}, {res}, opts...)",
-        http_method(m.http_method),
-        arg.unwrap_or("nil")
+        "\tcfg, err := requestconfig.NewRequestConfig(ctx, {verb}, path, {params}, &res, opts...)\n\
+         \tif err != nil {{\n\t\t{err_return}\n\t}}\n\terr = cfg.Execute()\n\tif err != nil {{\n\t\t{err_return}\n\t}}\n\
+         \tres.SetPageConfig(cfg, raw)\n\t{ok_return}\n}}\n\n"
     );
-    let _ = write!(out, "\t{ok_return}\n}}\n\n");
+    // The auto-pager: the same arguments, passed on.
+    let mut call = vec!["ctx".to_owned()];
+    call.extend(path_params.iter().map(|(n, _)| n.clone()));
+    call.extend(arg.map(str::to_owned));
+    call.push("opts...".to_owned());
+    comment(out, 0, method_doc(m));
+    let _ = write!(
+        out,
+        "func (r *{}) {name}AutoPaging({}) *pagination.{page}AutoPager[{item}] {{\n\
+         \treturn pagination.New{page}AutoPager(r.{name}({}))\n}}\n\n",
+        s.service,
+        args.join(", "),
+        call.join(", ")
+    );
 }
 
 /// The service struct and its constructor.

@@ -45,11 +45,13 @@ fn section(out: &mut String, g: &Gen<'_>, s: &Service<'_>) {
     let mut rets = Vec::new();
     for m in &methods {
         let (ret, _) = returns(g, s, m, &mut ctx);
-        if let Some(resp) = &m.response
-            && !matches!(resp.ty, Type::Ref(_))
-            && let Returns::Pointer(t) = &ret
-            && !t.contains('.')
-        {
+        // A named model is listed with the models; a page's item type is listed as a response.
+        let inline = match (&ret, &m.pagination) {
+            (Returns::Page { item, .. }, Some(p)) => (!matches!(p.item, Type::Ref(_))).then_some(item),
+            (Returns::Pointer(t), _) => m.response.as_ref().filter(|r| !matches!(r.ty, Type::Ref(_))).map(|_| t),
+            _ => None,
+        };
+        if let Some(t) = inline.filter(|t| !t.contains('.')) {
             types.push(t.trim_start_matches("[]").to_owned());
         }
         rets.push(ret);
@@ -77,6 +79,12 @@ fn section(out: &mut String, g: &Gen<'_>, s: &Service<'_>) {
         }
         let results = match ret {
             Returns::Pointer(t) => format!("(\\*{}, {})", type_link(g, t), builtin("error")),
+            Returns::Page { page, item } => format!(
+                "(\\*{}[{}], {})",
+                link(module, "pagination", Some("packages/pagination"), page),
+                type_link(g, item),
+                builtin("error")
+            ),
             Returns::None => builtin("error"),
         };
         let _ = writeln!(
