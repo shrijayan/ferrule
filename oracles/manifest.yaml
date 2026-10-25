@@ -1,7 +1,8 @@
 # Tier 0 oracles (plan §4, §13). Each sdk repo is pinned at its last Stainless-generated commit
 # (or, when paired with a public config, the newest one generated from that config). Each config
 # repo is pinned at the commit paired with its sdk by md5 ("proven") or by date ("nearest"),
-# per ADR 0009.
+# per ADR 0009. An sdk entry without "language" is the Python SDK, whose pairing is recorded on
+# its config; every other language's SDK names its config in pairs_with and carries "paired".
 #
 # Format: leading `#` comment lines, then a single JSON document. JSON is valid YAML 1.2, so this
 # is a YAML file, but fetch.py reads it with the stdlib json module (no PyYAML). Keep it that way.
@@ -50,6 +51,118 @@
       },
       "verify_md5": {},
       "notes": "Later commits (from c91ec677 'feat: initial stlc build', 2026-08-11) are produced by a different generator."
+    },
+    {
+      "name": "onebusaway-typescript",
+      "group": "onebusaway",
+      "kind": "sdk",
+      "language": "typescript",
+      "layout": "node",
+      "repo": "OneBusAway/js-sdk",
+      "url": "https://github.com/OneBusAway/js-sdk.git",
+      "sha": "f3ca3f47613e2522ead33f4398984cdb47423622",
+      "commit_date": "2026-07-18T11:35:37Z",
+      "commit_message": "release: 1.20.0",
+      "pairs_with": "onebusaway-config",
+      "paired": "proven",
+      "license": "Apache-2.0",
+      "stats": {
+        "configured_endpoints": 30,
+        "openapi_spec_url": "https://storage.googleapis.com/stainless-sdk-openapi-specs/open-transit/open-transit-da4eecc88401fd486b0b8ac2a7b3f442748713e3128d878c7f3e24ea7f65f31d.yml",
+        "openapi_spec_hash": "8df6b1871782bcd2bd8fb1fb2bbc2694",
+        "config_hash": "c28ddf5b7754155603d9fd1c5fcaeeff"
+      },
+      "verify_md5": {},
+      "notes": "Proven: .stats.yml config_hash c28ddf5b... = md5(stainless-config.yml) and openapi_spec_hash 8df6b187... = md5(openapi.yml) at onebusaway-config 27cdbb11. Newest stainless-app[bot] commit on main with this .stats.yml. `node` target: legacy layout (src/core.ts, src/_shims). Same release day as onebusaway-python 1.30.0. Later main commits come from stlc ('feat: initial stlc build')."
+    },
+    {
+      "name": "onebusaway-go",
+      "group": "onebusaway",
+      "kind": "sdk",
+      "language": "go",
+      "layout": "v1",
+      "repo": "OneBusAway/go-sdk",
+      "url": "https://github.com/OneBusAway/go-sdk.git",
+      "sha": "d115209ec6337f8d7ee52ad0cc8866a0005d6e65",
+      "commit_date": "2026-07-18T02:13:17Z",
+      "commit_message": "release: 1.15.0",
+      "pairs_with": "onebusaway-config",
+      "paired": "proven",
+      "license": "Apache-2.0",
+      "stats": {
+        "configured_endpoints": 30,
+        "openapi_spec_url": "https://storage.googleapis.com/stainless-sdk-openapi-specs/open-transit/open-transit-da4eecc88401fd486b0b8ac2a7b3f442748713e3128d878c7f3e24ea7f65f31d.yml",
+        "openapi_spec_hash": "8df6b1871782bcd2bd8fb1fb2bbc2694",
+        "config_hash": "c28ddf5b7754155603d9fd1c5fcaeeff"
+      },
+      "verify_md5": {},
+      "notes": "Proven: .stats.yml config_hash c28ddf5b... = md5(stainless-config.yml) and openapi_spec_hash 8df6b187... = md5(openapi.yml) at onebusaway-config 27cdbb11. Newest stainless-app[bot] commit on main with this .stats.yml. Same release day as onebusaway-python 1.30.0. Later main commits come from stlc ('feat: initial stlc build')."
+    },
+    {
+      "name": "onebusaway-java",
+      "group": "onebusaway",
+      "kind": "sdk",
+      "language": "java",
+      "repo": "OneBusAway/java-sdk",
+      "url": "https://github.com/OneBusAway/java-sdk.git",
+      "sha": "c29c48ad95f08e9a6042bfb4b620bb93b7a5f0ab",
+      "commit_date": "2026-08-04T02:09:44Z",
+      "commit_message": "release: 0.1.0-alpha.60",
+      "pairs_with": "onebusaway-config",
+      "paired": "proven",
+      "license": "Apache-2.0",
+      "stats": {
+        "configured_endpoints": 30,
+        "openapi_spec_url": "https://storage.googleapis.com/stainless-sdk-openapi-specs/open-transit/open-transit-da4eecc88401fd486b0b8ac2a7b3f442748713e3128d878c7f3e24ea7f65f31d.yml",
+        "openapi_spec_hash": "8df6b1871782bcd2bd8fb1fb2bbc2694",
+        "config_hash": "c28ddf5b7754155603d9fd1c5fcaeeff"
+      },
+      "verify_md5": {},
+      "notes": "Proven: .stats.yml config_hash c28ddf5b... = md5(stainless-config.yml) and openapi_spec_hash 8df6b187... = md5(openapi.yml) at onebusaway-config 27cdbb11. Newest stainless-app[bot] commit on main with this .stats.yml. alpha.59 (827099e8, 2026-07-18) is the same generation as onebusaway-python 1.30.0; alpha.60 regenerated from the same config and spec. Later main commits come from stlc ('feat: initial stlc build')."
+    },
+    {
+      "name": "onebusaway-kotlin",
+      "group": "onebusaway",
+      "kind": "sdk",
+      "language": "kotlin",
+      "repo": "OneBusAway/kotlin-sdk",
+      "url": "https://github.com/OneBusAway/kotlin-sdk.git",
+      "sha": "6923446778f92f8867c591064019eec24c685c1d",
+      "commit_date": "2026-07-18T02:13:27Z",
+      "commit_message": "release: 0.1.0-alpha.81",
+      "pairs_with": "onebusaway-config",
+      "paired": "proven",
+      "license": "Apache-2.0",
+      "stats": {
+        "configured_endpoints": 30,
+        "openapi_spec_url": "https://storage.googleapis.com/stainless-sdk-openapi-specs/open-transit/open-transit-da4eecc88401fd486b0b8ac2a7b3f442748713e3128d878c7f3e24ea7f65f31d.yml",
+        "openapi_spec_hash": "8df6b1871782bcd2bd8fb1fb2bbc2694",
+        "config_hash": "c28ddf5b7754155603d9fd1c5fcaeeff"
+      },
+      "verify_md5": {},
+      "notes": "Proven: .stats.yml config_hash c28ddf5b... = md5(stainless-config.yml) and openapi_spec_hash 8df6b187... = md5(openapi.yml) at onebusaway-config 27cdbb11. Newest stainless-app[bot] commit on main with this .stats.yml. Same release day as onebusaway-python 1.30.0. Later main commits come from stlc ('feat: initial stlc build')."
+    },
+    {
+      "name": "onebusaway-ruby",
+      "group": "onebusaway",
+      "kind": "sdk",
+      "language": "ruby",
+      "repo": "OneBusAway/ruby-sdk",
+      "url": "https://github.com/OneBusAway/ruby-sdk.git",
+      "sha": "46a574ddc6992a697077a1463a5abf0432774f09",
+      "commit_date": "2026-07-18T02:13:46Z",
+      "commit_message": "release: 1.12.0",
+      "pairs_with": "onebusaway-config",
+      "paired": "proven",
+      "license": "Apache-2.0",
+      "stats": {
+        "configured_endpoints": 30,
+        "openapi_spec_url": "https://storage.googleapis.com/stainless-sdk-openapi-specs/open-transit/open-transit-da4eecc88401fd486b0b8ac2a7b3f442748713e3128d878c7f3e24ea7f65f31d.yml",
+        "openapi_spec_hash": "8df6b1871782bcd2bd8fb1fb2bbc2694",
+        "config_hash": "c28ddf5b7754155603d9fd1c5fcaeeff"
+      },
+      "verify_md5": {},
+      "notes": "Proven: .stats.yml config_hash c28ddf5b... = md5(stainless-config.yml) and openapi_spec_hash 8df6b187... = md5(openapi.yml) at onebusaway-config 27cdbb11. Newest stainless-app[bot] commit on main with this .stats.yml. Same release day as onebusaway-python 1.30.0. Later main commits come from stlc ('feat: initial stlc build')."
     },
     {
       "name": "groq-python",
@@ -154,6 +267,29 @@
       "notes": "sst/opencode-sdk-python redirects here (GitHub reports anomalyco/opencode-sdk-python as the canonical name). HEAD is still this Stainless commit."
     },
     {
+      "name": "opencode-go",
+      "group": "opencode",
+      "kind": "sdk",
+      "language": "go",
+      "layout": "v1",
+      "repo": "anomalyco/opencode-sdk-go",
+      "url": "https://github.com/anomalyco/opencode-sdk-go.git",
+      "sha": "6a22ce6df155f5003e80b8a75686a9e513a5568a",
+      "commit_date": "2025-08-29T02:37:30Z",
+      "commit_message": "chore(internal): codegen related update",
+      "pairs_with": "opencode-config",
+      "paired": "proven",
+      "license": "MIT",
+      "stats": {
+        "configured_endpoints": 26,
+        "openapi_spec_url": "https://storage.googleapis.com/stainless-sdk-openapi-specs/opencode%2Fopencode-62d8fccba4eb8dc3a80434e0849eab3352e49fb96a718bb7b6d17ed8e582b716.yml",
+        "openapi_spec_hash": "4ff9376cf9634e91731e63fe482ea532",
+        "config_hash": "1ae82c93499b9f0b9ba828b8919f9cb3"
+      },
+      "verify_md5": {},
+      "notes": "Proven: .stats.yml config_hash 1ae82c93... = md5(packages/sdk/stainless/stainless.yml) and openapi_spec_hash 4ff9376c... = md5 of its spec.url at opencode-config 33cef075. Newest stainless-app[bot] commit on main with this .stats.yml. The last release with this .stats.yml is 0.1.0-alpha.28 (04c05a5d); four Stainless commits on top keep it, and release 0.1.0-alpha.29 (e3338fbc) moves to config_hash 4c7d5c24.... sst/opencode-sdk-go redirects here."
+    },
+    {
       "name": "isaacus-config",
       "group": "isaacus",
       "kind": "config",
@@ -194,6 +330,29 @@
       },
       "verify_md5": {},
       "notes": "Last Stainless commit with full .stats.yml hashes. Later stainless-app[bot] releases (0.22.1, 2026-08-23) follow 'chore: migrate to stlc' and drop the hashes."
+    },
+    {
+      "name": "isaacus-typescript",
+      "group": "isaacus",
+      "kind": "sdk",
+      "language": "typescript",
+      "layout": "typescript",
+      "repo": "isaacus-dev/isaacus-typescript",
+      "url": "https://github.com/isaacus-dev/isaacus-typescript.git",
+      "sha": "c56af182d21e32ea472def11c3af17641d8f89c3",
+      "commit_date": "2026-06-17T02:19:30Z",
+      "commit_message": "release: 0.23.0",
+      "pairs_with": "isaacus-config",
+      "paired": "proven",
+      "license": "Apache-2.0",
+      "stats": {
+        "configured_endpoints": 5,
+        "openapi_spec_url": "https://storage.googleapis.com/stainless-sdk-openapi-specs/isaacus/isaacus-6d99da2f60d8e64d82f99ff705a89038698a2410845bfa3a7e5738d821616727.yml",
+        "openapi_spec_hash": "155f43207a56a7b282f2bfdc8e098668",
+        "config_hash": "9040e7359f066240ad536041fb2c5185"
+      },
+      "verify_md5": {},
+      "notes": "Proven: .stats.yml config_hash 9040e735... = md5(config/stainless.yaml) and openapi_spec_hash 155f4320... = md5(stainless/openapi.yml) at isaacus-config ee980982. Newest stainless-app[bot] commit on main with this .stats.yml. `typescript` target (src/client.ts). Generated from the same inputs as isaacus-python 0.22.0, two weeks later. Later main commits migrate to stlc ('chore: migrate to stlc')."
     },
     {
       "name": "lumaai-config",
@@ -238,6 +397,29 @@
       "notes": "Last stainless-app[bot] commit."
     },
     {
+      "name": "lumaai-typescript",
+      "group": "lumaai",
+      "kind": "sdk",
+      "language": "typescript",
+      "layout": "node",
+      "repo": "lumalabs/lumaai-node",
+      "url": "https://github.com/lumalabs/lumaai-node.git",
+      "sha": "4dbfae0fcabab74fa7a35ebfcc1b67ab30fb1e11",
+      "commit_date": "2026-04-07T19:12:19Z",
+      "commit_message": "release: 1.21.0",
+      "pairs_with": "lumaai-config",
+      "paired": "proven",
+      "license": "Apache-2.0",
+      "stats": {
+        "configured_endpoints": 13,
+        "openapi_spec_url": "https://storage.googleapis.com/stainless-sdk-openapi-specs/luma-ai-karanganesan%2Fluma_ai-d1f79351570e22aabbc239b2ae4a855aef2695fdeae5c07275219399d28e446f.yml",
+        "openapi_spec_hash": "0d7c51a7879bd64af744873592265d4b",
+        "config_hash": "8017bd140eecc6eedb1d788d7b0edb3b"
+      },
+      "verify_md5": {},
+      "notes": "Proven: .stats.yml config_hash 8017bd14... = md5(openapi.stainless.yml) and openapi_spec_hash 0d7c51a7... = md5(openapi.yaml) at lumaai-config 5834633b. Newest stainless-app[bot] commit on main with this .stats.yml. `node` target. Last release on main; later stainless-app[bot] commits with this .stats.yml on next and generated were never released."
+    },
+    {
       "name": "honcho-config",
       "group": "honcho",
       "kind": "config",
@@ -278,6 +460,29 @@
       },
       "verify_md5": {},
       "notes": "Not the last Stainless commit: later ones (to release 1.11.0, 1c8f03ff, 2026-01-13) use config_hash fece2fae..., which was never pushed to the public config repo. Pinned at the newest commit generated from the public config."
+    },
+    {
+      "name": "honcho-typescript",
+      "group": "honcho",
+      "kind": "sdk",
+      "language": "typescript",
+      "layout": "node",
+      "repo": "plastic-labs/honcho-node-core",
+      "url": "https://github.com/plastic-labs/honcho-node-core.git",
+      "sha": "91d258060f786577c51bc33ad873fb9434a6ac5c",
+      "commit_date": "2025-10-08T18:28:53Z",
+      "commit_message": "feat(api): api update",
+      "pairs_with": "honcho-config",
+      "paired": "proven",
+      "license": "Apache-2.0",
+      "stats": {
+        "configured_endpoints": 37,
+        "openapi_spec_url": "https://storage.googleapis.com/stainless-sdk-openapi-specs/plastic-labs%2Fhoncho-ad9d5c0355565dfd29d4138eb83b93060bb5badbddf96791de83d590e5625f07.yml",
+        "openapi_spec_hash": "905416e133555301a3cfeea338c1c291",
+        "config_hash": "33cde6f36d5448f056a89939de44a3bd"
+      },
+      "verify_md5": {},
+      "notes": "Proven: .stats.yml config_hash 33cde6f3... = md5(openapi.stainless.yml) and openapi_spec_hash 905416e1... = md5(openapi.json) at honcho-config d0fe5dad. Newest stainless-app[bot] commit on main with this .stats.yml. `node` target. The only commit with this .stats.yml, from the same codegen run as honcho-python-core 9be4f056. Release 1.5.0 (88918f07) on top uses config_hash 4b394422..., which is not in the public config repo."
     },
     {
       "name": "stagehand-config",
@@ -364,6 +569,52 @@
       "notes": "Last stainless-app[bot] commit (formerly llamastack/llama-stack-client-python). The object at openapi_spec_url no longer has openapi_spec_hash, so the in-repo spec is the proof."
     },
     {
+      "name": "ogx-typescript",
+      "group": "ogx",
+      "kind": "sdk",
+      "language": "typescript",
+      "layout": "node",
+      "repo": "ogx-ai/ogx-client-typescript",
+      "url": "https://github.com/ogx-ai/ogx-client-typescript.git",
+      "sha": "029aa5f8d709248970ec4ecb35a1cc76edca4b8b",
+      "commit_date": "2026-06-11T12:34:49Z",
+      "commit_message": "release: 1.1.0-alpha.6 (#59)",
+      "pairs_with": "ogx-config",
+      "paired": "proven",
+      "license": "MIT",
+      "stats": {
+        "configured_endpoints": 67,
+        "openapi_spec_url": "https://storage.googleapis.com/stainless-sdk-openapi-specs/llamastack/llama-stack-client-7f49892b4f9f8b421343f703c14da6fd5a93bba1baada52c1fe72da0e79fcf8e.yml",
+        "openapi_spec_hash": "9c2a6e9e73f135654d42469299b01daa",
+        "config_hash": "3d294831d7b8066ba59a8934b980a943"
+      },
+      "verify_md5": {},
+      "notes": "Proven: .stats.yml config_hash 3d294831... = md5(client-sdks/stainless/config.yml) and openapi_spec_hash 9c2a6e9e... = md5(client-sdks/stainless/openapi.yml) at ogx-config b7fc2751. Newest stainless-app[bot] commit on main with this .stats.yml. `node` target. Released the same day as ogx-client-python 1.1.0-alpha.3. Later releases keep config_hash 3d294831... but carry other specs."
+    },
+    {
+      "name": "ogx-go",
+      "group": "ogx",
+      "kind": "sdk",
+      "language": "go",
+      "layout": "v2",
+      "repo": "ogx-ai/ogx-client-go",
+      "url": "https://github.com/ogx-ai/ogx-client-go.git",
+      "sha": "c66deeffe54455aee6aab72e063f3b8eeef96274",
+      "commit_date": "2026-06-10T03:20:19Z",
+      "commit_message": "codegen metadata",
+      "pairs_with": "ogx-config",
+      "paired": "proven",
+      "license": "MIT",
+      "stats": {
+        "configured_endpoints": 67,
+        "openapi_spec_url": "https://storage.googleapis.com/stainless-sdk-openapi-specs/llamastack/llama-stack-client-7f49892b4f9f8b421343f703c14da6fd5a93bba1baada52c1fe72da0e79fcf8e.yml",
+        "openapi_spec_hash": "9c2a6e9e73f135654d42469299b01daa",
+        "config_hash": "3d294831d7b8066ba59a8934b980a943"
+      },
+      "verify_md5": {},
+      "notes": "Proven: .stats.yml config_hash 3d294831... = md5(client-sdks/stainless/config.yml) and openapi_spec_hash 9c2a6e9e... = md5(client-sdks/stainless/openapi.yml) at ogx-config b7fc2751. Newest stainless-app[bot] commit on generated with this .stats.yml. `enable_v2`. Only on the `generated` branch: main and next have no commit with this .stats.yml. Later generated commits keep config_hash 3d294831... but carry other specs."
+    },
+    {
       "name": "imagekit-config",
       "group": "imagekit",
       "kind": "config",
@@ -404,6 +655,118 @@
       },
       "verify_md5": {},
       "notes": "Newest stainless-app[bot] commit generated from a public config. The last one (release 5.5.1, bba3ead9) uses config_hash 7ef70b33...; later commits come from stlc-bot."
+    },
+    {
+      "name": "imagekit-typescript",
+      "group": "imagekit",
+      "kind": "sdk",
+      "language": "typescript",
+      "layout": "typescript",
+      "repo": "imagekit-developer/imagekit-nodejs",
+      "url": "https://github.com/imagekit-developer/imagekit-nodejs.git",
+      "sha": "9161f99f561250b11b4535a328469bb5737cb4b8",
+      "commit_date": "2026-05-17T02:36:49Z",
+      "commit_message": "build: change dotnet package name",
+      "pairs_with": "imagekit-config",
+      "paired": "proven",
+      "license": "Apache-2.0",
+      "stats": {
+        "configured_endpoints": 47,
+        "openapi_spec_url": "https://storage.googleapis.com/stainless-sdk-openapi-specs/imagekit-inc/imagekit-a8f005109bd8f1fa42d080ed43b4f7b67eacad5aea113fe5223306c3f217556a.yml",
+        "openapi_spec_hash": "7c103e2dff0edcbeea82057e62f58d4d",
+        "config_hash": "493cdeb6cf0935806c5f6a029774029d"
+      },
+      "verify_md5": {},
+      "notes": "Proven: .stats.yml config_hash 493cdeb6... = md5(stainless-config/main.yaml) and openapi_spec_hash 7c103e2d... = md5 of its spec.url at imagekit-config 28534c19. Newest stainless-app[bot] commit on main with this .stats.yml. `typescript` target. The only commit with this .stats.yml, from the same codegen run as imagekit-python e75f6267 (47 endpoints here, 48 in Python). Later commits use config_hash c5a7aed2...."
+    },
+    {
+      "name": "imagekit-go",
+      "group": "imagekit",
+      "kind": "sdk",
+      "language": "go",
+      "layout": "v2",
+      "repo": "imagekit-developer/imagekit-go",
+      "url": "https://github.com/imagekit-developer/imagekit-go.git",
+      "sha": "bc22fec799949ebdc6c8effff9e45e1234b4b512",
+      "commit_date": "2026-05-17T02:36:38Z",
+      "commit_message": "codegen metadata",
+      "pairs_with": "imagekit-config",
+      "paired": "proven",
+      "license": "Apache-2.0",
+      "stats": {
+        "configured_endpoints": 48,
+        "openapi_spec_url": "https://storage.googleapis.com/stainless-sdk-openapi-specs/imagekit-inc/imagekit-a8f005109bd8f1fa42d080ed43b4f7b67eacad5aea113fe5223306c3f217556a.yml",
+        "openapi_spec_hash": "7c103e2dff0edcbeea82057e62f58d4d",
+        "config_hash": "493cdeb6cf0935806c5f6a029774029d"
+      },
+      "verify_md5": {},
+      "notes": "Proven: .stats.yml config_hash 493cdeb6... = md5(stainless-config/main.yaml) and openapi_spec_hash 7c103e2d... = md5 of its spec.url at imagekit-config 28534c19. Newest stainless-app[bot] commit on main with this .stats.yml. `enable_v2` (module .../imagekit-go/v2, packages/param). The only commit with this .stats.yml, from the same codegen run as imagekit-python e75f6267. Later commits use config_hash c5a7aed2...."
+    },
+    {
+      "name": "imagekit-java",
+      "group": "imagekit",
+      "kind": "sdk",
+      "language": "java",
+      "repo": "imagekit-developer/imagekit-java",
+      "url": "https://github.com/imagekit-developer/imagekit-java.git",
+      "sha": "f96c35e8d1e552eeee326e2c0a25a51436b36e37",
+      "commit_date": "2026-05-17T02:36:36Z",
+      "commit_message": "codegen metadata",
+      "pairs_with": "imagekit-config",
+      "paired": "proven",
+      "license": "Apache-2.0",
+      "stats": {
+        "configured_endpoints": 47,
+        "openapi_spec_url": "https://storage.googleapis.com/stainless-sdk-openapi-specs/imagekit-inc/imagekit-a8f005109bd8f1fa42d080ed43b4f7b67eacad5aea113fe5223306c3f217556a.yml",
+        "openapi_spec_hash": "7c103e2dff0edcbeea82057e62f58d4d",
+        "config_hash": "493cdeb6cf0935806c5f6a029774029d"
+      },
+      "verify_md5": {},
+      "notes": "Proven: .stats.yml config_hash 493cdeb6... = md5(stainless-config/main.yaml) and openapi_spec_hash 7c103e2d... = md5 of its spec.url at imagekit-config 28534c19. Newest stainless-app[bot] commit on main with this .stats.yml. The only commit with this .stats.yml, from the same codegen run as imagekit-python e75f6267. Later commits use config_hash c5a7aed2...."
+    },
+    {
+      "name": "imagekit-ruby",
+      "group": "imagekit",
+      "kind": "sdk",
+      "language": "ruby",
+      "repo": "imagekit-developer/imagekit-ruby",
+      "url": "https://github.com/imagekit-developer/imagekit-ruby.git",
+      "sha": "65401086b8180a2c4cb131d07f09683d6c0da7cb",
+      "commit_date": "2026-05-17T02:36:56Z",
+      "commit_message": "codegen metadata",
+      "pairs_with": "imagekit-config",
+      "paired": "proven",
+      "license": "Apache-2.0",
+      "stats": {
+        "configured_endpoints": 47,
+        "openapi_spec_url": "https://storage.googleapis.com/stainless-sdk-openapi-specs/imagekit-inc/imagekit-a8f005109bd8f1fa42d080ed43b4f7b67eacad5aea113fe5223306c3f217556a.yml",
+        "openapi_spec_hash": "7c103e2dff0edcbeea82057e62f58d4d",
+        "config_hash": "493cdeb6cf0935806c5f6a029774029d"
+      },
+      "verify_md5": {},
+      "notes": "Proven: .stats.yml config_hash 493cdeb6... = md5(stainless-config/main.yaml) and openapi_spec_hash 7c103e2d... = md5 of its spec.url at imagekit-config 28534c19. Newest stainless-app[bot] commit on main with this .stats.yml. The only commit with this .stats.yml, from the same codegen run as imagekit-python e75f6267. Later commits use config_hash c5a7aed2...."
+    },
+    {
+      "name": "imagekit-php",
+      "group": "imagekit",
+      "kind": "sdk",
+      "language": "php",
+      "repo": "imagekit-developer/imagekit-php",
+      "url": "https://github.com/imagekit-developer/imagekit-php.git",
+      "sha": "9f9309d5b8a6a800b5787bd9d739f2f2332c73d1",
+      "commit_date": "2026-05-17T02:36:40Z",
+      "commit_message": "codegen metadata",
+      "pairs_with": "imagekit-config",
+      "paired": "proven",
+      "license": "MIT",
+      "stats": {
+        "configured_endpoints": 47,
+        "openapi_spec_url": "https://storage.googleapis.com/stainless-sdk-openapi-specs/imagekit-inc/imagekit-a8f005109bd8f1fa42d080ed43b4f7b67eacad5aea113fe5223306c3f217556a.yml",
+        "openapi_spec_hash": "7c103e2dff0edcbeea82057e62f58d4d",
+        "config_hash": "493cdeb6cf0935806c5f6a029774029d"
+      },
+      "verify_md5": {},
+      "notes": "Proven: .stats.yml config_hash 493cdeb6... = md5(stainless-config/main.yaml) and openapi_spec_hash 7c103e2d... = md5 of its spec.url at imagekit-config 28534c19. Newest stainless-app[bot] commit on next with this .stats.yml. Only on the `next` branch: the default branch (master) is the older hand-written SDK. The pinned config has no php production_repo, but the hashes prove this tree came from it. Later commits use config_hash c5a7aed2...."
     },
     {
       "name": "knock-config",
@@ -448,6 +811,96 @@
       "notes": "Newest release generated from the public config. The last Stainless commit (release 1.28.0, 872b2e2a, 2026-07-14) uses config_hash 625db645..., which the docs repo never has."
     },
     {
+      "name": "knock-typescript",
+      "group": "knock",
+      "kind": "sdk",
+      "language": "typescript",
+      "layout": "typescript",
+      "repo": "knocklabs/knock-node",
+      "url": "https://github.com/knocklabs/knock-node.git",
+      "sha": "e2c0f18ad31244906b8b7885d6d52bc51e35586b",
+      "commit_date": "2025-06-06T14:35:46Z",
+      "commit_message": "release: 1.7.0 (#100)",
+      "pairs_with": "knock-config",
+      "paired": "proven",
+      "license": "Apache-2.0",
+      "stats": {
+        "configured_endpoints": 89,
+        "openapi_spec_url": "https://storage.googleapis.com/stainless-sdk-openapi-specs/knock%2Fknock-e5a7933b414d403d082b34db140fc5b8dca9a5ea3ae322f640b0f9f055c47288.yml",
+        "openapi_spec_hash": "3740dc4d5c1f5a0c9ee6de9e40931fd4",
+        "config_hash": "2ae8965d371a03bd30c6a56819c04cf2"
+      },
+      "verify_md5": {},
+      "notes": "Proven: .stats.yml config_hash 2ae8965d... = md5(data/specs/api/stainless.yml) and openapi_spec_hash 3740dc4d... = md5 of its spec.url at knock-config f6eb88e1. Newest stainless-app[bot] commit on main with this .stats.yml. `typescript` target. Same codegen run as knock-python 1.6.0. From release 1.8.0 on, config_hash is b4c547c1..., which is not the pinned docs config."
+    },
+    {
+      "name": "knock-go",
+      "group": "knock",
+      "kind": "sdk",
+      "language": "go",
+      "layout": "v1",
+      "repo": "knocklabs/knock-go",
+      "url": "https://github.com/knocklabs/knock-go.git",
+      "sha": "4b86a0d68f0ac65c1b1ccca2cca5b4893ee572ac",
+      "commit_date": "2025-06-06T14:37:41Z",
+      "commit_message": "release: 1.5.0 (#49)",
+      "pairs_with": "knock-config",
+      "paired": "proven",
+      "license": "Apache-2.0",
+      "stats": {
+        "configured_endpoints": 89,
+        "openapi_spec_url": "https://storage.googleapis.com/stainless-sdk-openapi-specs/knock%2Fknock-e5a7933b414d403d082b34db140fc5b8dca9a5ea3ae322f640b0f9f055c47288.yml",
+        "openapi_spec_hash": "3740dc4d5c1f5a0c9ee6de9e40931fd4",
+        "config_hash": "2ae8965d371a03bd30c6a56819c04cf2"
+      },
+      "verify_md5": {},
+      "notes": "Proven: .stats.yml config_hash 2ae8965d... = md5(data/specs/api/stainless.yml) and openapi_spec_hash 3740dc4d... = md5 of its spec.url at knock-config f6eb88e1. Newest stainless-app[bot] commit on main with this .stats.yml. Same codegen run as knock-python 1.6.0. From release 1.6.0 on, config_hash is b4c547c1..., which is not the pinned docs config."
+    },
+    {
+      "name": "knock-ruby",
+      "group": "knock",
+      "kind": "sdk",
+      "language": "ruby",
+      "repo": "knocklabs/knock-ruby",
+      "url": "https://github.com/knocklabs/knock-ruby.git",
+      "sha": "5bc0a747b8dc5d33484e028c51834099514a0991",
+      "commit_date": "2025-06-06T14:37:00Z",
+      "commit_message": "release: 1.6.0 (#34)",
+      "pairs_with": "knock-config",
+      "paired": "proven",
+      "license": "Apache-2.0",
+      "stats": {
+        "configured_endpoints": 89,
+        "openapi_spec_url": "https://storage.googleapis.com/stainless-sdk-openapi-specs/knock%2Fknock-e5a7933b414d403d082b34db140fc5b8dca9a5ea3ae322f640b0f9f055c47288.yml",
+        "openapi_spec_hash": "3740dc4d5c1f5a0c9ee6de9e40931fd4",
+        "config_hash": "2ae8965d371a03bd30c6a56819c04cf2"
+      },
+      "verify_md5": {},
+      "notes": "Proven: .stats.yml config_hash 2ae8965d... = md5(data/specs/api/stainless.yml) and openapi_spec_hash 3740dc4d... = md5 of its spec.url at knock-config f6eb88e1. Newest stainless-app[bot] commit on main with this .stats.yml. Same codegen run as knock-python 1.6.0. From release 1.7.0 on, config_hash is b4c547c1..., which is not the pinned docs config."
+    },
+    {
+      "name": "knock-java",
+      "group": "knock",
+      "kind": "sdk",
+      "language": "java",
+      "repo": "knocklabs/knock-java",
+      "url": "https://github.com/knocklabs/knock-java.git",
+      "sha": "6e0df2347f66bbe9c7c284c352cc3466e081ad46",
+      "commit_date": "2025-06-06T14:29:56Z",
+      "commit_message": "feat(api): api update",
+      "pairs_with": "knock-config",
+      "paired": "proven",
+      "license": "Apache-2.0",
+      "stats": {
+        "configured_endpoints": 89,
+        "openapi_spec_url": "https://storage.googleapis.com/stainless-sdk-openapi-specs/knock%2Fknock-e5a7933b414d403d082b34db140fc5b8dca9a5ea3ae322f640b0f9f055c47288.yml",
+        "openapi_spec_hash": "3740dc4d5c1f5a0c9ee6de9e40931fd4",
+        "config_hash": "2ae8965d371a03bd30c6a56819c04cf2"
+      },
+      "verify_md5": {},
+      "notes": "Proven: .stats.yml config_hash 2ae8965d... = md5(data/specs/api/stainless.yml) and openapi_spec_hash 3740dc4d... = md5 of its spec.url at knock-config f6eb88e1. Newest stainless-app[bot] commit on generated with this .stats.yml. Only on the `generated` branch: main was later rewritten by hand and has no commit with this .stats.yml. Same codegen run as knock-python 1.6.0."
+    },
+    {
       "name": "knock-mgmt-config",
       "group": "knock-mgmt",
       "kind": "config",
@@ -490,6 +943,52 @@
       "notes": "Last stainless-app[bot] commit; later commits come from knock-eng-bot."
     },
     {
+      "name": "knock-mgmt-typescript",
+      "group": "knock-mgmt",
+      "kind": "sdk",
+      "language": "typescript",
+      "layout": "typescript",
+      "repo": "knocklabs/knock-mgmt-node",
+      "url": "https://github.com/knocklabs/knock-mgmt-node.git",
+      "sha": "ca88fdba703717f355ad3e18e850a0bb23e548f6",
+      "commit_date": "2026-07-09T15:55:50Z",
+      "commit_message": "release: 0.32.0 (#72)",
+      "pairs_with": "knock-mgmt-config",
+      "paired": "nearest",
+      "license": "Apache-2.0",
+      "stats": {
+        "configured_endpoints": 73,
+        "openapi_spec_url": "https://storage.googleapis.com/stainless-sdk-openapi-specs/knock/knock-mapi-f61996bf60ebbb80b846ccdea5aa6287aa6dabab65a638e66b3f6488e52fc73c.yml",
+        "openapi_spec_hash": "b34bc438d847cc513134db148343e616",
+        "config_hash": "1543050ac0815a90f8fc8158f853af03"
+      },
+      "verify_md5": {},
+      "notes": "Nearest, as for knock-mgmt-python: .stats.yml openapi_spec_hash b34bc438... and config_hash 1543050a... equal knock-mgmt-python's, and no knock-mgmt-config commit has that config_hash. Newest stainless-app[bot] commit on main with this .stats.yml. `typescript` target. Last stainless-app[bot] release; later main commits come from knock-eng-bot and stlc."
+    },
+    {
+      "name": "knock-mgmt-go",
+      "group": "knock-mgmt",
+      "kind": "sdk",
+      "language": "go",
+      "layout": "v2",
+      "repo": "knocklabs/knock-mgmt-go",
+      "url": "https://github.com/knocklabs/knock-mgmt-go.git",
+      "sha": "85ae774cbff4c13f21a38608378d90d4947bc022",
+      "commit_date": "2026-07-09T22:51:09Z",
+      "commit_message": "release: 0.2.0 (#3)",
+      "pairs_with": "knock-mgmt-config",
+      "paired": "nearest",
+      "license": "Apache-2.0",
+      "stats": {
+        "configured_endpoints": 73,
+        "openapi_spec_url": "https://storage.googleapis.com/stainless-sdk-openapi-specs/knock/knock-mapi-f61996bf60ebbb80b846ccdea5aa6287aa6dabab65a638e66b3f6488e52fc73c.yml",
+        "openapi_spec_hash": "b34bc438d847cc513134db148343e616",
+        "config_hash": "1543050ac0815a90f8fc8158f853af03"
+      },
+      "verify_md5": {},
+      "notes": "Nearest, as for knock-mgmt-python: .stats.yml openapi_spec_hash b34bc438... and config_hash 1543050a... equal knock-mgmt-python's, and no knock-mgmt-config commit has that config_hash. Newest stainless-app[bot] commit on main with this .stats.yml. `enable_v2`. Last stainless-app[bot] release; later main commits come from knock-eng-bot and stlc."
+    },
+    {
       "name": "papr-config",
       "group": "papr",
       "kind": "config",
@@ -530,6 +1029,29 @@
       },
       "verify_md5": {},
       "notes": "Closest Stainless release to papr-config. The last Stainless commit is release 2.29.0 (817b4bf7, 2026-09-18)."
+    },
+    {
+      "name": "papr-typescript",
+      "group": "papr",
+      "kind": "sdk",
+      "language": "typescript",
+      "layout": "typescript",
+      "repo": "Papr-ai/papr-TypescriptSDK",
+      "url": "https://github.com/Papr-ai/papr-TypescriptSDK.git",
+      "sha": "41dbb3b3432a3b7d08bb1a09527a2e83db93fd39",
+      "commit_date": "2025-12-07T05:08:19Z",
+      "commit_message": "release: 1.20.0",
+      "pairs_with": "papr-config",
+      "paired": "nearest",
+      "license": "Apache-2.0",
+      "stats": {
+        "configured_endpoints": 25,
+        "openapi_spec_url": "https://storage.googleapis.com/stainless-sdk-openapi-specs/papr%2Fpapr-memory-4110f8ab2eb6f2764b30a12db74dd9c9746c7ef2be9f90313c7c41240de3ce2c.yml",
+        "openapi_spec_hash": "b4fe63c5bcdf56e902ad01397ee73582",
+        "config_hash": "a8872ea93e07b3b064e4f9d24683df74"
+      },
+      "verify_md5": {},
+      "notes": "Nearest, as for papr-python: .stats.yml openapi_spec_hash b4fe63c5... and config_hash a8872ea9... equal papr-python's, and no papr-config commit has that config_hash. `typescript` target. The release closest to papr-config (2025-12-08), four minutes before papr-python 2.18.0; Stainless codegen commits on main keep this .stats.yml until 3fb9806a (2026-02-07)."
     }
   ]
 }
