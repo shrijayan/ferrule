@@ -59,4 +59,7 @@ fail_under = 90
 show_missing = true
 
 [tool.pytest.ini_options]
+# Oracle and corpus checkouts are third-party code, read as data and never run (ADR 0009): keep
+# collection out of them even when pytest is pointed at their parent directory.
+norecursedirs = ["*.egg", ".*", "_darcs", "build", "CVS", "dist", "node_modules", "venv", "{arch}", "cache"]
 testpaths = ["runtime/tests", "migrate/tests", "oracles/tests", "corpus/tests", "scripts/parity/tests", "action/scripts/tests", "scripts/corpus/tests", "scripts/board/tests"]
