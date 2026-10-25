@@ -364,7 +364,12 @@ fn falls_back_to_no_auth_headers_and_rejects_what_it_cannot_emit() {
             url: "https://b".into(),
         },
     ];
-    assert_eq!(emit_client_file(&many).map_err(|e| e.code), Err(FerCode::Fer201));
+    // Several environments are emitted now (tests/environments.rs pins the text).
+    assert!(
+        emit_client_file(&many)
+            .expect("emits")
+            .contains("self._environment = environment = \"a\"")
+    );
     c.settings = None;
     assert_eq!(emit_client_file(&c).map_err(|e| e.code), Err(FerCode::Fer103));
 }

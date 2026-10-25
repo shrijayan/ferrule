@@ -66,6 +66,16 @@ impl ClientState<'_> {
         format!("{}Error", self.settings.class_name)
     }
 
+    /// `Literal["demo", "local", "production"]` for a client with several environments, in
+    /// config order; `None` with one or none.
+    fn environments_literal(&self) -> Option<String> {
+        let envs = &self.settings.environments;
+        (envs.len() > 1).then(|| {
+            let names: Vec<String> = envs.iter().map(|e| py_string(&e.name)).collect();
+            format!("Literal[{}]", names.join(", "))
+        })
+    }
+
     fn scheme(&self, name: &str) -> Option<&SdkSecurityScheme> {
         self.settings
             .security_schemes
@@ -81,27 +91,25 @@ fn lines(p: &mut PythonPrinter, ls: &[&str]) {
     }
 }
 
-fn emit_init(s: &ClientState<'_>, p: &mut PythonPrinter, mode: Mode) -> Result<(), FerruleError> {
+fn emit_init(s: &ClientState<'_>, p: &mut PythonPrinter, mode: Mode) {
     let settings = s.settings;
     let is_async = mode == Mode::Async;
-    if settings.environments.len() > 1 {
-        return Err(FerruleError::new(
-            FerCode::Fer201,
-            "#/x-ferrule-client/environments",
-            "a client with several environments is not generated yet",
-            "keep one environment in stainless.yml",
-        ));
-    }
+    let environments = s.environments_literal();
     p.block("def __init__(", |p| {
         p.line("self,");
         p.line("*,");
         for o in &settings.opts {
             p.line(&format!("{}: {} | None = None,", o.name, py_type(o.ty)));
         }
+        if let Some(lit) = &environments {
+            p.line(&format!("environment: {lit} | NotGiven = not_given,"));
+            p.line("base_url: str | httpx.URL | None | NotGiven = not_given,");
+        } else {
+            p.line("base_url: str | httpx.URL | None = None,");
+        }
         lines(
             p,
             &[
-                "base_url: str | httpx.URL | None = None,",
                 "timeout: float | Timeout | None | NotGiven = not_given,",
                 "max_retries: int = DEFAULT_MAX_RETRIES,",
                 "default_headers: Mapping[str, str] | None = None,",
@@ -135,7 +143,6 @@ fn emit_init(s: &ClientState<'_>, p: &mut PythonPrinter, mode: Mode) -> Result<(
     });
     p.line(") -> None:");
     p.indented(|p| emit_init_body(s, p, mode));
-    Ok(())
 }
 
 /// The body of `__init__`: docstring, options from the environment, base URL and headers.
@@ -201,21 +208,69 @@ fn emit_init_body(s: &ClientState<'_>, p: &mut PythonPrinter, mode: Mode) {
             p.line(&format!("self.{0} = {0}", o.name));
             p.blank();
         }
-        p.block("if base_url is None:", |p| {
-            p.line(&format!(
-                "base_url = os.environ.get(\"{}_BASE_URL\")",
-                settings.env_prefix
-            ));
-        });
-        p.block("if base_url is None:", |p| {
-            p.line(&format!(
-                "base_url = {}",
-                py_fstring(env.map_or(s.client.base_url.as_str(), |e| e.url.as_str()))
-            ));
-        });
+        if settings.environments.len() > 1 {
+            emit_environment_choice(s, p);
+        } else {
+            p.block("if base_url is None:", |p| {
+                p.line(&format!(
+                    "base_url = os.environ.get(\"{}_BASE_URL\")",
+                    settings.env_prefix
+                ));
+            });
+            p.block("if base_url is None:", |p| {
+                p.line(&format!(
+                    "base_url = {}",
+                    py_fstring(env.map_or(s.client.base_url.as_str(), |e| e.url.as_str()))
+                ));
+            });
+        }
         p.blank();
         emit_init_headers(settings, p);
     }
+}
+
+/// The base URL of a client with several environments (lithic, honcho `_client.py`): an explicit
+/// `base_url`, else the `environment` argument (ambiguous beside `<PREFIX>_BASE_URL`), else that
+/// variable, else the first environment.
+fn emit_environment_choice(s: &ClientState<'_>, p: &mut PythonPrinter) {
+    let var = format!("{}_BASE_URL", s.settings.env_prefix);
+    let default = s.settings.environments.first().map_or("", |e| e.name.as_str());
+    p.import_from("typing", "cast");
+    let lookup = |p: &mut PythonPrinter| {
+        p.block("try:", |p| {
+            p.line("base_url = ENVIRONMENTS[environment]");
+        });
+        p.block("except KeyError as exc:", |p| {
+            p.line("raise ValueError(f\"Unknown environment: {environment}\") from exc");
+        });
+    };
+    p.line("self._environment = environment");
+    p.blank();
+    p.line(&format!("base_url_env = os.environ.get({})", py_string(&var)));
+    p.block("if is_given(base_url) and base_url is not None:", |p| {
+        p.line("# cast required because mypy doesn't understand the type narrowing");
+        p.line("base_url = cast(\"str | httpx.URL\", base_url)  # pyright: ignore[reportUnnecessaryCast]");
+    });
+    p.block("elif is_given(environment):", |p| {
+        p.block("if base_url_env and base_url is not None:", |p| {
+            p.block("raise ValueError(", |p| {
+                p.line(&format!(
+                    "\"Ambiguous URL; The `{var}` env var and the `environment` argument are given. If you want to use the environment, you must pass base_url=None\","
+                ));
+            });
+            p.line(")");
+        });
+        p.blank();
+        lookup(p);
+    });
+    p.block("elif base_url_env is not None:", |p| {
+        p.line("base_url = base_url_env");
+    });
+    p.block("else:", |p| {
+        p.line(&format!("self._environment = environment = {}", py_string(default)));
+        p.blank();
+        lookup(p);
+    });
 }
 
 /// The end of `__init__`: headers from the environment and the base class call.
@@ -323,7 +378,11 @@ fn emit_client_class(s: &ClientState<'_>, p: &mut PythonPrinter, mode: Mode) -> 
         }
         p.blank();
     }
-    emit_init(s, p, mode)?;
+    if let Some(lit) = s.environments_literal() {
+        p.line(&format!("_environment: {lit} | NotGiven"));
+        p.blank();
+    }
+    emit_init(s, p, mode);
     emit_resource_properties(s, p, mode);
     for (prop, suffix) in [
         ("with_raw_response", "WithRawResponse"),
@@ -465,6 +524,9 @@ fn emit_copy(s: &ClientState<'_>, p: &mut PythonPrinter, mode: Mode) {
         for o in &settings.opts {
             p.line(&format!("{}: {} | None = None,", o.name, py_type(o.ty)));
         }
+        if let Some(lit) = s.environments_literal() {
+            p.line(&format!("environment: {lit} | None = None,"));
+        }
         p.line("base_url: str | httpx.URL | None = None,");
         p.line("timeout: float | Timeout | None | NotGiven = not_given,");
         p.line(&format!(
@@ -517,10 +579,13 @@ fn emit_copy(s: &ClientState<'_>, p: &mut PythonPrinter, mode: Mode) {
             for o in &settings.opts {
                 p.line(&format!("{0}={0} or self.{0},", o.name));
             }
+            p.line("base_url=base_url or self.base_url,");
+            if settings.environments.len() > 1 {
+                p.line("environment=environment or self._environment,");
+            }
             lines(
                 p,
                 &[
-                    "base_url=base_url or self.base_url,",
                     "timeout=self.timeout if isinstance(timeout, NotGiven) else timeout,",
                     "http_client=http_client,",
                     "max_retries=max_retries if is_given(max_retries) else self.max_retries,",
@@ -667,7 +732,8 @@ pub fn emit_client_file(client: &SdkClient) -> Result<String, FerruleError> {
         });
         p.blank();
     }
-    for l in all_list(&[
+    let several = settings.environments.len() > 1;
+    let mut exported = vec![
         "Timeout".to_owned(),
         "Transport".to_owned(),
         "ProxiesTypes".to_owned(),
@@ -676,8 +742,23 @@ pub fn emit_client_file(client: &SdkClient) -> Result<String, FerruleError> {
         s.client_name(Mode::Async, ""),
         "Client".to_owned(),
         "AsyncClient".to_owned(),
-    ]) {
+    ];
+    if several {
+        exported.insert(0, "ENVIRONMENTS".to_owned());
+    }
+    for l in all_list(&exported) {
         p.line(&l);
+    }
+    if several {
+        p.import_from("typing", "Dict");
+        p.import_from("typing_extensions", "Literal");
+        p.blank();
+        p.block("ENVIRONMENTS: Dict[str, str] = {", |p| {
+            for e in &settings.environments {
+                p.line(&format!("{}: {},", py_string(&e.name), py_string(&e.url)));
+            }
+        });
+        p.line("}");
     }
     for mode in Mode::BOTH {
         p.blank().blank();

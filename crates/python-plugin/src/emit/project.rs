@@ -13,7 +13,7 @@ use super::cycles::Cycles;
 use super::files::emit_project_files;
 use super::files_input::{ProjectMeta, to_project_files_input};
 use super::models::{AliasFile, ModelFile, emit_alias_model_file, emit_model_file};
-use super::package_init::{emit_package_init, emit_version};
+use super::package_init::{emit_package_init_with, emit_version};
 use super::params::emit_params_file;
 use super::resources::{Mode, class_name, emit_resource_file};
 use crate::diagnostics::FerruleError;
@@ -383,7 +383,7 @@ pub fn emit_code_files(client: &SdkClient, meta: Option<&ProjectMeta>) -> Result
             .set_value(&module_path(&pkg, "_client"), emit_client_file(client)?);
         out.files.set_value(
             &module_path(&pkg, "__init__"),
-            emit_package_init(&pkg, &settings.class_name),
+            emit_package_init_with(&pkg, &settings.class_name, settings.environments.len() > 1),
         );
         out.files.set_value(
             &module_path(&pkg, "_version"),
