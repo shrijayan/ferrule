@@ -6,7 +6,7 @@ uv = "0.11.28"
 lefthook = "latest"
 gitleaks = "latest"
 # Same channel as rust-toolchain.toml and the pinned Forge commit (ADR 0014).
-rust = "1.99.0"
+rust = { version = "1.99.0", components = "rustfmt,clippy" }
 
 [tasks."forge:setup"]
 description = "Check out the pinned Forge commit into .cache/forge (telemetry check, canary)"
