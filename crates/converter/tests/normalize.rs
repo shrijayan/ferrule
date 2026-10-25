@@ -104,6 +104,79 @@ fn reads_a_member_that_is_only_nullable_as_null_knock_mgmt() {
     );
 }
 
+/// Stainless names an inline union member after its `title` (knock-mgmt-python
+/// `GuideBooleanActivationParams`, `RecipientObjectRecipientReference`,
+/// `HeadersRequestTemplateHeadersArray`; imagekit-python `UpdateFileDetails`), which Forge does
+/// not expose for inline schemas. The member moves to `components.schemas` under its title in
+/// words (imagekit `Google Cloud Storage (GCS)` is `GoogleCloudStorageGcs`), so the plugin sees it as the
+/// schema name, or becomes a `$ref` to an equal schema already there. Only object members and
+/// arrays of objects move, and only from unions without a discriminator: with one, Stainless
+/// names variants after the discriminator value (imagekit `origin_response.py` `Gcs`).
+#[test]
+fn moves_titled_inline_union_members_to_components_knock_mgmt() {
+    let object = |title: &str| json!({"title": title, "description": "One.", "type": "object", "properties": {"a": {"type": "string"}}});
+    let array = json!({
+        "title": "HeadersArray",
+        "type": "array",
+        "items": {"type": "object", "properties": {"k": {"type": "string"}}}
+    });
+    let spec = v(json!({
+        "openapi": "3.0.0",
+        "components": {
+            "schemas": {
+                "HeadersArray": array.clone(),
+                "Taken": {"type": "string"},
+                "P": {"oneOf": [object("Google Cloud Storage (GCS)"), {"title": "S", "type": "string"}]},
+                "R": {"properties": {
+                    "headers": {"oneOf": [{"type": "string"}, array]},
+                    "taken": {"anyOf": [object("Taken"), {"type": "string"}]},
+                    "tagged": {
+                        "oneOf": [object("Update file details")],
+                        "discriminator": {"propertyName": "a"}
+                    }
+                }}
+            }
+        }
+    }));
+    let (out, diagnostics) = normalize(&spec);
+    let schemas = at(&out, &["components", "schemas"]).expect("schemas");
+    let reference = |name: &str| {
+        v(json!({"$ref": format!("#/components/schemas/{name}"), "x-ferrule-normalized": ["title-hoisted"]}))
+    };
+    assert_eq!(
+        at(schemas, &["P", "oneOf", "0"]),
+        Some(&reference("GoogleCloudStorageGcs"))
+    );
+    assert_eq!(
+        at(schemas, &["GoogleCloudStorageGcs"]),
+        Some(&v(object("Google Cloud Storage (GCS)")))
+    );
+    assert_eq!(
+        at(schemas, &["P", "oneOf", "1"]),
+        Some(&v(json!({"title": "S", "type": "string"})))
+    );
+    assert_eq!(
+        at(schemas, &["R", "properties", "headers", "oneOf", "1"]),
+        Some(&reference("HeadersArray"))
+    );
+    assert_eq!(
+        at(schemas, &["R", "properties", "taken", "anyOf", "0"]),
+        Some(&v(object("Taken")))
+    );
+    assert_eq!(
+        at(schemas, &["R", "properties", "tagged", "oneOf", "0"]),
+        Some(&v(object("Update file details")))
+    );
+    assert_eq!(at(schemas, &["UpdateFileDetails"]), None);
+    assert_eq!(
+        csp(&diagnostics),
+        [
+            ["FER1609", "info", "/components/schemas/P/oneOf/0"],
+            ["FER1609", "info", "/components/schemas/R/properties/headers/oneOf/1"],
+        ]
+    );
+}
+
 #[test]
 fn rewrites_a_string_discriminator_to_a_discriminator_object_knock() {
     let spec = v(json!({"components": {"schemas": {"R": {"oneOf": [], "discriminator": "__typename"}}}}));
