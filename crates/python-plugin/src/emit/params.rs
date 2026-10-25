@@ -182,7 +182,17 @@ impl<'a> Named<'a> {
 
     fn visit_field<F: FieldLike>(&mut self, f: &'a F, prefix: &str) {
         let words = split_words(f.wire_name());
-        let in_array = matches!(f.ty(), SdkType::Array(_));
+        // `T[]` and `T[] | null` alike: the item class is named in the singular.
+        let in_array = match f.ty() {
+            SdkType::Array(_) => true,
+            SdkType::Union { variants, .. } => {
+                let mut rest = variants
+                    .iter()
+                    .filter(|v| !matches!(v, SdkType::Primitive(SdkPrimitive::Null)));
+                matches!((rest.next(), rest.next()), (Some(SdkType::Array(_)), None))
+            }
+            _ => false,
+        };
         let segment = class_segment(&if in_array { singular(&words) } else { words });
         self.visit_type(f.ty(), &format!("{prefix}{segment}"));
     }
