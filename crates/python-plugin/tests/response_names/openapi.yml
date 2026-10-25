@@ -1,0 +1,43 @@
+openapi: 3.1.0
+info: {title: fx, version: '1'}
+servers: [{url: 'https://api.example.com'}]
+
+paths:
+  /sessions/{session_id}/summaries:
+    get:
+      operationId: sessionSummaries
+      parameters: [{name: session_id, in: path, required: true, schema: {type: string}}]
+      responses:
+        '200': {description: ok, content: {application/json: {schema: {$ref: '#/components/schemas/SessionSummaries'}}}}
+  /sessions/{session_id}/context:
+    get:
+      operationId: sessionContext
+      parameters: [{name: session_id, in: path, required: true, schema: {type: string}}]
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [id]
+                properties:
+                  id: {type: string}
+                  summary:
+                    anyOf: [{$ref: '#/components/schemas/Summary'}, {type: 'null'}]
+                    description: The summary if available
+components:
+  schemas:
+    SessionSummaries:
+      type: object
+      required: [id]
+      properties:
+        id: {type: string}
+        long_summary:
+          anyOf: [{$ref: '#/components/schemas/Summary'}, {type: 'null'}]
+          description: The long summary if available
+    Summary:
+      type: object
+      required: [content]
+      properties:
+        content: {type: string, description: The summary text}
