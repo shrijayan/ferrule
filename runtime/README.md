@@ -12,6 +12,7 @@ per-SDK names replaced by tokens; rendering is pure and byte-identical to the or
 | Go (v1) | `go/template/` | `render_go_files` | `OneBusAway/go-sdk` @ `d115209e` |
 | JVM (`java` and `kotlin` targets) | `java/template/` | `render_java_files` | `OneBusAway/java-sdk` @ `c29c48ad`, `OneBusAway/kotlin-sdk` @ `69234467`, `OkHttpClient.kt` and the webhook files from `imagekit-developer/imagekit-java` @ `f96c35e8` |
 | Ruby | `ruby/template/` | `render_ruby_files` | `OneBusAway/ruby-sdk` @ `46a574dd` |
+| PHP | `php/template/` | `render_php_files` | `imagekit-developer/imagekit-php` @ `9f9309d5` |
 
 - Templates are third-party code: not linted or formatted by our rules (excluded in the root
   `pyproject.toml` and `biome.json`).
@@ -21,7 +22,7 @@ per-SDK names replaced by tokens; rendering is pure and byte-identical to the or
 
 All languages share one engine, `render_tree(root, *, replacements, flags, comment, slots,
 gated, line_length)`: whole-line directives `<comment>ferrule:if <flag>` / `else` / `endif` and
-`<comment>ferrule:slot <name>` (`#` for Python and Ruby, `//` for TypeScript, Go and the JVM), then
+`<comment>ferrule:slot <name>` (`#` for Python and Ruby, `//` for TypeScript, Go, the JVM and PHP), then
 token replacement in the text and in the path (a directory named `__ferrule_pkg_path__`
 becomes `org/acme`), then a check that no `__ferrule_*__` / `__Ferrule*__` / `__FERRULE_*__`
 token is left. `gated` maps a template path prefix to whether files under it are rendered. A
@@ -489,6 +490,55 @@ state, no `write_query_param_element!`, older errors and file parts); 39 files a
 `known_drift` in `tests/test_render_oracles_ruby.py`. Unverified: wrapping that depends on
 names shorter than `Imagekitio` or longer than `OnebusawaySDK` outside the `fits` blocks.
 
+## PHP
+
+```python
+from ferrule_runtime import PhpOptions, render_php_files
+
+files = render_php_files(PhpOptions(namespace="Acme"))
+# {"src/Core/BaseClient.php": "...", "src/RequestOptions.php": "...", ...}: package root
+```
+
+`PhpOptions(namespace, *, name=None, timeout=60, max_retries=2, initial_retry_delay=0.5,
+max_retry_delay=8.0)`:
+
+- `namespace`: the root namespace and PSR-4 prefix of `src/` (`Imagekit`, from
+  `targets.php.package_name`).
+- `name`: the base exception (`<name>Exception`) and the `DESC` texts of the exceptions
+  (`'<name> Error'`); defaults to the namespace's last segment.
+- `timeout`, `max_retries`, `initial_retry_delay`, `max_retry_delay`: `client_settings`, the
+  defaults of `RequestOptions`. The timeout is written as an integer when it is one (`60`), the
+  delays as floats (`0.5`, `8.0`), as in the oracle.
+
+Tokens: `__FerruleNs__`, `__FerruleName__` (also in the base exception's file name),
+`__FERRULE_TIMEOUT__`, `__FERRULE_MAX_RETRIES__`, `__FERRULE_INITIAL_RETRY_DELAY__`,
+`__FERRULE_MAX_RETRY_DELAY__`. No flags. The files are php-cs-fixer's output, and its
+`ordered_imports` (alphabetical, backslashes compared as spaces, case-insensitive) sorts each
+file's `use` lines, so another namespace sorts differently against `Psr\` and `PHPUnit\`: the
+renderer sorts every block of top-level `use` lines by that rule (identity for imagekit).
+
+### File classification
+
+| Files | Class | Notes |
+|---|---|---|
+| `src/Core.php`, `src/Core/**` (44 files), `src/RequestOptions.php` | runtime | `RequestOptions`: client settings |
+| `tests/Core/{ModelTest,StreamingTransportTest,UtilTest}.php` | runtime | tests of the runtime |
+| `src/Client.php`, `src/Version.php` | generated | client settings, resources, auth; the release version |
+| `src/Services/**`, `src/ServiceContracts/**`, the model directories | generated | per resource |
+| `tests/ClientTest.php`, `tests/UnsupportedMockTests.php`, `tests/Services/**` | generated | `disable_mock_tests`, the example request |
+| `composer.json`, `.php-cs-fixer.dist.php`, `phpstan.dist.neon`, `phpunit.xml.dist`, `scripts/` | not runtime | project files |
+
+### Oracles
+
+| Oracle | Commit | Options | Identical |
+|---|---|---|---|
+| imagekit-php | `9f9309d5b8a6a800b5787bd9d739f2f2332c73d1` (2026-05-17) | defaults | 48/48 |
+
+imagekit-php is the only Apache-2.0 PHP oracle (stagehand-php is MIT and not used).
+Unverified, with one oracle: whether `WebhookException` is emitted for an SDK without webhooks,
+whether a non-default timeout keeps the integer form, and lines whose wrapping depends on the
+name's length (none of the template's lines that name it is near the generator's width).
+
 ## Adding a language
 
 1. Pick the newest Apache-2.0 Stainless SDK in that language among the oracles and list every
@@ -546,7 +596,9 @@ rendered output, so the mark lives here and in `NOTICE` (ADR 0004 amendment):
   directory names; `base_client` gained `#ferrule:if auth_query` blocks in each view and
   `util.rb` a comma-format block from imagekit-ruby; 20 `fits` blocks with imagekit-ruby's
   one-line forms; the `@example` blocks of `base_model.rb`, `enum.rb` and `union.rb` replaced by
-  slots).
+  slots);
+- all files under `php/template/` (namespace, name and client settings replaced by
+  placeholders, also in the base exception's file name; the renderer re-sorts `use` lines).
 
 MIT-licensed oracles (opencode-sdk-js, opencode-sdk-go) are compared by the tests but never
 copied; stagehand and ogx (MIT) are not used.

@@ -115,5 +115,16 @@ runtime/ruby/template/ is derived from Stainless-generated Ruby SDKs:
               Marks are recorded here and in runtime/README.md instead of in the files
               (ADR 0004 amendment).
 
+runtime/php/template/ is derived from a Stainless-generated PHP SDK:
+  Repository: https://github.com/imagekit-developer/imagekit-php
+  Commit:     9f9309d5b8a6a800b5787bd9d739f2f2332c73d1
+  Licence:    Apache License, Version 2.0
+  Copyright:  Copyright 2026 Image Kit
+  Files:      src/Core.php, src/Core/**, src/RequestOptions.php, tests/Core/**
+  Changes:    Modified by The Ferrule Authors: namespace, SDK name and client settings replaced
+              by tokens (also in the base exception's file name); the renderer sorts the use
+              lines for the namespace. Marks are recorded here and in runtime/README.md instead
+              of in the files (ADR 0004 amendment).
+
 src/ferrule_runtime/pagination.py reproduces the pagination class text of Stainless-generated
 SDKs (Apache-2.0): lithic-python, honcho-python-core, knock-python, knock-mgmt-python.
