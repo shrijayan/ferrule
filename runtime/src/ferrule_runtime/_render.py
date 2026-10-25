@@ -89,7 +89,7 @@ class RuntimeOptions:
     """Adds ``APIWebhookValidationError`` (SDKs that configure webhook unwrapping)."""
     line_length: int = 120
     testing: bool = False
-    """Adds the ``testing/`` fake server (``<pkg>.testing``); not in Stainless output (ADR 0013)."""
+    """Adds the ``testing/`` fake server (``<pkg>.testing``); not in Stainless output (ADR 0016)."""
 
 
 def template_root() -> Traversable:

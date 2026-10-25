@@ -86,7 +86,7 @@ noted in their upstream headers.
 ## Testing fake server
 
 `render_files(..., testing=True)` adds `testing/__init__.py` and `testing/_fake.py`: an
-in-process fake server (ADR 0013). Not in Stainless output; off by default, so parity is
+in-process fake server (ADR 0016). Not in Stainless output; off by default, so parity is
 unaffected.
 
 ```python
