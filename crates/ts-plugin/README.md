@@ -82,7 +82,12 @@ check layouts; it is not a dependency.
   `package-lock.json`.
 - `tests/oracle_more.rs`: imagekit-typescript (identical/total reported, with a floor);
   knock-mgmt-typescript is skipped while the adapter rejects its pagination (FER101).
-- `tests/golden.rs`: a small synthetic SDK (`tests/fixtures/petstore`), byte for byte.
+- `tests/oracle_node_more.rs`: lumaai-typescript (2026-04, 49/64) and honcho-typescript
+  (2025-10, 35/72), `node` layout, reported with floors. lumaai's other files are its older
+  generation's text (unpinned actions, no custom-headers env, an `@example` on every method);
+  honcho also needs pagination, non-object bodies and its MCP server package.
+- `tests/golden.rs`: a small synthetic SDK (`tests/fixtures/petstore`), byte for byte, in both
+  layouts (`tests/golden/petstore`, `tests/golden/petstore-node`).
 
 The oracle tests read the config and SDK checkouts at `oracles/cache/<name>`, under their
 `oracles/manifest.yaml` names (`isaacus-config`, `isaacus-typescript`; checkouts at the pinned
