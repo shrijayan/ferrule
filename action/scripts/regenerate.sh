@@ -4,17 +4,21 @@
 # Generate the SDK (runtime taken from the repo itself), verify it against the previous
 # release, then copy it over the working tree. Writes the verify report to $REPORT.
 #
-# Env: INPUT_SPEC, INPUT_CONFIG, INPUT_AGAINST (optional git ref), FERRULE_VERSION,
-# WORKSPACE, OUT, REPORT. FERRULE_FORGE / FERRULE_PLUGIN pass through to `ferrule generate`.
+# Env: INPUT_SPEC, INPUT_CONFIG, INPUT_AGAINST (optional git ref), WORKSPACE, OUT, REPORT.
+# FERRULE_GEN (a ferrule-gen binary) and FERRULE_CONVERT pass through to `ferrule generate`.
 set -euo pipefail
 
 : "${WORKSPACE:?}" "${OUT:?}" "${REPORT:?}"
 rm -rf "$OUT"
 
-if [[ "${FERRULE_VERSION:-}" == "source" ]]; then
-  # Dogfooding: the converter comes from the same checkout as the action.
-  FERRULE_CONVERTER="$(cd "$GITHUB_ACTION_PATH/.." && pwd)/converter/src/cli.ts"
-  export FERRULE_CONVERTER
+if [[ -z "${FERRULE_GEN:-}" ]]; then
+  # No released ferrule-gen binary yet: build it from the action's own checkout (the runner's
+  # rustup picks the toolchain from rust-toolchain.toml). A cold release build takes minutes.
+  src="$(cd "$GITHUB_ACTION_PATH/.." && pwd)"
+  echo "building ferrule-gen in $src"
+  (cd "$src" && cargo build --release --locked --quiet -p ferrule-gen)
+  FERRULE_GEN="$src/target/release/ferrule-gen"
+  export FERRULE_GEN
 fi
 
 against="${INPUT_AGAINST:-}"
