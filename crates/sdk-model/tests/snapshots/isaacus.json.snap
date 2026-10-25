@@ -1,5 +1,28 @@
 {
   "package": {"name": "isaacus", "repo": "isaacus-dev/isaacus-python"},
+  "targets": [
+    [
+      "python",
+      {
+        "package_name": "isaacus",
+        "edition": "python.2025-10-08",
+        "production_repo": "isaacus-dev/isaacus-python",
+        "options": {"options": {"use_uv": false}, "readme_title": "Isaacus Python"}
+      }
+    ],
+    [
+      "typescript",
+      {
+        "package_name": "isaacus",
+        "edition": "typescript.2025-10-08",
+        "production_repo": "isaacus-dev/isaacus-typescript",
+        "options": {
+          "options": {"mcp_server": {"enable_all_resources": true, "package_name": "isaacus-mcp"}},
+          "readme_title": "Isaacus TypeScript"
+        }
+      }
+    ]
+  ],
   "version": "0.8.3",
   "description": "Isaacus API\n\nA RESTful API for using Isaacus legal models, data and other solutions.",
   "base_url": "https://api.isaacus.com/v1",
