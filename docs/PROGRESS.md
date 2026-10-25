@@ -91,3 +91,20 @@ See [phases/phase-4.md](phases/phase-4.md).
   B three-way merge, C GitHub Action, D1 plugin gaps, D2 Forge-parse normalisation.
 - Next on resume: cherry-pick each finished branch (linear history), wire `adopt:gate` in
   mise.toml, pick five targets with breaking 0, run the Phase 4 gate.
+
+### Where to continue (handoff, 2026-10-25)
+Already on main: rescue/adopt, three-way merge, GitHub Action, Forge-parse normalisation,
+`adopt:gate` task, fidelity board, Tier 1 corpus harness. Plan: [plan.html](plan.html).
+
+1. Fold in side-session branches (local only, not pushed; rebase onto main, one at a time,
+   `mise run check` after each):
+   - `claude/eloquent-moser-9f0e7c`: make Tier 1 corpus specs readable by Forge (8 commits)
+   - `claude/busy-greider-31053b`: regenerate opencode-python-sdk with Ferrule (5)
+   - `claude/blissful-leakey-c6f34e`: fake server in every SDK (3)
+   - `claude/wizardly-cray-eea71f`: agent context in wheels, ADR 0013 (3)
+   - `claude/suspicious-clarke-833d81`: draft opencode migration report (1)
+2. Check whether these agent branches were fully cherry-picked (likely, as amended copies):
+   `worktree-agent-abb6070…` (plugin union/alias fixes), `worktree-agent-a1f47d7…` (merge),
+   `worktree-agent-a8eae2c…` (runtime tests).
+3. Pick five targets with 0 breaking and run the Phase 4 gate:
+   `mise run check && mise run adopt:gate`. Record the result here.
