@@ -44,6 +44,13 @@ Sources:
     errors/ packages and their tests, the ProGuard rules, OkHttpClient.kt), copied to
     runtime/java/template/. Modified by The Ferrule Authors (names replaced by tokens,
     //ferrule: directives); marks kept in runtime/README.md and runtime/NOTICE.
+  - OneBusAway/ruby-sdk @ 46a574ddc6992a697077a1463a5abf0432774f09 (Apache-2.0, Copyright
+    2026 Onebusaway SDK), with imagekit-developer/imagekit-ruby @
+    65401086b8180a2c4cb131d07f09683d6c0da7cb (Apache-2.0, Copyright 2026 Image Kit): the
+    Ruby runtime (errors, file_part, internal/**, request_options in the lib, rbi and sig
+    views, and their tests), copied to runtime/ruby/template/. Modified by The Ferrule
+    Authors (names replaced by tokens, #ferrule: directives and slots); marks kept in
+    runtime/README.md and runtime/NOTICE.
   - Pagination class text from lithic-python, honcho-python-core, knock-python and
     knock-mgmt-python (Apache-2.0), reproduced by runtime/src/ferrule_runtime/pagination.py.
   - MIT-licensed Stainless-generated SDKs (opencode-sdk-js, opencode-sdk-go) are compared by

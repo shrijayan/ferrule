@@ -82,5 +82,25 @@ runtime/java/template/ is derived from Stainless-generated Java and Kotlin SDKs:
               and line-length (if fits) blocks added. Marks are recorded here and in
               runtime/README.md instead of in the files (ADR 0004 amendment).
 
+runtime/ruby/template/ is derived from Stainless-generated Ruby SDKs:
+  Repository: https://github.com/OneBusAway/ruby-sdk
+  Commit:     46a574ddc6992a697077a1463a5abf0432774f09 (release 1.12.0)
+  Licence:    Apache License, Version 2.0
+  Copyright:  Copyright 2026 Onebusaway SDK
+  Files:      {lib,rbi,sig}/onebusaway_sdk/{errors,file_part,internal,request_options}.*,
+              {lib,rbi,sig}/onebusaway_sdk/internal/**, test/onebusaway_sdk/file_part_test.rb,
+              test/onebusaway_sdk/internal/**
+  Repository: https://github.com/imagekit-developer/imagekit-ruby
+  Commit:     65401086b8180a2c4cb131d07f09683d6c0da7cb
+  Licence:    Apache License, Version 2.0
+  Copyright:  Copyright 2026 Image Kit
+  Files:      the auth_headers and comma array-format branches and the one-line (if fits)
+              forms in the same files
+  Changes:    Modified by The Ferrule Authors: gem and module names replaced by tokens (also
+              in directory names); #ferrule: auth, array-format and line-length blocks added;
+              the @example blocks of base_model.rb, enum.rb and union.rb replaced by slots.
+              Marks are recorded here and in runtime/README.md instead of in the files
+              (ADR 0004 amendment).
+
 src/ferrule_runtime/pagination.py reproduces the pagination class text of Stainless-generated
 SDKs (Apache-2.0): lithic-python, honcho-python-core, knock-python, knock-mgmt-python.

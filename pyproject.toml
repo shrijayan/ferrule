@@ -23,7 +23,7 @@ dev = [
 [tool.ruff]
 line-length = 100
 target-version = "py312"
-extend-exclude = ["oracles/cache", "corpus/cache", ".cache", "crates/python-plugin/tests/golden", "runtime/typescript/template", "runtime/go/template", "runtime/java/template", "target"]
+extend-exclude = ["oracles/cache", "corpus/cache", ".cache", "crates/python-plugin/tests/golden", "runtime/typescript/template", "runtime/go/template", "runtime/java/template", "runtime/ruby/template", "target"]
 
 [tool.ruff.lint]
 select = ["ALL"]
@@ -43,7 +43,7 @@ known-first-party = ["ferrule", "ferrule_runtime"]
 [tool.pyright]
 typeCheckingMode = "strict"
 pythonVersion = "3.12"
-exclude = ["oracles/cache", "corpus/cache", ".cache", "**/node_modules", "**/.venv", "crates/python-plugin/tests/golden", "runtime/template", "runtime/typescript/template", "runtime/go/template", "runtime/java/template", "target"]
+exclude = ["oracles/cache", "corpus/cache", ".cache", "**/node_modules", "**/.venv", "crates/python-plugin/tests/golden", "runtime/template", "runtime/typescript/template", "runtime/go/template", "runtime/java/template", "runtime/ruby/template", "target"]
 
 [tool.mypy]
 strict = true
