@@ -109,10 +109,14 @@ impl AnnotationContext for ModelContext<'_, '_> {
 /// oracles keep other names that `BaseModel` v1 also has, such as `fields`.
 const SHADOWS_BASE_MODEL: [&str; 1] = ["schema"];
 
-/// The attribute name of a model field.
+/// The attribute name of a model field. A name Pydantic keeps for itself, private (a wire name
+/// with a leading `_`) or protected (`model_`), is prefixed `api_` (knock `api_typename` from
+/// `__typename`; ogx and opencode `api_model_id`).
 fn model_py_name(field: &SdkField) -> String {
     if SHADOWS_BASE_MODEL.contains(&field.py_name.as_str()) {
         format!("{}_", field.py_name)
+    } else if field.wire_name.starts_with('_') || field.py_name.starts_with("model_") {
+        format!("api_{}", field.py_name)
     } else {
         field.py_name.clone()
     }
