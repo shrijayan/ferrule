@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { type Config, convert, normalize } from '../../src/index.ts';
+import { stableStringify } from '../../src/serialize.ts';
 
 // biome-ignore lint/suspicious/noExplicitAny: test access into untyped JSON
 type AnyJson = any;
@@ -66,5 +67,14 @@ describe('normalize', () => {
     const { spec: out, diagnostics } = convert(spec, {} as Config);
     expect((out as AnyJson).components.schemas.R.discriminator).toEqual({ propertyName: 'k' });
     expect(diagnostics.some((d) => d.code === 'FER1602')).toBe(true);
+  });
+
+  // Reduction of the fast-check counterexample `{"":{"__proto__":{}}}` from converter.test.ts.
+  it('keeps a `__proto__` key as data', () => {
+    const spec = JSON.parse('{"":{"__proto__":{"a":1}}}');
+    const { spec: out } = normalize(spec);
+    expect(Object.keys((out as AnyJson)[''])).toEqual(['__proto__']);
+    expect(stableStringify(out)).toBe(stableStringify(spec));
+    expect(JSON.parse(stableStringify(spec))).toEqual(spec);
   });
 });
