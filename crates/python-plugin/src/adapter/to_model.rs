@@ -9,8 +9,8 @@ use super::extensions::{MethodExtensions, RawClient, ResourcePosition, read_meth
 use crate::diagnostics::{FerCode, FerruleError, operation_pointer};
 use crate::js;
 use crate::model::{
-    HttpVerb, SdkClient, SdkClientSettings, SdkField, SdkLiteral, SdkMethod, SdkModelDecl, SdkObject, SdkPackage,
-    SdkPagination, SdkParam, SdkPrimitive, SdkRef, SdkResource, SdkStreaming, SdkType,
+    HttpVerb, SdkBodyVariant, SdkClient, SdkClientSettings, SdkField, SdkLiteral, SdkMethod, SdkModelDecl, SdkObject,
+    SdkPackage, SdkPagination, SdkParam, SdkPrimitive, SdkRef, SdkResource, SdkStreaming, SdkType,
 };
 use crate::naming::{Casing, class_segment_with, pascal_case, singular, snake_case, split_words};
 
@@ -258,6 +258,44 @@ impl Context<'_> {
         }
     }
 
+    /// The object variants of a union body, written inline or as a named model whose schema is
+    /// the union (imagekit `OriginRequest`), with the discriminator; empty for any other body.
+    fn union_variants(&self, ty: Option<&SdkType>) -> (Vec<SdkBodyVariant>, Option<String>) {
+        let union = match ty {
+            Some(SdkType::Ref(r)) => self
+                .decls
+                .iter()
+                .find(|(_, d)| d.r#ref == *r)
+                .and_then(|(_, d)| d.alias.as_ref()),
+            other => other,
+        };
+        let Some(SdkType::Union {
+            variants,
+            discriminator,
+        }) = union
+        else {
+            return (Vec::new(), None);
+        };
+        let objects: Vec<&SdkObject> = variants
+            .iter()
+            .filter_map(|v| match v {
+                SdkType::Object(o) => Some(o),
+                _ => None,
+            })
+            .collect();
+        if objects.len() < 2 || objects.len() != variants.len() {
+            return (Vec::new(), None);
+        }
+        let out = objects
+            .into_iter()
+            .map(|o| SdkBodyVariant {
+                object: o.clone(),
+                params: o.fields.iter().map(field_param).collect(),
+            })
+            .collect();
+        (out, discriminator.clone())
+    }
+
     fn to_pagination(&self, response: Option<&SdkType>) -> Result<Option<SdkPagination>, FerruleError> {
         let Some(raw) = &self.ext.pagination else {
             return Ok(None);
@@ -328,26 +366,14 @@ impl Context<'_> {
             None => Vec::new(),
             Some(h) => h.fields().map(|f| self.read_param(f)).collect::<Result<_, _>>()?,
         };
-        let body_params = self
-            .object_of(body.as_ref())
-            .map(|o| {
-                o.fields
-                    .iter()
-                    .map(|f| SdkParam {
-                        wire_name: f.wire_name.clone(),
-                        py_name: f.py_name.clone(),
-                        required: f.required,
-                        description: f.description.clone(),
-                        ty: f.ty.clone(),
-                        // `SdkField` does not carry it; no emitter reads it (see the port notes).
-                        deprecated: false,
-                        example: None,
-                        minimum: None,
-                        maximum: None,
-                    })
-                    .collect()
-            })
-            .unwrap_or_default();
+        let (body_variants, body_discriminator) = self.union_variants(body.as_ref());
+        let body_params = if body_variants.is_empty() {
+            self.object_of(body.as_ref())
+                .map(|o| o.fields.iter().map(field_param).collect())
+                .unwrap_or_default()
+        } else {
+            merge_variants(&body_variants)
+        };
         // A map or array body is one `body` argument, described by the body schema (Stainless).
         let whole = match (&body, content) {
             (Some(ty @ (SdkType::Map(_) | SdkType::Array(_))), Some(c)) => Some(SdkParam {
@@ -383,11 +409,47 @@ impl Context<'_> {
             body_params,
             body_media_type: content.map(|c| c.media_type().to_owned()),
             body_whole,
+            body_variants,
+            body_discriminator,
             response,
             pagination,
             streaming,
         })
     }
+}
+
+/// A body field as a keyword argument.
+fn field_param(f: &SdkField) -> SdkParam {
+    SdkParam {
+        wire_name: f.wire_name.clone(),
+        py_name: f.py_name.clone(),
+        required: f.required,
+        description: f.description.clone(),
+        ty: f.ty.clone(),
+        // `SdkField` does not carry it; no emitter reads it (see the port notes).
+        deprecated: false,
+        example: None,
+        minimum: None,
+        maximum: None,
+    }
+}
+
+/// The fields of every variant once, in the order they first appear: required where every
+/// variant requires them, typed as the first variant that has them types them.
+fn merge_variants(variants: &[SdkBodyVariant]) -> Vec<SdkParam> {
+    let mut out: Vec<SdkParam> = Vec::new();
+    for v in variants {
+        for p in &v.params {
+            if !out.iter().any(|q| q.wire_name == p.wire_name) {
+                let mut merged = p.clone();
+                merged.required = variants
+                    .iter()
+                    .all(|w| w.params.iter().any(|q| q.wire_name == p.wire_name && q.required));
+                out.push(merged);
+            }
+        }
+    }
+    out
 }
 
 /// An object schema written inline under a property carries its description on the property

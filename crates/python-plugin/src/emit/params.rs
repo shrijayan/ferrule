@@ -2,11 +2,12 @@
 //! followed by the `TypedDicts` (and union aliases) of the inline objects inside them.
 
 use std::collections::{HashMap, HashSet};
+use std::ops::Range;
 
 use super::common::{FieldLike, HEADER, method_params, method_ref, py_string, rel_import, sort_fields};
 use super::format::{bracket, print_expr};
 use super::models::{all_list, docstring};
-use crate::model::{SdkLiteral, SdkMethod, SdkObject, SdkPrimitive, SdkRef, SdkResource, SdkType};
+use crate::model::{SdkLiteral, SdkMethod, SdkObject, SdkParam, SdkPrimitive, SdkRef, SdkResource, SdkType};
 use crate::naming::{class_segment, pascal_case, singular, split_words};
 use crate::printer::PythonPrinter;
 use crate::type_mapper::{AnnotationContext, WithoutUnionNames, to_annotation};
@@ -120,6 +121,19 @@ impl<'a> Named<'a> {
             }
             _ => {}
         }
+    }
+
+    /// Names the inline objects under `params` (in field order) with `prefix`, as below a class
+    /// of that name.
+    pub fn add_fields<F: FieldLike>(&mut self, params: &[&'a F], prefix: &str) {
+        for &p in &sort_fields(params.iter().copied()) {
+            self.visit_field(p, prefix);
+        }
+    }
+
+    /// How many declarations there are in pre-order and in post-order.
+    fn counts(&self) -> (usize, usize) {
+        (self.preorder.len(), self.postorder.len())
     }
 
     fn visit_type(&mut self, t: &'a SdkType, base: &str) {
@@ -236,6 +250,74 @@ pub fn name_params<'a, F: FieldLike>(params: &[&'a F], root_prefix: &str) -> Nam
     named
 }
 
+/// One variant of a union body, as its params file declares it.
+#[derive(Debug)]
+pub struct UnionVariant<'a> {
+    /// Its `TypedDict`, such as `S3` or `GuideBooleanActivationParams`.
+    pub name: String,
+    /// Its keyword arguments: the query parameters and the variant's fields, in the oracle order.
+    pub args: Vec<&'a SdkParam>,
+    /// Its inline objects in [`Named::preorder`] and [`Named::postorder`].
+    pre: Range<usize>,
+    post: Range<usize>,
+}
+
+/// The names of a union body (`body_variants`): a `TypedDict` per variant, named after the
+/// schema it comes from or its discriminator value (`Variant<i>` without either), and its inline
+/// objects named below it (`ChangePublicationStatusPublish`, imagekit `file_update_params.py`).
+#[derive(Debug)]
+pub struct UnionBody<'a> {
+    pub named: Named<'a>,
+    pub variants: Vec<UnionVariant<'a>>,
+    /// The implementation's keyword arguments: every variant's, in the order they first appear.
+    pub args: Vec<&'a SdkParam>,
+}
+
+impl UnionBody<'_> {
+    /// The inline objects of variant `i` in pre-order, for `__all__`.
+    #[must_use]
+    pub fn preorder(&self, i: usize) -> Vec<Decl<'_>> {
+        self.named.preorder()[self.variants[i].pre.clone()].to_vec()
+    }
+
+    /// The inline objects of variant `i` in post-order, the order they are declared in.
+    #[must_use]
+    pub fn postorder(&self, i: usize) -> Vec<Decl<'_>> {
+        self.named.postorder()[self.variants[i].post.clone()].to_vec()
+    }
+}
+
+/// [`UnionBody`] of a method, or `None` when its body is not a union.
+#[must_use]
+pub fn name_union_body(method: &SdkMethod) -> Option<UnionBody<'_>> {
+    if method.body_variants.is_empty() {
+        return None;
+    }
+    let mut named = Named::default();
+    let mut variants = Vec::new();
+    let mut args: Vec<&SdkParam> = Vec::new();
+    for (i, v) in method.body_variants.iter().enumerate() {
+        let name =
+            variant_segment(&v.object, method.body_discriminator.as_deref()).unwrap_or_else(|| format!("Variant{i}"));
+        let own = sort_fields(method.query_params.iter().chain(&v.params));
+        let (pre, post) = named.counts();
+        named.add_fields(&own, &name);
+        let (pre_end, post_end) = named.counts();
+        for q in &own {
+            if !args.iter().any(|a| a.py_name == q.py_name) {
+                args.push(q);
+            }
+        }
+        variants.push(UnionVariant {
+            name,
+            args: own,
+            pre: pre..pre_end,
+            post: post..post_end,
+        });
+    }
+    Some(UnionBody { named, variants, args })
+}
+
 /// The annotation context of a params file, or of method arguments using its names.
 pub struct ParamsContext<'n, 'a> {
     pub named: &'n Named<'a>,
@@ -314,6 +396,10 @@ pub fn emit_params_file(resource: Option<&SdkResource>, method: &SdkMethod) -> S
     let mut p = PythonPrinter::new(&[HEADER]);
     p.import_from("__future__", "annotations");
     p.import_from("typing_extensions", "TypedDict");
+    if let Some(body) = name_union_body(method) {
+        emit_union_params(&mut p, &r.name, &body, here);
+        return p.render();
+    }
     let params = method_params(method);
     let named = name_params(&params, "");
     let ctx = ParamsContext {
@@ -332,40 +418,82 @@ pub fn emit_params_file(resource: Option<&SdkResource>, method: &SdkMethod) -> S
         fields_of(p, &params, &ctx);
     });
     for decl in named.postorder() {
-        p.blank().blank();
-        match decl {
-            Decl::Alias { name, union } => {
-                p.import_from("typing_extensions", "TypeAlias");
-                p.import_from("typing", "Union");
-                let plain = WithoutUnionNames(&ctx);
-                let variants = match union {
-                    SdkType::Union { variants, .. } => variants
-                        .iter()
-                        .map(|v| to_annotation(v, &mut p, &plain).into())
-                        .collect(),
-                    _ => Vec::new(),
-                };
-                print_expr(
-                    &mut p,
-                    &bracket("Union[", variants, false, "]").into(),
-                    &format!("{name}: TypeAlias = "),
-                    "",
-                );
-            }
-            Decl::Class { name, obj } => {
-                p.block(&format!("class {name}(TypedDict, total=False):"), |p| {
-                    let doc = docstring(obj.description.as_deref().unwrap_or(""), "");
-                    for l in &doc {
-                        p.line(l);
-                    }
-                    if !doc.is_empty() && !obj.fields.is_empty() {
-                        p.blank();
-                    }
-                    let fields: Vec<_> = obj.fields.iter().collect();
-                    fields_of(p, &fields, &ctx);
-                });
-            }
-        }
+        print_decl(&mut p, decl, &ctx);
     }
     p.render()
+}
+
+/// Declares one inline object or object-union alias of a params file.
+fn print_decl(p: &mut PythonPrinter, decl: Decl<'_>, ctx: &ParamsContext<'_, '_>) {
+    p.blank().blank();
+    match decl {
+        Decl::Alias { name, union } => {
+            p.import_from("typing_extensions", "TypeAlias");
+            p.import_from("typing", "Union");
+            let plain = WithoutUnionNames(ctx);
+            let variants = match union {
+                SdkType::Union { variants, .. } => {
+                    variants.iter().map(|v| to_annotation(v, p, &plain).into()).collect()
+                }
+                _ => Vec::new(),
+            };
+            print_expr(
+                p,
+                &bracket("Union[", variants, false, "]").into(),
+                &format!("{name}: TypeAlias = "),
+                "",
+            );
+        }
+        Decl::Class { name, obj } => {
+            p.block(&format!("class {name}(TypedDict, total=False):"), |p| {
+                let doc = docstring(obj.description.as_deref().unwrap_or(""), "");
+                for l in &doc {
+                    p.line(l);
+                }
+                if !doc.is_empty() && !obj.fields.is_empty() {
+                    p.blank();
+                }
+                let fields: Vec<_> = obj.fields.iter().collect();
+                fields_of(p, &fields, ctx);
+            });
+        }
+    }
+}
+
+/// The params file of a union body: a `TypedDict` per variant, each followed by its inline
+/// objects, then `<Params>: TypeAlias = Union[...]` (imagekit `file_update_params.py`).
+fn emit_union_params(p: &mut PythonPrinter, name: &str, body: &UnionBody<'_>, here: String) {
+    let ctx = ParamsContext {
+        named: &body.named,
+        qualify: String::new(),
+        here,
+        shadowed: body.args.iter().map(|q| q.py_name.clone()).collect(),
+    };
+    let mut exported = vec![name.to_owned()];
+    for (i, v) in body.variants.iter().enumerate() {
+        exported.push(v.name.clone());
+        exported.extend(body.preorder(i).iter().map(|d| d.name().to_owned()));
+    }
+    for l in all_list(&exported) {
+        p.line(&l);
+    }
+    for (i, v) in body.variants.iter().enumerate() {
+        p.blank().blank();
+        p.block(&format!("class {}(TypedDict, total=False):", v.name), |p| {
+            fields_of(p, &v.args, &ctx);
+        });
+        for decl in body.postorder(i) {
+            print_decl(p, decl, &ctx);
+        }
+    }
+    p.blank().blank();
+    p.import_from("typing_extensions", "TypeAlias");
+    p.import_from("typing", "Union");
+    let variants = body.variants.iter().map(|v| v.name.clone().into()).collect();
+    print_expr(
+        p,
+        &bracket("Union[", variants, false, "]").into(),
+        &format!("{name}: TypeAlias = "),
+        "",
+    );
 }

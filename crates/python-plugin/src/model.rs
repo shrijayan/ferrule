@@ -217,10 +217,25 @@ pub struct SdkMethod {
     /// A map or array body (honcho `sessions.peers.add/remove`): `body_params` is then the one
     /// keyword argument `body`, sent as the whole request body.
     pub body_whole: bool,
+    /// A body that is a union of objects (imagekit `files.update`, knock-mgmt `guides.activate`):
+    /// one overload per variant, in spec order. `body_params` then holds every variant's fields
+    /// once, required only where every variant requires them.
+    pub body_variants: Vec<SdkBodyVariant>,
+    /// The wire name of the property that discriminates `body_variants`, if the spec names one.
+    pub body_discriminator: Option<String>,
     /// The decoded `2XX` JSON response, or `None` for none.
     pub response: Option<SdkType>,
     pub pagination: Option<SdkPagination>,
     pub streaming: Option<SdkStreaming>,
+}
+
+/// One object variant of a union request body.
+#[derive(Debug, Clone, PartialEq)]
+pub struct SdkBodyVariant {
+    /// The variant's schema; its `hint` (or discriminator value) names its `TypedDict`.
+    pub object: SdkObject,
+    /// Its fields as keyword arguments, as `body_params` are for an object body.
+    pub params: Vec<SdkParam>,
 }
 
 #[derive(Debug, Clone, PartialEq)]

@@ -9,7 +9,7 @@ use super::common::{
 };
 use super::format::{Bracket, Expr, bracket, call, print_expr};
 use super::models::all_list;
-use super::params::{ParamsContext, name_params};
+use super::params::{ParamsContext, UnionBody, name_params, name_union_body};
 use crate::diagnostics::{FerCode, FerruleError};
 use crate::model::{HttpVerb, ParamLocation, SdkClient, SdkMethod, SdkParam, SdkResource, SdkType};
 use crate::printer::PythonPrinter;
@@ -66,18 +66,138 @@ fn imp(s: &FileState<'_>, p: &mut PythonPrinter, target: &str, name: &str) {
     p.import_from(&rel_import(s.here, target), name);
 }
 
-/// One keyword argument of a method signature.
-fn arg_line(s: &FileState<'_>, p: &mut PythonPrinter, q: &SdkParam, ctx: &dyn AnnotationContext) -> String {
+/// An argument of a method signature: its name, annotation and whether it has no default.
+struct Arg {
+    name: String,
+    ann: String,
+    required: bool,
+}
+
+fn arg_of(p: &mut PythonPrinter, q: &SdkParam, ctx: &dyn AnnotationContext) -> Arg {
     let mut ann = to_annotation(&q.ty, p, ctx);
-    if q.required {
-        return format!("{}: {ann},", q.py_name);
-    }
-    if !is_nullable(&q.ty) && matches!(q.ty, SdkType::Unknown) {
+    if !q.required && !is_nullable(&q.ty) && matches!(q.ty, SdkType::Unknown) {
         "object".clone_into(&mut ann);
+    }
+    Arg {
+        name: q.py_name.clone(),
+        ann,
+        required: q.required,
+    }
+}
+
+/// One argument line of a method signature.
+fn arg_line(s: &FileState<'_>, p: &mut PythonPrinter, a: &Arg) -> String {
+    if a.required {
+        return format!("{}: {},", a.name, a.ann);
     }
     imp(s, p, "_types", "Omit");
     imp(s, p, "_types", "omit");
-    format!("{}: {ann} | Omit = omit,", q.py_name)
+    format!("{}: {} | Omit = omit,", a.name, a.ann)
+}
+
+/// `def name(self, <path params>, *, <args>, <extras>) -> returns:`.
+fn print_signature(
+    s: &FileState<'_>,
+    p: &mut PythonPrinter,
+    name: &str,
+    awaits: bool,
+    path: &[Arg],
+    args: &[Arg],
+    returns: &str,
+) {
+    let opened = {
+        p.line(&format!("{}def {name}(", if awaits { "async " } else { "" }));
+        p.open()
+    };
+    p.line("self,");
+    for a in path {
+        let l = arg_line(s, p, a);
+        p.line(&l);
+    }
+    p.line("*,");
+    for a in args {
+        let l = arg_line(s, p, a);
+        p.line(&l);
+    }
+    p.line(
+        "# Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.",
+    );
+    p.line("# The extra values given here take precedence over values defined on the client or passed to this method.");
+    p.line("extra_headers: Headers | None = None,");
+    p.line("extra_query: Query | None = None,");
+    p.line("extra_body: Body | None = None,");
+    p.line("timeout: float | httpx.Timeout | None | NotGiven = not_given,");
+    p.close(opened);
+    p.line(&format!(") -> {returns}:"));
+}
+
+/// The `@overload` stubs of a union body, one per variant (imagekit `files.update`), and the
+/// implementation's arguments: each in every variant's spelling (`Literal["S3"] |
+/// Literal["WEB_PROXY"]`), required where every variant requires it.
+fn print_overloads(
+    s: &FileState<'_>,
+    p: &mut PythonPrinter,
+    method: &SdkMethod,
+    body: &UnionBody<'_>,
+    sig: (bool, &[Arg], &str),
+    ctx: &dyn AnnotationContext,
+) -> Vec<Arg> {
+    let (awaits, path, returns) = sig;
+    let mut merged: Vec<Arg> = Vec::new();
+    let mut seen: Vec<Vec<String>> = Vec::new();
+    for v in &body.variants {
+        let args: Vec<Arg> = v.args.iter().map(|q| arg_of(p, q, ctx)).collect();
+        p.line("@overload");
+        p.import_from("typing_extensions", "overload");
+        print_signature(s, p, &method.name, awaits, path, &args, returns);
+        let opened = p.open();
+        for l in args_docstring(method, Some(&v.args)) {
+            p.line(&l);
+        }
+        p.line("...");
+        p.close(opened);
+        p.blank();
+        let required: Vec<String> = args.iter().filter(|a| a.required).map(|a| a.name.clone()).collect();
+        if !seen.contains(&required) {
+            seen.push(required);
+        }
+        for a in args {
+            if !merged.iter().any(|m| m.name == a.name) {
+                merged.push(Arg {
+                    required: false,
+                    ann: String::new(),
+                    ..a
+                });
+            }
+        }
+    }
+    for m in &mut merged {
+        let mut anns: Vec<String> = Vec::new();
+        let mut everywhere = true;
+        for v in &body.variants {
+            match v.args.iter().find(|q| q.py_name == m.name) {
+                Some(q) => {
+                    everywhere &= q.required;
+                    let ann = arg_of(p, q, ctx).ann;
+                    if !anns.contains(&ann) {
+                        anns.push(ann);
+                    }
+                }
+                None => everywhere = false,
+            }
+        }
+        m.required = everywhere;
+        m.ann = anns.join(" | ");
+    }
+    if seen.iter().any(|r| !r.is_empty()) {
+        imp(s, p, "_utils", "required_args");
+        let lists = seen
+            .iter()
+            .map(|r| bracket("[", r.iter().map(|n| py_string(n).into()).collect(), false, "]").into())
+            .collect();
+        print_expr(p, &call("@required_args(", lists, false).into(), "", "");
+    }
+    merged
 }
 
 /// `path_template("/a/{b_id}", b_id=b_id)` or the plain path string.
@@ -142,11 +262,12 @@ fn emit_method(
     {
         return Err(unsupported(method, "a param-switched streaming method"));
     }
-    if method.body.is_some() && method.body_params.is_empty() {
+    if method.body.is_some() && method.body_params.is_empty() && method.body_variants.is_empty() {
         return Err(unsupported(method, "a request body that is not an object"));
     }
     let ret = return_model(holder, method);
-    let params = method_params(method);
+    let union = name_union_body(method);
+    let params = union.as_ref().map_or_else(|| method_params(method), |u| u.args.clone());
     let params_ref = if params.is_empty() {
         None
     } else {
@@ -155,9 +276,15 @@ fn emit_method(
     let leaf_module = params_ref
         .as_ref()
         .map_or("", |r| r.module.rsplit('.').next().unwrap_or(""));
-    let named = name_params(&params, "");
+    let plain_named;
+    let named = if let Some(u) = &union {
+        &u.named
+    } else {
+        plain_named = name_params(&params, "");
+        &plain_named
+    };
     let ctx = ParamsContext {
-        named: &named,
+        named,
         qualify: format!("{leaf_module}."),
         here: s.here.to_owned(),
         shadowed: HashSet::new(),
@@ -187,34 +314,22 @@ fn emit_method(
     // A paginated async method is a plain def returning an AsyncPaginator.
     let awaits = is_async && page.is_none();
 
-    let opened = {
-        p.line(&format!("{}def {}(", if awaits { "async " } else { "" }, method.name));
-        p.open()
+    let path: Vec<Arg> = method.path_params.iter().map(|q| arg_of(p, q, &ctx)).collect();
+    let args = match &union {
+        Some(u) => print_overloads(s, p, method, u, (awaits, &path, &returns), &ctx),
+        None => params.iter().map(|q| arg_of(p, q, &ctx)).collect(),
     };
-    p.line("self,");
-    for q in &method.path_params {
-        let l = arg_line(s, p, q, &ctx);
-        p.line(&l);
-    }
-    p.line("*,");
-    for q in &params {
-        let l = arg_line(s, p, q, &ctx);
-        p.line(&l);
-    }
-    p.line(
-        "# Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.",
-    );
-    p.line("# The extra values given here take precedence over values defined on the client or passed to this method.");
-    p.line("extra_headers: Headers | None = None,");
-    p.line("extra_query: Query | None = None,");
-    p.line("extra_body: Body | None = None,");
-    p.line("timeout: float | httpx.Timeout | None | NotGiven = not_given,");
-    p.close(opened);
-    p.line(&format!(") -> {returns}:"));
+    print_signature(s, p, &method.name, awaits, &path, &args, &returns);
 
     let opened = p.open();
     let has_args = !method.path_params.is_empty() || !params.is_empty();
-    for l in args_docstring(method, if has_args { Some(&params) } else { None }) {
+    // The implementation behind overloads has no docstring.
+    let doc = if union.is_some() {
+        Vec::new()
+    } else {
+        args_docstring(method, if has_args { Some(&params) } else { None })
+    };
+    for l in doc {
         p.line(&l);
     }
     for q in &method.path_params {
@@ -250,7 +365,7 @@ fn emit_method(
     let body: Vec<&SdkParam> = params
         .iter()
         .copied()
-        .filter(|q| method.body_params.iter().any(|x| std::ptr::eq(x, *q)))
+        .filter(|q| !query.iter().any(|x| std::ptr::eq(*x, *q)))
         .collect();
     let in_body =
         page.is_some_and(|pg| pg.param_location == ParamLocation::Body) || method.http_method != HttpVerb::Get;
