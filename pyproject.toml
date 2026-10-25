@@ -23,7 +23,7 @@ dev = [
 [tool.ruff]
 line-length = 100
 target-version = "py312"
-extend-exclude = ["oracles/cache", "corpus/cache", ".cache", "python-plugin/test/golden"]
+extend-exclude = ["oracles/cache", "corpus/cache", ".cache", "python-plugin/test/golden", "target"]
 
 [tool.ruff.lint]
 select = ["ALL"]
@@ -43,12 +43,12 @@ known-first-party = ["ferrule", "ferrule_runtime"]
 [tool.pyright]
 typeCheckingMode = "strict"
 pythonVersion = "3.12"
-exclude = ["oracles/cache", "corpus/cache", ".cache", "**/node_modules", "**/.venv", "python-plugin/test/golden", "runtime/template"]
+exclude = ["oracles/cache", "corpus/cache", ".cache", "**/node_modules", "**/.venv", "python-plugin/test/golden", "runtime/template", "target"]
 
 [tool.mypy]
 strict = true
 python_version = "3.12"
-exclude = ["oracles/cache", "corpus/cache", ".cache"]
+exclude = ["oracles/cache", "corpus/cache", ".cache", "target"]
 
 [tool.coverage.run]
 branch = true
