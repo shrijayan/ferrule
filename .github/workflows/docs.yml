@@ -2,10 +2,10 @@ name: docs
 
 on:
   pull_request:
-    paths: ["docs/site/**", ".github/workflows/docs.yml"]
+    paths: ["site/**", ".github/workflows/docs.yml"]
   push:
     branches: [main]
-    paths: ["docs/site/**", ".github/workflows/docs.yml"]
+    paths: ["site/**", ".github/workflows/docs.yml"]
   schedule:
     - cron: "47 4 * * *" # after the nightly parity run, to pick up the newest board
   workflow_dispatch:
@@ -50,7 +50,7 @@ jobs:
       - name: Use fidelity board
         run: |
           if [ -f reports/board/fidelity.json ]; then
-            cp reports/board/fidelity.json docs/site/src/data/fidelity.json
+            cp reports/board/fidelity.json site/src/data/fidelity.json
           else
             echo "::notice::no fidelity board artifact; building with the committed data"
           fi
@@ -63,10 +63,10 @@ jobs:
       - name: Build Astro site
         run: bash scripts/ci/run-if-present.sh docs:build
       - name: Upload Pages artifact
-        if: github.event_name != 'pull_request' && hashFiles('docs/site/dist/index.html') != ''
+        if: github.event_name != 'pull_request' && hashFiles('site/dist/index.html') != ''
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
-          path: docs/site/dist
+          path: site/dist
 
   deploy:
     name: deploy

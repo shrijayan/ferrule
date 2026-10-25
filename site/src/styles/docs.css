@@ -1,0 +1,15 @@
+/* Brass accents for the docs, matching the landing page (src/pages/index.astro). */
+:root {
+  --sl-color-accent-low: #2a1f12;
+  --sl-color-accent: #b98445;
+  --sl-color-accent-high: #f6e2b4;
+  --sl-color-black: #09090a;
+  --sl-color-gray-6: #121215;
+  --sl-color-gray-5: #232327;
+}
+
+:root[data-theme="light"] {
+  --sl-color-accent-low: #f3e3c4;
+  --sl-color-accent: #8a5c2c;
+  --sl-color-accent-high: #4a2f12;
+}

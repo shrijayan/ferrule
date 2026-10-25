@@ -1,6 +1,6 @@
 # Copyright 2026 Ferrule contributors
 # SPDX-License-Identifier: Apache-2.0
-"""Build ``docs/site/src/data/fidelity.json`` from ``reports/parity/*.json``.
+"""Build ``site/src/data/fidelity.json`` from ``reports/parity/*.json``.
 
 One row per oracle. Output is deterministic: rows are sorted by name, and the generated date
 comes from the report (``generated``) or from ``--generated``, never from the clock.
@@ -122,7 +122,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Build the fidelity board data file.")
     parser.add_argument("--reports", type=Path, default=ROOT / "reports" / "parity")
     parser.add_argument("--manifest", type=Path, default=ROOT / "oracles" / "manifest.yaml")
-    parser.add_argument("--out", type=Path, default=ROOT / "docs/site/src/data/fidelity.json")
+    parser.add_argument("--out", type=Path, default=ROOT / "site/src/data/fidelity.json")
     parser.add_argument("--generated", help="date for reports that carry none (YYYY-MM-DD)")
     parser.add_argument("--list-oracles", action="store_true", help="print config groups")
     args = parser.parse_args(argv)

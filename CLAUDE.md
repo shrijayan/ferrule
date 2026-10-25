@@ -44,7 +44,8 @@ migrate/         Python CLI `ferrule`: generate, adopt, rescue, verify, merge
 action/          GitHub Action + regeneration bot
 oracles/         manifest.yaml (repo, last Stainless commit, hashes) + harness
 corpus/          manifest.yaml, fixtures/, baselines/
-docs/            site/ (Astro Starlight), adr/, rfcs/, phases/, research/
+site/            Astro: landing page at /, Starlight docs under /docs, fidelity board
+docs/            adr/, rfcs/, phases/, research/, plan.html
 .claude/         agents/, skills/, settings.json (hooks)
 .github/         workflows, CODEOWNERS, templates
 ```

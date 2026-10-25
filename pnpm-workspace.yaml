@@ -1,4 +1,4 @@
 packages:
   - converter
   - python-plugin
-  - docs/site
+  - site
