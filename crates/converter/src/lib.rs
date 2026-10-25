@@ -2,6 +2,13 @@
 //! Port of `converter/` (ADR 0014). Pure: only [`cli`] touches the file system.
 
 pub mod cli;
+pub mod diagnostic;
+pub mod unicode;
+pub mod value;
+pub mod yaml;
+pub mod zod;
+
+pub use value::{Map, Value};
 
 /// Severity of a [`Diagnostic`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
