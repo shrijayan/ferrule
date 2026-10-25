@@ -215,6 +215,7 @@ name = "ferrule-gen"
 version = "0.0.0"
 dependencies = [
  "ferrule-converter",
+ "ferrule-go-plugin",
  "ferrule-python-plugin",
  "ferrule-sdk-model",
  "ferrule-ts-plugin",

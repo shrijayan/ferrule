@@ -288,3 +288,35 @@ fn reports_model_errors_with_exit_code_1() {
     assert_eq!(model(Path::new("/nonexistent/spec.json")).status.code(), Some(1));
     assert_eq!(bin().arg("model").output().expect("runs").status.code(), Some(2));
 }
+
+#[test]
+fn generates_go_with_the_runtime_options() {
+    let out = scratch("target-go");
+    let status = bin()
+        .arg("generate")
+        .arg(plugin_dir().join("tests/fixtures/onebusaway.json"))
+        .args(["--target", "go", "--out"])
+        .arg(&*out)
+        .status()
+        .expect("runs");
+    assert!(status.success());
+    let names: Vec<String> = files(&out).into_iter().map(|(p, _)| p).collect();
+    for expected in [
+        "client.go",
+        "agency.go",
+        "agency_test.go",
+        "shared/shared.go",
+        "go.mod",
+        ".ferrule/go-runtime.json",
+    ] {
+        assert!(names.iter().any(|n| n == expected), "{expected} not in {names:?}");
+    }
+    let options: serde_json::Value =
+        serde_json::from_slice(&fs::read(out.join(".ferrule/go-runtime.json")).expect("options")).expect("JSON");
+    assert_eq!(options["package_name"], "onebusaway");
+    assert!(
+        options["client_options"]
+            .as_str()
+            .is_some_and(|s| s.contains("func WithAPIKey("))
+    );
+}

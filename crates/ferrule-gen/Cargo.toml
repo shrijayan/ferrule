@@ -8,6 +8,7 @@ publish.workspace = true
 
 [dependencies]
 ferrule-converter.workspace = true
+ferrule-go-plugin.workspace = true
 ferrule-python-plugin.workspace = true
 ferrule-sdk-model.workspace = true
 ferrule-ts-plugin.workspace = true
