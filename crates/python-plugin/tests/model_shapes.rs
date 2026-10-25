@@ -120,3 +120,11 @@ fn list_items_are_named_in_the_singular() {
 fn an_object_with_extra_properties_declares_pydantic_extra() {
     check("extra_properties");
 }
+
+/// In params, an object with properties that also takes other keys is `<Name>Typed`, without a
+/// docstring, and `<Name>: TypeAlias = Union[<Name>Typed, Dict[str, object]]` (knock
+/// `objects.bulk.set`).
+#[test]
+fn a_params_object_with_extra_properties_is_a_typed_dict_or_a_dict() {
+    check("extra_properties_params");
+}

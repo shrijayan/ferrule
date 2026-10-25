@@ -50,3 +50,8 @@ oracle file named below (knock-mgmt-python 0.1.0-alpha.2), not generated.
   its fields the class declares, under `if TYPE_CHECKING:`, `__pydantic_extra__: Dict[str,
   object] = FieldInfo(init=False)` and a `__getattr__` stub returning the extra values' type,
   and `__pydantic_extra__: Dict[str, object]` otherwise.
+- `extra_properties_params`: the request side of the same shape, knock `objects.bulk.set`, whose
+  items are `InlineIdentifyObjectRequest` (knock-python `types/objects/bulk_set_params.py`; also
+  `types/inline_object_request_param.py`, papr-python `types/memory_metadata_param.py`). The
+  `TypedDict` is `ObjectTyped`, without a docstring, and `Object: TypeAlias = Union[ObjectTyped,
+  Dict[str, object]]` takes its place. From knock, not knock-mgmt.
