@@ -1,0 +1,14 @@
+[package]
+name = "ferrule-gen"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[dependencies]
+ferrule-converter.workspace = true
+ferrule-python-plugin.workspace = true
+
+[lints]
+workspace = true
