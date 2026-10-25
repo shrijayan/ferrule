@@ -3,14 +3,20 @@
 <!-- prettier-ignore -->
 [![PyPI version](https://img.shields.io/pypi/v/%%DIST%%.svg?label=pypi%20(stable))](https://pypi.org/project/%%DIST%%/)
 
+%%if README_INTRO_SPACED%%
 
 The %%ORG_TITLE%% Python library provides convenient access to the %%ORG_TITLE%% REST API from any Python 3.9+
 
+%%else%%
+The %%ORG_TITLE%% Python library provides convenient access to the %%ORG_TITLE%% REST API from any Python 3.9+
+%%end%%
 application. The library includes type definitions for all request params and response fields,
 and offers both synchronous and asynchronous clients powered by [httpx](https://github.com/encode/httpx).
 
+%%if README_ATTRIBUTION%%
 It is generated with Ferrule.
 
+%%end%%
 ## Documentation
 
 The REST API documentation can be found on [%%DOCS_LABEL%%](%%DOCS_URL%%). The full API of this library can be found in [api.md](api.md).
@@ -27,37 +33,58 @@ pip install %%DIST%%
 The full API of this library can be found in [api.md](api.md).
 
 ```python
+%%if README_AUTH%%
 import os
 from %%PACKAGE%% import %%CLIENT%%
 
 client = %%CLIENT%%(
-    api_key=os.environ.get("%%API_KEY_ENV%%"),  # This is the default and can be omitted
+    %%README_AUTH_OPT%%=os.environ.get("%%README_AUTH_ENV%%"),  # This is the default and can be omitted
 )
+%%else%%
+from %%PACKAGE%% import %%CLIENT%%
 
-%%EX_RESULT%% = client.%%EX_ACCESSOR%%.%%EX_METHOD%%(%%EX_ARGS%%)
+client = %%CLIENT%%()
+%%end%%
+
+%%wrapmd%%%%EX_RESULT%% = client.%%EX_ACCESSOR%%.%%EX_METHOD%%(%%EX_ARGS%%)
+%%if EX_PRINT%%
+print(%%EX_RESULT%%.%%EX_PRINT%%)
+%%end%%
 ```
+%%if README_AUTH%%
 
-While you can provide an `api_key` keyword argument,
+While you can provide %%README_AUTH_ARTICLE%% `%%README_AUTH_OPT%%` keyword argument,
 we recommend using [python-dotenv](https://pypi.org/project/python-dotenv/)
-to add `%%API_KEY_ENV%%="My API Key"` to your `.env` file
-so that your API Key is not stored in source control.
+to add `%%README_AUTH_ENV%%="%%README_AUTH_VALUE%%"` to your `.env` file
+so that your %%README_AUTH_LABEL%% is not stored in source control.
+%%end%%
 
 ## Async usage
 
 Simply import `Async%%CLIENT%%` instead of `%%CLIENT%%` and use `await` with each API call:
 
 ```python
+%%if README_AUTH%%
 import os
 import asyncio
 from %%PACKAGE%% import Async%%CLIENT%%
 
 client = Async%%CLIENT%%(
-    api_key=os.environ.get("%%API_KEY_ENV%%"),  # This is the default and can be omitted
+    %%README_AUTH_OPT%%=os.environ.get("%%README_AUTH_ENV%%"),  # This is the default and can be omitted
 )
+%%else%%
+import asyncio
+from %%PACKAGE%% import Async%%CLIENT%%
+
+client = Async%%CLIENT%%()
+%%end%%
 
 
 async def main() -> None:
-    %%EX_RESULT%% = await client.%%EX_ACCESSOR%%.%%EX_METHOD%%(%%EX_ARGS%%)
+%%wrapmd%%    %%EX_RESULT%% = await client.%%EX_ACCESSOR%%.%%EX_METHOD%%(%%EX_ARGS%%)
+%%if EX_PRINT%%
+    print(%%EX_RESULT%%.%%EX_PRINT%%)
+%%end%%
 
 
 asyncio.run(main())
@@ -79,7 +106,9 @@ pip install %%DIST%%[aiohttp]
 Then you can enable it by instantiating the client with `http_client=DefaultAioHttpClient()`:
 
 ```python
+%%if README_AUTH%%
 import os
+%%end%%
 import asyncio
 from %%PACKAGE%% import DefaultAioHttpClient
 from %%PACKAGE%% import Async%%CLIENT%%
@@ -87,10 +116,15 @@ from %%PACKAGE%% import Async%%CLIENT%%
 
 async def main() -> None:
     async with Async%%CLIENT%%(
-        api_key=os.environ.get("%%API_KEY_ENV%%"),  # This is the default and can be omitted
+%%if README_AUTH%%
+        %%README_AUTH_OPT%%=os.environ.get("%%README_AUTH_ENV%%"),  # This is the default and can be omitted
+%%end%%
         http_client=DefaultAioHttpClient(),
     ) as client:
-        %%EX_RESULT%% = await client.%%EX_ACCESSOR%%.%%EX_METHOD%%(%%EX_ARGS%%)
+%%wrapmd%%        %%EX_RESULT%% = await client.%%EX_ACCESSOR%%.%%EX_METHOD%%(%%EX_ARGS%%)
+%%if EX_PRINT%%
+        print(%%EX_RESULT%%.%%EX_PRINT%%)
+%%end%%
 
 
 asyncio.run(main())
@@ -121,7 +155,7 @@ from %%PACKAGE%% import %%CLIENT%%
 client = %%CLIENT%%()
 
 try:
-    client.%%EX_ACCESSOR%%.%%EX_METHOD%%(%%EX_ARGS%%)
+%%wrapmd%%    client.%%EX_ACCESSOR%%.%%EX_METHOD%%(%%EX_ARGS%%)
 except %%PACKAGE%%.APIConnectionError as e:
     print("The server could not be reached")
     print(e.__cause__)  # an underlying Exception, likely raised within httpx.
@@ -164,7 +198,7 @@ client = %%CLIENT%%(
 )
 
 # Or, configure per-request:
-client.with_options(max_retries=5).%%EX_ACCESSOR%%.%%EX_METHOD%%(%%EX_ARGS%%)
+%%wrapmd%%client.with_options(max_retries=5).%%EX_ACCESSOR%%.%%EX_METHOD%%(%%EX_ARGS%%)
 ```
 
 ### Timeouts
@@ -187,7 +221,7 @@ client = %%CLIENT%%(
 )
 
 # Override per-request:
-client.with_options(timeout=5.0).%%EX_ACCESSOR%%.%%EX_METHOD%%(%%EX_ARGS%%)
+%%wrapmd%%client.with_options(timeout=5.0).%%EX_ACCESSOR%%.%%EX_METHOD%%(%%EX_ARGS%%)
 ```
 
 On timeout, an `APITimeoutError` is thrown.
@@ -228,11 +262,11 @@ The "raw" Response object can be accessed by prefixing `.with_raw_response.` to 
 from %%PACKAGE%% import %%CLIENT%%
 
 client = %%CLIENT%%()
-response = client.%%EX_ACCESSOR%%.with_raw_response.%%EX_METHOD%%(%%EX_ARGS%%)
+%%wrap%%response = client.%%EX_ACCESSOR%%.with_raw_response.%%EX_METHOD%%(%%EX_ARGS%%)
 print(response.headers.get('X-My-Header'))
 
-%%EX_RESULT%% = response.parse()  # get the object that `%%EX_ACCESSOR%%.%%EX_METHOD%%(%%EX_ARGS%%)` would have returned
-print(%%EX_RESULT%%)
+%%EX_PARSED%% = response.parse()  # get the object that `%%EX_ACCESSOR%%.%%EX_METHOD%%()` would have returned
+print(%%EX_PARSED%%%%EX_PARSED_PRINT%%)
 ```
 
 These methods return an [`APIResponse`](https://github.com/%%REPO%%/tree/main/src/%%PACKAGE%%/_response.py) object.
@@ -246,7 +280,7 @@ The above interface eagerly reads the full response body when you make the reque
 To stream the response body, use `.with_streaming_response` instead, which requires a context manager and only reads the response body once you call `.read()`, `.text()`, `.json()`, `.iter_bytes()`, `.iter_text()`, `.iter_lines()` or `.parse()`. In the async client, these are async methods.
 
 ```python
-with client.%%EX_ACCESSOR%%.with_streaming_response.%%EX_METHOD%%(%%EX_ARGS%%) as response:
+%%wrapmd%%with client.%%EX_ACCESSOR%%.with_streaming_response.%%EX_METHOD%%(%%EX_ARGS%%) as response:
     print(response.headers.get("X-My-Header"))
 
     for line in response.iter_lines():

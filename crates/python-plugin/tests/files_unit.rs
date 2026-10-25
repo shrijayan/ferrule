@@ -175,7 +175,7 @@ fn fills_every_template_with_the_input() {
 #[test]
 fn leaves_the_probe_args_comma_out_when_there_are_no_args() {
     let mut input = acme();
-    input.retry_probe.args = String::new();
+    input.retry_probe.args = Vec::new();
     let vars = template_vars(&input);
     assert_eq!(vars["PROBE_ARGS_COMMA"], "");
     assert_eq!(vars["EX_RESULT"], "cases");

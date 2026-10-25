@@ -5,6 +5,7 @@ pub mod client;
 pub mod common;
 pub mod cycles;
 pub mod files;
+pub mod files_example;
 pub mod files_input;
 pub mod format;
 pub mod models;

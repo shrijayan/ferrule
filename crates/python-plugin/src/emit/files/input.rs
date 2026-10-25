@@ -12,6 +12,19 @@ pub enum PythonEdition {
     Python20251008,
 }
 
+/// One keyword argument of an [`ExampleRequest`].
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ExampleArg {
+    /// Python keyword, such as `stop_id`.
+    pub name: String,
+    /// The value as a one-line Python literal, such as `"1_75403"` or `["a", "b"]`.
+    pub value: String,
+    /// The same value with the trailing commas the oracle READMEs' examples have (in dicts, not
+    /// in lists), which ruff then splits one element per line.
+    pub readme_value: String,
+    pub required: bool,
+}
+
 /// One request used as an example in README.md, or as the retry probe in `tests/test_client.py`.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ExampleRequest {
@@ -19,11 +32,24 @@ pub struct ExampleRequest {
     pub accessor: String,
     /// Python method name, such as `retrieve`.
     pub method: String,
-    /// Python keyword arguments, already rendered, such as `stop_id="1_75403"`; empty for none.
-    pub args: String,
+    /// Keyword arguments in call order (required, then optional, each by name); empty for none.
+    pub args: Vec<ExampleArg>,
     pub http_method: HttpVerb,
     /// The path as respx matches it, such as `/api/where/current-time.json`.
     pub path: String,
+    /// Variable the README assigns the result to: the response model's (`embedding_response`),
+    /// the resource's for a synthesized response (`current_time`), `page` for a page.
+    pub result: String,
+    /// Variable the README assigns a parsed raw response to: the resource's (`embedding`).
+    pub parsed: String,
+    /// The response property the README prints after the call, such as `id` (a page's items for
+    /// a page); `None` prints nothing.
+    pub print_property: Option<String>,
+    /// The property it prints of a parsed raw response (of one item for a page); `None` prints
+    /// the whole result.
+    pub parsed_property: Option<String>,
+    /// A paginated method: the oracles have no connection-leak tests for one.
+    pub paginated: bool,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -97,14 +123,45 @@ pub struct Organization {
     pub title: String,
     pub contact: String,
     pub docs_url: String,
+    /// `organization.security_contact`, which SECURITY.md names (isaacus); else `contact`.
+    pub security_contact: String,
 }
 
-/// The API key client option: env var it reads and the query parameter it is sent as
-/// (`kind: 'api_key_query'`, the only kind today).
+/// How the client sends its credentials: the security scheme of its auth options.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct ApiKeyQueryAuth {
-    pub env: String,
-    pub param: String,
+pub enum AuthScheme {
+    /// No option authenticates (opencode).
+    None,
+    /// `Authorization: Bearer <value>` (lumaai, isaacus, knock-mgmt).
+    Bearer,
+    /// `Authorization: Basic <username:password>` (imagekit).
+    Basic,
+    /// An API key in this header, such as `X-API-Key` (papr).
+    Header(String),
+    /// An API key sent as this query parameter, such as `key` (OneBusAway).
+    Query(String),
+}
+
+/// A client option that authenticates, as the tests and the README spell it.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AuthOpt {
+    /// Python argument, such as `api_key`.
+    pub name: String,
+    /// The environment variable it reads, such as `ONEBUSAWAY_API_KEY`.
+    pub env: Option<String>,
+    /// Its value in the tests, such as `My API Key`.
+    pub value: String,
+    /// How the README names it, such as `API Key`.
+    pub label: String,
+    /// Whether it has a config default (imagekit's `password`): the README leaves it out.
+    pub has_default: bool,
+}
+
+/// The client's credentials: the scheme and the options it reads, in config order.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Auth {
+    pub scheme: AuthScheme,
+    pub opts: Vec<AuthOpt>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -140,10 +197,15 @@ pub struct ProjectFilesInput {
     pub organization: Organization,
     /// First heading of README.md without " Python API library", such as `OneBusAway SDK`.
     pub readme_title: String,
-    pub auth: ApiKeyQueryAuth,
+    /// `readme.include_stainless_attribution` (default true): README.md says what generated it.
+    pub readme_attribution: bool,
+    /// Not `settings.disable_mock_tests`: the tests run against a mock server (`scripts/mock`).
+    pub mock_tests: bool,
+    pub auth: Auth,
     pub query: QueryFormat,
     pub stats: Stats,
     pub readme_example: ExampleRequest,
+    /// The README example with its required arguments only.
     pub retry_probe: ExampleRequest,
     /// Names of `types.shared`, for the "Shared Types" section of api.md.
     pub shared_types: Vec<String>,

@@ -3,7 +3,7 @@
 use ferrule_python_plugin::diagnostics::FerCode;
 use ferrule_python_plugin::emit::client::emit_client_file;
 use ferrule_python_plugin::emit::common::{args_docstring, stainless_method_order};
-use ferrule_python_plugin::emit::files::input::ParamLocation as FilesLocation;
+use ferrule_python_plugin::emit::files::input::{AuthScheme, ParamLocation as FilesLocation};
 use ferrule_python_plugin::emit::files_input::{placeholder_meta, to_project_files_input};
 use ferrule_python_plugin::emit::params::emit_params_file;
 use ferrule_python_plugin::emit::project::emit_root_files;
@@ -560,9 +560,10 @@ fn maps_resources_params_and_the_api_key_query_auth() {
         "acme/acme-python",
     );
     let input = to_project_files_input(&free, &meta).expect("an input");
+    assert_eq!(input.auth.scheme, AuthScheme::Query("key".to_owned()));
     assert_eq!(
-        (input.auth.env.as_str(), input.auth.param.as_str()),
-        ("ACME_API_KEY", "key")
+        input.auth.opts.iter().map(|o| o.env.as_deref()).collect::<Vec<_>>(),
+        [Some("ACME_API_KEY")]
     );
     assert_eq!(input.readme_example.accessor, "things");
     // TypeScript expects `[]` here: both methods are named `list`, and the first has no params.
@@ -601,4 +602,141 @@ fn emits_project_files_for_a_bearer_token_client() {
     ] {
         assert!(files.iter().any(|(p, _)| p == path), "no {path}");
     }
+}
+
+fn auth_opt(name: &str, scheme: &str, role: AuthRole) -> SdkClientOpt {
+    SdkClientOpt {
+        name: name.into(),
+        read_env: Some(format!("ACME_{}", name.to_uppercase())),
+        auth: Some(SdkAuth {
+            security_scheme: scheme.into(),
+            role,
+        }),
+        ..settings().opts[0].clone()
+    }
+}
+
+/// A client with one method that needs no arguments, authenticated by `opts` and `schemes`.
+fn authed(opts: Vec<SdkClientOpt>, schemes: Vec<(String, SdkSecurityScheme)>) -> SdkClient {
+    client(
+        vec![resource(
+            &["things"],
+            vec![method(Some(SdkType::Object(obj_with("id"))))],
+        )],
+        Some(SdkClientSettings {
+            opts,
+            security_schemes: schemes,
+            ..settings()
+        }),
+        "acme/acme-python",
+    )
+}
+
+fn project_file(c: &SdkClient, path: &str) -> String {
+    emit_root_files(c, Some(&placeholder_meta()))
+        .expect("emits")
+        .into_iter()
+        .find(|(p, _)| p == path)
+        .map_or_else(|| panic!("no {path}"), |(_, t)| t)
+}
+
+fn basic() -> SdkClient {
+    let mut password = auth_opt("password", "basicAuth", AuthRole::Password);
+    password.default = Some(serde_json::json!("do_not_set"));
+    let webhook_secret = SdkClientOpt {
+        auth: None,
+        ..auth_opt("webhook_secret", "basicAuth", AuthRole::Value)
+    };
+    authed(
+        vec![
+            auth_opt("private_key", "basicAuth", AuthRole::Username),
+            password,
+            webhook_secret,
+        ],
+        vec![(
+            "basicAuth".into(),
+            SdkSecurityScheme::Http {
+                scheme: HttpAuthScheme::Basic,
+                keyword: None,
+            },
+        )],
+    )
+}
+
+fn header() -> SdkClient {
+    authed(
+        vec![auth_opt("x_api_key", "X-API-Key", AuthRole::Value)],
+        vec![(
+            "X-API-Key".into(),
+            SdkSecurityScheme::ApiKey {
+                location: ApiKeyLocation::Header,
+                name: "X-API-Key".into(),
+            },
+        )],
+    )
+}
+
+#[test]
+fn derives_the_auth_of_each_scheme() {
+    let input = |c: &SdkClient| to_project_files_input(c, &placeholder_meta()).expect("an input");
+    let bearer = input(&authed(settings().opts, settings().security_schemes));
+    assert_eq!(bearer.auth.scheme, AuthScheme::Bearer);
+    let opt = &bearer.auth.opts[0];
+    assert_eq!(
+        (opt.name.as_str(), opt.value.as_str(), opt.label.as_str()),
+        ("api_key", "My API Key", "API Key")
+    );
+    // imagekit: the options with `auth`, in config order; `webhook_secret` has none.
+    let basic = input(&basic());
+    assert_eq!(basic.auth.scheme, AuthScheme::Basic);
+    let opts: Vec<(&str, &str, bool)> = basic
+        .auth
+        .opts
+        .iter()
+        .map(|o| (o.name.as_str(), o.value.as_str(), o.has_default))
+        .collect();
+    assert_eq!(
+        opts,
+        [
+            ("private_key", "My Private Key", false),
+            ("password", "My Password", true)
+        ]
+    );
+    assert_eq!(input(&header()).auth.scheme, AuthScheme::Header("X-API-Key".to_owned()));
+    let none = input(&authed(Vec::new(), Vec::new()));
+    assert_eq!((none.auth.scheme, none.auth.opts.len()), (AuthScheme::None, 0));
+}
+
+#[test]
+fn writes_each_scheme_into_the_tests_and_readme() {
+    let tests = project_file(&basic(), "tests/test_client.py");
+    assert!(tests.contains("private_key = \"My Private Key\"\npassword = \"My Password\"\n"));
+    assert!(tests.contains("assert \"Basic\" in request.headers.get(\"Authorization\")"));
+    assert!(tests.contains(
+        "            with update_env(\n                **{\n                    \"ACME_PRIVATE_KEY\": Omit(),\n                    \"ACME_PASSWORD\": Omit(),\n                }\n            ):"
+    ));
+    // The README leaves out an option with a default.
+    let readme = project_file(&basic(), "README.md");
+    assert!(readme.contains("    private_key=os.environ.get(\"ACME_PRIVATE_KEY\"),"));
+    assert!(!readme.contains("password="));
+    assert!(
+        project_file(&header(), "tests/test_client.py")
+            .contains("assert request.headers.get(\"X-API-Key\") == x_api_key")
+    );
+    // No auth (opencode): no credentials anywhere, nor a header check.
+    let free = authed(Vec::new(), Vec::new());
+    let tests = project_file(&free, "tests/test_client.py");
+    assert!(!tests.contains("test_validate_headers") && !tests.contains("api_key"));
+    assert!(tests.contains("client = Acme(base_url=base_url, _strict_response_validation=True)"));
+    let readme = project_file(&free, "README.md");
+    assert!(
+        readme.contains("```python\nfrom acme import Acme\n\nclient = Acme()\n\nthing = client.things.list()\n```")
+    );
+    assert!(!readme.contains("python-dotenv"));
+    let conftest = project_file(&free, "tests/conftest.py");
+    assert!(
+        conftest.contains(
+            "base_url = os.environ.get(\"TEST_API_BASE_URL\", \"http://127.0.0.1:4010\")\n\n\n@pytest.fixture"
+        )
+    );
 }

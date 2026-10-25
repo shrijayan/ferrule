@@ -5,8 +5,8 @@
 use std::path::{Path, PathBuf};
 
 use ferrule_python_plugin::emit::files::input::{
-    ApiKeyQueryAuth, ExampleRequest, FilesMethod, FilesParam, FilesResource, Organization, ParamLocation,
-    ProjectFilesInput, PyName, PythonEdition, QueryFormat, Stats,
+    Auth, AuthOpt, AuthScheme, ExampleArg, ExampleRequest, FilesMethod, FilesParam, FilesResource, Organization,
+    ParamLocation, ProjectFilesInput, PyName, PythonEdition, QueryFormat, Stats,
 };
 use ferrule_python_plugin::model::{
     ArrayFormat, HttpVerb, NestedFormat, SdkField, SdkLiteral, SdkObject, SdkPrimitive, SdkRef, SdkType,
@@ -167,13 +167,36 @@ fn resource(v: &Value) -> FilesResource {
     }
 }
 
+/// An example request of the TypeScript input: `args` is rendered keyword arguments
+/// (`a="x", b=1`, each required); the README assigns the result to the last accessor segment and
+/// prints nothing.
 fn example_request(v: &Value) -> ExampleRequest {
+    let accessor = string(v, "accessor");
+    let var = accessor.rsplit('.').next().unwrap_or(&accessor).to_owned();
+    let args = string(v, "args");
     ExampleRequest {
-        accessor: string(v, "accessor"),
         method: string(v, "method"),
-        args: string(v, "args"),
+        args: args
+            .split(", ")
+            .filter(|a| !a.is_empty())
+            .map(|a| {
+                let (name, value) = a.split_once('=').expect("name=value");
+                ExampleArg {
+                    name: name.to_owned(),
+                    value: value.to_owned(),
+                    readme_value: value.to_owned(),
+                    required: true,
+                }
+            })
+            .collect(),
         http_method: verb(v, "httpMethod"),
         path: string(v, "path"),
+        result: var.clone(),
+        parsed: var,
+        print_property: None,
+        parsed_property: None,
+        paginated: false,
+        accessor,
     }
 }
 
@@ -199,11 +222,21 @@ pub(crate) fn input(v: &Value) -> ProjectFilesInput {
             title: string(org, "title"),
             contact: string(org, "contact"),
             docs_url: string(org, "docsUrl"),
+            security_contact: string(org, "contact"),
         },
         readme_title: string(v, "readmeTitle"),
-        auth: ApiKeyQueryAuth {
-            env: string(auth, "env"),
-            param: string(auth, "param"),
+        readme_attribution: true,
+        mock_tests: true,
+        // `api_key_query`: the `api_key` option, sent as a query parameter.
+        auth: Auth {
+            scheme: AuthScheme::Query(string(auth, "param")),
+            opts: vec![AuthOpt {
+                name: "api_key".to_owned(),
+                env: Some(string(auth, "env")),
+                value: "My API Key".to_owned(),
+                label: "API Key".to_owned(),
+                has_default: false,
+            }],
         },
         query: QueryFormat {
             array_format: match string(query, "arrayFormat").as_str() {

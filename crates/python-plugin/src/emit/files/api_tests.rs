@@ -175,6 +175,8 @@ struct Ctx<'a> {
     accessor: &'a str,
     variable: &'a str,
     uses: Uses,
+    /// `settings.disable_mock_tests`: every test is marked skipped, as in the isaacus oracle.
+    skip: bool,
 }
 
 /// The result check at `indent`, split the way ruff splits a call past 120 columns.
@@ -201,7 +203,12 @@ fn method_tests(ctx: &mut Ctx<'_>, m: &FilesMethod, mode: Mode, tests: &mut Vec<
     } else {
         ctx.client.to_owned()
     };
-    let sig = |name: &str| format!("    @parametrize\n    {def} {name}(self, {cl}: {ty}) -> None:");
+    let skip = if ctx.skip {
+        "    @pytest.mark.skip(reason=\"Mock server tests are disabled\")\n"
+    } else {
+        ""
+    };
+    let sig = |name: &str| format!("{skip}    @parametrize\n    {def} {name}(self, {cl}: {ty}) -> None:");
     let target = format!("{cl}.{}", ctx.accessor);
     let name = &m.name;
     let all_params: Vec<&FilesParam> = m.params.iter().collect();
@@ -304,6 +311,7 @@ pub fn emit_test_module(input: &ProjectFilesInput, r: &FilesResource, accessor: 
         accessor,
         variable: &r.variable,
         uses: Uses::new(),
+        skip: !input.mock_tests,
     };
     let sync = test_class(&mut ctx, r, Mode::Sync);
     let body = format!("{sync}\n\n\n{}\n", test_class(&mut ctx, r, Mode::Async));

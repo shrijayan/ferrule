@@ -4,6 +4,7 @@ set -e
 
 cd "$(dirname "$0")/.."
 
+%%if MOCK_TESTS%%
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[0;33m'
@@ -51,6 +52,9 @@ else
   echo -e "${GREEN}✔ Mock steady server is running with your OpenAPI spec${NC}"
   echo
 fi
+%%else%%
+
+%%end%%
 
 export DEFER_PYDANTIC_BUILD=false
 
