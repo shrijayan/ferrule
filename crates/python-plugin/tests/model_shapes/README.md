@@ -33,6 +33,12 @@ oracle file named below (knock-mgmt-python 0.1.0-alpha.2), not generated.
   `schema`; imagekit-python `types/custom_metadata_field.py`). In a model it would shadow
   `BaseModel.schema`, so it is `schema_ = FieldInfo(alias="schema", ...)`; the params
   `TypedDict` keeps `schema`. Typed `string` here (the oracle's is a bare `type: object`).
+- `protected_field_names`: a `Tenant` with `__typename` (knock-python `types/tenant.py`
+  `api_typename`) and `model_id` (ogx-client-python `types/vector_stores/vector_store_file.py`
+  `api_model_id`; opencode-sdk-python `types/mode.py`). In a model, a name Pydantic keeps for
+  itself, private (leading `_`) or protected (`model_`), is prefixed `api_` with the wire name as
+  the alias; the params `TypedDict` keeps `model_id` (opencode-sdk-python
+  `types/session_init_params.py`). This one is from knock, ogx and opencode, not knock-mgmt.
 - `plural_items`: `WorkflowBranchStep.branches` and `SourceProviderResponse.example_payloads`, a
   map of lists of objects, in one model (knock-mgmt-python `types/workflow_branch_step.py`
   `Branch`, `types/source_provider_response.py` `ExamplePayload`). Item classes are named in the
