@@ -320,3 +320,33 @@ fn generates_go_with_the_runtime_options() {
             .is_some_and(|s| s.contains("func WithAPIKey("))
     );
 }
+
+#[test]
+fn generates_java_and_kotlin_with_the_runtime_options() {
+    for (target, artifact) in [("java", "onebusaway-sdk-java"), ("kotlin", "onebusaway-sdk-kotlin")] {
+        let out = scratch(&format!("target-{target}"));
+        let status = bin()
+            .arg("generate")
+            .arg(plugin_dir().join("tests/fixtures/onebusaway.json"))
+            .args(["--target", target, "--out"])
+            .arg(&*out)
+            .status()
+            .expect("runs");
+        assert!(status.success());
+        let names: Vec<String> = files(&out).into_iter().map(|(p, _)| p).collect();
+        // The fixture has no `x-ferrule-targets`, so the package falls back to `com.<organization>`.
+        for expected in [
+            format!("{artifact}-core/src/main/kotlin/com/onebusawaysdk/client/OnebusawaySdkClient.kt"),
+            format!("{artifact}-core/src/main/kotlin/com/onebusawaysdk/core/ClientOptions.kt"),
+            "settings.gradle.kts".to_owned(),
+            ".ferrule/jvm-runtime.json".to_owned(),
+        ] {
+            assert!(names.contains(&expected), "{expected} not in {names:?}");
+        }
+        let options: serde_json::Value =
+            serde_json::from_slice(&fs::read(out.join(".ferrule/jvm-runtime.json")).expect("options")).expect("JSON");
+        assert_eq!(options["package_name"], "com.onebusawaysdk");
+        assert_eq!(options["target"], target);
+        assert_eq!(options["artifact_name"], artifact);
+    }
+}
