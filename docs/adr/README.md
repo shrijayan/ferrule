@@ -19,5 +19,6 @@ Stainless output needs an ADR.
 | [0011](./0011-keep-files-the-generator-no-longer-writes.md) | Keep files the generator no longer writes | Accepted | 2026-10-23 |
 | [0012](./0012-generated-sdk-type-checks-use-the-sdk-config.md) | Generated SDKs are type-checked with their own configuration | Accepted | 2026-10-23 |
 | [0013](./0013-agent-context-in-every-wheel.md) | Ship agent context in every generated SDK | Accepted | 2026-10-23 |
+| [0014](./0014-rust-for-converter-and-plugin.md) | Rust for the converter and the plugin | Accepted | 2026-10-25 |
 | [0015](./0015-opencode-spec-from-contract-json.md) | The opencode SDK's spec comes from our own contract.json converter | Accepted | 2026-10-23 |
 | [0016](./0016-sdk-testing-fake-server.md) | Ship a `<pkg>.testing` fake server in generated SDKs | Accepted | 2026-10-23 |
