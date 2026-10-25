@@ -5,7 +5,7 @@ use std::fmt::Write as _;
 use ferrule_sdk_model::model::Type;
 
 use super::resource::{Returns, returns};
-use super::{Gen, Service, method_order, params_arg};
+use super::{Gen, Service, method_order};
 use crate::types::{Pkg, model_pkg};
 
 fn link(module: &str, pkg: &str, rel: Option<&str>, name: &str) -> String {
@@ -74,7 +74,7 @@ fn section(out: &mut String, g: &Gen<'_>, s: &Service<'_>) {
         for (n, t) in g.path_params(m) {
             args.push(format!("{n} {}", builtin(t)));
         }
-        if let Some(a) = params_arg(g.client, m) {
+        if let Some(a) = g.params_arg(m) {
             args.push(format!("{a} {}", type_link(g, &format!("{}{name}Params", s.prefix))));
         }
         let results = match ret {

@@ -43,6 +43,10 @@ pub struct GoField {
     pub nullable: bool,
     pub format: Option<&'static str>,
     pub doc: String,
+    /// The Go literals of an enum-typed field, which v2 lists in its doc (`Any of "a", "b".`).
+    pub enum_values: Vec<String>,
+    /// The struct tag key: `json`, `query`, or `path` (v2's path params in a params struct).
+    pub key: &'static str,
 }
 
 /// A declaration the emitters print.
@@ -82,6 +86,9 @@ pub struct Position {
     pub name: String,
     pub item_name: String,
     pub child_prefix: String,
+    /// Fields from the type declared exactly (`0`): v2 declares a params enum only one level
+    /// down (`VariableListParamsType`), deeper ones are plain strings.
+    pub depth: usize,
 }
 
 impl Position {
@@ -92,6 +99,7 @@ impl Position {
             name: name.to_owned(),
             item_name: name.to_owned(),
             child_prefix: name.to_owned(),
+            depth: 0,
         }
     }
 
@@ -103,6 +111,7 @@ impl Position {
             item_name: format!("{}{}", self.child_prefix, exported(&singular(field), casings)),
             child_prefix: plain.clone(),
             name: plain,
+            depth: self.depth + 1,
         }
     }
 
@@ -111,6 +120,7 @@ impl Position {
             name: self.item_name.clone(),
             item_name: self.item_name.clone(),
             child_prefix: self.child_prefix.clone(),
+            depth: self.depth,
         }
     }
 }
@@ -123,6 +133,8 @@ pub struct Ctx<'a> {
     /// The package being emitted, to qualify references into the other one.
     pub pkg: Pkg,
     pub imports: BTreeSet<String>,
+    /// Stainless's Go v2 layout (`param.Opt`, `respjson`).
+    pub v2: bool,
 }
 
 impl Ctx<'_> {
@@ -179,9 +191,16 @@ pub fn model_ref(r: &TypeRef, ctx: &mut Ctx<'_>) -> String {
     }
 }
 
+/// Any value: `interface{}`, which v2 spells `any`.
+fn any(ctx: &Ctx<'_>) -> Mapped {
+    Mapped::plain(if ctx.v2 { "any" } else { "interface{}" })
+}
+
 fn scalar(s: Scalar, mode: Mode, ctx: &mut Ctx<'_>) -> Mapped {
+    if matches!(s, Scalar::Unknown | Scalar::Null) {
+        return any(ctx);
+    }
     let mut m = Mapped::plain(match s {
-        Scalar::Unknown | Scalar::Null => "interface{}",
         Scalar::Boolean => "bool",
         Scalar::String | Scalar::Uuid | Scalar::Bytes => "string",
         s if s.is_integer() => "int64",
@@ -203,6 +222,16 @@ fn scalar(s: Scalar, mode: Mode, ctx: &mut Ctx<'_>) -> Mapped {
         _ => {}
     }
     m
+}
+
+/// The values of an enum type (inline, nullable or a named enum model), as Go literals.
+fn enum_values(ty: &Type, client: &Client) -> Vec<String> {
+    match ty {
+        Type::Enum { members } => members.iter().map(|m| literal(&m.value).1).collect(),
+        Type::Nullable { inner } => enum_values(inner, client),
+        Type::Ref(r) => client.model(r).map_or_else(Vec::new, |d| enum_values(&d.ty, client)),
+        _ => Vec::new(),
+    }
 }
 
 fn literal(value: &Literal) -> (&'static str, String) {
@@ -228,15 +257,38 @@ pub fn sort_fields(fields: &[Field]) -> Vec<&Field> {
     out
 }
 
-/// The struct for an object at `pos`, followed by the types its fields introduce.
-pub fn object_decls(obj: &Object, pos: &Position, doc: &str, mode: Mode, ctx: &mut Ctx<'_>) -> Vec<Decl> {
-    let mut nested = Vec::new();
-    let mut fields = Vec::new();
-    for f in sort_fields(&obj.fields) {
+/// Whether a Go type is one v2's `param.Opt` wraps when optional (`string`, `int64`, ...).
+#[must_use]
+pub fn opt_scalar(ty: &str) -> bool {
+    matches!(ty, "string" | "int64" | "float64" | "bool" | "time.Time")
+}
+
+/// v2 params order: required fields, then optional `param.Opt` scalars, then the other
+/// optional fields (imagekit-go, knock-mgmt-go), each group in [`sort_fields`] order.
+fn v2_param_rank(f: &GoField) -> u8 {
+    if f.required {
+        0
+    } else if opt_scalar(&f.ty) && f.enum_values.is_empty() {
+        1
+    } else {
+        2
+    }
+}
+
+/// The tag key of a field mapped in `mode`.
+fn key(mode: Mode) -> &'static str {
+    if mode == Mode::Query { "query" } else { "json" }
+}
+
+/// The fields of `fields` (in [`sort_fields`] order) mapped at `pos`, their declarations
+/// appended to `nested`.
+fn go_fields(fields: &[Field], pos: &Position, mode: Mode, ctx: &mut Ctx<'_>, nested: &mut Vec<Decl>) -> Vec<GoField> {
+    let mut out = Vec::new();
+    for f in sort_fields(fields) {
         let fpos = pos.field(&words(&f.name), ctx.casings);
         let mapped = map_type(&f.ty, &fpos, &f.description, mode, ctx);
         nested.extend(mapped.decls);
-        fields.push(GoField {
+        out.push(GoField {
             name: exported(&words(&f.name), ctx.casings),
             wire: f.wire_name.clone(),
             ty: mapped.ty,
@@ -244,7 +296,57 @@ pub fn object_decls(obj: &Object, pos: &Position, doc: &str, mode: Mode, ctx: &m
             nullable: mapped.nullable,
             format: mapped.format,
             doc: f.description.clone(),
+            enum_values: enum_values(&f.ty, ctx.client),
+            key: key(mode),
         });
+    }
+    out
+}
+
+/// A method's params struct named `name`: v2's path fields (`path:"..."`), then the query
+/// params, then the body fields, each group in [`sort_fields`] order; v2 then moves required
+/// fields first and optional scalars before the other optional fields (knock-mgmt-go's
+/// `WorkflowStepPreviewTemplateParams`). The struct is `Mode::Body` when it has body fields.
+pub fn params_decls(path: &[Field], query: &[Field], body: &[Field], name: &str, ctx: &mut Ctx<'_>) -> Vec<Decl> {
+    let pos = Position::exact(name);
+    let mut nested = Vec::new();
+    let mut fields: Vec<GoField> = path
+        .iter()
+        .map(|f| GoField {
+            name: exported(&words(&f.name), ctx.casings),
+            wire: f.wire_name.clone(),
+            ty: crate::emit::path_param_type(&f.ty).to_owned(),
+            required: true,
+            nullable: false,
+            format: None,
+            doc: f.description.clone(),
+            enum_values: Vec::new(),
+            key: "path",
+        })
+        .collect();
+    fields.extend(go_fields(query, &pos, Mode::Query, ctx, &mut nested));
+    fields.extend(go_fields(body, &pos, Mode::Body, ctx, &mut nested));
+    if ctx.v2 {
+        fields.sort_by_key(|f| if f.key == "path" { 0 } else { 1 + v2_param_rank(f) });
+    }
+    let mode = if body.is_empty() { Mode::Query } else { Mode::Body };
+    let mut out = vec![Decl::Struct {
+        name: name.to_owned(),
+        doc: String::new(),
+        fields,
+        bases: Vec::new(),
+        mode,
+    }];
+    out.extend(nested);
+    out
+}
+
+/// The struct for an object at `pos`, followed by the types its fields introduce.
+pub fn object_decls(obj: &Object, pos: &Position, doc: &str, mode: Mode, ctx: &mut Ctx<'_>) -> Vec<Decl> {
+    let mut nested = Vec::new();
+    let mut fields = go_fields(&obj.fields, pos, mode, ctx, &mut nested);
+    if ctx.v2 && mode != Mode::Response {
+        fields.sort_by_key(v2_param_rank);
     }
     let bases = obj.bases.iter().map(|b| model_ref(b, ctx)).collect();
     let mut out = vec![Decl::Struct {
@@ -264,10 +366,22 @@ pub fn map_type(ty: &Type, pos: &Position, doc: &str, mode: Mode, ctx: &mut Ctx<
         Type::Scalar { scalar: s } => scalar(*s, mode, ctx),
         Type::Enum { members } => {
             let underlying = members.first().map_or("string", |m| literal(&m.value).0);
+            // v2 params declare an enum only for a field of the params struct itself
+            // (`VariableListParamsType`); deeper ones take the underlying type, listing the
+            // values in the field's doc (knock-mgmt-go's `Operator string`).
+            if ctx.v2 && mode != Mode::Response && pos.depth > 1 {
+                return Mapped::plain(underlying);
+            }
+            // v2 spells an upper-case value's words in title case (`COPY_FOLDER` ->
+            // `CopyFolder`, imagekit-go).
             let consts = members
                 .iter()
                 .map(|m| {
-                    let suffix = exported(&words(&m.name), ctx.casings);
+                    let mut w = words(&m.name);
+                    if ctx.v2 {
+                        w = w.iter().map(|s| s.to_lowercase()).collect();
+                    }
+                    let suffix = exported(&w, ctx.casings);
                     (format!("{}{suffix}", pos.name), literal(&m.value).1)
                 })
                 .collect();
@@ -297,7 +411,7 @@ pub fn map_type(ty: &Type, pos: &Position, doc: &str, mode: Mode, ctx: &mut Ctx<
                 ..inner
             }
         }
-        Type::Object(o) if o.fields.is_empty() && o.bases.is_empty() => Mapped::plain("interface{}"),
+        Type::Object(o) if o.fields.is_empty() && o.bases.is_empty() => any(ctx),
         Type::Object(o) => Mapped {
             ty: pos.name.clone(),
             format: None,
@@ -306,7 +420,7 @@ pub fn map_type(ty: &Type, pos: &Position, doc: &str, mode: Mode, ctx: &mut Ctx<
         },
         // Stainless's Go v1 unions (interface types with registered variants) are not emitted
         // yet; any value decodes.
-        Type::Union(_) => Mapped::plain("interface{}"),
+        Type::Union(_) => any(ctx),
         Type::Ref(r) => Mapped::plain(&model_ref(r, ctx)),
         Type::Nullable { inner } => {
             let m = map_type(inner, pos, doc, mode, ctx);

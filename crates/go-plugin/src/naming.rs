@@ -10,9 +10,16 @@
 use ferrule_sdk_model::model::{Casing, CustomCasing, Name};
 
 /// Words Stainless spells upper-case in Go identifiers; a plural `s` stays lower-case (`IDs`).
-/// `json` is not one: ogx-go and knock-mgmt-go spell it `Json` (`JsonSchema`, `JsonBody`), which
-/// also keeps a property named `json` clear of a response's `JSON` metadata field.
-const INITIALISMS: [&str; 10] = ["id", "ids", "url", "uri", "api", "http", "https", "ip", "uuid", "sdk"];
+/// `ai`, `html`, `mp4`, `sms` and `sso` are from imagekit-go and knock-mgmt-go. `json` is not
+/// one: ogx-go and knock-mgmt-go spell it `Json` (`JsonSchema`, `JsonBody`,
+/// `MessageTypeJsonField`, `TranslationFormatJson`), which also keeps a property named `json`
+/// clear of a response's `JSON` metadata field.
+const INITIALISMS: [&str; 15] = [
+    "id", "ids", "url", "uri", "api", "http", "https", "ip", "uuid", "sdk", "ai", "html", "mp4", "sms", "sso",
+];
+
+/// Words Stainless spells in a fixed mixed case (knock-mgmt-go's `OAuthContext`).
+const MIXED: [(&str, &str); 1] = [("oauth", "OAuth")];
 
 /// Go's keywords, which no identifier may be.
 const KEYWORDS: [&str; 25] = [
@@ -88,7 +95,9 @@ fn exported_word(w: &str, casings: Casings<'_>) -> String {
     {
         return format!("{}s", stem.to_ascii_uppercase());
     }
-    if !INITIALISMS.contains(&lower.as_str()) {
+    if let Some((_, spelled)) = MIXED.iter().find(|(word, _)| *word == lower) {
+        (*spelled).to_owned()
+    } else if !INITIALISMS.contains(&lower.as_str()) {
         capitalize(w)
     } else if lower.ends_with('s') && lower != "https" {
         format!("{}s", lower[..lower.len() - 1].to_ascii_uppercase())
@@ -148,6 +157,12 @@ pub fn singular<S: AsRef<str>>(words: &[S]) -> Vec<String> {
     let Some(last) = out.pop() else { return out };
     let s = if ends_with_ignore_case(&last, "ies") {
         format!("{}y", &last[..last.len() - 3])
+    } else if ["ches", "shes", "sses", "xes"]
+        .iter()
+        .any(|x| ends_with_ignore_case(&last, x))
+    {
+        // `branches` -> `branch` (knock-mgmt-go's `BranchService`).
+        last[..last.len() - 2].to_owned()
     } else if ["ss", "us", "is"].iter().any(|x| ends_with_ignore_case(&last, x)) {
         last
     } else if ends_with_ignore_case(&last, "s") {
@@ -276,6 +291,8 @@ mod tests {
             ["agencies", "with", "coverage"]
         );
         assert_eq!(singular(&["status"]), ["status"]);
+        assert_eq!(singular(&["branches"]), ["branch"]);
+        assert_eq!(singular(&["boxes"]), ["box"]);
         assert_eq!(singular(&["nearby", "stop", "Ids"]), ["nearby", "stop", "Id"]);
     }
 

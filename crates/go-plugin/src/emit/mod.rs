@@ -205,6 +205,7 @@ impl<'a> Gen<'a> {
             module: &self.target.module_path,
             pkg,
             imports: BTreeSet::new(),
+            v2: self.target.v2(),
         }
     }
 
@@ -263,13 +264,49 @@ impl<'a> Gen<'a> {
         method_name(&m.name, self.casings)
     }
 
-    /// `ctx` param names and Go types for each path param.
+    /// The path params the params struct holds: in v2 every one but the last, which stay
+    /// arguments (imagekit-go's `FileVersionRestoreParams.FileID`); none in v1.
+    #[must_use]
+    pub fn path_fields<'m>(&self, m: &'m Method) -> &'m [Param] {
+        if self.target.v2() {
+            &m.path_params[..m.path_params.len().saturating_sub(1)]
+        } else {
+            &[]
+        }
+    }
+
+    /// Argument names and Go types of the path params passed as arguments.
     #[must_use]
     pub fn path_params(&self, m: &Method) -> Vec<(String, &'static str)> {
-        m.path_params
+        m.path_params[self.path_fields(m).len()..]
             .iter()
             .map(|p| (local(&words(&p.field.name), self.casings), path_param_type(&p.field.ty)))
             .collect()
+    }
+
+    /// The name of a method's params argument: `params` for query and body fields (or header
+    /// params), else `body` for body fields, else `query` for query fields or v2's path fields;
+    /// v2 names a `POST`, `PUT` or `PATCH` method's query-only argument `body`
+    /// (knock-mgmt-go's `CommitService.PromoteAll`).
+    #[must_use]
+    pub fn params_arg(&self, m: &Method) -> Option<&'static str> {
+        let query = !m.query_params.is_empty();
+        let body = m.body.is_some() && !body_fields(self.client, m).is_empty();
+        let headers = !m.header_params.is_empty();
+        let path = !self.path_fields(m).is_empty();
+        let sends_body = matches!(
+            m.http_method,
+            ferrule_sdk_model::model::HttpMethod::Post
+                | ferrule_sdk_model::model::HttpMethod::Put
+                | ferrule_sdk_model::model::HttpMethod::Patch
+        );
+        match (query || path, body, headers) {
+            (false, false, false) => None,
+            (true, false, false) if self.target.v2() && sends_body => Some("body"),
+            (true, false, false) => Some("query"),
+            (false, true, false) => Some("body"),
+            _ => Some("params"),
+        }
     }
 }
 
@@ -306,18 +343,4 @@ pub fn body_fields<'c>(client: &'c Client, m: &'c Method) -> Vec<&'c ferrule_sdk
         .and_then(|b| client.object_of(&b.ty))
         .map(|o| o.fields.iter().collect())
         .unwrap_or_default()
-}
-
-/// The name of a method's params argument: `query`, `body` or `params` (both, or headers).
-#[must_use]
-pub fn params_arg(client: &Client, m: &Method) -> Option<&'static str> {
-    let query = !m.query_params.is_empty();
-    let body = m.body.is_some() && !body_fields(client, m).is_empty();
-    let headers = !m.header_params.is_empty();
-    match (query, body, headers) {
-        (false, false, false) => None,
-        (true, false, false) => Some("query"),
-        (false, true, false) => Some("body"),
-        _ => Some("params"),
-    }
 }

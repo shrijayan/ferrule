@@ -3,14 +3,14 @@
 
 use std::fmt::Write as _;
 
-use ferrule_sdk_model::model::{Field, HttpMethod, Method, Object, Type};
+use ferrule_sdk_model::model::{Field, HttpMethod, Method, Type};
 
 use super::decls::print_decls;
 use super::pagination::page_of;
-use super::{Gen, Service, body_fields, method_order, params_arg};
+use super::{Gen, Service, body_fields, method_order};
 use crate::naming::exported;
 use crate::printer::{ALIGN, comment, go_file};
-use crate::types::{Ctx, Decl, Mode, Pkg, Position, map_type, model_ref, object_decls};
+use crate::types::{Ctx, Decl, Mode, Pkg, Position, map_type, model_ref, object_decls, params_decls as params_struct};
 
 /// What a method returns.
 pub enum Returns {
@@ -31,35 +31,40 @@ pub fn returns(g: &Gen<'_>, s: &Service<'_>, m: &Method, ctx: &mut Ctx<'_>) -> (
         return (Returns::None, Vec::new());
     };
     let name = format!("{}{}Response", s.prefix, g.method_name(m));
+    // An inline response object is documented by its schema's description (knock-mgmt-go's
+    // `APIKeyExchangeResponse`).
+    let doc = |ty: &Type| match ty {
+        Type::Object(o) => o.description.clone().unwrap_or_default(),
+        _ => String::new(),
+    };
     if let (Some(page), Some(p)) = (page_of(g, m), &m.pagination) {
-        let mapped = map_type(&p.item, &Position::exact(&name), "", Mode::Response, ctx);
+        let mapped = map_type(&p.item, &Position::exact(&name), &doc(&p.item), Mode::Response, ctx);
         let returns = Returns::Page {
             page: page.name,
             item: mapped.ty,
         };
         return (returns, mapped.decls);
     }
-    let mapped = map_type(&resp.ty, &Position::exact(&name), "", Mode::Response, ctx);
+    let mapped = map_type(&resp.ty, &Position::exact(&name), &doc(&resp.ty), Mode::Response, ctx);
     (Returns::Pointer(mapped.ty), mapped.decls)
 }
 
 /// The params struct of `m`, if it takes params.
 pub fn params_decls(g: &Gen<'_>, s: &Service<'_>, m: &Method, ctx: &mut Ctx<'_>) -> Vec<Decl> {
-    let Some(arg) = params_arg(g.client, m) else {
+    if g.params_arg(m).is_none() {
         return Vec::new();
-    };
+    }
     let name = format!("{}{}Params", s.prefix, g.method_name(m));
-    let mode = if arg == "query" { Mode::Query } else { Mode::Body };
-    let fields: Vec<Field> = if mode == Mode::Query {
-        m.query_params.iter().map(|p| p.field.clone()).collect()
-    } else {
-        body_fields(g.client, m).into_iter().cloned().collect()
-    };
-    let obj = Object {
-        fields,
-        ..Object::default()
-    };
-    object_decls(&obj, &Position::exact(&name), "", mode, ctx)
+    let path: Vec<Field> = g.path_fields(m).iter().map(|p| p.field.clone()).collect();
+    let query: Vec<Field> = m.query_params.iter().map(|p| p.field.clone()).collect();
+    let body: Vec<Field> = body_fields(g.client, m).into_iter().cloned().collect();
+    params_struct(&path, &query, &body, &name, ctx)
+}
+
+/// Whether the params struct of `m` has fields sent as query or body (not only v2's path
+/// fields), so that the request takes it.
+fn sends_params(g: &Gen<'_>, m: &Method) -> bool {
+    !m.query_params.is_empty() || !body_fields(g.client, m).is_empty() || !m.header_params.is_empty()
 }
 
 fn http_method(m: HttpMethod) -> &'static str {
@@ -125,7 +130,7 @@ fn method(out: &mut String, g: &Gen<'_>, s: &Service<'_>, m: &Method, ret: &Retu
     let path_params = g.path_params(m);
     let mut args = vec!["ctx context.Context".to_owned()];
     args.extend(path_params.iter().map(|(n, t)| format!("{n} {t}")));
-    let arg = params_arg(g.client, m);
+    let arg = g.params_arg(m);
     if let Some(a) = arg {
         args.push(format!("{a} {}{name}Params", s.prefix));
     }
@@ -151,10 +156,32 @@ fn method(out: &mut String, g: &Gen<'_>, s: &Service<'_>, m: &Method, ret: &Retu
         out.push_str("\topts = slices.Concat(r.Options, opts)\n");
     }
     if matches!(ret, Returns::None) {
-        out.push_str("\topts = append([]option.RequestOption{option.WithHeader(\"Accept\", \"\")}, opts...)\n");
+        // v2: imagekit-go's `Delete`; v1's empty value is unverified (no oracle method).
+        let accept = if g.target.v2() { "*/*" } else { "" };
+        let _ = writeln!(
+            out,
+            "\topts = append([]option.RequestOption{{option.WithHeader(\"Accept\", \"{accept}\")}}, opts...)"
+        );
     }
+    // Every path param by its Go expression: the params struct's field, else the argument.
+    let fields = g.path_fields(m);
+    let values: Vec<(String, &'static str)> = m
+        .path_params
+        .iter()
+        .enumerate()
+        .map(|(i, p)| match (i < fields.len(), arg) {
+            (true, Some(a)) => (
+                format!(
+                    "{a}.{}",
+                    crate::naming::exported(&crate::naming::words(&p.field.name), g.casings)
+                ),
+                super::path_param_type(&p.field.ty),
+            ),
+            _ => path_params[i - fields.len()].clone(),
+        })
+        .collect();
     // The message names the parameter as sent (knock-go: `user_id`).
-    for ((n, t), p) in path_params.iter().zip(&m.path_params) {
+    for ((n, t), p) in values.iter().zip(&m.path_params) {
         if *t == "string" {
             ctx.import("errors");
             let _ = write!(
@@ -164,10 +191,11 @@ fn method(out: &mut String, g: &Gen<'_>, s: &Service<'_>, m: &Method, ret: &Retu
             );
         }
     }
-    out.push_str(&path_line(m, &path_params, ctx));
+    out.push_str(&path_line(m, &values, ctx));
     let res = if matches!(ret, Returns::None) { "nil" } else { "&res" };
     let verb = http_method(m.http_method);
-    let params = arg.unwrap_or("nil");
+    // A params struct holding only path fields is not sent (imagekit-go's `Restore`).
+    let params = arg.filter(|_| sends_params(g, m)).unwrap_or("nil");
     let Returns::Page { page, item } = ret else {
         let _ = writeln!(
             out,
@@ -211,11 +239,13 @@ fn service_decl(out: &mut String, g: &Gen<'_>, s: &Service<'_>, ctx: &mut Ctx<'_
             s.service, g.org, s.service
         ),
     );
+    // v2 holds services by value.
+    let ptr = if g.target.v2() { "" } else { "*" };
     let _ = writeln!(out, "type {} struct {{", s.service);
     let _ = writeln!(out, "\tOptions{ALIGN}[]option.RequestOption");
     let subs: Vec<&Service<'_>> = s.resource.subresources.iter().filter_map(|r| g.service_of(r)).collect();
     for sub in &subs {
-        let _ = writeln!(out, "\t{}{ALIGN}*{}", sub.field, sub.service);
+        let _ = writeln!(out, "\t{}{ALIGN}{ptr}{}", sub.field, sub.service);
     }
     out.push_str("}\n\n");
     comment(
@@ -227,9 +257,10 @@ fn service_decl(out: &mut String, g: &Gen<'_>, s: &Service<'_>, ctx: &mut Ctx<'_
             s.service
         ),
     );
+    let amp = if g.target.v2() { "" } else { "&" };
     let _ = writeln!(
         out,
-        "func New{}(opts ...option.RequestOption) (r *{}) {{\n\tr = &{}{{}}\n\tr.Options = opts",
+        "func New{}(opts ...option.RequestOption) (r {ptr}{}) {{\n\tr = {amp}{}{{}}\n\tr.Options = opts",
         s.service, s.service, s.service
     );
     for sub in &subs {

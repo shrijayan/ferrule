@@ -22,7 +22,7 @@ use ferrule_sdk_model::FerruleError;
 use ferrule_sdk_model::model::Client;
 
 pub use emit::runtime::RuntimeOptions;
-pub use meta::{GoMeta, GoTarget, go_target};
+pub use meta::{GoMeta, GoTarget, Layout, go_target};
 
 use crate::emit::Gen;
 use crate::naming::{Casings, exported, split_words};
@@ -74,8 +74,12 @@ pub fn generate(client: &Client, meta: &GoMeta) -> Result<GoOutput, FerruleError
     files.extend(emit::tests::pagination_test_files(&g));
     files.extend(emit::tests::client_test_file(&g, &name));
     files.sort_by(|a, b| a.0.cmp(&b.0));
-    Ok(GoOutput {
-        files,
-        runtime: emit::runtime::runtime_options(&g, &name)?,
-    })
+    let mut runtime = emit::runtime::runtime_options(&g, &name)?;
+    // v2's `field.go` names its file helper `NewFile` when the root package declares `File`.
+    runtime.new_file = g.target.v2()
+        && files
+            .iter()
+            .filter(|(p, _)| !p.contains('/') && !p.ends_with("_test.go"))
+            .any(|(_, text)| text.contains("\ntype File struct") || text.contains("\ntype File = "));
+    Ok(GoOutput { files, runtime })
 }

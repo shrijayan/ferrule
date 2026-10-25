@@ -1,6 +1,10 @@
-//! What the Go runtime template needs from the plugin (`runtime/go`, rendered by
-//! `ferrule_runtime.render_go_files`): its options and the text of its three slots, plus
-//! `internal/version.go`, which the runtime leaves to the generator.
+//! What the Go runtime template needs from the plugin (`runtime/go` or `runtime/go-v2`,
+//! rendered by `ferrule_runtime.render_go_files`): its options and the text of its three slots,
+//! plus `internal/version.go`, which the runtime leaves to the generator.
+//!
+//! v2 stores client settings by value and sets them as given (imagekit-go, knock-mgmt-go): the
+//! credential itself with `RequestOptionFunc`, the others with `PreRequestOptionFunc`, and HTTP
+//! Basic auth from the username and password pair.
 
 use std::fmt::Write as _;
 
@@ -8,8 +12,9 @@ use ferrule_sdk_model::model::{ApiKeyLocation, AuthRole, ClientOpt, OptType, Sec
 use ferrule_sdk_model::{FerCode, FerruleError};
 
 use super::Gen;
+use crate::meta::Layout;
 use crate::naming::{exported, split_words, words};
-use crate::printer::{HEADER, comment, quote};
+use crate::printer::{HEADER, quote};
 
 /// `GoOptions` of the runtime renderer, field for field.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -22,13 +27,16 @@ pub struct RuntimeOptions {
     pub config_fields: String,
     pub config_clone: String,
     pub client_options: String,
+    pub layout: Layout,
+    /// v2: `field.go`'s file helper is `NewFile`, because the root package declares `File`.
+    pub new_file: bool,
 }
 
 impl RuntimeOptions {
     /// The options as the JSON object `ferrule generate` passes to `GoOptions(**options)`.
     #[must_use]
     pub fn to_json(&self) -> String {
-        let value = serde_json::json!({
+        let mut value = serde_json::json!({
             "module_path": self.module_path,
             "package_name": self.package_name,
             "client_name": self.client_name,
@@ -38,6 +46,11 @@ impl RuntimeOptions {
             "config_clone": self.config_clone,
             "client_options": self.client_options,
         });
+        // Only what differs from `GoOptions`' defaults, so v1 options read as before.
+        if self.layout == Layout::V2 {
+            value["layout"] = self.layout.as_str().into();
+            value["new_file"] = self.new_file.into();
+        }
         let mut text = serde_json::to_string_pretty(&value).unwrap_or_default();
         text.push('\n');
         text
@@ -49,12 +62,17 @@ impl RuntimeOptions {
 /// `ferrule_runtime.render_go_files` pads the runtime's lines in the same gofmt run to match.
 const CONFIG_NAME_WIDTH: usize = 15;
 
-fn config_type(o: &ClientOpt) -> &'static str {
-    match o.ty {
-        OptType::String => "*string",
-        OptType::Number => "*float64",
-        OptType::Integer => "*int64",
-        OptType::Boolean => "*bool",
+/// The `RequestConfig` field type of a client setting: a pointer in v1, the value in v2.
+fn config_type(o: &ClientOpt, layout: Layout) -> &'static str {
+    let ty = go_param_type(o);
+    if layout == Layout::V2 {
+        return ty;
+    }
+    match ty {
+        "string" => "*string",
+        "float64" => "*float64",
+        "int64" => "*int64",
+        _ => "*bool",
     }
 }
 
@@ -67,18 +85,38 @@ fn go_param_type(o: &ClientOpt) -> &'static str {
     }
 }
 
+/// v2's `Authorization: Basic` header from the scheme's username and password settings.
+fn basic(g: &Gen<'_>, scheme: &str) -> Option<String> {
+    let s = g.client.settings.as_ref()?;
+    let field = |role: AuthRole| {
+        s.opts
+            .iter()
+            .find(|o| {
+                o.auth
+                    .as_ref()
+                    .is_some_and(|a| a.security_scheme == scheme && a.role == role)
+            })
+            .map(|o| exported(&split_words(&o.name.written), g.casings))
+    };
+    let (user, password) = (field(AuthRole::Username)?, field(AuthRole::Password)?);
+    Some(format!(
+        "WithHeader(\"authorization\", fmt.Sprintf(\"Basic %s\", base64.StdEncoding.EncodeToString([]byte(r.{user}+\":\"+r.{password}))))"
+    ))
+}
+
 /// Where a client setting is sent, from its `send` or its security scheme. `WithHeader` and
 /// `WithQuery` take strings, so a number or boolean setting goes through `fmt.Sprint` (no
-/// oracle sends one).
+/// oracle sends one). v1 stores the setting as a pointer, v2 as the value.
 ///
 /// # Errors
 ///
 /// FER201 for an API key sent in a cookie, which the Go runtime has no option for.
 fn apply(g: &Gen<'_>, o: &ClientOpt, field: &str) -> Result<Option<String>, FerruleError> {
+    let deref = if g.target.v2() { "" } else { "*" };
     let value = if o.ty == OptType::String {
-        format!("*r.{field}")
+        format!("{deref}r.{field}")
     } else {
-        format!("fmt.Sprint(*r.{field})")
+        format!("fmt.Sprint({deref}r.{field})")
     };
     if let Some(send) = &o.send {
         return Ok(Some(match send.location {
@@ -96,6 +134,9 @@ fn apply(g: &Gen<'_>, o: &ClientOpt, field: &str) -> Result<Option<String>, Ferr
         return Ok(None);
     };
     Ok(match (&scheme.scheme, auth.role) {
+        (SecurityScheme::Http { .. }, AuthRole::Username | AuthRole::Password) if g.target.v2() => {
+            basic(g, &auth.security_scheme)
+        }
         // `x-stainless-auth.scheme_keyword` replaces `Bearer`.
         (SecurityScheme::Http { keyword, .. }, AuthRole::Value) => {
             let keyword = keyword.as_deref().unwrap_or("Bearer").replace('%', "%%");
@@ -153,28 +194,37 @@ pub fn runtime_options(g: &Gen<'_>, client_name: &str) -> Result<RuntimeOptions,
                 quote(&url)
             );
         }
+        let v2 = g.target.v2();
         for o in &s.opts {
             let field = exported(&split_words(&o.name.written), g.casings);
             let pad = (CONFIG_NAME_WIDTH).max(field.len() + 1);
-            let _ = writeln!(fields, "\t{field:<pad$}{}", config_type(o));
+            let _ = writeln!(fields, "\t{field:<pad$}{}", config_type(o, g.target.layout));
             let key = format!("{field}:");
             let _ = writeln!(clone, "\t\t{key:<w$}cfg.{field},", w = pad + 1);
-            options.push('\n');
-            comment(
-                &mut options,
-                0,
-                &format!(
-                    "With{field} returns a RequestOption that sets the client setting {}.",
-                    quote(&o.name.written)
-                ),
+            // Stainless does not wrap this comment (imagekit-go's is 85 characters).
+            let _ = write!(
+                options,
+                "\n// With{field} returns a RequestOption that sets the client setting {}.\n",
+                quote(&o.name.written)
             );
             let _ = writeln!(options, "func With{field}(value {}) RequestOption {{", go_param_type(o));
-            options
-                .push_str("\treturn requestconfig.PreRequestOptionFunc(func(r *requestconfig.RequestConfig) error {\n");
-            if o.ty == OptType::String {
+            let credential = o
+                .auth
+                .as_ref()
+                .is_some_and(|a| matches!(a.role, AuthRole::Value | AuthRole::Username));
+            let func = if v2 && credential {
+                "RequestOptionFunc"
+            } else {
+                "PreRequestOptionFunc"
+            };
+            let _ = writeln!(
+                options,
+                "\treturn requestconfig.{func}(func(r *requestconfig.RequestConfig) error {{"
+            );
+            if !v2 && o.ty == OptType::String {
                 options.push_str("\t\tif value == \"\" {\n\t\t\treturn fmt.Errorf(\"default param cannot be empty string\")\n\t\t}\n");
             }
-            let _ = writeln!(options, "\t\tr.{field} = &value");
+            let _ = writeln!(options, "\t\tr.{field} = {}value", if v2 { "" } else { "&" });
             match apply(g, o, &field)? {
                 Some(call) => {
                     let _ = writeln!(options, "\t\treturn r.Apply({call})");
@@ -193,6 +243,8 @@ pub fn runtime_options(g: &Gen<'_>, client_name: &str) -> Result<RuntimeOptions,
         config_fields: fields,
         config_clone: clone,
         client_options: options,
+        layout: g.target.layout,
+        new_file: false,
     })
 }
 
