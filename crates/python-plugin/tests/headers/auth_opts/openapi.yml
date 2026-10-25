@@ -1,0 +1,27 @@
+openapi: 3.1.0
+info: {title: fx, version: '1'}
+servers: [{url: 'https://api.example.com'}]
+
+paths:
+  /sessions/{id}/end:
+    post:
+      operationId: SessionEnd
+      summary: End a browser session
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string}}
+      responses:
+        '200': {description: ok, content: {application/json: {schema: {$ref: '#/components/schemas/EndResponse'}}}}
+components:
+  securitySchemes:
+    BrowserbaseApiKey: {type: apiKey, in: header, name: x-bb-api-key}
+    BrowserbaseProjectId: {type: apiKey, in: header, name: x-bb-project-id}
+    ModelApiKey: {type: apiKey, in: header, name: x-model-api-key}
+  schemas:
+    EndResponse:
+      type: object
+      required: [success]
+      properties:
+        success: {type: boolean}
+security:
+  - BrowserbaseApiKey: []
+    BrowserbaseProjectId: []

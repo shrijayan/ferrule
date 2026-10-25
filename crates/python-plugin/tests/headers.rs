@@ -67,3 +67,12 @@ fn header_params_are_keyword_arguments_merged_into_the_extra_headers() {
     assert!(!actual.contains_key("src/fx/types/model_retrieve_params.py"));
     assert!(!actual.contains_key("src/fx/types/session_end_params.py"));
 }
+
+/// Client options sent as API key headers, several in one security requirement (stagehand
+/// `browserbase_api_key`, `browserbase_project_id`, `model_api_key`): each named in `snake_case`
+/// from its config key, and `auth_headers` merging one property per security scheme, named after
+/// the scheme (`_bb_api_key_auth`), empty when a nullable option is unset.
+#[test]
+fn several_api_key_header_options_have_a_property_per_scheme() {
+    check("auth_opts");
+}

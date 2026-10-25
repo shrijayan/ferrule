@@ -346,6 +346,79 @@ fn emits_header_api_keys_optional_and_several_env_options() {
     assert!(out.contains("by passing region to the client\""));
 }
 
+/// Several auth schemes (papr-python `_client.py`: an API key header, a nullable session token
+/// header, a nullable bearer token, each its own security requirement): `auth_headers` merges
+/// one property per scheme, the last requirement first, so the first one wins.
+#[test]
+fn merges_a_property_per_auth_scheme() {
+    let mut c = sdk(vec![method(Some(SdkType::Object(obj_with("id"))))]);
+    let s = c.settings.as_mut().expect("settings");
+    let opt = |name: &str, nullable: bool, scheme: &str| SdkClientOpt {
+        name: name.into(),
+        nullable,
+        auth: Some(SdkAuth {
+            security_scheme: scheme.into(),
+            role: AuthRole::Value,
+        }),
+        ..s.opts[0].clone()
+    };
+    s.opts = vec![
+        opt("x_api_key", false, "X-API-Key"),
+        opt("x_session_token", true, "X-Session-Token"),
+        opt("bearer_token", true, "Bearer"),
+    ];
+    let header = |name: &str| SdkSecurityScheme::ApiKey {
+        location: ApiKeyLocation::Header,
+        name: name.into(),
+    };
+    s.security_schemes = vec![
+        ("X-API-Key".into(), header("X-API-Key")),
+        ("X-Session-Token".into(), header("X-Session-Token")),
+        (
+            "Bearer".into(),
+            SdkSecurityScheme::Http {
+                scheme: HttpAuthScheme::Bearer,
+                keyword: None,
+            },
+        ),
+    ];
+    s.security = vec![
+        vec!["X-API-Key".into()],
+        vec!["X-Session-Token".into()],
+        vec!["Bearer".into()],
+    ];
+    let out = emit_client_file(&c).expect("emits");
+    let expected = r#"    @property
+    @override
+    def auth_headers(self) -> dict[str, str]:
+        return {**self._bearer, **self._x_session_token, **self._x_api_key}
+
+    @property
+    def _bearer(self) -> dict[str, str]:
+        bearer_token = self.bearer_token
+        if bearer_token is None:
+            return {}
+        return {"Authorization": f"Bearer {bearer_token}"}
+
+    @property
+    def _x_session_token(self) -> dict[str, str]:
+        x_session_token = self.x_session_token
+        if x_session_token is None:
+            return {}
+        return {"X-Session-Token": x_session_token}
+
+    @property
+    def _x_api_key(self) -> dict[str, str]:
+        x_api_key = self.x_api_key
+        return {"X-API-Key": x_api_key}
+
+    @property
+    @override
+    def default_headers(self) -> dict[str, str | Omit]:
+"#;
+    assert_eq!(out.matches(expected).count(), 2, "{out}");
+}
+
 #[test]
 fn falls_back_to_no_auth_headers_and_rejects_what_it_cannot_emit() {
     let mut c = sdk(vec![method(Some(SdkType::Object(obj_with("id"))))]);
