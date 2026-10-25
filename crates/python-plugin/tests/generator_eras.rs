@@ -17,7 +17,12 @@ fn dir() -> PathBuf {
 
 /// The fixture with `style` as `x-ferrule-style` on every operation (none when `None`).
 fn generate(style: Option<&Value>) -> Result<FileTree, String> {
-    let spec = fs::read(dir().join("generator_eras/annotated.json")).expect("fixture");
+    generate_from("generator_eras/annotated.json", style)
+}
+
+/// [`generate`] for the annotated spec at `fixture` under `tests/`.
+fn generate_from(fixture: &str, style: Option<&Value>) -> Result<FileTree, String> {
+    let spec = fs::read(dir().join(fixture)).expect("fixture");
     let mut doc: Value = serde_json::from_slice(&spec).expect("JSON");
     if let Some(style) = style {
         for item in doc["paths"].as_object_mut().expect("paths").values_mut() {
@@ -96,4 +101,45 @@ fn rejects_an_unknown_style() {
         assert!(err.starts_with("FER101 "), "{style}: {err}");
         assert!(err.contains("/x-ferrule-style"), "{style}: {err}");
     }
+}
+
+/// A runtime whose `_files.py` has no `deepcopy_with_paths` copies a multipart body with
+/// `_utils.deepcopy_minimal` (`multipart: deepcopy_minimal`), as honcho-python-core
+/// `resources/workspaces/sessions/messages.py` does; the fixture is `request_bodies/multipart`.
+#[test]
+fn copies_a_multipart_body_with_deepcopy_minimal() {
+    let style = json!({"multipart": "deepcopy_minimal", "paths": "fstring"});
+    let files = generate_from("request_bodies/multipart/annotated.json", Some(&style)).expect("generates");
+    let resource = files
+        .iter()
+        .find(|(p, _)| p == "src/fx/resources/messages.py")
+        .map(|(_, t)| t.as_str())
+        .expect("messages.py");
+    let sync = r#"        if not session_id:
+            raise ValueError(f"Expected a non-empty value for `session_id` but received {session_id!r}")
+        body = deepcopy_minimal(
+            {
+                "file": file,
+                "peer_id": peer_id,
+            }
+        )
+        files = extract_files(cast(Mapping[str, object], body), paths=[["file"]])
+        # It should be noted that the actual Content-Type header that will be
+        # sent to the server will contain a `boundary` parameter, e.g.
+        # multipart/form-data; boundary=---abc--
+        extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
+        return self._post(
+            f"/sessions/{session_id}/messages/upload",
+"#;
+    assert!(resource.contains(sync), "{resource}");
+    assert!(
+        resource
+            .contains("from .._utils import extract_files, maybe_transform, deepcopy_minimal, async_maybe_transform\n"),
+        "{resource}"
+    );
+    assert!(!resource.contains("_files"), "{resource}");
+    let today = generate_from("request_bodies/multipart/annotated.json", None).expect("generates");
+    let spelled = json!({"multipart": "deepcopy_with_paths"});
+    let spelled = generate_from("request_bodies/multipart/annotated.json", Some(&spelled)).expect("generates");
+    assert_eq!(spelled, today);
 }
