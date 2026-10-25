@@ -367,6 +367,10 @@ pub fn emit_test_module(input: &ProjectFilesInput, r: &FilesResource, accessor: 
     out.join("\n")
 }
 
+fn has_methods(r: &FilesResource) -> bool {
+    !r.methods.is_empty() || r.subresources.iter().any(has_methods)
+}
+
 /// Every test module and package `__init__.py` under `tests/api_resources/`, in the order the
 /// TypeScript inserts them (not sorted).
 #[must_use]
@@ -394,9 +398,12 @@ pub fn emit_api_tests(input: &ProjectFilesInput) -> Vec<(String, String)> {
                 let path = join(&[&format!("test_{}.py", r.name)]);
                 files.push((path, emit_test_module(input, r, &accessor)));
             }
-            if !r.subresources.is_empty() {
+            // A package as in `src/`: a standalone API, or one whose subresources have tests.
+            if r.standalone_link.is_some() || r.subresources.iter().any(has_methods) {
                 let path = join(&[&r.name, "__init__.py"]);
                 files.push((path, format!("{HEADER}\n")));
+            }
+            if !r.subresources.is_empty() {
                 dir.push(r.name.clone());
                 walk(input, &r.subresources, dir, &accessor, files);
                 dir.pop();

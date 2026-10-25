@@ -5,14 +5,14 @@ use std::collections::HashSet;
 
 use forge::{Field, Forge, Group, Method, Number, Object, Scalar, Type};
 
-use super::extensions::{MethodExtensions, RawClient, read_method_extensions};
+use super::extensions::{MethodExtensions, RawClient, ResourcePosition, read_method_extensions};
 use crate::diagnostics::{FerCode, FerruleError, operation_pointer};
 use crate::js;
 use crate::model::{
     HttpVerb, SdkClient, SdkClientSettings, SdkField, SdkLiteral, SdkMethod, SdkModelDecl, SdkObject, SdkPackage,
     SdkPagination, SdkParam, SdkPrimitive, SdkRef, SdkResource, SdkStreaming, SdkType,
 };
-use crate::naming::{class_segment, pascal_case, snake_case, split_words};
+use crate::naming::{Casing, class_segment_with, pascal_case, singular, snake_case, split_words};
 
 /// The reserved resource name of methods on the client class itself (ADR 0003).
 pub const CLIENT_RESOURCE: &str = "$client";
@@ -418,6 +418,38 @@ struct MutableResource {
     order: usize,
     methods: Vec<SdkMethod>,
     children: Vec<(String, MutableResource)>,
+    standalone: bool,
+}
+
+impl MutableResource {
+    fn new(path: Vec<String>, order: usize) -> Self {
+        Self {
+            path,
+            order,
+            methods: Vec::new(),
+            children: Vec::new(),
+            standalone: false,
+        }
+    }
+
+    /// The node at `written` (stainless.yml names) below this one, made as needed.
+    fn descend(&mut self, written: &[String], order: &[usize]) -> &mut Self {
+        let mut node = self;
+        for (i, w) in written.iter().enumerate() {
+            let name = snake_case(&split_words(w));
+            let pos = if let Some(pos) = node.children.iter().position(|(k, _)| *k == name) {
+                pos
+            } else {
+                let mut path = node.path.clone();
+                path.push(name.clone());
+                let child = Self::new(path, order.get(i).copied().unwrap_or(0));
+                node.children.push((name, child));
+                node.children.len() - 1
+            };
+            node = &mut node.children[pos].1;
+        }
+        node
+    }
 }
 
 fn by_order<T>(mut items: Vec<T>, order: impl Fn(&T) -> usize) -> Vec<T> {
@@ -425,25 +457,50 @@ fn by_order<T>(mut items: Vec<T>, order: impl Fn(&T) -> usize) -> Vec<T> {
     items
 }
 
-fn freeze(r: MutableResource) -> SdkResource {
+fn freeze(r: MutableResource, casings: &[(String, Casing)]) -> SdkResource {
+    let words = split_words(r.path.last().map_or("", String::as_str));
     SdkResource {
+        class_segment: Some(class_segment_with(&words, casings)),
+        singular_class_segment: Some(class_segment_with(&singular(&words), casings)),
+        standalone: r.standalone,
         path: r.path,
         order: r.order,
         methods: by_order(r.methods, |m| m.order),
-        subresources: by_order(r.children.into_iter().map(|(_, c)| freeze(c)).collect(), |c| c.order),
+        subresources: by_order(r.children.into_iter().map(|(_, c)| freeze(c, casings)).collect(), |c| {
+            c.order
+        }),
     }
+}
+
+/// `tree` without the resources that have no methods, themselves or below.
+fn with_methods(tree: &[SdkResource]) -> Vec<SdkResource> {
+    tree.iter()
+        .filter_map(|r| {
+            let subresources = with_methods(&r.subresources);
+            (!r.methods.is_empty() || !subresources.is_empty()).then(|| SdkResource {
+                subresources,
+                ..r.clone()
+            })
+        })
+        .collect()
 }
 
 /// The client class name: `onebusaway-sdk` -> `OnebusawaySDK`.
 #[must_use]
 pub fn client_class_name(name: &str) -> String {
-    class_segment(&split_words(name))
+    client_class_name_with(name, &[])
 }
 
-fn to_settings(raw: &RawClient) -> SdkClientSettings {
+/// [`client_class_name`] with custom casings: `lumaai` -> `LumaAI`.
+#[must_use]
+pub fn client_class_name_with(name: &str, casings: &[(String, Casing)]) -> String {
+    class_segment_with(&split_words(name), casings)
+}
+
+fn to_settings(raw: &RawClient, casings: &[(String, Casing)]) -> SdkClientSettings {
     SdkClientSettings {
         name: raw.name.clone(),
-        class_name: client_class_name(&raw.name),
+        class_name: client_class_name_with(&raw.name, casings),
         env_prefix: raw.env_prefix.clone(),
         opts: raw.opts.clone(),
         environments: raw.environments.clone(),
@@ -462,12 +519,9 @@ fn to_settings(raw: &RawClient) -> SdkClientSettings {
 
 /// Converts `methods` into one [`SdkClient`]; `base_url` is empty where Forge doesn't expose it.
 fn to_client<'f>(methods: impl Iterator<Item = Method<'f>>, base_url: &str) -> Result<Option<SdkClient>, FerruleError> {
-    let mut root = MutableResource {
-        path: Vec::new(),
-        order: 0,
-        methods: Vec::new(),
-        children: Vec::new(),
-    };
+    let mut root = MutableResource::new(Vec::new(), 0);
+    let mut casings: Option<Vec<(String, Casing)>> = None;
+    let mut standalone: Vec<ResourcePosition> = Vec::new();
     let mut client_methods = Vec::new();
     let mut decls: Vec<(String, SdkModelDecl)> = Vec::new();
     let mut pkg: Option<SdkPackage> = None;
@@ -485,10 +539,15 @@ fn to_client<'f>(methods: impl Iterator<Item = Method<'f>>, base_url: &str) -> R
             ));
         }
         pkg = Some(ext.package.clone());
+        // Mirrored from the root, so the first operation's copy stands for all.
+        let casings = casings.get_or_insert_with(|| ext.casings.clone());
+        if standalone.is_empty() {
+            standalone.clone_from(&ext.standalone);
+        }
         if settings.is_none()
             && let Some(client) = &ext.client
         {
-            settings = Some(to_settings(client));
+            settings = Some(to_settings(client, casings));
         }
         let mut ctx = Context {
             decls: &mut decls,
@@ -501,31 +560,13 @@ fn to_client<'f>(methods: impl Iterator<Item = Method<'f>>, base_url: &str) -> R
             client_methods.push(converted);
             continue;
         }
-        let mut node = &mut root;
-        for (i, written) in ext.resource.iter().enumerate() {
-            let name = snake_case(&split_words(written));
-            let pos = if let Some(pos) = node.children.iter().position(|(k, _)| *k == name) {
-                pos
-            } else {
-                let mut path = node.path.clone();
-                path.push(name.clone());
-                let order = ext.resource_order.get(i).copied().unwrap_or(0);
-                node.children.push((
-                    name,
-                    MutableResource {
-                        path,
-                        order,
-                        methods: Vec::new(),
-                        children: Vec::new(),
-                    },
-                ));
-                node.children.len() - 1
-            };
-            node = &mut node.children[pos].1;
-        }
-        node.methods.push(converted);
+        root.descend(&ext.resource, &ext.resource_order).methods.push(converted);
     }
     let Some(package) = pkg else { return Ok(None) };
+    for (written, order) in &standalone {
+        root.descend(written, order).standalone = true;
+    }
+    let resource_tree = freeze(root, casings.as_deref().unwrap_or_default()).subresources;
     let mut models: Vec<SdkModelDecl> = decls.into_iter().map(|(_, d)| d).collect();
     models.sort_by(|a, b| js::cmp(&a.r#ref.module, &b.r#ref.module));
     let class_name = settings.as_ref().map(|s| s.class_name.clone());
@@ -534,11 +575,12 @@ fn to_client<'f>(methods: impl Iterator<Item = Method<'f>>, base_url: &str) -> R
         package,
         base_url: base_url.to_owned(),
         settings,
-        resources: freeze(root).subresources,
+        resources: with_methods(&resource_tree),
         client_methods: by_order(client_methods, |m| m.order),
         client_class: class_name,
         env_prefix,
         models,
+        resource_tree,
     }))
 }
 

@@ -88,6 +88,9 @@ fn resource(path: &[&str], methods: Vec<SdkMethod>) -> SdkResource {
         order: 0,
         methods,
         subresources: Vec::new(),
+        class_segment: None,
+        singular_class_segment: None,
+        standalone: false,
     }
 }
 
@@ -143,6 +146,7 @@ fn client(resources: Vec<SdkResource>, settings: Option<SdkClientSettings>, repo
         client_class: None,
         env_prefix: None,
         models: Vec::new(),
+        resource_tree: Vec::new(),
     }
 }
 

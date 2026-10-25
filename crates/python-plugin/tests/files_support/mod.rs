@@ -163,6 +163,7 @@ fn resource(v: &Value) -> FilesResource {
         types_module: string(v, "typesModule"),
         methods: array(v, "methods").iter().map(method).collect(),
         subresources: array(v, "subresources").iter().map(resource).collect(),
+        standalone_link: None,
     }
 }
 

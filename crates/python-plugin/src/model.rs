@@ -228,6 +228,15 @@ pub struct SdkResource {
     pub order: usize,
     pub methods: Vec<SdkMethod>,
     pub subresources: Vec<SdkResource>,
+    /// The class-name segment of the last path word, spelled with the config's custom casings
+    /// (`QA` for `qa`); `None` derives it from the path with the default rules.
+    pub class_segment: Option<String>,
+    /// The same for the singular of the last word, which names its method types
+    /// (`QACreateParams`); `None` derives it with the default rules.
+    pub singular_class_segment: Option<String>,
+    /// `standalone_api: true`: a package of its own (`resources/extractions/qa/qa.py`) with its
+    /// types in its own directory (`types/extractions/qa/`) and its own `api.md`.
+    pub standalone: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -379,4 +388,8 @@ pub struct SdkClient {
     pub env_prefix: Option<String>,
     /// Every named model the resources reference, sorted by module.
     pub models: Vec<SdkModelDecl>,
+    /// `resources` plus the standalone APIs that only declare models (and their parents), in
+    /// stainless.yml order: what api.md, the test packages and the empty resource packages list.
+    /// Empty in a hand-built model, where `resources` stands in.
+    pub resource_tree: Vec<SdkResource>,
 }

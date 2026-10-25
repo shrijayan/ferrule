@@ -85,6 +85,8 @@ pub struct FilesResource {
     pub types_module: String,
     pub methods: Vec<FilesMethod>,
     pub subresources: Vec<FilesResource>,
+    /// For a standalone API (its own package and api.md), where the root api.md links to.
+    pub standalone_link: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

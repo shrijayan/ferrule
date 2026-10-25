@@ -61,13 +61,24 @@ fn method_line(pkg: &str, accessor: &str, r: &FilesResource, m: &FilesMethod) ->
     )
 }
 
-fn section(pkg: &str, r: &FilesResource, parent: &str, depth: usize, blocks: &mut Vec<String>) {
-    let accessor = if parent.is_empty() {
+fn accessor_of(parent: &str, r: &FilesResource) -> String {
+    if parent.is_empty() {
         r.name.clone()
     } else {
         format!("{parent}.{}", r.name)
-    };
-    let mut out = vec![format!("{} {}", "#".repeat(depth), r.title)];
+    }
+}
+
+/// One resource's section and its subresources'. A standalone API below the top is only a
+/// heading linking out (its section is in its own api.md), unless `own` says this is that file.
+fn section(pkg: &str, r: &FilesResource, parent: &str, depth: usize, own: bool, blocks: &mut Vec<String>) {
+    let heading = "#".repeat(depth);
+    if let Some(link) = r.standalone_link.as_ref().filter(|_| !own) {
+        blocks.push(format!("{heading} [{}]({link})", r.title));
+        return;
+    }
+    let accessor = accessor_of(parent, r);
+    let mut out = vec![format!("{heading} {}", r.title)];
     if !r.types.is_empty() {
         out.push("Types:".to_owned());
         out.push(format!(
@@ -82,7 +93,7 @@ fn section(pkg: &str, r: &FilesResource, parent: &str, depth: usize, blocks: &mu
     }
     blocks.push(out.join("\n\n"));
     for sub in &r.subresources {
-        section(pkg, sub, &accessor, depth + 1, blocks);
+        section(pkg, sub, &accessor, depth + 1, false, blocks);
     }
 }
 
@@ -98,7 +109,30 @@ pub fn emit_api_md(input: &ProjectFilesInput) -> String {
         ));
     }
     for r in &input.resources {
-        section(pkg, r, "", 1, &mut blocks);
+        section(pkg, r, "", 1, false, &mut blocks);
     }
     format!("{}\n", blocks.join("\n\n"))
+}
+
+/// The api.md of every standalone API, inside its package (`src/<pkg>/resources/<path>/api.md`):
+/// its section as a top-level one, with the full accessor.
+#[must_use]
+pub fn emit_standalone_api_mds(input: &ProjectFilesInput) -> Vec<(String, String)> {
+    fn walk(input: &ProjectFilesInput, resources: &[FilesResource], parent: &str, out: &mut Vec<(String, String)>) {
+        for r in resources {
+            if r.standalone_link.is_some() {
+                let mut blocks = Vec::new();
+                section(&input.package_name, r, parent, 1, true, &mut blocks);
+                let dir = r.module.rsplit_once('.').map_or("", |(d, _)| d);
+                out.push((
+                    format!("src/{}/{}/api.md", input.package_name, dir.replace('.', "/")),
+                    format!("{}\n", blocks.join("\n\n")),
+                ));
+            }
+            walk(input, &r.subresources, &accessor_of(parent, r), out);
+        }
+    }
+    let mut out = Vec::new();
+    walk(input, &input.resources, "", &mut out);
+    out
 }

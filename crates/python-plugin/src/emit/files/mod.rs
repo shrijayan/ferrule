@@ -123,6 +123,7 @@ pub fn emit_project_files(input: &ProjectFilesInput) -> Vec<(String, String)> {
         files.insert((*path).to_owned(), text);
     }
     files.insert("api.md".to_owned(), api_md::emit_api_md(input));
+    files.extend(api_md::emit_standalone_api_mds(input));
     files.insert(".stats.yml".to_owned(), emit_stats(input));
     files.extend(api_tests::emit_api_tests(input));
     let mut files: Vec<(String, String)> = files.into_iter().collect();
