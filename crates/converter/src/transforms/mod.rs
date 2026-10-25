@@ -2,6 +2,7 @@
 //! the `openapi.transforms` items in the public schema. Port of
 //! `converter/src/transforms/openapi-transforms.ts`.
 
+pub mod annotate;
 pub mod commands;
 pub mod jsonpath;
 pub mod targets;
