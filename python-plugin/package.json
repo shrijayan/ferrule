@@ -15,7 +15,7 @@
   "devDependencies": {
     "@bytecodealliance/jco": "1.39.0",
     "@cloudflare/forge": "link:../.cache/forge/packages/forge",
-    "@types/node": "24.19.2",
+    "@types/node": "26.6.5",
     "@vitest/coverage-v8": "5.0.5",
     "fast-check": "4.10.2",
     "typescript": "7.0.2",
