@@ -422,6 +422,10 @@ pub struct SdkClient {
 /// from, where they differ from today's (proposed ADR "older generator styles"). Each field is true for
 /// today's spelling.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[expect(
+    clippy::struct_excessive_bools,
+    reason = "each is an independent switch of x-ferrule-style; the runtimes mix them"
+)]
 pub struct SdkStyle {
     /// Optional arguments default to `omit` and options to `not_given` (`sentinel: omit`), or
     /// both to `NOT_GIVEN` (`sentinel: NOT_GIVEN`, a `_types.py` without `omit`).
@@ -432,6 +436,10 @@ pub struct SdkStyle {
     /// Paths go through `path_template` (`paths: path_template`), or are f-strings
     /// (`paths: fstring`, a runtime without `_utils/_path.py`).
     pub path_template: bool,
+    /// A multipart body is copied with `_files.deepcopy_with_paths` (`multipart:
+    /// deepcopy_with_paths`), or `_utils.deepcopy_minimal` (`multipart: deepcopy_minimal`, a
+    /// `_files.py` without it).
+    pub deepcopy_with_paths: bool,
 }
 
 impl Default for SdkStyle {
@@ -440,6 +448,7 @@ impl Default for SdkStyle {
             omit: true,
             lazy_resources: true,
             path_template: true,
+            deepcopy_with_paths: true,
         }
     }
 }

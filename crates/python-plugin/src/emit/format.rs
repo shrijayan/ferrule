@@ -99,10 +99,11 @@ pub fn format_expr(e: &Expr, indent: &str, prefix: &str, suffix: &str) -> Vec<St
     let joined = format!("{inner}{}", b.items.iter().map(flat).collect::<Vec<_>>().join(", "));
     let body = if !has_magic(e) && !b.items.is_empty() && fits(&joined) {
         vec![joined]
-    } else if let [Expr::Atom(only)] = b.items.as_slice()
+    } else if let [only] = b.items.as_slice()
         && !b.magic
     {
-        vec![format!("{inner}{only}")]
+        // A lone item is split on its own, without a trailing comma (black's right-hand split).
+        format_expr(only, &inner, "", "")
     } else {
         b.items
             .iter()
@@ -137,6 +138,15 @@ mod tests {
         assert_eq!(
             format_expr(&nested.into(), "", "", ""),
             ["f(", "    a,", "    g(", "        b,", "    ),", ")"]
+        );
+        let one_dict = call(
+            "f(",
+            vec![bracket("{", vec!["a".into(), "b".into()], true, "}").into()],
+            false,
+        );
+        assert_eq!(
+            format_expr(&one_dict.into(), "", "", ""),
+            ["f(", "    {", "        a,", "        b,", "    }", ")"]
         );
     }
 }
