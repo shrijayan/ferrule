@@ -15,13 +15,13 @@ use serde_json::Value;
 /// A name as words, so that every language can spell it in its own casing.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Default, Serialize, Deserialize)]
 pub struct Name {
-    /// The lower-case words, split as Forge's `Name` splits them: `XMLDocument` is `xml document`,
-    /// `getByID` is `get by id`.
-    pub words: Vec<String>,
     /// The spelling the spec or config wrote it with: a wire name, a stainless.yml key, or the
     /// config's own spelling of a model name (`RouteIDs`). Namers that must reproduce a Stainless
     /// spelling exactly start from this.
     pub written: String,
+    /// The lower-case words, split as Forge's `Name` splits them: `XMLDocument` is `xml document`,
+    /// `getByID` is `get by id`.
+    pub words: Vec<String>,
 }
 
 /// A type with no parts: Forge's full scalar set.
@@ -595,17 +595,4 @@ impl Client {
             _ => None,
         }
     }
-}
-
-/// The model as deterministic JSON: two-space indent, fields in declaration order, a trailing
-/// newline; `null` for a document without operations.
-///
-/// # Panics
-///
-/// Never: every value in the model is representable as JSON.
-#[must_use]
-pub fn to_json(client: Option<&Client>) -> String {
-    let mut out = serde_json::to_string_pretty(&client).expect("the model serializes");
-    out.push('\n');
-    out
 }
