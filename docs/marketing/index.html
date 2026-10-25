@@ -1,0 +1,1605 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ferrule · Change the engine, not the SDK</title>
+<meta name="description" content="Ferrule regenerates the exact Python SDK your users already import, from the same OpenAPI spec and stainless.yml, and proves nothing public changed. Open source, Apache-2.0.">
+<meta name="color-scheme" content="dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #09090a;
+  --bg-2: #0e0e10;
+  --panel: #121215;
+  --panel-2: #17171b;
+  --line: rgba(255, 255, 255, 0.07);
+  --line-2: rgba(255, 255, 255, 0.13);
+  --text: #eeece7;
+  --muted: #a19d95;
+  --dim: #6d6a64;
+  --brass-hi: #f6e2b4;
+  --brass: #d6a660;
+  --brass-lo: #8a5c2c;
+  --brass-ink: #2a1c0d;
+  --ok: #93d9ac;
+  --bad: #ec8f7e;
+  --code-kw: #e3b56f;
+  --code-str: #b9cf9a;
+  --code-fn: #f1ddb3;
+  --code-cls: #e9c78d;
+  --code-com: #66635d;
+  --code-dec: #c99b6a;
+  --serif: "Instrument Serif", "Times New Roman", serif;
+  --sans: "Geist", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --max: 1200px;
+  --gutter: clamp(16px, 4vw, 40px);
+  --ease: cubic-bezier(.2, .7, .1, 1);
+}
+@property --glint { syntax: "<angle>"; inherits: true; initial-value: 0deg; }
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+a { color: inherit; text-decoration: none; }
+code, pre, .mono { font-family: var(--mono); }
+::selection { background: var(--brass); color: var(--brass-ink); }
+
+/* film grain over everything */
+body::after {
+  content: "";
+  position: fixed; inset: 0;
+  pointer-events: none;
+  z-index: 100;
+  opacity: .055;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.wrap { max-width: var(--max); margin: 0 auto; padding: 0 var(--gutter); }
+
+/* ---------- nav ---------- */
+.nav {
+  position: fixed; top: 0; left: 0; right: 0;
+  z-index: 50;
+  transition: background .4s, border-color .4s, backdrop-filter .4s;
+  border-bottom: 1px solid transparent;
+}
+.nav.scrolled {
+  background: rgba(9, 9, 10, .72);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border-bottom-color: var(--line);
+}
+.nav .wrap { display: flex; align-items: center; height: 64px; gap: 32px; }
+.logo { display: flex; align-items: center; gap: 10px; font-weight: 600; letter-spacing: -.01em; font-size: 17px; }
+.logo svg { width: 26px; height: 26px; }
+.nav-links { display: flex; gap: 26px; font-size: 14px; color: var(--muted); }
+.nav-links a { transition: color .2s; }
+.nav-links a:hover { color: var(--text); }
+.nav-cta { margin-left: auto; display: flex; gap: 10px; align-items: center; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  height: 38px; padding: 0 16px;
+  border-radius: 999px;
+  font-size: 14px; font-weight: 500;
+  border: 1px solid var(--line-2);
+  color: var(--text);
+  transition: border-color .2s, background .2s, transform .2s var(--ease);
+  white-space: nowrap;
+}
+.btn:hover { border-color: rgba(255, 255, 255, .28); background: rgba(255, 255, 255, .03); }
+.btn svg { width: 16px; height: 16px; }
+.btn-brass {
+  border: 0;
+  color: var(--brass-ink);
+  background: linear-gradient(180deg, var(--brass-hi), var(--brass) 55%, #b98445);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .55), inset 0 -1px 0 rgba(0, 0, 0, .2), 0 6px 24px -8px rgba(214, 166, 96, .55);
+}
+.btn-brass:hover { background: linear-gradient(180deg, #fff0cc, #e2b573 55%, #c48f4e); transform: translateY(-1px); }
+
+/* ---------- hero ---------- */
+.hero { position: relative; padding: 148px 0 40px; overflow: hidden; }
+.hero::before {
+  content: ""; position: absolute; inset: 0;
+  background:
+    radial-gradient(60% 50% at 50% 0%, rgba(214, 166, 96, .16), transparent 70%),
+    radial-gradient(40% 40% at 50% 62%, rgba(214, 166, 96, .07), transparent 70%);
+  pointer-events: none;
+}
+.hero::after {
+  content: ""; position: absolute; inset: 0;
+  background-image:
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 64px 64px;
+  background-position: center top;
+  mask-image: radial-gradient(70% 60% at 50% 30%, #000 20%, transparent 75%);
+  -webkit-mask-image: radial-gradient(70% 60% at 50% 30%, #000 20%, transparent 75%);
+  opacity: .55;
+  pointer-events: none;
+}
+.hero .wrap { position: relative; z-index: 1; text-align: center; }
+
+.eyebrow {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-family: var(--mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--muted);
+  padding: 6px 14px 6px 8px;
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .02);
+}
+.eyebrow .pill {
+  font-size: 11px; letter-spacing: .06em;
+  padding: 2px 8px; border-radius: 999px;
+  color: var(--brass-ink);
+  background: linear-gradient(180deg, var(--brass-hi), var(--brass));
+}
+
+h1, h2, h3 { font-weight: 400; }
+.display {
+  font-family: var(--serif);
+  font-size: clamp(52px, 9.2vw, 128px);
+  line-height: .92;
+  letter-spacing: -.025em;
+  margin: 28px auto 0;
+}
+.display em, .h2 em {
+  font-style: italic;
+  background: linear-gradient(100deg, var(--brass-hi) 10%, var(--brass) 45%, #f3d9a4 60%, var(--brass-lo) 95%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent;
+  animation: sheen 9s ease-in-out infinite;
+  padding-right: .06em;
+}
+@keyframes sheen { 0%, 100% { background-position: 0% 0; } 50% { background-position: 100% 0; } }
+
+.lede {
+  max-width: 640px; margin: 28px auto 0;
+  font-size: clamp(17px, 1.6vw, 19px);
+  color: var(--muted);
+  line-height: 1.6;
+}
+.lede strong { color: var(--text); font-weight: 500; }
+
+.hero-actions { display: flex; justify-content: center; align-items: center; gap: 14px; margin-top: 36px; flex-wrap: wrap; }
+.cmd {
+  display: inline-flex; align-items: center; gap: 14px;
+  height: 48px; padding: 0 8px 0 18px;
+  border-radius: 12px;
+  font-family: var(--mono); font-size: 14.5px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .05), rgba(255, 255, 255, .015));
+  border: 1px solid var(--line-2);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06);
+  cursor: pointer;
+  color: var(--text);
+  transition: border-color .2s;
+}
+.cmd:hover { border-color: rgba(214, 166, 96, .55); }
+.cmd .p { color: var(--brass); }
+.cmd .copy {
+  display: grid; place-items: center;
+  width: 34px; height: 34px; border-radius: 8px;
+  color: var(--muted);
+  background: rgba(255, 255, 255, .04);
+  transition: color .2s, background .2s;
+}
+.cmd:hover .copy { color: var(--text); background: rgba(255, 255, 255, .08); }
+.cmd .copy svg { width: 15px; height: 15px; }
+.cmd.copied .copy { color: var(--ok); }
+.btn-lg { height: 48px; padding: 0 22px; font-size: 15px; border-radius: 12px; }
+
+/* hero stage: config -> ferrule -> sdk */
+.stage {
+  position: relative;
+  margin: 72px auto 0;
+  max-width: 1200px;
+  aspect-ratio: 1200 / 470;
+  text-align: left;
+  container-type: inline-size;
+}
+.stage svg.flow { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 2; overflow: visible; }
+.flow .base { stroke: rgba(255, 255, 255, .075); stroke-width: 1; fill: none; }
+.flow .pulse {
+  fill: none; stroke: url(#brassStroke); stroke-width: 1.5;
+  stroke-dasharray: 60 900; stroke-linecap: round;
+  animation: travel var(--d, 4s) linear infinite;
+  animation-delay: var(--delay, 0s);
+  filter: drop-shadow(0 0 4px rgba(214, 166, 96, .8));
+}
+@keyframes travel { from { stroke-dashoffset: 960; } to { stroke-dashoffset: 0; } }
+.flow .node { fill: var(--bg); stroke: rgba(255, 255, 255, .25); }
+
+.card {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 34%;
+  background: linear-gradient(180deg, rgba(23, 23, 27, .92), rgba(16, 16, 19, .92));
+  border: 1px solid var(--line-2);
+  border-radius: 16px;
+  box-shadow: 0 30px 80px -30px rgba(0, 0, 0, .8), inset 0 1px 0 rgba(255, 255, 255, .05);
+  z-index: 4;
+  overflow: hidden;
+}
+.card.left { left: 0; }
+.card.right { right: 0; }
+.card-head {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  font-family: var(--mono); font-size: 12px; color: var(--muted);
+}
+.dots { display: flex; gap: 6px; }
+.dots i { width: 9px; height: 9px; border-radius: 50%; background: rgba(255, 255, 255, .1); display: block; }
+.tag {
+  margin-left: auto;
+  font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase;
+  padding: 3px 8px; border-radius: 999px;
+  border: 1px solid rgba(147, 217, 172, .3); color: var(--ok);
+  background: rgba(147, 217, 172, .06);
+}
+.card pre {
+  padding: 1.4cqw 1.5cqw 1.6cqw;
+  font-size: 1cqw;
+  line-height: 1.8;
+  overflow: hidden;
+  white-space: pre;
+}
+
+.annot {
+  position: absolute; top: 0;
+  font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--dim);
+  display: flex; align-items: center; gap: 10px;
+  z-index: 5;
+}
+.annot::before, .annot::after { content: ""; height: 1px; flex: 1; background: linear-gradient(90deg, transparent, var(--line-2)); }
+.annot::after { background: linear-gradient(90deg, var(--line-2), transparent); }
+.annot b { font-weight: 500; color: var(--muted); white-space: nowrap; }
+.annot.a1 { left: 0; width: 34%; }
+.annot.a3 { right: 0; width: 34%; }
+.annot.a2 { left: 38%; width: 24%; color: var(--brass); }
+.annot.a2 b { color: var(--brass-hi); }
+.annot.a2::before, .annot.a2::after { background: rgba(214, 166, 96, .45); }
+.annot.a2 span.tick { position: absolute; width: 1px; height: 9px; background: rgba(214, 166, 96, .6); top: 50%; transform: translateY(-50%); }
+.annot.a2 span.tick.l { left: 0; } .annot.a2 span.tick.r { right: 0; }
+
+/* the ferrule: a machined collar built from stacked 3D rings */
+.ferrule {
+  position: absolute; left: 50%; top: 52%;
+  width: 25%; aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  perspective: 1100px;
+  z-index: 1;
+  pointer-events: none;
+}
+.ferrule.front { z-index: 3; clip-path: inset(0 0 0 50%); }
+.ferrule .glow {
+  position: absolute; inset: -30%;
+  background: radial-gradient(closest-side, rgba(214, 166, 96, .22), transparent 70%);
+  filter: blur(10px);
+}
+.ferrule.front .glow { display: none; }
+.r3d {
+  position: absolute; inset: 0;
+  transform-style: preserve-3d;
+  animation: sway 10s ease-in-out infinite, glint 7s ease-in-out infinite;
+}
+@keyframes sway {
+  0%, 100% { transform: rotateY(64deg) rotateX(5deg) rotateZ(-2deg); }
+  50% { transform: rotateY(71deg) rotateX(-5deg) rotateZ(2deg); }
+}
+@keyframes glint { 0%, 100% { --glint: -18deg; } 50% { --glint: 22deg; } }
+.r3d i {
+  position: absolute; inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(from var(--glint),
+    #3b2914 0deg, #f8e6bd 28deg, #c18c4c 62deg, #2b1d0e 110deg, #6d4a24 150deg,
+    #e6c38b 196deg, #fff4d6 214deg, #a87638 248deg, #241809 300deg, #7b5429 336deg, #3b2914 360deg);
+  -webkit-mask: radial-gradient(closest-side, transparent 71%, #000 72%, #000 98.5%, transparent 100%);
+  mask: radial-gradient(closest-side, transparent 71%, #000 72%, #000 98.5%, transparent 100%);
+  transform: translateZ(var(--z));
+  filter: brightness(var(--b, .8));
+}
+.core {
+  position: absolute; left: 50%; top: 50%;
+  width: 28%; aspect-ratio: 1; transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(255, 236, 196, .55), rgba(214, 166, 96, .12) 55%, transparent 75%);
+  filter: blur(6px);
+  animation: breathe 4s ease-in-out infinite;
+}
+.ferrule.front .core { display: none; }
+@keyframes breathe { 0%, 100% { opacity: .55; transform: translate(-50%, -50%) scale(.9); } 50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); } }
+
+.stage-foot {
+  display: flex; justify-content: center; gap: clamp(16px, 4vw, 48px); flex-wrap: wrap;
+  margin-top: 40px;
+  font-family: var(--mono); font-size: 12px; color: var(--dim);
+}
+.stage-foot span { display: inline-flex; align-items: center; gap: 8px; }
+.stage-foot span::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--brass); box-shadow: 0 0 10px var(--brass); }
+
+/* ---------- marquee ---------- */
+.marquee {
+  margin-top: 88px;
+  border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+  overflow: hidden;
+  mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+}
+.marquee-track { display: flex; width: max-content; animation: scroll 46s linear infinite; }
+.marquee-track > div { display: flex; }
+.marquee-item {
+  display: flex; align-items: baseline; gap: 12px;
+  padding: 22px 40px;
+  border-right: 1px solid var(--line);
+  white-space: nowrap;
+}
+/* biome-ignore lint/style/noDescendingSpecificity: these target other elements; source order is intended */
+.marquee-item b { font-family: var(--serif); font-weight: 400; font-size: 30px; color: var(--text); letter-spacing: -.01em; }
+.marquee-item span { font-size: 14px; color: var(--muted); }
+@keyframes scroll { to { transform: translateX(-50%); } }
+
+/* ---------- sections ---------- */
+section { position: relative; }
+.sec { padding: clamp(96px, 12vw, 160px) 0; }
+.kicker {
+  font-family: var(--mono); font-size: 12px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--brass);
+  display: flex; align-items: center; gap: 12px;
+}
+.kicker::before { content: ""; width: 28px; height: 1px; background: var(--brass); opacity: .6; }
+.h2 {
+  font-family: var(--serif);
+  font-size: clamp(40px, 5.6vw, 76px);
+  line-height: 1;
+  letter-spacing: -.02em;
+  margin-top: 20px;
+  max-width: 900px;
+}
+.sub { color: var(--muted); font-size: 18px; max-width: 620px; margin-top: 22px; line-height: 1.6; }
+.sec-head.center { text-align: center; }
+.sec-head.center .kicker { justify-content: center; }
+.sec-head.center .h2, .sec-head.center .sub { margin-left: auto; margin-right: auto; }
+
+.reveal { opacity: 0; transform: translateY(22px); transition: opacity 1s var(--ease), transform 1s var(--ease); }
+.reveal.in { opacity: 1; transform: none; }
+.reveal.d1 { transition-delay: .08s; } .reveal.d2 { transition-delay: .16s; } .reveal.d3 { transition-delay: .24s; }
+
+/* ---------- options (the problem) ---------- */
+.options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 64px; }
+.opt {
+  position: relative;
+  padding: 32px 28px 30px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .025), transparent);
+  min-height: 300px;
+  display: flex; flex-direction: column;
+}
+.opt .n { font-family: var(--mono); font-size: 12px; color: var(--dim); }
+.opt h3 { font-family: var(--serif); font-size: 34px; line-height: 1.05; margin-top: 18px; letter-spacing: -.01em; }
+.opt p { color: var(--muted); margin-top: 14px; font-size: 15.5px; }
+.opt .verdict {
+  margin-top: auto; padding-top: 26px;
+  font-family: var(--mono); font-size: 12.5px;
+  display: flex; align-items: center; gap: 10px;
+  color: var(--bad);
+}
+.opt .verdict::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.opt.win {
+  border-color: rgba(214, 166, 96, .45);
+  background:
+    radial-gradient(120% 80% at 50% 0%, rgba(214, 166, 96, .14), transparent 60%),
+    linear-gradient(180deg, rgba(255, 255, 255, .03), transparent);
+  box-shadow: 0 0 0 1px rgba(214, 166, 96, .08), 0 30px 80px -40px rgba(214, 166, 96, .45);
+}
+.opt.win .n { color: var(--brass); }
+.opt.win .verdict { color: var(--ok); }
+
+/* ---------- diff proof ---------- */
+.diff-shell {
+  margin-top: 64px;
+  border: 1px solid var(--line-2);
+  border-radius: 22px;
+  background: var(--bg-2);
+  overflow: hidden;
+  box-shadow: 0 50px 120px -50px rgba(0, 0, 0, .9);
+}
+.diff-bar {
+  display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--line);
+  font-family: var(--mono); font-size: 12.5px; color: var(--muted);
+  background: rgba(255, 255, 255, .015);
+}
+.diff-bar .path { color: var(--text); }
+.diff-bar .meta { margin-left: auto; display: flex; gap: 18px; }
+.diff-bar .meta b { color: var(--text); font-weight: 500; }
+.diff-bar .meta .okc b { color: var(--ok); }
+.diff-grid { display: grid; grid-template-columns: 1fr 1fr; }
+.pane { position: relative; min-width: 0; }
+.pane + .pane { border-left: 1px solid var(--line); }
+.pane-title {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 20px;
+  font-family: var(--mono); font-size: 12px; color: var(--muted);
+  border-bottom: 1px solid var(--line);
+}
+.pane-title .sw { width: 8px; height: 8px; border-radius: 2px; }
+.pane-body { height: 460px; overflow: hidden; position: relative; }
+.pane-body .scroller { will-change: transform; transition: transform .25s linear; }
+.ln {
+  display: grid; grid-template-columns: 44px 18px 1fr;
+  font-family: var(--mono); font-size: 12.5px; line-height: 21px;
+  white-space: pre;
+  color: #cfcbc2;
+  transition: background .3s;
+}
+.ln .no { text-align: right; padding-right: 10px; color: #4d4b47; user-select: none; }
+.ln .mk { color: transparent; user-select: none; text-align: center; transition: color .3s; }
+.ln .tx { overflow: hidden; text-overflow: clip; padding-right: 16px; }
+.ln.ok .mk { color: rgba(147, 217, 172, .5); }
+.ln.cur { background: rgba(214, 166, 96, .08); }
+.ln.del { background: rgba(236, 143, 126, .1); }
+.ln.del .mk { color: var(--bad); }
+.ln.add { background: rgba(147, 217, 172, .1); }
+.ln.add .mk { color: var(--ok); }
+.ln.del .tx, .ln.add .tx { color: var(--text); }
+.k { color: var(--code-kw); } .s { color: var(--code-str); } .f { color: var(--code-fn); }
+.c { color: var(--code-com); } .t { color: var(--code-cls); } .d { color: var(--code-dec); }
+.y-key { color: var(--code-kw); } .y-verb { color: var(--ok); } .y-path { color: var(--code-str); }
+.pane-fade { position: absolute; left: 0; right: 0; bottom: 0; height: 80px; background: linear-gradient(transparent, var(--bg-2)); pointer-events: none; }
+.diff-foot {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  border-top: 1px solid var(--line);
+}
+.stat { padding: 28px 24px; }
+.stat + .stat { border-left: 1px solid var(--line); }
+.stat .v { font-family: var(--serif); font-size: clamp(38px, 4.4vw, 56px); line-height: 1; letter-spacing: -.02em; }
+.stat .v small { font-size: .5em; color: var(--muted); margin-left: 4px; }
+.stat .l { font-size: 13.5px; color: var(--muted); margin-top: 10px; }
+.stat .v.g { color: var(--ok); }
+.callout {
+  margin-top: 22px; display: flex; gap: 12px; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 13px; color: var(--muted); text-align: center;
+}
+/* biome-ignore lint/style/noDescendingSpecificity: these target other elements; source order is intended */
+.callout b { color: var(--text); font-weight: 500; }
+
+/* ---------- pipeline ---------- */
+.pipe { margin-top: 72px; position: relative; }
+.io { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 28px; }
+.io > div {
+  border: 1px dashed var(--line-2); border-radius: 14px; padding: 14px 18px;
+  font-family: var(--mono); font-size: 12.5px; color: var(--muted);
+  display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center;
+}
+/* biome-ignore lint/style/noDescendingSpecificity: these target other elements; source order is intended */
+.io > div > b { color: var(--dim); font-weight: 400; letter-spacing: .1em; text-transform: uppercase; font-size: 11px; margin-right: 6px; }
+.io .chip { color: var(--text); padding: 3px 9px; border-radius: 6px; background: rgba(255, 255, 255, .04); border: 1px solid var(--line); }
+.io > div:last-child { justify-content: flex-end; }
+.stages { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; position: relative; }
+.track { position: absolute; left: 0; right: 0; top: 36px; height: 1px; background: var(--line-2); }
+.track i {
+  position: absolute; top: -1px; left: 0; height: 3px; width: 120px;
+  background: linear-gradient(90deg, transparent, var(--brass-hi), transparent);
+  filter: drop-shadow(0 0 6px var(--brass));
+  animation: trackrun 5s linear infinite;
+}
+@keyframes trackrun { from { left: -120px; } to { left: 100%; } }
+.st { position: relative; padding: 0 14px; cursor: default; }
+.st .dot {
+  width: 72px; height: 72px; border-radius: 50%;
+  display: grid; place-items: center;
+  font-family: var(--mono); font-size: 13px; color: var(--muted);
+  background: var(--bg);
+  border: 1px solid var(--line-2);
+  position: relative; z-index: 1;
+  transition: all .5s var(--ease);
+}
+.st.on .dot {
+  color: var(--brass-ink);
+  border-color: transparent;
+  background: radial-gradient(circle at 35% 30%, #fff3d4, var(--brass) 55%, var(--brass-lo));
+  box-shadow: 0 0 0 6px rgba(214, 166, 96, .1), 0 10px 40px -6px rgba(214, 166, 96, .6);
+}
+.st h4 { font-family: var(--serif); font-weight: 400; font-size: 30px; margin-top: 22px; letter-spacing: -.01em; }
+.st p { font-size: 14.5px; color: var(--muted); margin-top: 8px; max-width: 220px; transition: color .4s; }
+.st.on p { color: #d4d0c8; }
+.st .own { font-family: var(--mono); font-size: 11.5px; color: var(--dim); margin-top: 14px; }
+.st.forge .own { color: var(--brass); }
+
+/* ---------- terminal ---------- */
+.term-grid { display: grid; grid-template-columns: 1fr 1.25fr; gap: 64px; align-items: center; margin-top: 8px; }
+.steps-list { margin-top: 36px; display: grid; gap: 4px; }
+.steps-list div { display: grid; grid-template-columns: 34px 1fr; gap: 14px; padding: 14px 0; border-top: 1px solid var(--line); }
+.steps-list div:last-child { border-bottom: 1px solid var(--line); }
+.steps-list .i { font-family: var(--mono); font-size: 12px; color: var(--brass); padding-top: 3px; }
+/* biome-ignore lint/style/noDescendingSpecificity: these target other elements; source order is intended */
+.steps-list b { font-weight: 500; }
+/* biome-ignore lint/style/noDescendingSpecificity: these target other elements; source order is intended */
+.steps-list p { color: var(--muted); font-size: 14.5px; margin-top: 2px; }
+.term {
+  border-radius: 18px;
+  border: 1px solid var(--line-2);
+  background: linear-gradient(180deg, #121215, #0c0c0e);
+  box-shadow: 0 60px 120px -50px rgba(0, 0, 0, .95), 0 0 0 1px rgba(0, 0, 0, .5), inset 0 1px 0 rgba(255, 255, 255, .05);
+  overflow: hidden;
+}
+.term-head { display: flex; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--line); font-family: var(--mono); font-size: 12px; color: var(--dim); }
+.term-head .dots { margin-right: 14px; }
+.term-head .ttl { flex: 1; text-align: center; margin-right: 50px; }
+.term-body {
+  padding: 22px 22px 26px;
+  font-family: var(--mono); font-size: 13.5px; line-height: 1.85;
+  min-height: 480px;
+  white-space: pre-wrap;
+}
+.term-body .pr { color: var(--brass); }
+.term-body .o { color: var(--muted); }
+.term-body .ok { color: var(--ok); }
+.term-body .hl { color: var(--text); }
+.term-body .z { color: var(--ok); font-weight: 500; }
+.caret { display: inline-block; width: 8px; height: 17px; background: var(--brass-hi); vertical-align: -3px; animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+
+/* ---------- bento ---------- */
+.bento { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; margin-top: 64px; }
+.tile {
+  position: relative; overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .03), rgba(255, 255, 255, .008));
+  padding: 30px;
+  min-height: 340px;
+  display: flex; flex-direction: column;
+  transition: border-color .4s;
+}
+.tile:hover { border-color: var(--line-2); }
+.tile::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(400px circle at var(--mx, 50%) var(--my, 0%), rgba(214, 166, 96, .09), transparent 40%);
+  opacity: 0; transition: opacity .4s;
+}
+.tile:hover::before { opacity: 1; }
+.tile.w3 { grid-column: span 3; } .tile.w2 { grid-column: span 2; } .tile.w4 { grid-column: span 4; }
+.tile .lab { font-family: var(--mono); font-size: 11.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--brass); display: flex; gap: 10px; align-items: center; }
+.tile .lab .soon { color: var(--dim); border: 1px solid var(--line-2); border-radius: 999px; padding: 1px 8px; letter-spacing: .06em; }
+.tile h3 { font-family: var(--serif); font-size: 32px; line-height: 1.05; margin-top: 14px; letter-spacing: -.01em; }
+.tile p { color: var(--muted); font-size: 15px; margin-top: 10px; max-width: 460px; }
+.tile .viz { margin-top: auto; padding-top: 26px; }
+
+.report { font-family: var(--mono); font-size: 13px; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: rgba(0, 0, 0, .25); }
+.report div { display: flex; justify-content: space-between; padding: 10px 16px; border-top: 1px solid var(--line); color: var(--muted); }
+.report div:first-child { border-top: 0; }
+.report b { color: var(--text); font-weight: 500; }
+.report .g { color: var(--ok); }
+
+.rescue { display: flex; align-items: center; gap: 12px; font-family: var(--mono); font-size: 12.5px; flex-wrap: wrap; }
+.rescue .box { padding: 10px 12px; border: 1px solid var(--line-2); border-radius: 10px; background: rgba(0, 0, 0, .25); }
+.rescue .box small { display: block; color: var(--dim); font-size: 11px; }
+.rescue .box.gone { border-style: dashed; color: var(--dim); text-decoration: line-through; text-decoration-color: rgba(236, 143, 126, .6); }
+.rescue .arr { color: var(--brass); }
+
+.lic { display: flex; flex-wrap: wrap; gap: 8px; }
+.lic span { font-family: var(--mono); font-size: 12px; padding: 6px 11px; border-radius: 999px; border: 1px solid var(--line-2); color: var(--muted); }
+.lic span.y { color: var(--brass-hi); border-color: rgba(214, 166, 96, .45); background: rgba(214, 166, 96, .07); }
+
+.tree { font-family: var(--mono); font-size: 12.5px; line-height: 1.8; color: var(--muted); background: rgba(0, 0, 0, .25); border: 1px solid var(--line); border-radius: 12px; padding: 14px 18px; white-space: pre; overflow: hidden; }
+.tree b { color: var(--brass-hi); font-weight: 400; }
+
+.pr-card { font-size: 13.5px; border: 1px solid var(--line); border-radius: 12px; background: rgba(0, 0, 0, .25); padding: 14px 16px; }
+.pr-card .row { display: flex; align-items: center; gap: 10px; }
+.pr-card .row + .row { margin-top: 10px; }
+.pr-card .ico { width: 18px; height: 18px; color: var(--ok); flex: none; }
+.pr-card .lbl { font-family: var(--mono); font-size: 11px; padding: 2px 8px; border-radius: 999px; background: rgba(147, 217, 172, .1); color: var(--ok); border: 1px solid rgba(147, 217, 172, .25); }
+.pr-card .m { color: var(--dim); font-family: var(--mono); font-size: 12px; }
+
+/* ---------- compare ---------- */
+.cmp { margin-top: 64px; border: 1px solid var(--line); border-radius: 22px; overflow: hidden; }
+.cmp-scroll { overflow-x: auto; }
+.cmp table { width: 100%; border-collapse: collapse; min-width: 820px; table-layout: fixed; }
+.cmp thead th:first-child { width: 24%; }
+.cmp th, .cmp td { text-align: left; padding: 18px 22px; border-top: 1px solid var(--line); font-size: 14.5px; vertical-align: top; }
+.cmp thead th { border-top: 0; font-weight: 400; color: var(--muted); font-size: 13px; padding-top: 22px; padding-bottom: 22px; }
+.cmp thead th b { display: block; color: var(--text); font-weight: 500; font-size: 15px; margin-bottom: 3px; }
+.cmp tbody th { font-weight: 400; color: #d6d2ca; width: 26%; }
+.cmp td { color: var(--muted); }
+.cmp .us { background: linear-gradient(180deg, rgba(214, 166, 96, .09), rgba(214, 166, 96, .03)); color: var(--text); }
+.cmp thead .us { position: relative; }
+.cmp thead .us b { color: var(--brass-hi); }
+.cmp .y::before, .cmp .n::before, .cmp .m::before { display: inline-block; width: 20px; font-family: var(--mono); }
+.cmp .y::before { content: "✓"; color: var(--ok); }
+.cmp .n::before { content: "✕"; color: var(--bad); }
+.cmp .m::before { content: "~"; color: var(--brass); }
+.cmp-note { font-size: 12.5px; color: var(--dim); margin-top: 16px; font-family: var(--mono); }
+
+/* ---------- never ---------- */
+.never { text-align: center; overflow: hidden; }
+.never-grid {
+  margin-top: 64px;
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  border-top: 1px solid var(--line); border-left: 1px solid var(--line);
+  text-align: left;
+}
+.nv {
+  --i: 0;
+  position: relative;
+  padding: 34px 32px 36px;
+  border-right: 1px solid var(--line); border-bottom: 1px solid var(--line);
+  transition: background .5s;
+}
+.nv:hover { background: radial-gradient(120% 100% at 30% 40%, rgba(214, 166, 96, .06), transparent 70%); }
+.nv .no { display: block; font-family: var(--mono); font-size: 11.5px; letter-spacing: .12em; color: var(--dim); }
+.nv .w {
+  position: relative; display: inline-block;
+  margin-top: 22px;
+  white-space: nowrap;
+  font-family: var(--serif);
+  font-size: clamp(32px, 3.5vw, 50px);
+  line-height: 1;
+  letter-spacing: -.02em;
+  color: var(--text);
+  transition: color 1s var(--ease) calc(var(--i) * .22s + .35s);
+}
+.nv .w svg {
+  position: absolute; left: -6%; top: 50%;
+  width: 112%; height: .62em;
+  transform: translateY(-46%) rotate(var(--r));
+  overflow: visible;
+  filter: drop-shadow(0 0 8px rgba(214, 166, 96, .45));
+}
+.nv .w path {
+  fill: none; stroke: url(#lg); stroke-width: 5; stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+  stroke-dasharray: 1; stroke-dashoffset: 1;
+  transition: stroke-dashoffset .55s cubic-bezier(.6, 0, .2, 1) calc(var(--i) * .22s);
+}
+.nv .w path.p2 { stroke-width: 3; opacity: .75; transition-delay: calc(var(--i) * .22s + .38s); transition-duration: .4s; }
+.nv p { color: var(--dim); font-size: 14.5px; margin-top: 20px; max-width: 280px; transition: color 1s var(--ease) calc(var(--i) * .22s + .35s); }
+.never-grid.in .nv .w { color: #6f6b65; }
+.never-grid.in .nv p { color: var(--muted); }
+.never-grid.in .nv .w path { stroke-dashoffset: 0; }
+.nv:nth-child(2) { --i: 1; } .nv:nth-child(3) { --i: 2; } .nv:nth-child(4) { --i: 3; }
+.nv:nth-child(5) { --i: 4; } .nv:nth-child(6) { --i: 5; }
+.never-foot { margin-top: 48px; color: var(--muted); font-size: 17px; }
+.never-foot b { color: var(--text); font-weight: 500; }
+
+/* ---------- board ---------- */
+.board { margin-top: 56px; border: 1px solid var(--line); border-radius: 22px; overflow: hidden; background: var(--bg-2); }
+.board-head, .brow { display: grid; grid-template-columns: 1.1fr 1.6fr .8fr 1.6fr .8fr; gap: 16px; align-items: center; padding: 14px 24px; }
+.board-head { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--dim); border-bottom: 1px solid var(--line); }
+.brow { border-top: 1px solid var(--line); font-size: 14px; }
+.brow:first-of-type { border-top: 0; }
+.brow .nm { font-weight: 500; }
+.brow .rp { font-family: var(--mono); font-size: 12.5px; color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.brow .br { font-family: var(--mono); font-size: 13px; }
+.brow .br.zero { color: var(--ok); }
+.brow .br.non { color: var(--bad); }
+.bar { height: 6px; border-radius: 99px; background: rgba(255, 255, 255, .06); overflow: hidden; position: relative; }
+.bar i { position: absolute; left: 0; top: 0; bottom: 0; width: 0; border-radius: 99px; background: linear-gradient(90deg, var(--brass-lo), var(--brass-hi)); transition: width 1.4s var(--ease); }
+.bar-wrap { display: flex; align-items: center; gap: 12px; font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.bar-wrap .bar { flex: 1; }
+.brow .ts { font-family: var(--mono); font-size: 12.5px; color: var(--dim); }
+.brow .ts.p { color: var(--ok); }
+.brow.hero-row { background: linear-gradient(90deg, rgba(147, 217, 172, .06), transparent 60%); }
+.board-foot { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 16px 24px; border-top: 1px solid var(--line); font-family: var(--mono); font-size: 12px; color: var(--dim); }
+
+/* ---------- faq ---------- */
+.faq-grid { display: grid; grid-template-columns: 1fr 1.6fr; gap: 64px; }
+.faq details { border-top: 1px solid var(--line); }
+.faq details:last-child { border-bottom: 1px solid var(--line); }
+.faq summary {
+  list-style: none; cursor: pointer;
+  display: flex; justify-content: space-between; align-items: center; gap: 20px;
+  padding: 24px 0;
+  font-size: 18px; font-weight: 450;
+}
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary .pm { position: relative; width: 14px; height: 14px; flex: none; }
+.faq summary .pm::before, .faq summary .pm::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: var(--muted); transition: transform .35s var(--ease); }
+.faq summary .pm::after { transform: rotate(90deg); }
+.faq details[open] summary .pm::after { transform: rotate(0); }
+.faq .ans { color: var(--muted); padding: 0 40px 26px 0; font-size: 15.5px; line-height: 1.7; }
+.faq .ans code { font-size: 13.5px; color: var(--text); background: rgba(255, 255, 255, .05); padding: 1px 6px; border-radius: 5px; }
+
+/* ---------- final cta ---------- */
+.final { text-align: center; position: relative; overflow: hidden; padding: clamp(120px, 16vw, 200px) 0; }
+.final::before {
+  content: ""; position: absolute; left: 50%; top: 50%; width: 900px; height: 900px; transform: translate(-50%, -50%);
+  background: radial-gradient(closest-side, rgba(214, 166, 96, .16), transparent 70%);
+  pointer-events: none;
+}
+.final .ring-bg {
+  position: absolute; left: 50%; top: 50%; width: min(820px, 140vw); aspect-ratio: 1; transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: conic-gradient(from 200deg, transparent, rgba(214, 166, 96, .35), transparent 30%, transparent 60%, rgba(214, 166, 96, .2), transparent);
+  -webkit-mask: radial-gradient(closest-side, transparent 97%, #000 97.4%, #000 99.6%, transparent 100%);
+  mask: radial-gradient(closest-side, transparent 97%, #000 97.4%, #000 99.6%, transparent 100%);
+  animation: rot 30s linear infinite;
+  pointer-events: none;
+}
+.final .ring-bg.b2 { width: min(620px, 110vw); animation-duration: 22s; animation-direction: reverse; opacity: .7; }
+@keyframes rot { to { transform: translate(-50%, -50%) rotate(360deg); } }
+.final .wrap { position: relative; }
+.final .display { font-size: clamp(48px, 8vw, 112px); }
+
+footer { border-top: 1px solid var(--line); padding: 56px 0 48px; font-size: 14px; color: var(--muted); }
+.foot-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; }
+.foot-grid h5 { font-family: var(--mono); font-weight: 400; font-size: 11.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--dim); margin-bottom: 14px; }
+.foot-grid ul { list-style: none; display: grid; gap: 9px; }
+.foot-grid a:hover { color: var(--text); }
+.foot-legal { margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; font-size: 12.5px; color: var(--dim); }
+
+/* ---------- responsive ---------- */
+@media (max-width: 1020px) {
+  .nav-links { display: none; }
+  .term-grid, .faq-grid { grid-template-columns: 1fr; gap: 40px; }
+  .bento .tile.w2, .bento .tile.w3, .bento .tile.w4 { grid-column: span 6; }
+  .options { grid-template-columns: 1fr; }
+  .never-grid { grid-template-columns: 1fr 1fr; }
+  .opt { min-height: 0; }
+  .stages { grid-template-columns: 1fr; gap: 28px; }
+  .track { left: 36px; right: auto; top: 0; bottom: 0; width: 1px; height: auto; }
+  .track i { width: 3px; height: 120px; left: -1px; animation-name: trackrunv; }
+  @keyframes trackrunv { from { top: -120px; } to { top: 100%; } }
+  .st { display: grid; grid-template-columns: 72px 1fr; column-gap: 22px; padding: 0; }
+  .st .dot { grid-row: span 3; }
+  .st h4 { margin-top: 6px; }
+  .st p { max-width: none; }
+  .foot-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 860px) {
+  .stage { aspect-ratio: auto; display: flex; flex-direction: column; align-items: stretch; gap: 0; margin-top: 56px; }
+  .stage svg.flow, .ferrule.front, .annot.a2 { display: none; }
+  .card { position: relative; top: auto; transform: none; width: 100%; }
+  .card pre { font-size: 11px; padding: 14px 16px 16px; overflow-x: auto; scrollbar-width: none; }
+  .card pre::-webkit-scrollbar { display: none; }
+  .stage .annot { position: relative; width: 100%; left: auto; right: auto; margin-bottom: 12px; }
+  .annot.a3 { order: 4; margin-top: 4px; }
+  .card.right { order: 5; }
+  .ferrule { position: relative; left: auto; top: auto; transform: none; width: 190px; margin: 6px auto 40px; order: 3; }
+  .ferrule::after {
+    content: "engine · replaced"; position: absolute; left: 50%; bottom: -26px; transform: translateX(-50%);
+    font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--brass); white-space: nowrap;
+  }
+  .annot.a1 { order: 1; } .card.left { order: 2; }
+  .diff-grid { grid-template-columns: 1fr; }
+  .pane + .pane { border-left: 0; border-top: 1px solid var(--line); }
+  .pane-body { height: 300px; }
+  .diff-foot { grid-template-columns: 1fr 1fr; }
+  .stat:nth-child(3) { border-left: 0; }
+  .stat:nth-child(n+3) { border-top: 1px solid var(--line); }
+  .io { grid-template-columns: 1fr; }
+  .io > div:last-child { justify-content: flex-start; }
+  .board-head { display: none; }
+  .brow { grid-template-columns: 1fr auto; gap: 6px 12px; padding: 16px 18px; }
+  .brow .rp { grid-column: 1; grid-row: 2; }
+  .brow .br { grid-column: 2; grid-row: 1; text-align: right; }
+  .brow .bar-wrap { grid-column: 1 / -1; }
+  .brow .ts { grid-column: 2; grid-row: 2; text-align: right; }
+  .diff-bar .meta { margin-left: 0; }
+}
+@media (max-width: 560px) {
+  .nav-cta .btn:not(.btn-brass) { display: none; }
+  .hero { padding-top: 120px; }
+  .cmd { font-size: 13px; }
+  .marquee-item { padding: 18px 26px; }
+  .marquee-item b { font-size: 24px; }
+  .tile { padding: 24px; min-height: 0; }
+  .report div { flex-direction: column; gap: 2px; }
+  .never-grid { grid-template-columns: 1fr; }
+  .nv { padding: 26px 24px 28px; }
+  .eyebrow { font-size: 10.5px; letter-spacing: .06em; gap: 8px; }
+  .eyebrow .pill { white-space: nowrap; }
+  .ln { grid-template-columns: 30px 16px 1fr; font-size: 11.5px; }
+  .ln .tx { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .foot-grid { grid-template-columns: 1fr; }
+  .term-body { font-size: 12px; padding: 18px 16px; min-height: 420px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  /* biome-ignore lint/complexity/noImportantStyles: reduced motion has to beat every animation rule above */
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .reveal { opacity: 1; transform: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- nav -->
+<header class="nav" id="nav">
+  <div class="wrap">
+    <a href="#top" class="logo" aria-label="Ferrule home">
+      <svg viewBox="0 0 32 32" aria-hidden="true">
+        <defs>
+          <linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#f6e2b4"/><stop offset=".5" stop-color="#d6a660"/><stop offset="1" stop-color="#8a5c2c"/>
+          </linearGradient>
+        </defs>
+        <ellipse cx="13" cy="16" rx="6" ry="12" fill="none" stroke="url(#lg)" stroke-width="2.4"/>
+        <ellipse cx="19" cy="16" rx="6" ry="12" fill="none" stroke="url(#lg)" stroke-width="2.4" opacity=".55"/>
+        <path d="M13 4h6M13 28h6" stroke="url(#lg)" stroke-width="2.4"/>
+      </svg>
+      Ferrule
+    </a>
+    <nav class="nav-links">
+      <a href="#why">Why</a>
+      <a href="#proof">Proof</a>
+      <a href="#how">How it works</a>
+      <a href="#compare">Compare</a>
+      <a href="#board">Fidelity board</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <div class="nav-cta">
+      <a class="btn" href="https://github.com/shrijayan/ferrule">
+        <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        GitHub
+      </a>
+      <a class="btn btn-brass" href="#start">Get started</a>
+    </div>
+  </div>
+</header>
+
+<!-- hero -->
+<section class="hero" id="top">
+  <div class="wrap">
+    <div class="eyebrow reveal"><span class="pill">Open source</span> For teams leaving Stainless</div>
+    <h1 class="display reveal d1">Change the engine.<br><em>Not the SDK.</em></h1>
+    <p class="lede reveal d2">
+      Ferrule regenerates the <strong>exact Python SDK your users already import</strong>, from the same
+      OpenAPI spec and <code>stainless.yml</code>, then proves that nothing public changed.
+      Apache-2.0. Runs on your laptop and in CI. No account.
+    </p>
+    <div class="hero-actions reveal d3" id="start">
+      <button type="button" class="cmd" data-copy="uvx ferrule adopt ." aria-label="Copy command">
+        <span><span class="p">$</span> uvx ferrule adopt .</span>
+        <span class="copy"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></span>
+      </button>
+      <a class="btn btn-lg" href="#proof">See the proof
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </a>
+    </div>
+
+    <div class="stage reveal" id="stage">
+      <div class="annot a1"><b>Your config · unchanged</b></div>
+      <div class="annot a2"><span class="tick l"></span><b>Engine · replaced</b><span class="tick r"></span></div>
+      <div class="annot a3"><b>Your users' code · unchanged</b></div>
+
+      <svg class="flow" viewBox="0 0 1200 470" preserveAspectRatio="none" aria-hidden="true">
+        <defs>
+          <linearGradient id="brassStroke" x1="0" x2="1">
+            <stop offset="0" stop-color="#8a5c2c" stop-opacity="0"/>
+            <stop offset=".5" stop-color="#f6e2b4"/>
+            <stop offset="1" stop-color="#d6a660"/>
+          </linearGradient>
+        </defs>
+        <g id="flowLines"></g>
+      </svg>
+
+      <div class="ferrule back" aria-hidden="true"><div class="glow"></div><div class="r3d"></div><div class="core"></div></div>
+      <div class="ferrule front" aria-hidden="true"><div class="r3d"></div></div>
+
+      <div class="card left">
+        <div class="card-head"><div class="dots"><i></i><i></i><i></i></div>stainless.yml<span class="tag">kept</span></div>
+        <pre id="heroYaml"></pre>
+      </div>
+      <div class="card right">
+        <div class="card-head"><div class="dots"><i></i><i></i><i></i></div>their_app.py<span class="tag">still works</span></div>
+        <pre id="heroPy"></pre>
+      </div>
+    </div>
+
+    <div class="stage-foot reveal">
+      <span>OpenAPI 3.x + stainless.yml in</span>
+      <span>Stainless-identical Python out</span>
+      <span>Built on Forge, Cloudflare's open engine</span>
+    </div>
+  </div>
+
+  <div class="marquee">
+    <div class="marquee-track">
+      <div>
+        <div class="marquee-item"><b>0</b><span>breaking changes on the OneBusAway SDK</span></div>
+        <div class="marquee-item"><b>1,110</b><span>of its own tests pass on our output</span></div>
+        <div class="marquee-item"><b>80 / 80</b><span>generated code files identical</span></div>
+        <div class="marquee-item"><b>byte-for-byte</b><span>the same output on every run</span></div>
+        <div class="marquee-item"><b>no</b><span>account, token or telemetry</span></div>
+        <div class="marquee-item"><b>never</b><span>a CLA</span></div>
+      </div>
+      <div aria-hidden="true">
+        <div class="marquee-item"><b>0</b><span>breaking changes on the OneBusAway SDK</span></div>
+        <div class="marquee-item"><b>1,110</b><span>of its own tests pass on our output</span></div>
+        <div class="marquee-item"><b>80 / 80</b><span>generated code files identical</span></div>
+        <div class="marquee-item"><b>byte-for-byte</b><span>the same output on every run</span></div>
+        <div class="marquee-item"><b>no</b><span>account, token or telemetry</span></div>
+        <div class="marquee-item"><b>never</b><span>a CLA</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- why -->
+<section class="sec" id="why">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="kicker reveal">The situation</div>
+      <h2 class="h2 reveal d1">Your generator is going away. <em>Your users aren't.</em></h2>
+      <p class="sub reveal d2">Thousands of developers import the SDK you shipped. Every class name, every keyword argument,
+        every <code>with_raw_response</code> is a promise. You have three ways forward.</p>
+    </div>
+    <div class="options">
+      <div class="opt reveal">
+        <span class="n">Option 01</span>
+        <h3>Switch to another generator</h3>
+        <p>It has its own house style. Class names move, params change shape, and your users find out from a stack trace. Some free tiers put copyleft code inside your SDK.</p>
+        <span class="verdict">Your users rewrite their code</span>
+      </div>
+      <div class="opt reveal d1">
+        <span class="n">Option 02</span>
+        <h3>Freeze it and hand-maintain</h3>
+        <p>Works until the API ships a new endpoint. Then someone writes pagination by hand at 11pm, and the SDK slowly drifts away from the spec it was built from.</p>
+        <span class="verdict">The SDK rots</span>
+      </div>
+      <div class="opt win reveal d2">
+        <span class="n">Option 03 · Ferrule</span>
+        <h3>Keep the SDK. Swap the engine.</h3>
+        <p>Same spec, same <code>stainless.yml</code>, same Python, regenerated on an open engine you control. A public API diff proves it before you merge.</p>
+        <span class="verdict">Nobody notices. That's the point.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- proof -->
+<section class="sec" id="proof" style="padding-top:0">
+  <div class="wrap">
+    <div class="sec-head center">
+      <div class="kicker reveal">The proof</div>
+      <h2 class="h2 reveal d1">Not "compatible." <em>Identical.</em></h2>
+      <p class="sub reveal d2">Left: a file from the last Stainless release of the OneBusAway Python SDK. Right: Ferrule's output from the same spec and config. Watch the comparison run.</p>
+    </div>
+
+    <div class="diff-shell reveal" id="diff">
+      <div class="diff-bar">
+        <span class="path">src/onebusaway/resources/current_time.py</span>
+        <div class="meta">
+          <span>lines compared <b id="dCount">0</b></span>
+          <span>differences <b id="dDiff">0</b></span>
+          <span class="okc">public API <b id="dApi">…</b></span>
+        </div>
+      </div>
+      <div class="diff-grid">
+        <div class="pane">
+          <div class="pane-title"><span class="sw" style="background:#6d6a64"></span>Stainless · python-sdk v1.30.0</div>
+          <div class="pane-body"><div class="scroller" id="paneA"></div><div class="pane-fade"></div></div>
+        </div>
+        <div class="pane">
+          <div class="pane-title"><span class="sw" style="background:var(--brass)"></span>Ferrule · same spec, same stainless.yml</div>
+          <div class="pane-body"><div class="scroller" id="paneB"></div><div class="pane-fade"></div></div>
+        </div>
+      </div>
+      <div class="diff-foot">
+        <div class="stat"><div class="v g" data-count="0">0</div><div class="l">breaking changes to the public API</div></div>
+        <div class="stat"><div class="v" data-count="1110">0</div><div class="l">of the SDK's own tests passing on our output</div></div>
+        <div class="stat"><div class="v"><span data-count="80">0</span><small>/80</small></div><div class="l">generated code files identical</div></div>
+        <div class="stat"><div class="v">2<small>runs</small></div><div class="l">same sha256, every time. No timestamps, no LLMs</div></div>
+      </div>
+    </div>
+    <p class="callout reveal">The only line that differs is the one that <b>names the generator</b>.</p>
+  </div>
+</section>
+
+<!-- how -->
+<section class="sec" id="how" style="padding-top:0">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="kicker reveal">How it works</div>
+      <h2 class="h2 reveal d1">Five stages. <em>One of them borrowed.</em></h2>
+      <p class="sub reveal d2">We didn't build another generator. Forge, Cloudflare's Apache-2.0 engine, parses the spec. Ferrule adds everything it doesn't do: reading your config, writing Stainless-shaped Python, and proving it.</p>
+    </div>
+    <div class="pipe reveal">
+      <div class="io">
+        <div><b>In</b><span class="chip">openapi.yml</span><span class="chip">stainless.yml</span><span class="chip">your hand edits</span><span class="chip">last release</span></div>
+        <div><b>Out</b><span class="chip">Python SDK</span><span class="chip">api.md</span><span class="chip">.stats.yml</span><span class="chip">ferrule.lock</span><span class="chip">verify report</span></div>
+      </div>
+      <div class="stages" id="stages">
+        <div class="track"><i></i></div>
+        <div class="st on"><div class="dot">01</div><h4>Convert</h4><p>Validate stainless.yml against the public schema, apply editions and transforms, annotate the spec.</p><div class="own">converter · TypeScript</div></div>
+        <div class="st forge"><div class="dot">02</div><h4>Forge</h4><p>A pinned Forge commit parses the annotated spec and runs our WebAssembly plugin.</p><div class="own">dependency · never forked</div></div>
+        <div class="st"><div class="dot">03</div><h4>Emit</h4><p>An adapter maps Forge data into our own model; pure emitters write every SDK file.</p><div class="own">python-plugin · TS → WASM</div></div>
+        <div class="st"><div class="dot">04</div><h4>Finish</h4><p>Copy the runtime from your repo, format with ruff, merge your custom code back on.</p><div class="own">migrate · Python</div></div>
+        <div class="st"><div class="dot">05</div><h4>Verify</h4><p>Diff the public API, type-check, run tests against a mock, give a semver verdict.</p><div class="own">migrate · Python</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- terminal -->
+<section class="sec" style="padding-top:0">
+  <div class="wrap">
+    <div class="term-grid">
+      <div>
+        <div class="kicker reveal">Your first hour</div>
+        <h2 class="h2 reveal d1">One command to adopt. <em>One to prove it.</em></h2>
+        <div class="steps-list reveal d2">
+          <div><span class="i">01</span><span><b>Rescue the spec</b><p>Your <code>.stats.yml</code> points at a spec in a bucket you don't own. Ferrule saves it and checks the hash.</p></span></div>
+          <div><span class="i">02</span><span><b>Convert and generate</b><p>Your config becomes Forge overlays. Your runtime is copied from your own repo, so you keep owning it.</p></span></div>
+          <div><span class="i">03</span><span><b>Record your hand edits</b><p>Custom code becomes patches that survive every regeneration via three-way merge.</p></span></div>
+          <div><span class="i">04</span><span><b>Open a pull request</b><p>With a verify report attached, so the review is about evidence, not trust.</p></span></div>
+        </div>
+      </div>
+      <div class="term reveal d1" id="term">
+        <div class="term-head"><div class="dots"><i></i><i></i><i></i></div><span class="ttl">~/onebusaway-python</span></div>
+        <div class="term-body" id="termBody"><span class="caret"></span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- bento -->
+<section class="sec" style="padding-top:0">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="kicker reveal">What you get</div>
+      <h2 class="h2 reveal d1">More than a migration. <em>A better SDK, the same API.</em></h2>
+    </div>
+    <div class="bento">
+      <div class="tile w4 reveal">
+        <div class="lab">ferrule verify</div>
+        <h3>Proof that nothing broke</h3>
+        <p>A public API diff against your last Stainless release, plus your own test suite against the new output. Rivals sell their style; we treat yours as the spec.</p>
+        <div class="viz">
+          <div class="report">
+            <div><span>public API vs v1.30.0</span><b class="g">0 breaking · 0 additive</b></div>
+            <div><span>your tests on new output</span><b>1,110 passed · 0 failed</b></div>
+            <div><span>determinism</span><b>2 runs · identical sha256</b></div>
+            <div><span>verdict</span><b class="g">safe to release</b></div>
+          </div>
+        </div>
+      </div>
+      <div class="tile w2 reveal d1">
+        <div class="lab">ferrule rescue</div>
+        <h3>Your spec, saved</h3>
+        <p>Every Stainless repo points at a spec in a bucket that may disappear. Rescue alone is worth running today.</p>
+        <div class="viz">
+          <div class="rescue">
+            <div class="box gone"><small>hosted bucket</small>openapi.yml</div>
+            <span class="arr">→</span>
+            <div class="box"><small>your repo · hash ok</small>./openapi.yml</div>
+          </div>
+        </div>
+      </div>
+      <div class="tile w2 reveal">
+        <div class="lab">Licence</div>
+        <h3>Output you own</h3>
+        <p>No obligations on generated code. The SDK never depends on Ferrule or Forge.</p>
+        <div class="viz lic">
+          <span class="y">Apache-2.0</span><span class="y">DCO</span><span>no token</span><span>no telemetry</span><span>no login</span><span>no CLA, ever</span>
+        </div>
+      </div>
+      <div class="tile w2 reveal d1">
+        <div class="lab">Agent context <span class="soon">phase 5</span></div>
+        <h3>Docs for agents, in the wheel</h3>
+        <p>Locked to the installed version, so coding agents never read docs for a release you don't run.</p>
+        <div class="viz"><div class="tree">onebusaway/
+├── <b>SKILL.md</b>
+├── <b>AGENTS.md</b>
+├── <b>llms.txt</b>
+└── recipes/   # tested</div></div>
+      </div>
+      <div class="tile w2 reveal d2">
+        <div class="lab">Fake server <span class="soon">phase 5</span></div>
+        <h3>Runs without a key</h3>
+        <p>A testing module in every SDK returns spec-valid fixtures, so users and agents can try code with no API key and no network.</p>
+        <div class="viz"><div class="report"><div><span>GET /current-time</span><b class="g">200 · spec-valid</b></div><div><span>api key</span><b>not needed</b></div></div></div>
+      </div>
+      <div class="tile w3 reveal">
+        <div class="lab">GitHub Action</div>
+        <h3>Keeps regenerating</h3>
+        <p>Spec changes open a PR with a semver label. Unlabelled breaking changes fail the check. Hand edits ride along.</p>
+        <div class="viz">
+          <div class="pr-card">
+            <div class="row"><svg aria-hidden="true" class="ico" viewBox="0 0 16 16" fill="currentColor"><path d="M1.5 3.25a2.25 2.25 0 1 1 3 2.122v5.256a2.251 2.251 0 1 1-1.5 0V5.372A2.25 2.25 0 0 1 1.5 3.25Zm5.677-.177L9.573.677A.25.25 0 0 1 10 .854V2.5h1A2.5 2.5 0 0 1 13.5 5v5.628a2.251 2.251 0 1 1-1.5 0V5a1 1 0 0 0-1-1h-1v1.646a.25.25 0 0 1-.427.177L7.177 3.427a.25.25 0 0 1 0-.354Z"/></svg><b style="font-weight:500">Regenerate SDK from openapi.yml</b><span class="lbl">minor</span></div>
+            <div class="row m">verify ✓ · 0 breaking · 3 additive · hand edits merged cleanly</div>
+          </div>
+        </div>
+      </div>
+      <div class="tile w3 reveal d1">
+        <div class="lab">Fidelity board</div>
+        <h3>Scores, published nightly</h3>
+        <p>We regenerate real public Stainless SDKs every night and publish the numbers, including the ones that aren't green yet.</p>
+        <div class="viz"><a class="btn" href="#board">See today's board <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- compare -->
+<section class="sec" id="compare" style="padding-top:0">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="kicker reveal">Compare</div>
+      <h2 class="h2 reveal d1">Others want you to switch. <em>We want you to stay.</em></h2>
+      <p class="sub reveal d2">Every other path asks your users to adapt to a new SDK. Ferrule is the only one that treats your existing SDK as the specification.</p>
+    </div>
+    <div class="cmp reveal">
+      <div class="cmp-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th></th>
+              <th class="us"><b>Ferrule</b>open toolkit on Forge</th>
+              <th><b>Open-core generator</b>free tier</th>
+              <th><b>Hosted platform</b>closed, subscription</th>
+              <th><b>Freeze &amp; hand-maintain</b>do nothing</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><th>Reads your stainless.yml as-is</th><td class="us y">Validated against the public schema</td><td class="n">No</td><td class="m">Partly</td><td>n/a</td></tr>
+            <tr><th>Same Python your users import</th><td class="us y">Identical, by design</td><td class="n">Its own style</td><td class="m">Close</td><td class="y">Until the spec changes</td></tr>
+            <tr><th>Proof nothing broke</th><td class="us y"><code>ferrule verify</code></td><td class="n">No</td><td class="n">No</td><td class="n">No</td></tr>
+            <tr><th>Licence of generated code</th><td class="us y">Yours, no obligations</td><td class="n">Copyleft on free path</td><td class="m">Vendor terms</td><td class="y">Yours</td></tr>
+            <tr><th>Account, token or login</th><td class="us y">None</td><td class="n">Required</td><td class="n">Required</td><td class="y">None</td></tr>
+            <tr><th>Runs offline, in your CI</th><td class="us y">Laptop, CI, air-gapped</td><td class="m">With a key</td><td class="n">Hosted</td><td class="y">Yes</td></tr>
+            <tr><th>Keeps your hand edits</th><td class="us y">Three-way merge, AST fallback</td><td class="m">Partly</td><td class="m">Partly</td><td class="y">Manually</td></tr>
+            <tr><th>Keeps up with the spec</th><td class="us y">Nightly PR with semver label</td><td class="y">Yes</td><td class="y">Yes</td><td class="n">No</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <p class="cmp-note">Summary of public terms as of October 2026. Check each vendor's current terms before deciding.</p>
+  </div>
+</section>
+
+<!-- never -->
+<section class="sec never" style="padding-top:0">
+  <div class="wrap">
+    <div class="kicker reveal" style="justify-content:center">Open by design</div>
+    <h2 class="h2 reveal d1" style="margin-left:auto;margin-right:auto">Everything that runs on your machine <em>stays open.</em></h2>
+    <div class="never-grid" id="never">
+      <div class="nv" style="--r:-3deg"><span class="no">N° 01</span><span class="w">Hosted generation<svg viewBox="0 0 240 40" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M3 26 C 50 18, 95 31, 140 21 S 210 17, 237 24"/><path class="p2" pathLength="1" d="M12 31 C 70 25, 130 33, 228 19"/></svg></span><p>Generate on your laptop, in CI, or on an air-gapped box.</p></div>
+      <div class="nv" style="--r:2deg"><span class="no">N° 02</span><span class="w">Licence tokens<svg viewBox="0 0 240 40" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M4 18 C 60 27, 110 14, 170 24 S 220 28, 236 20"/><path class="p2" pathLength="1" d="M10 27 C 80 20, 160 30, 230 23"/></svg></span><p>Nothing to renew, nothing anyone can revoke.</p></div>
+      <div class="nv" style="--r:-1.5deg"><span class="no">N° 03</span><span class="w">Logins<svg viewBox="0 0 240 40" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M3 24 C 60 16, 120 30, 180 19 S 225 22, 237 18"/><path class="p2" pathLength="1" d="M8 30 C 90 23, 150 28, 232 24"/></svg></span><p>No account, no seats, no dashboard between you and your SDK.</p></div>
+      <div class="nv" style="--r:3.5deg"><span class="no">N° 04</span><span class="w">Telemetry<svg viewBox="0 0 240 40" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M5 20 C 45 29, 100 15, 150 25 S 215 18, 236 26"/><path class="p2" pathLength="1" d="M14 26 C 70 31, 170 19, 230 28"/></svg></span><p>Nothing phones home. We checked the engine too.</p></div>
+      <div class="nv" style="--r:-2.5deg"><span class="no">N° 05</span><span class="w">A CLA<svg viewBox="0 0 240 40" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M3 25 C 55 15, 115 29, 165 18 S 220 24, 237 17"/><path class="p2" pathLength="1" d="M9 31 C 85 22, 150 31, 231 22"/></svg></span><p>Contributors sign off with a DCO. They keep their copyright.</p></div>
+      <div class="nv" style="--r:1.5deg"><span class="no">N° 06</span><span class="w">Relicensing<svg viewBox="0 0 240 40" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M4 21 C 50 28, 105 16, 160 25 S 218 20, 236 25"/><path class="p2" pathLength="1" d="M11 28 C 75 22, 165 31, 229 21"/></svg></span><p>Without a CLA, nobody can take it closed. Not even us.</p></div>
+    </div>
+    <p class="never-foot reveal">Six things Ferrule will <b>never</b> ask of you.</p>
+  </div>
+</section>
+
+<!-- board -->
+<section class="sec" id="board" style="padding-top:0">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="kicker reveal">Fidelity board</div>
+      <h2 class="h2 reveal d1">We publish the scoreboard. <em>Even the red.</em></h2>
+      <p class="sub reveal d2">Eleven real Stainless Python SDKs, pinned at their last Stainless commit and regenerated by Ferrule. Ferrule is pre-alpha: this board is how you'll know when yours is ready.</p>
+    </div>
+    <div class="board reveal">
+      <div class="board-head"><span>SDK</span><span>Repository</span><span>Breaking</span><span>Text closeness</span><span>Own tests</span></div>
+      <div id="boardRows"></div>
+      <div class="board-foot"><span>Snapshot · 25 Oct 2026 · regenerated nightly</span><span>Target for every row: 0 breaking</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- faq -->
+<section class="sec faq" id="faq" style="padding-top:0">
+  <div class="wrap faq-grid">
+    <div>
+      <div class="kicker reveal">Questions</div>
+      <h2 class="h2 reveal d1">The fine print, <em>in plain words.</em></h2>
+    </div>
+    <div class="reveal d1">
+      <details open><summary>Will my users have to change any code?<span class="pm"></span></summary>
+        <div class="ans">No, and Ferrule checks that for you. <code>ferrule verify</code> diffs the public API of the new output against your last Stainless release with griffe, then runs your own tests against it. The target is zero breaking changes, and the GitHub Action fails if one sneaks in without a label.</div></details>
+      <details><summary>What happens to the code we wrote by hand?<span class="pm"></span></summary>
+        <div class="ans">Adoption records your hand edits as patches. Every regeneration lands on a generated branch and is merged three ways, with an AST-aware fallback. Your <code>lib/</code> folder and any kept files are never touched. Real conflicts become a pull request for a human.</div></details>
+      <details><summary>Is the generated SDK really ours?<span class="pm"></span></summary>
+        <div class="ans">Yes. In adopt mode the runtime is copied from your own repository, so it stays under the licence you already ship. The SDK has no dependency on Ferrule or Forge, and the generated code carries no obligations.</div></details>
+      <details><summary>Is Ferrule affiliated with Stainless or Cloudflare?<span class="pm"></span></summary>
+        <div class="ans">No. Ferrule is an independent Apache-2.0 project. It uses Cloudflare's open-source Forge engine as a pinned dependency, and treats public Stainless-generated SDKs (which are Apache-2.0) as the reference output.</div></details>
+      <details><summary>How ready is it?<span class="pm"></span></summary>
+        <div class="ans">Pre-alpha. The converter, plugin and runtime are done, and the OneBusAway SDK regenerates with zero breaking changes and all 1,110 of its own tests passing. Adoption tooling is being hardened against more real SDKs now; the public alpha (0.1) follows. Watch the fidelity board.</div></details>
+      <details><summary>Only Python?<span class="pm"></span></summary>
+        <div class="ans">For now, on purpose. One language done perfectly beats four done approximately. TypeScript comes after Python is proven, and only if teams ask for it.</div></details>
+      <details><summary>What does it cost?<span class="pm"></span></summary>
+        <div class="ans">Nothing. Everything that runs on your machine is open source. If there is ever a paid offering, it will be optional services like fixed-fee migrations with a signed fidelity report, never a token you need to generate code.</div></details>
+    </div>
+  </div>
+</section>
+
+<!-- final -->
+<section class="final">
+  <div class="ring-bg"></div><div class="ring-bg b2"></div>
+  <div class="wrap">
+    <h2 class="display reveal">Same SDK as yesterday.<br><em>Yours from now on.</em></h2>
+    <div class="hero-actions reveal d1">
+      <button type="button" class="cmd" data-copy="uvx ferrule adopt ." aria-label="Copy command">
+        <span><span class="p">$</span> uvx ferrule adopt .</span>
+        <span class="copy"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></span>
+      </button>
+      <a class="btn btn-lg" href="https://github.com/shrijayan/ferrule">Star on GitHub</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a href="#top" class="logo" style="margin-bottom:14px">
+          <svg viewBox="0 0 32 32" aria-hidden="true"><ellipse cx="13" cy="16" rx="6" ry="12" fill="none" stroke="url(#lg)" stroke-width="2.4"/><ellipse cx="19" cy="16" rx="6" ry="12" fill="none" stroke="url(#lg)" stroke-width="2.4" opacity=".55"/><path d="M13 4h6M13 28h6" stroke="url(#lg)" stroke-width="2.4"/></svg>
+          Ferrule
+        </a>
+        <p style="max-width:320px;margin-top:14px">A ferrule is the metal collar that joins two parts so firmly you forget there's a joint. That's the job.</p>
+      </div>
+      <div><h5>Project</h5><ul><li><a href="https://github.com/shrijayan/ferrule">GitHub</a></li><li><a href="https://shrijayan.github.io/ferrule">Docs</a></li><li><a href="#board">Fidelity board</a></li></ul></div>
+      <div><h5>Community</h5><ul><li><a href="https://github.com/shrijayan/ferrule/blob/main/CONTRIBUTING.md">Contributing</a></li><li><a href="https://github.com/shrijayan/ferrule/blob/main/GOVERNANCE.md">Governance</a></li><li><a href="https://github.com/shrijayan/ferrule/blob/main/SECURITY.md">Security</a></li></ul></div>
+      <div><h5>Decisions</h5><ul><li><a href="https://github.com/shrijayan/ferrule/tree/main/docs/adr">ADRs</a></li><li><a href="https://github.com/shrijayan/ferrule/blob/main/docs/plan.html">Build plan</a></li></ul></div>
+    </div>
+    <div class="foot-legal">
+      <span>Apache-2.0 · The Ferrule Authors</span>
+      <span>Ferrule is independent and not affiliated with Stainless or Cloudflare.</span>
+    </div>
+  </div>
+</footer>
+
+<script type="text/plain" id="srcPy"># File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+
+from __future__ import annotations
+
+import httpx
+
+from .._types import Body, Query, Headers, NotGiven, not_given
+from .._compat import cached_property
+from .._resource import SyncAPIResource, AsyncAPIResource
+from .._response import (
+    to_raw_response_wrapper,
+    to_streamed_response_wrapper,
+    async_to_raw_response_wrapper,
+    async_to_streamed_response_wrapper,
+)
+from .._base_client import make_request_options
+from ..types.current_time_retrieve_response import CurrentTimeRetrieveResponse
+
+__all__ = ["CurrentTimeResource", "AsyncCurrentTimeResource"]
+
+
+class CurrentTimeResource(SyncAPIResource):
+    @cached_property
+    def with_raw_response(self) -> CurrentTimeResourceWithRawResponse:
+        """
+        This property can be used as a prefix for any HTTP method call to return
+        the raw response object instead of the parsed content.
+
+        For more information, see https://www.github.com/OneBusAway/python-sdk#accessing-raw-response-data-eg-headers
+        """
+        return CurrentTimeResourceWithRawResponse(self)
+
+    @cached_property
+    def with_streaming_response(self) -> CurrentTimeResourceWithStreamingResponse:
+        """
+        An alternative to `.with_raw_response` that doesn't eagerly read the response body.
+
+        For more information, see https://www.github.com/OneBusAway/python-sdk#with_streaming_response
+        """
+        return CurrentTimeResourceWithStreamingResponse(self)
+
+    def retrieve(
+        self,
+        *,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> CurrentTimeRetrieveResponse:
+        """current-time"""
+        return self._get(
+            "/api/where/current-time.json",
+            options=make_request_options(
+                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+            ),
+            cast_to=CurrentTimeRetrieveResponse,
+        )</script>
+
+<script>
+(() => {
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const sp = (c, t) => `<span class="${c}">${esc(t)}</span>`;
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ---- tiny highlighters ---- */
+  const KW = new Set("from import as class def return self None True False if else for in with async await and or not is lambda yield try except raise".split(" "));
+  function hlPy(src) {
+    let inDoc = false;
+    return src.split("\n").map((line) => {
+      let out = "", i = 0;
+      if (inDoc) {
+        const end = line.indexOf('"""');
+        if (end < 0) return sp("s", line);
+        out += sp("s", line.slice(0, end + 3)); i = end + 3; inDoc = false;
+      }
+      while (i < line.length) {
+        const rest = line.slice(i); let m;
+        if (rest.startsWith('"""')) {
+          const end = rest.indexOf('"""', 3);
+          if (end < 0) { out += sp("s", rest); inDoc = true; break; }
+          out += sp("s", rest.slice(0, end + 3)); i += end + 3; continue;
+        }
+        if ((m = rest.match(/^#.*/))) { out += sp("c", m[0]); break; }
+        if ((m = rest.match(/^"[^"]*"/))) { out += sp("s", m[0]); i += m[0].length; continue; }
+        if ((m = rest.match(/^@\w+/))) { out += sp("d", m[0]); i += m[0].length; continue; }
+        if ((m = rest.match(/^[A-Za-z_]\w*/))) {
+          const w = m[0], next = rest[w.length];
+          out += KW.has(w) ? sp("k", w) : /^[A-Z]/.test(w) ? sp("t", w) : next === "(" ? sp("f", w) : esc(w);
+          i += w.length; continue;
+        }
+        out += esc(rest[0]); i++;
+      }
+      return out;
+    });
+  }
+  function hlYaml(src) {
+    return src.split("\n").map((line) => {
+      const m = line.match(/^(\s*)([\w$.-]+)(:)(.*)$/);
+      if (!m) return esc(line);
+      let val = m[4];
+      const v = val.match(/^(\s*)(get|post|put|patch|delete)(\s+)(\S+)(.*)$/);
+      if (v) val = esc(v[1]) + sp("y-verb", v[2]) + esc(v[3]) + sp("y-path", v[4]) + esc(v[5]);
+      else if (/^\s*#/.test(val)) val = sp("c", val);
+      else val = val.trim() ? esc(val.match(/^\s*/)[0]) + sp("s", val.trim()) : "";
+      return esc(m[1]) + sp("y-key", m[2]) + esc(m[3]) + val;
+    });
+  }
+
+  /* ---- hero cards (real OneBusAway config and README usage) ---- */
+  $("#heroYaml").innerHTML = hlYaml(
+`organization:
+  name: onebusaway-sdk
+  contact: info@onebusaway.org
+
+resources:
+  current_time:
+    methods:
+      retrieve: get /api/where/current-time.json
+  agency:
+    methods:
+      retrieve: get /api/where/agency/{agencyID}.json`).join("\n");
+  $("#heroPy").innerHTML = hlPy(
+`from onebusaway import OnebusawaySDK
+
+client = OnebusawaySDK()
+
+now = client.current_time.retrieve()
+agency = client.agency.retrieve("1")
+
+# same import, same names, same kwargs.
+# written for Stainless. still running.`).join("\n");
+
+  /* ---- hero flow lines ---- */
+  (function flow() {
+    const g = $("#flowLines");
+    const L = 406, R = 794, CX = 600, CY = 245;
+    const ins = [120, 165, 210, 255, 300, 345, 390];
+    let html = "";
+    ins.forEach((y, k) => {
+      const ym = CY + (k - 3) * 9;
+      const yo = 120 + k * 45;
+      const d = `M${L},${y} C${L + 110},${y} ${CX - 120},${ym} ${CX},${ym} C${CX + 120},${ym} ${R - 110},${yo} ${R},${yo}`;
+      html += `<path class="base" d="${d}"/>`;
+      html += `<path class="pulse" d="${d}" style="--d:${3.6 + (k % 3) * 0.7}s;--delay:${-k * 0.9}s"/>`;
+      html += `<circle class="node" cx="${L}" cy="${y}" r="2.5"/><circle class="node" cx="${R}" cy="${yo}" r="2.5"/>`;
+    });
+    g.innerHTML = html;
+  })();
+
+  /* ---- ferrule rings: stacked layers make a solid machined collar ---- */
+  $$(".ferrule .r3d").forEach((r) => {
+    const N = 18;
+    let h = "";
+    for (let i = 0; i < N; i++) {
+      const z = (i - (N - 1) / 2) * 2.1;
+      const edge = i === 0 || i === N - 1;
+      const groove = i === 5 || i === 12;
+      const b = edge ? 1.12 : groove ? 0.42 : 0.72 + Math.sin((i / (N - 1)) * Math.PI) * 0.12;
+      h += `<i style="--z:${z.toFixed(2)}px;--b:${b.toFixed(2)}"></i>`;
+    }
+    r.innerHTML = h;
+  });
+
+  /* ---- nav state ---- */
+  const nav = $("#nav");
+  const onScroll = () => nav.classList.toggle("scrolled", scrollY > 12);
+  addEventListener("scroll", onScroll, { passive: true }); onScroll();
+
+  /* ---- copy buttons ---- */
+  $$("[data-copy]").forEach((b) => b.addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(b.dataset.copy); } catch (e) { /* clipboard blocked: still show feedback */ }
+    b.classList.add("copied");
+    const ico = $(".copy", b), old = ico.innerHTML;
+    ico.innerHTML = '<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 13l4 4L19 7"/></svg>';
+    setTimeout(() => { b.classList.remove("copied"); ico.innerHTML = old; }, 1600);
+  }));
+
+  /* ---- bento spotlight ---- */
+  $$(".tile").forEach((t) => t.addEventListener("pointermove", (e) => {
+    const r = t.getBoundingClientRect();
+    t.style.setProperty("--mx", `${e.clientX - r.left}px`);
+    t.style.setProperty("--my", `${e.clientY - r.top}px`);
+  }));
+
+  /* ---- count up ---- */
+  function countUp(el) {
+    const to = +el.dataset.count;
+    if (reduced || to === 0) { el.textContent = to.toLocaleString("en-US"); return; }
+    const t0 = performance.now(), dur = 1600;
+    const step = (t) => {
+      const p = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - p, 4);
+      el.textContent = Math.round(to * e).toLocaleString("en-US");
+      if (p < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+
+  /* ---- diff panes ---- */
+  const src = $("#srcPy").textContent;
+  const linesA = hlPy(src);
+  const linesB = hlPy(src.replace("by Stainless.", "by Ferrule."));
+  const row = (no, html, cls = "") => `<div class="ln ${cls}"><span class="no">${no}</span><span class="mk"></span><span class="tx">${html || " "}</span></div>`;
+  $("#paneA").innerHTML = linesA.map((h, i) => row(i + 1, h)).join("");
+  $("#paneB").innerHTML = linesB.map((h, i) => row(i + 1, h)).join("");
+  const total = linesA.length;
+
+  function runDiff() {
+    const A = $$("#paneA .ln"), B = $$("#paneB .ln");
+    const body = $("#paneA").parentElement;
+    const lineH = 21;
+    let i = 0;
+    const mark = (k) => {
+      [A[k], B[k]].forEach((el) => el.classList.remove("cur"));
+      if (k === 0) {
+        A[0].classList.add("del"); $(".mk", A[0]).textContent = "−";
+        B[0].classList.add("add"); $(".mk", B[0]).textContent = "+";
+        $("#dDiff").textContent = "1";
+      } else {
+        A[k].classList.add("ok"); B[k].classList.add("ok");
+        $(".mk", A[k]).textContent = "="; $(".mk", B[k]).textContent = "=";
+      }
+    };
+    if (reduced) {
+      for (let k = 0; k < total; k++) mark(k);
+      $("#dCount").textContent = total; $("#dApi").textContent = "0 breaking"; return;
+    }
+    const tick = () => {
+      if (i > 0) mark(i - 1);
+      if (i >= total) {
+        $("#dApi").textContent = "0 breaking";
+        setTimeout(() => { $$("#paneA .scroller, #paneB .scroller").forEach((s) => (s.style.transform = "translateY(0)")); }, 900);
+        return;
+      }
+      A[i].classList.add("cur"); B[i].classList.add("cur");
+      $("#dCount").textContent = i + 1;
+      const visible = body.clientHeight;
+      const off = Math.max(0, Math.min(i * lineH - visible * 0.55, total * lineH - visible + 40));
+      $$("#paneA .scroller, #paneB .scroller").forEach((s) => (s.style.transform = `translateY(${-off}px)`));
+      i++;
+      setTimeout(tick, i < 3 ? 380 : 75);
+    };
+    tick();
+  }
+
+  /* ---- terminal ---- */
+  const script = [
+    { c: "uvx ferrule adopt ." },
+    { o: '<span class="ok">✓</span> read .stats.yml <span class="o">→ spec url + hash</span>' },
+    { o: '<span class="ok">✓</span> rescued spec <span class="o">→ ./openapi.yml (hash ok)</span>' },
+    { o: '<span class="ok">✓</span> converted stainless.yml <span class="o">→ overlays + x-ferrule-*</span>' },
+    { o: '<span class="ok">✓</span> copied runtime from your repo <span class="o">(you own it)</span>' },
+    { o: '<span class="ok">✓</span> recorded hand edits <span class="o">→ .ferrule/patches/</span>' },
+    { o: '<span class="ok">✓</span> generated via forge + ferrule-python' },
+    { o: "" },
+    { c: "uvx ferrule verify --against v1.30.0" },
+    { o: '<span class="o">public API  </span> <span class="z">0 breaking</span> <span class="o">·</span> 0 additive' },
+    { o: '<span class="o">your tests  </span> <span class="hl">1110 passed</span> <span class="o">· 0 failed</span>' },
+    { o: '<span class="o">determinism </span> <span class="hl">2 runs, identical sha256</span>' },
+    { o: "" },
+    { o: '<span class="ok">✓</span> opened PR <span class="hl">"Switch SDK generation to Ferrule"</span>' },
+  ];
+  function runTerm() {
+    const body = $("#termBody");
+    if (reduced) {
+      body.innerHTML = script.map((s) => (s.c ? `<span class="pr">$</span> ${esc(s.c)}` : s.o)).join("\n") + '\n<span class="pr">$</span> <span class="caret"></span>';
+      return;
+    }
+    let html = "", li = 0;
+    const render = (extra = "") => (body.innerHTML = html + extra + '<span class="caret"></span>');
+    const next = () => {
+      if (li >= script.length) { html += '<span class="pr">$</span> '; render(); return; }
+      const s = script[li++];
+      if (s.c) {
+        let k = 0;
+        const prefix = '<span class="pr">$</span> ';
+        const type = () => {
+          render(prefix + esc(s.c.slice(0, k)));
+          if (k++ < s.c.length) setTimeout(type, 34 + Math.random() * 40);
+          else { html += prefix + esc(s.c) + "\n"; setTimeout(next, 420); }
+        };
+        type();
+      } else {
+        html += s.o + "\n"; render();
+        setTimeout(next, s.o ? 170 + Math.random() * 180 : 260);
+      }
+    };
+    next();
+  }
+
+  /* ---- fidelity board (docs/site/src/data/fidelity.json, 25 Oct 2026) ---- */
+  const board = [
+    ["onebusaway", "OneBusAway/python-sdk", 0, 0, 93.67, "1,110 passed"],
+    ["isaacus", "isaacus-dev/isaacus-python", 0, 24, 49.0, "queued"],
+    ["lumaai", "lumalabs/lumaai-python", 9, 2, 52.58, "queued"],
+    ["knock", "knocklabs/knock-python", 40, 0, 0, "queued"],
+    ["opencode", "anomalyco/opencode-sdk-python", 40, 0, 0, "queued"],
+    ["papr", "Papr-ai/papr-pythonSDK", 42, 0, 0, "queued"],
+    ["knock-mgmt", "knocklabs/knock-mgmt-python", 43, 0, 0, "queued"],
+    ["honcho", "plastic-labs/honcho-python-core", 44, 0, 0, "queued"],
+    ["imagekit", "imagekit-developer/imagekit-python", 44, 0, 0, "queued"],
+    ["stagehand", "browserbase/stagehand-python", 45, 0, 0, "queued"],
+    ["ogx", "ogx-ai/ogx-client-python", 47, 0, 0, "queued"],
+  ];
+  $("#boardRows").innerHTML = board.map(([n, r, br, add, cl, ts]) => `
+    <div class="brow ${br === 0 && ts.includes("passed") ? "hero-row" : ""}">
+      <span class="nm">${n}</span>
+      <span class="rp">${r}</span>
+      <span class="br ${br === 0 ? "zero" : "non"}">${br === 0 ? "0" : br}${add ? `<span style="color:var(--dim)"> · +${add}</span>` : ""}</span>
+      <span class="bar-wrap"><span class="bar"><i data-w="${cl}"></i></span><span>${cl ? cl.toFixed(1) + "%" : "n/a"}</span></span>
+      <span class="ts ${ts.includes("passed") ? "p" : ""}">${ts}</span>
+    </div>`).join("");
+
+  /* ---- pipeline stepper ---- */
+  const stages = $$("#stages .st");
+  let si = 0, sTimer;
+  const setStage = (k) => { stages.forEach((s, j) => s.classList.toggle("on", j === k)); si = k; };
+  const cycle = () => { sTimer = setInterval(() => setStage((si + 1) % stages.length), 2600); };
+  stages.forEach((s, k) => {
+    s.addEventListener("pointerenter", () => { clearInterval(sTimer); setStage(k); });
+    s.addEventListener("pointerleave", cycle);
+  });
+
+  /* ---- observers ---- */
+  const once = (el, fn, threshold = 0.25) => {
+    if (!el) return;
+    const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { fn(e.target); io.unobserve(e.target); } }), { threshold });
+    io.observe(el);
+  };
+  $$(".reveal").forEach((el) => once(el, (t) => t.classList.add("in"), 0.12));
+  $$("[data-count]").forEach((el) => once(el, countUp, 0.5));
+  once($("#diff"), runDiff, 0.35);
+  once($("#term"), runTerm, 0.4);
+  once($("#never"), (t) => t.classList.add("in"), 0.4);
+  once($("#board"), () => $$("#boardRows .bar i").forEach((b, k) => setTimeout(() => (b.style.width = b.dataset.w + "%"), k * 60)), 0.2);
+  once($("#stages"), () => { if (!reduced) cycle(); }, 0.3);
+})();
+</script>
+</body>
+</html>
