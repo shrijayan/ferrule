@@ -13,6 +13,9 @@ go = "1.27.1"
 # Stainless JVM SDKs' buildSrc pins; the JDK runs it and the generated SDKs' ./gradlew.
 java = "temurin-21.0.13+9.0.LTS"
 "github:facebook/ktfmt" = { version = "0.61", asset_pattern = "ktfmt-0.61-with-dependencies.jar" }
+# The Ruby plugin's formatters (crates/ruby-plugin/tools/Gemfile) and the generated gems' tests;
+# the gems need Ruby >= 3.2.
+ruby = "3.4.12"
 
 [tasks."forge:setup"]
 description = "Check out the pinned Forge commit into .cache/forge (for the canary)"
