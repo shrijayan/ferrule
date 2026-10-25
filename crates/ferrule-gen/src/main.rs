@@ -11,8 +11,8 @@
 //! input (a JSON document, or `-` for standard input), the same output directory handling
 //! (`forge::write`), errors on standard error as `ferrule-gen: <error>` with exit code 1, and
 //! exit code 2 for a usage error. `--target` names the SDK language (ADR 0017): `python` (the
-//! default), `typescript` and `node` (`crates/ts-plugin`) and `go` (`crates/go-plugin`) have
-//! plugins; the others fail with FER202. `node` writes Stainless's legacy TypeScript layout;
+//! default), `typescript` and `node` (`crates/ts-plugin`), `go` (`crates/go-plugin`), and `java`
+//! and `kotlin` (`crates/jvm-plugin`) have plugins; the others fail with FER202. `node` writes Stainless's legacy TypeScript layout;
 //! `typescript` writes the layout of the TypeScript target the config has (`targets.typescript`,
 //! else the legacy `targets.node`).
 //!
@@ -25,6 +25,11 @@
 //! For Go, the output holds the generated files and [`GO_RUNTIME_OPTIONS`], the options the Go
 //! runtime template is rendered with (`ferrule_runtime.render_go_files`); `ferrule generate`
 //! renders the runtime from it and removes it, as it renders Python's runtime.
+//!
+//! For Java and Kotlin, the output holds the generated files, their Kotlin not yet laid out by
+//! ktfmt, and [`JVM_RUNTIME_OPTIONS`], the options the JVM runtime template is rendered with
+//! (`ferrule_runtime.render_java_files`); `ferrule generate` renders the runtime from it, removes
+//! it and runs ktfmt, as it renders Python's runtime.
 //!
 //! `model` prints the language-neutral SDK model (`ferrule-sdk-model`) of an annotated spec as
 //! deterministic JSON, for debugging and for plugin tests.
@@ -46,7 +51,7 @@ Commands:
   generate  Generate an SDK from an annotated spec (a JSON document, or - for stdin)
   model     Print the language-neutral SDK model of an annotated spec as JSON
 
-Targets: python (default), typescript, node (the legacy TypeScript layout), go; java, kotlin,
+Targets: python (default), typescript, node (the legacy TypeScript layout), go, java, kotlin;
 ruby, php, csharp, cli and terraform are planned and not supported yet";
 
 /// `ferrule-gen <crate version> forge <40-hex rev>`: the rev is the Forge commit pinned in the
@@ -82,11 +87,19 @@ const NODE: &str = "node";
 
 const GO: &str = "go";
 
+const JAVA: &str = "java";
+
+const KOTLIN: &str = "kotlin";
+
 /// The targets with a plugin.
-const PLUGINS: [&str; 4] = [DEFAULT_TARGET, TYPESCRIPT, NODE, GO];
+const PLUGINS: [&str; 6] = [DEFAULT_TARGET, TYPESCRIPT, NODE, GO, JAVA, KOTLIN];
 
 /// Where `generate --target go` writes the Go runtime's options (JSON), relative to `--out`.
 pub const GO_RUNTIME_OPTIONS: &str = ".ferrule/go-runtime.json";
+
+/// Where `generate --target java|kotlin` writes the JVM runtime's options (JSON), relative to
+/// `--out`.
+pub const JVM_RUNTIME_OPTIONS: &str = ".ferrule/jvm-runtime.json";
 
 fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().skip(1).collect();
@@ -241,6 +254,8 @@ fn generate(args: &[String], stderr: &mut dyn Write) -> i32 {
         TYPESCRIPT => write_typescript(&args, None),
         NODE => write_typescript(&args, Some(ferrule_ts_plugin::Layout::Node)),
         GO => write_go(&args),
+        JAVA => write_jvm(&args, ferrule_jvm_plugin::Flavor::Java),
+        KOTLIN => write_jvm(&args, ferrule_jvm_plugin::Flavor::Kotlin),
         other => return fail(stderr, &unsupported_target(other)),
     };
     match written {
@@ -345,13 +360,13 @@ fn make_executable(_: &Path) -> Result<(), forge::Err> {
     Ok(())
 }
 
-/// One file of the Go plugin's output, for `forge::write`.
-struct GoFile {
+/// One file of a plugin's output, for `forge::write`.
+struct TextFile {
     path: String,
     content: String,
 }
 
-impl forge::File for GoFile {
+impl forge::File for TextFile {
     fn path(&self) -> &str {
         &self.path
     }
@@ -366,16 +381,36 @@ impl forge::File for GoFile {
 fn write_go(args: &GenerateArgs) -> Result<(), forge::Err> {
     let forge = read(&args.spec)?;
     let Some(client) = ferrule_sdk_model::forge_to_model(&forge)? else {
-        return forge::write(&args.out, Vec::<GoFile>::new());
+        return forge::write(&args.out, Vec::<TextFile>::new());
     };
     let out = ferrule_go_plugin::generate(&client, &ferrule_go_plugin::GoMeta::default())?;
-    let mut files: Vec<GoFile> = out
+    let mut files: Vec<TextFile> = out
         .files
         .into_iter()
-        .map(|(path, content)| GoFile { path, content })
+        .map(|(path, content)| TextFile { path, content })
         .collect();
-    files.push(GoFile {
+    files.push(TextFile {
         path: GO_RUNTIME_OPTIONS.to_owned(),
+        content: out.runtime.to_json(),
+    });
+    forge::write(&args.out, files)
+}
+
+/// Reads the annotated spec, maps it to the neutral model and writes the JVM plugin's files with
+/// the runtime options; nothing for a document without operations.
+fn write_jvm(args: &GenerateArgs, flavor: ferrule_jvm_plugin::Flavor) -> Result<(), forge::Err> {
+    let forge = read(&args.spec)?;
+    let Some(client) = ferrule_sdk_model::forge_to_model(&forge)? else {
+        return forge::write(&args.out, Vec::<TextFile>::new());
+    };
+    let out = ferrule_jvm_plugin::generate(&client, flavor, &ferrule_jvm_plugin::JvmMeta::default())?;
+    let mut files: Vec<TextFile> = out
+        .files
+        .into_iter()
+        .map(|(path, content)| TextFile { path, content })
+        .collect();
+    files.push(TextFile {
+        path: JVM_RUNTIME_OPTIONS.to_owned(),
         content: out.runtime.to_json(),
     });
     forge::write(&args.out, files)
@@ -469,7 +504,10 @@ mod tests {
         let err = parse_generate(&strings(&["a.json", "--out", "sdk", "--target", "cobol"])).expect_err("unknown");
         assert!(err.contains("possible values: python, typescript"), "{err}");
         let fix = unsupported_target("ruby").fix;
-        assert!(fix.contains("python or typescript or node or go"), "{fix}");
+        assert!(
+            fix.contains("python or typescript or node or go or java or kotlin"),
+            "{fix}"
+        );
         let err = parse_generate(&strings(&["a.json", "--out", "sdk", "--target"])).expect_err("no value");
         assert!(err.contains("'--target <TARGET>'"), "{err}");
     }
