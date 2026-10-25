@@ -112,11 +112,32 @@ impl Scheme {
     }
 }
 
+/// Stainless's implicit items field: when no response field has purpose `items`, the one
+/// top-level `type: array` field without a purpose holds the page items (knock-mgmt's
+/// `entries`, ogx's `data`). With none or several such fields nothing is inferred.
+fn implicit_items(fields: &Map, flat: &Map) -> Option<String> {
+    if flat.values().any(|p| p.as_str() == Some("items")) {
+        return None;
+    }
+    let mut arrays = fields.iter().filter(|(_, raw)| {
+        let def = obj_of(Some(raw));
+        let prop = obj(def, "x-stainless-pagination-property");
+        str_(def, "type") == Some("array") && str_(prop, "purpose").is_none() && str_(prop, "from_header").is_none()
+    });
+    match (arrays.next(), arrays.next()) {
+        (Some((name, _)), None) => Some(name.clone()),
+        _ => None,
+    }
+}
+
 fn to_scheme(raw: &Map, name: &str, ty: &str) -> Scheme {
     let mut request = Flat::default();
     let mut response = Flat::default();
     flatten(obj(raw, "request"), "", &mut request, 0);
     flatten(obj(raw, "response"), "", &mut response, 0);
+    if let Some(items) = implicit_items(obj(raw, "response"), &response.body) {
+        response.body.insert(items, Value::from("items"));
+    }
     let mut headers = request.headers;
     for (k, v) in response.headers {
         headers.insert(k, v);
