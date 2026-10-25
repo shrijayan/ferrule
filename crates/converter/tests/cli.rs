@@ -82,7 +82,7 @@ fn prints_usage_on_bad_arguments() {
     assert!(r.err[0].starts_with("usage:"));
     assert_eq!(
         r.err[0],
-        "usage: ferrule-convert <openapi.(yml|json)> <stainless.yml> -o <out.json>"
+        "usage: ferrule-convert <openapi.(yml|json)> <stainless.yml> -o <out.json> [--runtime-from <sdk checkout>]"
     );
 }
 

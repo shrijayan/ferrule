@@ -7,6 +7,7 @@ pub mod editions;
 pub mod extensions;
 pub mod normalize;
 pub mod schema;
+pub mod style;
 pub mod swagger2;
 pub mod transforms;
 pub mod unicode;
@@ -96,6 +97,16 @@ pub fn parse_spec(text: &str) -> Result<Value, String> {
 /// When the spec is not a JSON or YAML object, or the YAML cannot be read (where the TypeScript
 /// converter throws).
 pub fn convert_text(spec_text: &str, config_text: &str) -> Result<ConvertOutput, String> {
+    convert_text_with_style(spec_text, config_text, &Map::new())
+}
+
+/// [`convert_text`] that also writes `style` (from [`style::runtime_style`]) as
+/// `x-ferrule-style`; an empty `style` changes nothing.
+///
+/// # Errors
+///
+/// As [`convert_text`].
+pub fn convert_text_with_style(spec_text: &str, config_text: &str, style: &Map) -> Result<ConvertOutput, String> {
     let v = schema::validate::validate_config(config_text)?;
     let Some(config) = v.config else {
         return Ok(ConvertOutput {
@@ -104,7 +115,8 @@ pub fn convert_text(spec_text: &str, config_text: &str) -> Result<ConvertOutput,
         });
     };
     let ed = editions::apply_edition(&config);
-    let result = convert(&parse_spec(spec_text)?, &ed.config);
+    let mut result = convert(&parse_spec(spec_text)?, &ed.config);
+    style::apply_style(&mut result.spec, style);
     let mut diagnostics = v.diagnostics;
     diagnostics.extend(ed.diagnostics);
     diagnostics.extend(result.diagnostics);
