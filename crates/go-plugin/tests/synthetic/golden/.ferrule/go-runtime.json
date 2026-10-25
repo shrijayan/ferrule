@@ -1,0 +1,10 @@
+{
+  "module_path": "github.com/acme-test/acme-go",
+  "package_name": "acme",
+  "client_name": "Acme",
+  "org_name": "acme",
+  "max_retries": 2,
+  "config_fields": "\tAPIKey         *string\n",
+  "config_clone": "\t\tAPIKey:         cfg.APIKey,\n",
+  "client_options": "\n// WithEnvironmentProduction returns a RequestOption that sets the current\n// environment to be the \"production\" environment. An environment specifies which base URL\n// to use by default.\nfunc WithEnvironmentProduction() RequestOption {\n\treturn requestconfig.WithDefaultBaseURL(\"https://api.acme.test/\")\n}\n\n// WithAPIKey returns a RequestOption that sets the client setting \"api_key\".\nfunc WithAPIKey(value string) RequestOption {\n\treturn requestconfig.PreRequestOptionFunc(func(r *requestconfig.RequestConfig) error {\n\t\tif value == \"\" {\n\t\t\treturn fmt.Errorf(\"default param cannot be empty string\")\n\t\t}\n\t\tr.APIKey = &value\n\t\treturn r.Apply(WithHeader(\"authorization\", fmt.Sprintf(\"Bearer %s\", *r.APIKey)))\n\t})\n}\n"
+}

@@ -1,0 +1,65 @@
+# A small synthetic API for the Go plugin's golden test: path params of two types, query and
+# JSON body params, a method without a response, a subresource, a shared model, an enum, and a
+# custom casing.
+organization:
+  name: acme
+  docs: https://docs.acme.test
+
+custom_casings:
+  sku:
+    initialism: true
+
+resources:
+  $shared:
+    models:
+      error_info: ErrorInfo
+
+  widgets:
+    models:
+      widget: Widget
+    methods:
+      create: post /v1/widgets
+      retrieve: get /v1/widgets/{widget_id}
+      list:
+        endpoint: get /v1/widgets
+        paginated: false
+      delete: delete /v1/widgets/{widget_id}
+    subresources:
+      parts:
+        methods:
+          retrieve: get /v1/widgets/{widget_id}/parts/{part_number}
+
+targets:
+  python:
+    package_name: acme
+    publish:
+      pypi: false
+  go:
+    package_name: acme
+    production_repo: acme-test/acme-go
+
+client_settings:
+  opts:
+    api_key:
+      type: string
+      auth:
+        security_scheme: BearerAuth
+      read_env: ACME_API_KEY
+
+environments:
+  production: https://api.acme.test
+
+query_settings:
+  nested_format: brackets
+  array_format: comma
+
+readme:
+  example_requests:
+    default:
+      type: request
+      endpoint: get /v1/widgets
+      params: {}
+    headline:
+      type: request
+      endpoint: get /v1/widgets
+      params: {}
