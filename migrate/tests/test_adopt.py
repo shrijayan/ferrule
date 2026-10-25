@@ -190,6 +190,55 @@ def test_adopt_keeps_a_hand_edit_a_later_stainless_commit_carried(repo: Path, to
     ).rstrip("\n")
 
 
+BOT = "stainless-app[bot] <bot@stainless.example>"
+SPAN = 'class Span:\n    start: int\n    """Start."""\n\n    end: int\n    """End."""\n'
+DECODE = "\n    def decode(self, text: str) -> str:\n        return text[self.start : self.end]\n"
+
+
+def test_adopt_merges_a_method_into_a_class_the_generator_reorders(
+    repo: Path, tools: Tools
+) -> None:
+    # isaacus-python: Ferrule emits Span's fields in another order, so the line merge
+    # conflicts and the libcst merge places decode.
+    write(repo / "src/acme/resources/foo.py", SPAN)
+    commit(repo, "codegen", BOT)
+    write(repo / "src/acme/resources/foo.py", SPAN + DECODE)
+    commit(repo, "feat: add decode", "Dev <dev@example.com>")
+    write(repo / "src/acme/resources/foo.py", SPAN.replace("Start.", "Start index.") + DECODE)
+    commit(repo, "codegen", BOT)
+    reordered = (
+        'class Span:\n    end: int\n    """End."""\n\n    start: int\n    """Start index."""\n'
+    )
+    result = adopt(AdoptRequest(repo, tools), runner=fake_runner(reordered), fetch=fetch, env=ENV)
+    assert result.patches == ["0001-src-acme-resources-foo-py.patch"]
+    foo = show(repo, "src/acme/resources/foo.py")
+    assert "def decode(self, text: str) -> str:" in foo
+    assert foo.index("end: int") < foo.index("start: int")
+    assert "Start index." in foo
+
+
+def test_adopt_drops_a_hand_edit_a_later_generation_overwrote(repo: Path, tools: Tools) -> None:
+    write(repo / "src/acme/resources/foo.py", BASE_FOO.replace("line2", "bot2"))
+    commit(repo, "codegen", BOT)
+    result, _ = run_adopt(repo, tools, dry_run=True)
+    assert result.patches == []
+
+
+def test_adopt_drops_a_hand_edit_the_generator_now_writes(repo: Path, tools: Tools) -> None:
+    runner = fake_runner(BASE_FOO.replace("line8", "custom8"))
+    result = adopt(AdoptRequest(repo, tools, dry_run=True), runner=runner, fetch=fetch, env=ENV)
+    assert result.patches == []
+
+
+def test_adopt_ignores_an_edit_to_a_file_head_no_longer_has(repo: Path, tools: Tools) -> None:
+    write(repo / "api.md", "# hand-written api\n")
+    commit(repo, "docs: api", "Dev <dev@example.com>")
+    (repo / "api.md").unlink()
+    commit(repo, "docs: drop api", "Dev <dev@example.com>")
+    result, _ = run_adopt(repo, tools, dry_run=True)
+    assert result.patches == ["0001-src-acme-resources-foo-py.patch"]
+
+
 def test_adopt_dry_run(repo: Path, tools: Tools) -> None:
     result, _ = run_adopt(repo, tools, dry_run=True)
     assert result.branch is None
