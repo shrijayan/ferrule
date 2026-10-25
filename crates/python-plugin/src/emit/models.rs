@@ -1,13 +1,16 @@
 //! Pydantic model files under `types/`: one root model and the inline objects it contains.
 //! Port of `python-plugin/src/emit/models.ts`.
 
+use std::cell::RefCell;
+
 use super::common::{HEADER, escape_docstring, py_string, rel_import, sort_fields, wrap};
-use super::format::{Expr, bracket, format_expr};
+use super::cycles::Cycles;
+use super::format::{call, format_expr};
 use super::params::{Decl, Named, name_params};
 use crate::js;
 use crate::model::{SdkField, SdkObject, SdkRef, SdkType};
 use crate::printer::{LINE_LENGTH, PythonPrinter};
-use crate::type_mapper::{AnnotationContext, WithoutUnionNames, is_nullable, to_annotation};
+use crate::type_mapper::{AnnotationContext, alias_expr, is_nullable, to_annotation, union_alias_expr};
 
 /// Wrap width of docstring text (measured on the oracles).
 const DOC_WIDTH: usize = 80;
@@ -22,6 +25,17 @@ pub struct ModelFile<'a> {
     /// (`AgenciesWithCoverageListResponseData`), false for models the config names (`Agency`
     /// inside `References`).
     pub prefix_children: bool,
+    /// The reference cycles among the named models, for forward references.
+    pub cycles: Option<&'a Cycles>,
+}
+
+/// A module declaring `Name: TypeAlias = ...`: a named model whose schema is not an object, or a
+/// method's response that is not one.
+pub struct AliasFile<'a> {
+    pub r#ref: &'a SdkRef,
+    pub ty: &'a SdkType,
+    /// The reference cycles among the named models, for forward references.
+    pub cycles: Option<&'a Cycles>,
 }
 
 /// Names the root and its inline objects; see [`name_params`] for the rules.
@@ -36,6 +50,34 @@ struct ModelContext<'n, 'a> {
     named: &'n Named<'a>,
     here: String,
     module: &'n str,
+    cycles: Option<&'n Cycles>,
+    /// The imports of deferred models, printed after the declarations.
+    trailer: RefCell<PythonPrinter>,
+}
+
+impl<'n, 'a> ModelContext<'n, 'a> {
+    fn new(named: &'n Named<'a>, module: &'n str, cycles: Option<&'n Cycles>) -> Self {
+        Self {
+            named,
+            here: format!("types.{module}"),
+            module,
+            cycles,
+            trailer: RefCell::new(PythonPrinter::default()),
+        }
+    }
+
+    /// The name of `r` imported at the top of the module, as a base class needs it.
+    fn import_ref(&self, p: &mut PythonPrinter, r: &SdkRef) -> String {
+        if r.module != self.module {
+            p.import_from(&rel_import(&self.here, &format!("types.{}", r.module)), &r.name);
+        }
+        r.name.clone()
+    }
+
+    /// The imports after the declarations, or none.
+    fn trailer_lines(&self) -> Vec<String> {
+        self.trailer.borrow().import_block("")
+    }
 }
 
 impl AnnotationContext for ModelContext<'_, '_> {
@@ -43,10 +85,17 @@ impl AnnotationContext for ModelContext<'_, '_> {
         self.named.name_of(obj).unwrap_or("").to_owned()
     }
     fn ref_name(&self, p: &mut PythonPrinter, r: &SdkRef) -> String {
-        if r.module != self.module {
-            p.import_from(&rel_import(&self.here, &format!("types.{}", r.module)), &r.name);
+        if self.cycles.is_some_and(|c| c.is_deferred(r)) {
+            // A forward reference, imported once every declaration of the module exists.
+            p.import_from("__future__", "annotations");
+            if r.module != self.module {
+                self.trailer
+                    .borrow_mut()
+                    .import_from(&rel_import(&self.here, &format!("types.{}", r.module)), &r.name);
+            }
+            return py_string(&r.name);
         }
-        r.name.clone()
+        self.import_ref(p, r)
     }
     fn runtime(&self, p: &mut PythonPrinter, module: &str, name: &str) {
         p.import_from(&rel_import(&self.here, module), name);
@@ -244,133 +293,151 @@ pub fn all_list<S: AsRef<str>>(names: &[S]) -> Vec<String> {
     out
 }
 
-/// Renders one model file, `types/<module>.py`.
-#[must_use]
-pub fn emit_model_file(file: &ModelFile<'_>) -> String {
-    let here = format!("types.{}", file.r#ref.module);
-    let mut p = PythonPrinter::new(&[HEADER]);
-    let named = name_objects(file);
-    let ctx = ModelContext {
-        named: &named,
-        here: here.clone(),
-        module: &file.r#ref.module,
-    };
-    let classes: Vec<Vec<String>> = named
+/// One top-level statement of a model module, for the blank lines between them.
+struct Block {
+    /// A class, which ruff surrounds with two blank lines; other statements get one.
+    class: bool,
+    lines: Vec<String>,
+}
+
+/// Prints `__all__`, the blocks and the trailing imports with the blank lines ruff leaves.
+fn print_module(p: &mut PythonPrinter, exported: &[&str], blocks: Vec<Block>, trailer: &[String]) {
+    for line in all_list(exported) {
+        p.line(&line);
+    }
+    let mut previous_class = false;
+    for block in blocks {
+        p.blank();
+        if block.class || previous_class {
+            p.blank();
+        }
+        for line in &block.lines {
+            p.line(line);
+        }
+        previous_class = block.class;
+    }
+    if !trailer.is_empty() {
+        p.blank();
+        if previous_class {
+            p.blank();
+        }
+        for line in trailer {
+            p.line(line);
+        }
+    }
+}
+
+/// The classes and union aliases `named` declares, in declaration order.
+fn decl_blocks(p: &mut PythonPrinter, named: &Named<'_>, ctx: &ModelContext<'_, '_>) -> Vec<Block> {
+    named
         .postorder()
         .into_iter()
         .map(|decl| match decl {
-            Decl::Alias { name, union } => alias_lines(&mut p, name, union, &ctx),
-            Decl::Class { name, obj } => {
-                let mut bases: Vec<String> = obj.bases.iter().map(|b| ctx.ref_name(&mut p, b)).collect();
-                if bases.is_empty() {
-                    p.import_from(&rel_import(&here, "_models"), "BaseModel");
-                    bases.push("BaseModel".to_owned());
-                }
-                let fields: Vec<Vec<String>> = sort_fields(&obj.fields)
-                    .into_iter()
-                    .map(|f| field_lines(&mut p, f, &ctx, "    "))
-                    .collect();
-                let doc = docstring(obj.description.as_deref().unwrap_or(""), "    ");
-                let body: Vec<Vec<String>> = if fields.is_empty() && doc.is_empty() {
-                    vec![vec!["    pass".to_owned()]]
-                } else {
-                    let mut b = Vec::new();
-                    if !doc.is_empty() {
-                        b.push(doc);
-                    }
-                    b.extend(fields);
-                    b
-                };
-                let mut lines = vec![format!("class {name}({}):", bases.join(", "))];
-                for (i, f) in body.into_iter().enumerate() {
-                    if i > 0 {
-                        lines.push(String::new());
-                    }
-                    lines.extend(f);
-                }
-                lines
-            }
+            Decl::Alias { name, union } => Block {
+                class: false,
+                lines: alias_lines(p, name, union, ctx),
+            },
+            Decl::Class { name, obj } => Block {
+                class: true,
+                lines: class_lines(p, name, obj, ctx),
+            },
         })
+        .collect()
+}
+
+fn class_lines(p: &mut PythonPrinter, name: &str, obj: &SdkObject, ctx: &ModelContext<'_, '_>) -> Vec<String> {
+    let mut bases: Vec<String> = obj.bases.iter().map(|b| ctx.import_ref(p, b)).collect();
+    if bases.is_empty() {
+        p.import_from(&rel_import(&ctx.here, "_models"), "BaseModel");
+        bases.push("BaseModel".to_owned());
+    }
+    let fields: Vec<Vec<String>> = sort_fields(&obj.fields)
+        .into_iter()
+        .map(|f| field_lines(p, f, ctx, "    "))
         .collect();
-    let exported: Vec<&str> = named.preorder().iter().map(Decl::name).collect();
-    for line in all_list(&exported) {
-        p.line(&line);
-    }
-    for cls in classes {
-        p.blank().blank();
-        for line in cls {
-            p.line(&line);
+    let doc = docstring(obj.description.as_deref().unwrap_or(""), "    ");
+    let body: Vec<Vec<String>> = if fields.is_empty() && doc.is_empty() {
+        vec![vec!["    pass".to_owned()]]
+    } else {
+        let mut b = Vec::new();
+        if !doc.is_empty() {
+            b.push(doc);
         }
+        b.extend(fields);
+        b
+    };
+    let mut lines = vec![format!("class {name}({}):", bases.join(", "))];
+    for (i, f) in body.into_iter().enumerate() {
+        if i > 0 {
+            lines.push(String::new());
+        }
+        lines.extend(f);
     }
+    lines
+}
+
+/// Renders one model file, `types/<module>.py`.
+#[must_use]
+pub fn emit_model_file(file: &ModelFile<'_>) -> String {
+    let mut p = PythonPrinter::new(&[HEADER]);
+    let named = name_objects(file);
+    let ctx = ModelContext::new(&named, &file.r#ref.module, file.cycles);
+    let blocks = decl_blocks(&mut p, &named, &ctx);
+    let exported: Vec<&str> = named.preorder().iter().map(Decl::name).collect();
+    print_module(&mut p, &exported, blocks, &ctx.trailer_lines());
     p.render()
 }
 
-struct AliasContext {
-    here: String,
-}
-
-impl AnnotationContext for AliasContext {
-    fn object_name(&self, _: &SdkObject) -> String {
-        "object".to_owned()
-    }
-    fn ref_name(&self, p: &mut PythonPrinter, r: &SdkRef) -> String {
-        p.import_from(&rel_import(&self.here, &format!("types.{}", r.module)), &r.name);
-        r.name.clone()
-    }
+/// A module whose root is a type alias, `Name: TypeAlias = ...`, after the classes and aliases of
+/// the inline objects inside it: the items of an array or the values of a map are `<Name>Item`,
+/// the object variants of a union are named after their schemas. A union in a reference cycle
+/// is a `TypeAliasType`, as Pydantic needs for a recursive alias.
+#[must_use]
+pub fn emit_alias_model_file(file: &AliasFile<'_>) -> String {
+    let name = &file.r#ref.name;
+    let mut p = PythonPrinter::new(&[HEADER]);
+    p.import_from("typing_extensions", "TypeAlias");
+    let mut named = Named::default();
+    named.add_alias_root(file.ty, name);
+    let ctx = ModelContext::new(&named, &file.r#ref.module, file.cycles);
+    let mut blocks = decl_blocks(&mut p, &named, &ctx);
+    let expr = alias_expr(file.ty, &mut p, &ctx, true);
+    let recursive = matches!(file.ty, SdkType::Union { .. }) && file.cycles.is_some_and(|c| c.is_cyclic(file.r#ref));
+    let lines = if recursive {
+        p.import_from("typing", "TYPE_CHECKING");
+        p.import_from("typing_extensions", "TypeAliasType");
+        ctx.runtime(&mut p, "_compat", "PYDANTIC_V1");
+        let mut lines = vec!["if TYPE_CHECKING or not PYDANTIC_V1:".to_owned()];
+        let wrapped = call("TypeAliasType(", vec![py_string(name).into(), expr.clone()], false);
+        lines.extend(format_expr(&wrapped.into(), "    ", &format!("{name} = "), ""));
+        lines.push("else:".to_owned());
+        lines.extend(format_expr(&expr, "    ", &format!("{name}: TypeAlias = "), ""));
+        lines
+    } else {
+        format_expr(&expr, "", &format!("{name}: TypeAlias = "), "")
+    };
+    blocks.push(Block { class: false, lines });
+    let mut exported: Vec<&str> = vec![name];
+    exported.extend(named.preorder().iter().map(Decl::name));
+    print_module(&mut p, &exported, blocks, &ctx.trailer_lines());
+    p.render()
 }
 
 /// A response that is not an object: `Name: TypeAlias = <annotation>`.
 #[must_use]
 pub fn emit_alias_file(r: &SdkRef, ty: &SdkType) -> String {
-    let mut p = PythonPrinter::new(&[HEADER]);
-    p.import_from("typing_extensions", "TypeAlias");
-    let ann = to_annotation(
+    emit_alias_model_file(&AliasFile {
+        r#ref: r,
         ty,
-        &mut p,
-        &AliasContext {
-            here: format!("types.{}", r.module),
-        },
-    );
-    for l in all_list(&[&r.name]) {
-        p.line(&l);
-    }
-    p.blank();
-    p.line(&format!("{}: TypeAlias = {ann}", r.name));
-    p.render()
+        cycles: None,
+    })
 }
 
 /// `Name: TypeAlias = Union[...]`, `Annotated` with its discriminator when the spec names one.
 fn alias_lines(p: &mut PythonPrinter, name: &str, u: &SdkType, ctx: &dyn AnnotationContext) -> Vec<String> {
     p.import_from("typing_extensions", "TypeAlias");
-    p.import_from("typing", "Union");
-    let plain = WithoutUnionNames(ctx);
-    let (variants, discriminator): (Vec<Expr>, Option<&String>) = match u {
-        SdkType::Union {
-            variants,
-            discriminator,
-        } => (
-            variants.iter().map(|v| to_annotation(v, p, &plain).into()).collect(),
-            discriminator.as_ref(),
-        ),
-        _ => (Vec::new(), None),
-    };
-    let union = bracket("Union[", variants, false, "]");
-    let prefix = format!("{name}: TypeAlias = ");
-    let Some(d) = discriminator else {
-        return format_expr(&union.into(), "", &prefix, "");
-    };
-    p.import_from("typing_extensions", "Annotated");
-    ctx.runtime(p, "_utils", "PropertyInfo");
-    let annotated = bracket(
-        "Annotated[",
-        vec![
-            union.into(),
-            format!("PropertyInfo(discriminator={})", py_string(d)).into(),
-        ],
-        false,
-        "]",
-    );
-    format_expr(&annotated.into(), "", &prefix, "")
+    let expr = union_alias_expr(u, p, ctx, true);
+    format_expr(&expr, "", &format!("{name}: TypeAlias = "), "")
 }
 
 #[cfg(test)]
@@ -438,6 +505,7 @@ mod tests {
             r#ref: &r,
             ty: &obj,
             prefix_children: true,
+            cycles: None,
         });
         assert!(out.contains("class EmptyItems(BaseModel):\n    pass\n"), "{out}");
         assert!(out.contains("items: Dict[str, EmptyItems]\n"));
@@ -491,6 +559,7 @@ mod tests {
             r#ref: &r,
             ty: &obj,
             prefix_children: false,
+            cycles: None,
         });
         assert!(
             model.contains("class Thing(BaseModel):\n    \"\"\"A thing.\"\"\""),

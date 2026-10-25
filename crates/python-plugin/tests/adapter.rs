@@ -224,6 +224,43 @@ fn names_models_flattens_all_of_and_keeps_self_references_finite() {
 }
 
 #[test]
+fn declares_named_models_that_are_not_objects_as_aliases() {
+    let r = |schema: &str| json!({ "$ref": format!("#/components/schemas/{schema}") });
+    let d = doc(
+        &json!({
+            "x-ferrule-models": { "S": { "name": "S" }, "U": { "name": "U" }, "E": { "name": "E" } },
+            "responses": ok_response(&json!({ "type": "object", "properties": {
+                "s": r("S"), "u": r("U"), "e": r("E"),
+            } })),
+        }),
+        &json!({
+            "S": { "type": "string" },
+            "U": { "oneOf": [{ "type": "string" }, { "type": "integer" }] },
+            "E": { "type": "string", "enum": ["a", "b"] },
+        }),
+    );
+    let (client, _) = only(&d);
+    let alias = |name: &str| {
+        client
+            .models
+            .iter()
+            .find(|m| m.r#ref.name == name)
+            .unwrap_or_else(|| panic!("{name}"))
+            .alias
+            .clone()
+    };
+    assert_eq!(alias("S"), Some(prim(SdkPrimitive::String)));
+    assert!(matches!(alias("U"), Some(SdkType::Union { .. })), "{:?}", alias("U"));
+    assert_eq!(
+        alias("E"),
+        Some(SdkType::Literal(vec![
+            SdkLiteral::String("a".into()),
+            SdkLiteral::String("b".into())
+        ]))
+    );
+}
+
+#[test]
 fn rejects_what_it_cannot_generate() {
     let r = |schema: &str| json!({ "$ref": format!("#/components/schemas/{schema}") });
     let cases = [
@@ -242,13 +279,6 @@ fn rejects_what_it_cannot_generate() {
                     { "type": "object", "properties": { "a": { "type": "string" } } },
                 ] })) }),
                 &json!({}),
-            ),
-        ),
-        (
-            "a named model that is not an object",
-            doc(
-                &json!({ "x-ferrule-models": { "S": { "name": "S" } }, "responses": ok_response(&r("S")) }),
-                &json!({ "S": { "type": "string" } }),
             ),
         ),
         (

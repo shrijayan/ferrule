@@ -96,7 +96,11 @@ pub struct SdkField {
 pub struct SdkModelDecl {
     pub r#ref: SdkRef,
     pub description: String,
+    /// The class, for a model whose schema is an object (empty when `alias` is set).
     pub ty: SdkObject,
+    /// The type of a model whose schema is not an object (a union, enum, map, array or scalar):
+    /// its module declares `Name: TypeAlias = ...` instead of a class.
+    pub alias: Option<SdkType>,
 }
 
 #[derive(Debug, Clone, PartialEq)]

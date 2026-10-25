@@ -96,6 +96,32 @@ impl<'a> Named<'a> {
         self.postorder.push((name.to_owned(), Node::Class(obj)));
     }
 
+    /// Names the inline objects under the type of an alias module `name` (whose root the caller
+    /// prints): the items of an array or the values of a map are `<name>Item`; the object
+    /// variants of a union are named after the schemas they come from (`<name>Variant<i>`
+    /// without one), without the root's name, as Stainless names them (`ConditionGroupAllMatch`).
+    pub fn add_alias_root(&mut self, ty: &'a SdkType, name: &str) {
+        match ty {
+            SdkType::Array(items) | SdkType::Map(items) => self.visit_type(items, &format!("{name}Item")),
+            SdkType::Union { variants, .. } => {
+                let mut i = 0;
+                for v in variants {
+                    if let SdkType::Object(o) = v {
+                        let hint = o
+                            .hint
+                            .as_ref()
+                            .map_or_else(|| format!("{name}Variant{i}"), |h| pascal_case(&split_words(h)));
+                        self.visit_object(o, &hint);
+                        i += 1;
+                    } else {
+                        self.visit_type(v, &format!("{name}Item"));
+                    }
+                }
+            }
+            _ => {}
+        }
+    }
+
     fn visit_type(&mut self, t: &'a SdkType, base: &str) {
         match t {
             SdkType::Object(obj) => self.visit_object(obj, base),
