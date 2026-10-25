@@ -79,7 +79,7 @@ Gate: `mise run check && mise run golden && mise run parity -- onebusaway` — g
 - Placeholders: version (0.0.1 unless adopted), README example heuristic, readme title.
 - `webhook_unwrap` not emitted.
 
-## Phase 4 — Adopt, verify, keep regenerating: NEXT
+## Phase 4 — Adopt, verify, keep regenerating: gate passed locally (2026-10-26), PRs in review
 
 See [phases/phase-4.md](phases/phase-4.md).
 
@@ -107,7 +107,34 @@ Already on main: rescue/adopt, three-way merge, GitHub Action, Forge-parse norma
    `worktree-agent-abb6070…` (plugin union/alias fixes), `worktree-agent-a1f47d7…` (merge),
    `worktree-agent-a8eae2c…` (runtime tests).
 3. Pick five targets with 0 breaking and run the Phase 4 gate:
-   `mise run check && mise run adopt:gate`. Record the result here.
+   `mise run check && mise run adopt:gate`. Record the result here. Done; see below.
+
+### Phase 4 gate result (2026-10-26)
+
+`mise run check && mise run adopt:gate` is green on a local tree that combines main with the open
+PRs below. Every target adopts with 0 breaking API changes, custom code byte-identical and the
+SDK's own tests passing:
+
+| Target | Breaking | Custom code changed | Its own tests |
+| --- | --- | --- | --- |
+| onebusaway | 0 | 0 | 1110 passed |
+| lumaai | 0 | 0 | 728 passed |
+| isaacus | 0 (hand-written `Span.decode` kept as a patch) | 0 | 472 passed |
+| honcho | 0 (older generator style read from its runtime, ADR 0018) | 0 | 1241 passed |
+| knock-mgmt | 0 | 0 | 468 passed |
+
+The gate passes on main once these PRs merge (stacked; merge in this order):
+#13 (custom casings, standalone APIs), #16 (pagination items), #18 (project files for every
+auth style), #21 (union, map and array bodies, environments, path params, multipart), #26 (older
+generator styles), #30 (knock-mgmt model shapes), plus the independent #24 (busy mock port) and
+#28 (executable scripts). Already merged: #11, #12 (aliases, object-form and non-object models),
+#14 (hand edits carried by later Stainless commits). PRs #16, #22 and #30 carry snapshot changes
+and #21, #26, #30 new goldens that need the maintainer's approval.
+
+Remaining gaps (not needed for the gate): knock 138 breaking (`positional_params`, object query
+params), imagekit 81 (union variant names from schema `title`, webhooks, camelCase method names),
+ogx and stagehand (param-switched streaming), opencode 15, papr (its public config doesn't pair
+with its SDK).
 
 ## Rust move (ADR 0014): done (2026-10-25)
 
@@ -133,3 +160,25 @@ What changed for users:
 - `ferrule.lock` is `lock_version` 2: `generator: "ferrule-gen <version>"` replaces
   `plugin_sha256`, and `forge_commit` comes from `ferrule-gen --version`. Version 1 locks still
   read.
+
+## Multi-language SDKs (ADR 0017): started (2026-10-26)
+
+Ferrule generates every major Stainless language from one language-neutral model
+(`crates/sdk-model`, the only Forge adapter) and one plugin crate per language. Each language is
+proven against public Stainless SDKs paired with our configs (`oracles/manifest.yaml`, 23 new
+pins). Open PRs, with what is proven:
+
+| Language | PRs | Runtime template | Generated SDK |
+| --- | --- | --- | --- |
+| model and config | #17 (sdk-model, `--target`), #22 (per-target config) | | Python re-derived exactly from the neutral model |
+| oracles | #20 | | TypeScript, Go, Java, Kotlin, Ruby, PHP pinned |
+| TypeScript, current layout | #19, #27 | isaacus, imagekit, knock-mgmt byte-identical | isaacus-typescript 84/84 files; its lint and 216 jest tests pass |
+| TypeScript, node layout | #29 | onebusaway 36/36 | onebusaway-typescript 108/109 |
+| Go v1 | #19, #23 | onebusaway-go 25/25 | onebusaway-go 65/69 (4 need spec examples, gap G18); builds, tests pass |
+| Java, Kotlin | #25 | onebusaway-kotlin 61/61, imagekit-java 67/67 | plugin in progress |
+| Ruby | #25 | onebusaway-ruby 58/58 | plugin in progress |
+
+Next: the JVM and Ruby plugins, pagination and streaming in TypeScript and Go, Go v2 (imagekit,
+ogx), then PHP and C#, CLI and Terraform. Python moves onto `sdk-model` once the Phase 4 PRs
+land (`crates/sdk-model/MIGRATION.md`).
+
