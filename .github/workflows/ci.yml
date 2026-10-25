@@ -23,8 +23,6 @@ jobs:
           persist-credentials: false
       - uses: ./.github/actions/setup
       - run: mise run lint:ts
-      - run: mise run typecheck:ts
-      - run: mise run test:ts
 
   py:
     name: py

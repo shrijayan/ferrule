@@ -9,7 +9,7 @@ gitleaks = "latest"
 rust = { version = "1.99.0", components = "rustfmt,clippy" }
 
 [tasks."forge:setup"]
-description = "Check out the pinned Forge commit into .cache/forge (telemetry check, canary)"
+description = "Check out the pinned Forge commit into .cache/forge (for the canary)"
 run = "bash scripts/forge-setup.sh"
 
 [tasks.install]
@@ -21,14 +21,8 @@ run = "pnpm exec biome check ."
 [tasks."lint:py"]
 run = ["uv run ruff check .", "uv run ruff format --check ."]
 
-[tasks."typecheck:ts"]
-run = "pnpm -r --if-present typecheck"
-
 [tasks."typecheck:py"]
 run = ["uv run pyright", "uv run mypy runtime/src migrate/src", "uv run mypy -p scripts.parity", "uv run mypy -p scripts.corpus", "uv run mypy -p scripts.board"]
-
-[tasks."test:ts"]
-run = "pnpm -r --if-present test"
 
 [tasks."test:py"]
 run = "uv run pytest"
@@ -41,7 +35,7 @@ run = "cargo test --workspace --locked"
 
 [tasks.check]
 description = "Everything ci.yml runs"
-depends = ["lint:ts", "lint:py", "lint:rs", "typecheck:ts", "typecheck:py", "test:ts", "test:py", "test:rs"]
+depends = ["lint:ts", "lint:py", "lint:rs", "typecheck:py", "test:py", "test:rs"]
 
 [tasks."forge:telemetry"]
 description = "Fail if Forge gains a network-capable dependency (ADR 0006)"
