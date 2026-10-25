@@ -25,8 +25,7 @@ fn file<'a>(files: &'a [(String, String)], path: &str) -> &'a str {
     files
         .iter()
         .find(|(p, _)| p == path)
-        .map(|(_, t)| t.as_str())
-        .unwrap_or_else(|| panic!("{path} is not generated"))
+        .map_or_else(|| panic!("{path} is not generated"), |(_, t)| t.as_str())
 }
 
 fn expected(name: &str) -> String {
@@ -126,7 +125,11 @@ export interface Widget {
     type WidgetSearchParams as WidgetSearchParams,
 ",
     );
+}
 
+#[test]
+fn pages_of_other_modules_are_imported() {
+    let f = files(Layout::Typescript);
     let gadgets = file(&f, "src/resources/gadgets.ts");
     has(
         gadgets,

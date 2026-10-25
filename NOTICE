@@ -100,7 +100,13 @@ Sources:
   - knocklabs/knock-mgmt-node @ ca88fdba703717f355ad3e18e850a0bb23e548f6 (Apache-2.0,
     Copyright 2026 Knock Mgmt): the getAPIList/requestAPIList methods of src/client.ts, in
     client_tail.ts.tmpl, and the project-file lines of an SDK without an MCP server and with
-    npm publishing by OIDC (the %%if mcp%% / %%if oidc%% branches in project/).
+    npm publishing by OIDC (the %%if mcp%% / %%if oidc%% branches in project/); and
+    src/core/pagination.ts: its head (AbstractPage, PagePromise) copied to
+    pagination_head.ts.tmpl, and the text of its page classes, reproduced by
+    crates/ts-plugin/src/emit/pagination.rs.
+  - plastic-labs/honcho-node-core @ 91d258060f786577c51bc33ad873fb9434a6ac5c (Apache-2.0,
+    Copyright 2025 Honcho): the page classes of src/pagination.ts of the legacy `node` layout
+    (nextPageParams, nextPageInfo), reproduced by crates/ts-plugin/src/emit/pagination.rs.
   - OneBusAway/js-sdk @ f3ca3f47613e2522ead33f4398984cdb47423622 (Apache-2.0, Copyright 2026
     Onebusaway SDK): scripts/mock and the mock-server lines of scripts/test and CONTRIBUTING.md
     (the %%if mock%% branches in project/), and the publish-npm.yml lines of a release by npm

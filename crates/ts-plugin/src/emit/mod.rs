@@ -4,6 +4,7 @@ pub mod api_md;
 pub mod api_tests;
 pub mod client;
 pub mod decls;
+pub mod pagination;
 pub mod project;
 pub mod resource;
 pub mod template;
@@ -17,7 +18,7 @@ pub const HEADER: &str = "// File generated from our OpenAPI spec by Ferrule. Se
 pub type File = (String, String);
 
 /// Every code file: `src/client.ts` (`src/index.ts` in the `node` layout), `src/version.ts`,
-/// `src/resources/**`, `api.md` and `tests/api-resources/**`.
+/// `src/resources/**`, the page classes, `api.md` and `tests/api-resources/**`.
 #[must_use]
 pub fn code_files(ctx: &Ctx<'_>) -> Vec<File> {
     let mut out = resource_files(ctx);
@@ -27,6 +28,7 @@ pub fn code_files(ctx: &Ctx<'_>) -> Vec<File> {
         client::emit_client(ctx)
     });
     out.push(client::emit_version(ctx));
+    out.extend(pagination::emit_pagination(ctx));
     out.extend(api_md::emit_api_md(ctx));
     out.extend(api_tests::test_files(ctx));
     out
