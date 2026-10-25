@@ -1,6 +1,6 @@
 ---
 
-status: Accepted, amended by [0014](./0014-rust-for-converter-and-plugin.md)
+status: Accepted, amended by [0014](./0014-rust-for-converter-and-plugin.md) and [0017](./0017-multi-language-targets.md) (proposed)
 date: 2026-10-22
 deciders: Ferrule maintainers
 ---
