@@ -198,7 +198,75 @@ fn assertion(m: &FilesMethod, variable: &str, indent: &str) -> String {
     }
 }
 
+fn is_required(p: &FilesParam) -> bool {
+    p.required || p.location == ParamLocation::Path
+}
+
+/// The tests of a method; a param-switched streaming method gets them twice, as Stainless
+/// writes them: `_overload_1` with the switch `False` (only in the all-params call), and
+/// `_overload_2` with it `True` after the required arguments, closing the stream it returns.
 fn method_tests(ctx: &mut Ctx<'_>, m: &FilesMethod, mode: Mode, tests: &mut Vec<String>) {
+    let switch = m
+        .stream_switch
+        .as_deref()
+        .and_then(|n| m.params.iter().find(|p| p.py_name == n));
+    let Some(switch) = switch else {
+        let all: Vec<&FilesParam> = m.params.iter().collect();
+        let required: Vec<&FilesParam> = m.params.iter().filter(|p| is_required(p)).collect();
+        call_tests(
+            ctx,
+            m,
+            mode,
+            tests,
+            ("", false),
+            &call_order(&required),
+            &call_order(&all),
+        );
+        return;
+    };
+    let literal = |value: bool| SdkType::Literal(vec![SdkLiteral::Boolean(value)]);
+    let off = FilesParam {
+        ty: literal(false),
+        required: false,
+        ..switch.clone()
+    };
+    let on = FilesParam {
+        ty: literal(true),
+        required: true,
+        ..switch.clone()
+    };
+    let others: Vec<&FilesParam> = m.params.iter().filter(|p| !std::ptr::eq(*p, switch)).collect();
+    let required: Vec<&FilesParam> = call_order(&others.iter().copied().filter(|p| is_required(p)).collect::<Vec<_>>());
+    let mut all: Vec<&FilesParam> = others.clone();
+    all.push(&off);
+    call_tests(
+        ctx,
+        m,
+        mode,
+        tests,
+        ("_overload_1", false),
+        &required,
+        &call_order(&all),
+    );
+    let mut required_on = required.clone();
+    required_on.push(&on);
+    let mut all_on = call_order(&others);
+    let at = all_on.iter().position(|p| !is_required(p)).unwrap_or(all_on.len());
+    all_on.insert(at, &on);
+    call_tests(ctx, m, mode, tests, ("_overload_2", true), &required_on, &all_on);
+}
+
+/// The method, raw, streaming and path-parameter tests of one call shape: `suffix` names them,
+/// and `streamed` closes the `Stream` the call returns instead of checking a model.
+fn call_tests(
+    ctx: &mut Ctx<'_>,
+    m: &FilesMethod,
+    mode: Mode,
+    tests: &mut Vec<String>,
+    (suffix, streamed): (&str, bool),
+    required: &[&FilesParam],
+    all: &[&FilesParam],
+) {
     let a = mode == Mode::Async;
     let def = if a { "async def" } else { "def" };
     let aw = if a { "await " } else { "" };
@@ -213,63 +281,82 @@ fn method_tests(ctx: &mut Ctx<'_>, m: &FilesMethod, mode: Mode, tests: &mut Vec<
     } else {
         ""
     };
-    let sig = |name: &str| format!("{skip}    @parametrize\n    {def} {name}(self, {cl}: {ty}) -> None:");
+    let sig = |name: &str| format!("{skip}    @parametrize\n    {def} {name}{suffix}(self, {cl}: {ty}) -> None:");
     let target = format!("{cl}.{}", ctx.accessor);
     let name = &m.name;
-    let all_params: Vec<&FilesParam> = m.params.iter().collect();
-    let required_params: Vec<&FilesParam> = m
-        .params
-        .iter()
-        .filter(|p| p.required || p.location == ParamLocation::Path)
-        .collect();
-    let required = call_order(&required_params);
-    let all = call_order(&all_params);
-    let v = ctx.variable;
+    let v = if streamed {
+        format!("{}_stream", ctx.variable)
+    } else {
+        ctx.variable.to_owned()
+    };
+    let v = v.as_str();
     // A method whose only parameter is one path parameter is called with it positionally.
     let pos = m.params.len() == 1;
     let i8 = "        ";
     let i12 = "            ";
+    // What follows a call: the result checked, or the stream closed.
+    let close = if a { "aclose" } else { "close" };
+    let check = |indent: &str| {
+        if streamed {
+            format!("{indent}{aw}{v}.response.{close}()")
+        } else {
+            assertion(m, v, indent)
+        }
+    };
+    let parsed = |indent: &str| {
+        if streamed {
+            format!("{indent}stream = {aw}response.parse()\n{indent}{aw}stream.close()")
+        } else {
+            format!("{indent}{v} = {aw}response.parse()\n{}", assertion(m, v, indent))
+        }
+    };
 
-    let call = args(&required, i8, &mut ctx.uses, pos, None);
+    let call = args(required, i8, &mut ctx.uses, pos, None);
     tests.push(format!(
         "{}\n{i8}{v} = {aw}{target}.{name}{call}\n{}",
         sig(&format!("test_method_{name}")),
-        assertion(m, v, i8)
+        check(i8)
     ));
     if all.len() > required.len() {
-        let call = args(&all, i8, &mut ctx.uses, pos, None);
+        let call = args(all, i8, &mut ctx.uses, pos, None);
         tests.push(format!(
             "{}\n{i8}{v} = {aw}{target}.{name}{call}\n{}",
             sig(&format!("test_method_{name}_with_all_params")),
-            assertion(m, v, i8)
+            check(i8)
         ));
     }
-    let call = args(&required, i8, &mut ctx.uses, pos, None);
+    let call = args(required, i8, &mut ctx.uses, pos, None);
+    // A streamed response is not read, so it is still open.
+    let closed = if streamed {
+        String::new()
+    } else {
+        format!("{i8}assert response.is_closed is True\n")
+    };
     tests.push(format!(
         "{}\n{i8}response = {aw}{target}.with_raw_response.{name}{call}\n\n\
-         {i8}assert response.is_closed is True\n\
+         {closed}\
          {i8}assert response.http_request.headers.get(\"X-Stainless-Lang\") == \"python\"\n\
-         {i8}{v} = {aw}response.parse()\n{}",
+         {}",
         sig(&format!("test_raw_response_{name}")),
-        assertion(m, v, i8)
+        parsed(i8)
     ));
-    let call = args(&required, i8, &mut ctx.uses, pos, None);
+    let call = args(required, i8, &mut ctx.uses, pos, None);
     tests.push(format!(
         "{}\n{i8}{} {target}.with_streaming_response.{name}{call} as response:\n\
          {i12}assert not response.is_closed\n\
          {i12}assert response.http_request.headers.get(\"X-Stainless-Lang\") == \"python\"\n\n\
-         {i12}{v} = {aw}response.parse()\n{}\n\n\
+         {}\n\n\
          {i8}assert cast(Any, response.is_closed) is True",
         sig(&format!("test_streaming_response_{name}")),
         if a { "async with" } else { "with" },
-        assertion(m, v, i12)
+        parsed(i12)
     ));
     let path: Vec<&FilesParam> = m.params.iter().filter(|p| p.location == ParamLocation::Path).collect();
     if !path.is_empty() {
         let blocks: Vec<String> = path
             .iter()
             .map(|p| {
-                let call = args(&required, i12, &mut ctx.uses, pos, Some(p));
+                let call = args(required, i12, &mut ctx.uses, pos, Some(p));
                 format!(
                     "{i8}with pytest.raises(ValueError, match=r\"Expected a non-empty value for `{}` but received ''\"):\n\
                      {i12}{aw}{target}.with_raw_response.{name}{call}",
