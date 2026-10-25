@@ -56,9 +56,13 @@ describe('instantiate client', () => {
         defaultQuery: { apiVersion: 'foo' },
         %%OPT%%: %%OPT_PLACEHOLDER%%,
       });
+%%if query_auth%%
       expect(client.buildURL('/foo', null)).toEqual(
-        `http://localhost:5000/foo?key=${encodeURIComponent(client.%%OPT%%)}&apiVersion=foo`,
+        `http://localhost:5000/foo?%%QUERY_KEY%%=${encodeURIComponent(client.%%OPT%%)}&apiVersion=foo`,
       );
+%%else%%
+      expect(client.buildURL('/foo', null)).toEqual('http://localhost:5000/foo?apiVersion=foo');
+%%endif%%
     });
 
     test('multiple default query params', () => {
@@ -67,9 +71,13 @@ describe('instantiate client', () => {
         defaultQuery: { apiVersion: 'foo', hello: 'world' },
         %%OPT%%: %%OPT_PLACEHOLDER%%,
       });
+%%if query_auth%%
       expect(client.buildURL('/foo', null)).toEqual(
-        `http://localhost:5000/foo?key=${encodeURIComponent(client.%%OPT%%)}&apiVersion=foo&hello=world`,
+        `http://localhost:5000/foo?%%QUERY_KEY%%=${encodeURIComponent(client.%%OPT%%)}&apiVersion=foo&hello=world`,
       );
+%%else%%
+      expect(client.buildURL('/foo', null)).toEqual('http://localhost:5000/foo?apiVersion=foo&hello=world');
+%%endif%%
     });
 
     test('overriding with `undefined`', () => {
@@ -78,9 +86,13 @@ describe('instantiate client', () => {
         defaultQuery: { hello: 'world' },
         %%OPT%%: %%OPT_PLACEHOLDER%%,
       });
+%%if query_auth%%
       expect(client.buildURL('/foo', { hello: undefined })).toEqual(
-        `http://localhost:5000/foo?key=${encodeURIComponent(client.%%OPT%%)}`,
+        `http://localhost:5000/foo?%%QUERY_KEY%%=${encodeURIComponent(client.%%OPT%%)}`,
       );
+%%else%%
+      expect(client.buildURL('/foo', { hello: undefined })).toEqual('http://localhost:5000/foo');
+%%endif%%
     });
   });
 
@@ -98,10 +110,14 @@ describe('instantiate client', () => {
     });
 
     const response = await client.get('/foo');
+%%if query_auth%%
     expect(response).toEqual({
-      url: `http://localhost:5000/foo?key=${encodeURIComponent(client.%%OPT%%)}`,
+      url: `http://localhost:5000/foo?%%QUERY_KEY%%=${encodeURIComponent(client.%%OPT%%)}`,
       custom: true,
     });
+%%else%%
+    expect(response).toEqual({ url: 'http://localhost:5000/foo', custom: true });
+%%endif%%
   });
 
   test('explicit global fetch', async () => {
@@ -162,19 +178,31 @@ describe('instantiate client', () => {
         baseURL: 'http://localhost:5000/custom/path/',
         %%OPT%%: %%OPT_PLACEHOLDER%%,
       });
+%%if query_auth%%
       expect(client.buildURL('/foo', null)).toEqual(
-        `http://localhost:5000/custom/path/foo?key=${encodeURIComponent(client.%%OPT%%)}`,
+        `http://localhost:5000/custom/path/foo?%%QUERY_KEY%%=${encodeURIComponent(client.%%OPT%%)}`,
       );
+%%else%%
+      expect(client.buildURL('/foo', null)).toEqual('http://localhost:5000/custom/path/foo');
+%%endif%%
     });
 
     test('no trailing slash', () => {
+%%if query_auth%%
       const client = new %%CLIENT%%({
         baseURL: 'http://localhost:5000/custom/path',
         %%OPT%%: %%OPT_PLACEHOLDER%%,
       });
+%%else%%
+      const client = new %%CLIENT%%({ baseURL: 'http://localhost:5000/custom/path', %%OPT%%: %%OPT_PLACEHOLDER%% });
+%%endif%%
+%%if query_auth%%
       expect(client.buildURL('/foo', null)).toEqual(
-        `http://localhost:5000/custom/path/foo?key=${encodeURIComponent(client.%%OPT%%)}`,
+        `http://localhost:5000/custom/path/foo?%%QUERY_KEY%%=${encodeURIComponent(client.%%OPT%%)}`,
       );
+%%else%%
+      expect(client.buildURL('/foo', null)).toEqual('http://localhost:5000/custom/path/foo');
+%%endif%%
     });
 
     afterEach(() => {
@@ -206,24 +234,42 @@ describe('instantiate client', () => {
 
     test('in request options', () => {
       const client = new %%CLIENT%%({ %%OPT%%: %%OPT_PLACEHOLDER%% });
+%%if query_auth%%
       expect(client.buildURL('/foo', null, 'http://localhost:5000/option')).toEqual(
-        `http://localhost:5000/option/foo?key=${encodeURIComponent(client.%%OPT%%)}`,
+        `http://localhost:5000/option/foo?%%QUERY_KEY%%=${encodeURIComponent(client.%%OPT%%)}`,
       );
+%%else%%
+      expect(client.buildURL('/foo', null, 'http://localhost:5000/option')).toEqual(
+        'http://localhost:5000/option/foo',
+      );
+%%endif%%
     });
 
     test('in request options overridden by client options', () => {
       const client = new %%CLIENT%%({ %%OPT%%: %%OPT_PLACEHOLDER%%, baseURL: 'http://localhost:5000/client' });
+%%if query_auth%%
       expect(client.buildURL('/foo', null, 'http://localhost:5000/option')).toEqual(
-        `http://localhost:5000/client/foo?key=${encodeURIComponent(client.%%OPT%%)}`,
+        `http://localhost:5000/client/foo?%%QUERY_KEY%%=${encodeURIComponent(client.%%OPT%%)}`,
       );
+%%else%%
+      expect(client.buildURL('/foo', null, 'http://localhost:5000/option')).toEqual(
+        'http://localhost:5000/client/foo',
+      );
+%%endif%%
     });
 
     test('in request options overridden by env variable', () => {
       process.env['%%ENV%%_BASE_URL'] = 'http://localhost:5000/env';
       const client = new %%CLIENT%%({ %%OPT%%: %%OPT_PLACEHOLDER%% });
+%%if query_auth%%
       expect(client.buildURL('/foo', null, 'http://localhost:5000/option')).toEqual(
-        `http://localhost:5000/env/foo?key=${encodeURIComponent(client.%%OPT%%)}`,
+        `http://localhost:5000/env/foo?%%QUERY_KEY%%=${encodeURIComponent(client.%%OPT%%)}`,
       );
+%%else%%
+      expect(client.buildURL('/foo', null, 'http://localhost:5000/option')).toEqual(
+        'http://localhost:5000/env/foo',
+      );
+%%endif%%
     });
   });
 

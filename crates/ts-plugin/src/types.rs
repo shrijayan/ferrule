@@ -74,6 +74,20 @@ fn union_of(mut members: Vec<Ty>) -> Ty {
     }
 }
 
+/// A union of string literals and `string` (an open enum) as Stainless writes it: the literals,
+/// then `(string & {})`, which keeps editors suggesting them.
+fn open_enum(members: &mut Vec<Ty>) {
+    let is_string = |t: &Ty| matches!(t, Ty::Name(n) if n == "string");
+    let is_literal = |t: &Ty| matches!(t, Ty::Name(n) if n.starts_with('\''));
+    if members.iter().filter(|t| is_string(t)).count() == 1
+        && members.iter().any(is_literal)
+        && members.iter().all(|t| is_string(t) || is_literal(t))
+    {
+        members.retain(|t| !is_string(t));
+        members.push(Ty::name("(string & {})"));
+    }
+}
+
 /// Members of a union, nested unions flattened.
 fn push_member(out: &mut Vec<Ty>, t: Ty) {
     match t {
@@ -158,6 +172,7 @@ impl<'c, 'a> Mapper<'c, 'a> {
                     );
                     push_member(&mut members, self.ty(&v.ty, ns, &name, nested));
                 }
+                open_enum(&mut members);
                 union_of(members)
             }
             Type::Object(o) => self.object(o, ns, words, nested),

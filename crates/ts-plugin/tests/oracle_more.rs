@@ -30,7 +30,7 @@ fn imagekit_report() {
     ) else {
         return;
     };
-    report("imagekit", &o, 62);
+    report("imagekit", &o, 63);
 }
 
 #[test]

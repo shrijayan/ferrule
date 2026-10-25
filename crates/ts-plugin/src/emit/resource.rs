@@ -112,7 +112,10 @@ pub fn plan_methods<'a>(ctx: &Ctx<'a>, r: &TsResource<'a>, mapper: &mut Mapper<'
             };
             let params_required = has_path
                 || m.query_params.iter().any(|p| p.field.required)
-                || body_fields.is_some_and(|o| o.fields.iter().any(|f| f.required));
+                || body_fields.is_some_and(|o| o.fields.iter().any(|f| f.required))
+                // The `node` layout takes a required request body even when all its fields are
+                // optional (lumaai-typescript's `generations.audio`).
+                || (ctx.node() && has_body && m.body.as_ref().is_some_and(|b| b.required));
             let (params_type, params_decl) = if params_arg == ParamsArg::None {
                 (None, None)
             } else {
@@ -228,7 +231,8 @@ pub fn example_var(ctx: &Ctx<'_>, r: &TsResource<'_>, plan: &MethodPlan<'_>) -> 
 /// example from the spec (onebusaway-typescript: a path parameter's `example`).
 fn example_code(ctx: &Ctx<'_>, chain: &[&TsResource<'_>], plan: &MethodPlan<'_>) -> Option<Vec<String>> {
     let ex = Examples { ctx };
-    let args = ex.args(plan.m, Fill::Required);
+    let fill = if ctx.node() { Fill::Example } else { Fill::Required };
+    let args = ex.args(plan.m, fill);
     if ctx.node() && !args.from_spec {
         return None;
     }
