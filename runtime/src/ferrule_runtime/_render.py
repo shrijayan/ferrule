@@ -39,7 +39,7 @@ __all__ = [
     "template_root",
 ]
 
-Language = Literal["python", "typescript", "go"]
+Language = Literal["python", "typescript", "go", "java"]
 
 PKG_PLACEHOLDER = "__ferrule_pkg__"
 CLIENT_PLACEHOLDER = "__FerruleClient__"
