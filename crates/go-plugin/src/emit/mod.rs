@@ -5,6 +5,7 @@
 pub mod api_md;
 pub mod client;
 pub mod decls;
+pub mod pagination;
 pub mod project;
 pub mod resource;
 pub mod runtime;
@@ -232,6 +233,28 @@ impl<'a> Gen<'a> {
                 .into_iter()
                 .find(|m| m.path_params.is_empty() && params(m).iter().all(|p| !p.required))
                 .map(|m| (s, m))
+        })
+    }
+
+    /// The paginated method the pagination tests call, with its page: `meta.pagination_example`,
+    /// else the first paginated method without path params or required params.
+    #[must_use]
+    pub fn pagination_example(&self) -> Option<(&Service<'a>, &'a Method, pagination::Page)> {
+        if let Some((path, method)) = &self.target.pagination_example {
+            for s in &self.services {
+                let keys: Vec<&str> = s.resource.path.iter().map(|n| n.written.as_str()).collect();
+                if keys == *path
+                    && let Some(m) = s.resource.methods.iter().find(|m| m.name.written == *method)
+                {
+                    return pagination::page_of(self, m).map(|p| (s, m, p));
+                }
+            }
+        }
+        self.services.iter().find_map(|s| {
+            method_order(&s.resource.methods).into_iter().find_map(|m| {
+                let page = pagination::page_of(self, m)?;
+                (m.path_params.is_empty() && params(m).iter().all(|p| !p.required)).then_some((s, m, page))
+            })
         })
     }
 
