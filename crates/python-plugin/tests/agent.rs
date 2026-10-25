@@ -63,7 +63,6 @@ fn emits_nothing_for_a_client_without_settings() {
 }
 
 #[test]
-#[ignore = "needs api_tests::example_value from the project-files port (ADR 0014)"]
 fn ships_the_skill_agents_md_and_llms_txt_inside_the_package() {
     let files = emit_agent_files(&model(), Some(&placeholder_meta()));
     for name in ["SKILL.md", "AGENTS.md", "llms.txt"] {
@@ -78,7 +77,6 @@ fn ships_the_skill_agents_md_and_llms_txt_inside_the_package() {
 }
 
 #[test]
-#[ignore = "needs api_tests::example_value from the project-files port (ADR 0014)"]
 fn writes_python_that_parses() {
     let files = emit_agent_files(&model(), Some(&placeholder_meta()));
     let blocks = python_blocks(get(&files, "src/onebusaway/_agent/SKILL.md"));
@@ -93,7 +91,6 @@ fn writes_python_that_parses() {
 }
 
 #[test]
-#[ignore = "needs api_tests::example_value from the project-files port (ADR 0014)"]
 fn emits_only_the_package_copies_without_project_metadata() {
     let paths: Vec<String> = emit_agent_files(&model(), None).into_iter().map(|(p, _)| p).collect();
     assert_eq!(
@@ -107,7 +104,6 @@ fn emits_only_the_package_copies_without_project_metadata() {
 }
 
 #[test]
-#[ignore = "needs api_tests::example_value from the project-files port (ADR 0014)"]
 fn is_deterministic() {
     let meta = placeholder_meta();
     assert_eq!(
@@ -117,7 +113,6 @@ fn is_deterministic() {
 }
 
 #[test]
-#[ignore = "needs api_tests::example_value from the project-files port (ADR 0014)"]
 fn documents_pagination_and_streaming_when_a_method_has_them() {
     let mut client = model();
     let first = &mut client.resources[0];

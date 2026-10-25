@@ -80,8 +80,8 @@ fn compare_trees(actual: &BTreeMap<String, String>, expected: &BTreeMap<String, 
     problems
 }
 
-/// The agent context under `src/<pkg>/_agent/` needs `api_tests::example_value`, which the
-/// project-files port provides; until it lands the code tree is checked without it.
+/// The agent context under `src/<pkg>/_agent/` is not part of [`code_files`]; it is checked
+/// through `forge::run` and `agent_files_match_the_golden`.
 fn is_agent_file(path: &str) -> bool {
     path.split('/').nth(2) == Some("_agent")
 }
@@ -119,7 +119,7 @@ fn code_files_match_the_goldens() {
         assert!(problems.is_empty(), "{}: {problems:#?}", name(&fixture));
         compared.push((name(&fixture), actual.len()));
     }
-    // The goldens hold 5, 7 and 85 files; onebusaway's three `_agent` files wait for the port.
+    // The goldens hold 5, 7 and 85 files; onebusaway's three `_agent` files are checked below.
     let expected = [
         ("cursor-page".to_owned(), 5),
         ("onebusaway-spike".to_owned(), 7),
@@ -140,7 +140,6 @@ fn code_files_are_deterministic() {
 }
 
 #[test]
-#[ignore = "needs emit_project_files and api_tests::example_value from the project-files port (ADR 0014)"]
 fn forge_run_matches_the_goldens() {
     for fixture in fixtures() {
         let files = forge::run(&forge_of(&fixture), &PythonPlugin::default()).expect("generates");
@@ -155,7 +154,6 @@ fn forge_run_matches_the_goldens() {
 }
 
 #[test]
-#[ignore = "needs api_tests::example_value from the project-files port (ADR 0014)"]
 fn agent_files_match_the_golden() {
     let fixture = plugin_dir().join("test/fixtures/onebusaway.json");
     let client = to_model(&forge_of(&fixture))
