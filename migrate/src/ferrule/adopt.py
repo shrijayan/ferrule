@@ -3,7 +3,8 @@
 """``ferrule adopt``: switch an existing Stainless-generated SDK repo to Ferrule, locally.
 
 Steps: rescue the spec, find the last Stainless commit, regenerate in adopt mode (ADR 0004,
-ADR 0011), record every hand edit made since that commit to a generated file as a
+ADR 0011), record every hand edit a generated file still carries (made by a maintainer, before
+or after that commit: Stainless carries custom code into each generation) as a
 ``.ferrule/patches/NNNN-<slug>.patch``, re-apply them three-way on the regenerated tree, write
 ``ferrule.lock`` and ``.github/workflows/sdk.yml``, and commit all of it on a new local branch
 ``ferrule/adopt``. Nothing is pushed and no PR is opened.
@@ -39,7 +40,9 @@ from ferrule.generate import (
     relative_files,
     run_subprocess,
 )
+from ferrule.hand_edit import revert
 from ferrule.lock import LOCK_FILE, Lock, sha256_bytes, sha256_file
+from ferrule.merge import KeepRules, merge_trees
 from ferrule.rescue import Fetcher, https_fetch, rescue
 
 if TYPE_CHECKING:
@@ -50,6 +53,11 @@ GIT_FAILED = "FER4105"
 NOT_ADOPTABLE = "FER4106"
 
 BOT = "stainless-app[bot]"
+# Commits by these authors are generated, never hand edits: the names Stainless's bots have
+# committed under over time (seen in the histories of the oracle SDKs).
+STAINLESS_AUTHORS = frozenset(
+    {BOT, "stainless-sdks[bot]", "stainless-sdks-internal[bot]", "stainless-bot", "Stainless Bot"}
+)
 STATS_FILE = ".stats.yml"
 BRANCH = "ferrule/adopt"
 COMMIT_MESSAGE = "Switch SDK generation to Ferrule"
@@ -190,20 +198,20 @@ class Git:
     repo: Path
     env: Mapping[str, str] = field(default_factory=lambda: dict(os.environ))
 
-    def run(
+    def raw(
         self, *args: str, cwd: Path | None = None, check: bool = True
-    ) -> subprocess.CompletedProcess[str]:
-        """Run ``git <args>`` in ``cwd`` (default: the repository)."""
+    ) -> subprocess.CompletedProcess[bytes]:
+        """Run ``git <args>`` in ``cwd`` (default: the repository); output stays bytes."""
         argv = ["git", "-C", str(cwd or self.repo), *GIT_CONFIG, *args]
         proc = subprocess.run(  # noqa: S603 - fixed argv, no shell
             argv,
             capture_output=True,
-            text=True,
             check=False,
             env={**self.env, **GIT_ENV},
         )
         if check and proc.returncode != 0:
-            last = (proc.stderr or proc.stdout).strip().splitlines()
+            text = (proc.stderr or proc.stdout).decode(errors="replace")
+            last = text.strip().splitlines()
             raise fail(
                 GIT_FAILED,
                 f"git {args[0]} failed: {last[-1] if last else proc.returncode}",
@@ -211,6 +219,18 @@ class Git:
                 "fix the repository state git reported",
             )
         return proc
+
+    def run(
+        self, *args: str, cwd: Path | None = None, check: bool = True
+    ) -> subprocess.CompletedProcess[str]:
+        """Run ``git <args>`` in ``cwd`` (default: the repository)."""
+        proc = self.raw(*args, cwd=cwd, check=check)
+        return subprocess.CompletedProcess(
+            proc.args,
+            proc.returncode,
+            proc.stdout.decode(errors="surrogateescape"),
+            proc.stderr.decode(errors="replace"),
+        )
 
     def out(self, *args: str) -> str:
         """Return the stripped stdout of ``git <args>``."""
@@ -283,18 +303,76 @@ def _recording(runner: Runner, tools: Tools, seen: list[PurePosixPath]) -> Runne
     return run
 
 
-def hand_edits(git: Git, base: str, paths: Iterable[PurePosixPath]) -> list[tuple[str, str]]:
-    """``(patch name, git diff)`` for each path changed between ``base`` and HEAD."""
-    changed = set(
-        git.out("diff", "--name-only", "--no-renames", base, "HEAD", "--").splitlines(),
-    )
-    patches: list[tuple[str, str]] = []
-    for path in sorted(p for p in paths if str(p) in changed):
-        diff = git.run(
-            "diff", "--full-index", "--binary", "--no-renames", base, "HEAD", "--", str(path)
-        ).stdout
-        patches.append((patch_name(len(patches) + 1, path), diff))
-    return patches
+@dataclass(frozen=True)
+class HandEdit:
+    """One recorded edit: its patch, the file without the edit and the file at HEAD."""
+
+    name: str
+    path: PurePosixPath
+    diff: bytes
+    pristine: bytes
+    head: bytes
+
+
+_DIFF = ("--no-color", "--no-ext-diff", "--no-textconv", "--no-renames")
+
+
+def edit_commits(git: Git, base: str) -> dict[str, list[str]]:
+    """Path -> the commits not made by Stainless that changed it, newest first.
+
+    When Stainless authored ``base``, the whole history counts: the bot merges custom code
+    into every later generation, so an edit older than ``base`` can still be live. Otherwise
+    (``base`` is only the last commit to change .stats.yml) just the commits after it count.
+    Merges and root commits are skipped: they carry no edit of their own.
+    """
+    author = git.out("log", "-n1", "--format=%an", base)
+    history = "HEAD" if author in STAINLESS_AUTHORS else f"{base}..HEAD"
+    log = git.out(
+        "-c", "core.quotePath=false", "log", "--no-merges", "--no-renames", "--name-only",
+        "--format=%x00%H%x09%P%x09%an", history,
+    )  # fmt: skip
+    commits: dict[str, list[str]] = {}
+    for record in log.split("\x00")[1:]:
+        head, *files = record.split("\n")
+        sha, parents, name = head.split("\t", 2)
+        if not parents or name in STAINLESS_AUTHORS:
+            continue
+        for path in filter(None, files):
+            commits.setdefault(path, []).append(sha)
+    return commits
+
+
+def hand_edits(
+    git: Git, base: str, out: Path, paths: Iterable[PurePosixPath], tmp: Path
+) -> list[HandEdit]:
+    """Every hand edit the generated ``paths`` (written under ``out``) still carry at HEAD.
+
+    Each edit is undone on the file as it is at HEAD (:func:`ferrule.hand_edit.revert`),
+    unless the regenerated file already has its text; the patch, one per path, goes from that
+    pristine file to HEAD, so it applies three-way on a regeneration.
+    """
+    commits = edit_commits(git, base)
+    edits: list[HandEdit] = []
+    for path in sorted(p for p in paths if str(p) in commits):
+        shown = git.raw("show", f"HEAD:{path}", check=False)
+        if shown.returncode != 0:
+            continue  # the edit was to a file HEAD no longer has
+        head = pristine = shown.stdout
+        regenerated = ensure_inside(out, path).read_bytes()
+        for sha in commits[str(path)]:
+            diff = git.raw("diff", *_DIFF, f"{sha}^", sha, "--", str(path)).stdout
+            pristine = revert(pristine, diff, regenerated)
+        if pristine == head:
+            continue
+        work = tmp / "edits" / str(len(edits))
+        _write(work, "a" / path, pristine)
+        _write(work, "b" / path, head)
+        patch = git.raw(
+            "diff", "--no-index", *_DIFF, "--full-index", "--binary", "--no-prefix",
+            f"a/{path}", f"b/{path}", cwd=work, check=False,
+        ).stdout  # fmt: skip
+        edits.append(HandEdit(patch_name(len(edits) + 1, path), path, patch, pristine, head))
+    return edits
 
 
 def forge_commit(version: GenVersion, env: Mapping[str, str]) -> str:
@@ -308,20 +386,38 @@ def _write(root: Path, rel: PurePosixPath, data: bytes) -> None:
     target.write_bytes(data)
 
 
-def _apply(git: Git, wt: Path, patches: Sequence[tuple[str, str]], tmp: Path) -> None:
-    conflicts: list[str] = []
-    for name, diff in patches:
-        patch = tmp / name
-        patch.write_text(diff, encoding="utf-8")
-        proc = git.run("apply", "--3way", "--index", str(patch), cwd=wt, check=False)
-        if proc.returncode != 0:
-            conflicts.append(name)
+def reapply(edit: HandEdit, regenerated: bytes) -> bytes | None:
+    """``regenerated`` with ``edit`` merged in three-way, or None when they conflict.
+
+    The base is the file without the edit, ours the file at HEAD and theirs the regenerated
+    one; a line merge that conflicts falls back to the libcst merge ``ferrule merge`` uses,
+    so a method added to a class the generator reorders still lands.
+    """
+    path = str(edit.path)
+    result = merge_trees(
+        {path: edit.pristine},
+        {path: edit.head},
+        {path: regenerated},
+        keep=KeepRules(protect_lib=False),
+    )
+    return None if result.blocking else result.files[path]
+
+
+def _apply(wt: Path, patches: Sequence[HandEdit]) -> None:
+    conflicts: list[HandEdit] = []
+    for edit in patches:
+        target = ensure_inside(wt, edit.path)
+        merged = reapply(edit, target.read_bytes())
+        if merged is None:
+            conflicts.append(edit)
+        else:
+            target.write_bytes(merged)
     if conflicts:
-        unmerged = git.run("diff", "--name-only", "--diff-filter=U", cwd=wt).stdout.split()
-        where = ", ".join(unmerged) or "see the patches"
+        names = ", ".join(edit.name for edit in conflicts)
+        where = ", ".join(str(edit.path) for edit in conflicts)
         raise fail(
             PATCH_CONFLICT,
-            f"hand edits conflict with the regenerated code: {', '.join(conflicts)} ({where})",
+            f"hand edits conflict with the regenerated code: {names} ({where})",
             str(PATCH_DIR),
             "resolve the edit by hand on the regenerated file, or move it to lib/",
         )
@@ -394,7 +490,7 @@ def adopt(  # noqa: PLR0913 - every collaborator is injectable for tests
         )
         say("✓ copied runtime from your repo (you own it)")
         generated = [p for p in seen if not is_protected(p, keep)]
-        patches = hand_edits(git, base, generated)
+        patches = hand_edits(git, base, out, generated, tmp)
         say(f"✓ found {len(patches)} hand edits → {PATCH_DIR}/")
         say("✓ generated via ferrule-gen (forge + ferrule-python)")
         adopted = AdoptResult(
@@ -403,7 +499,7 @@ def adopt(  # noqa: PLR0913 - every collaborator is injectable for tests
             against=last_release(git, base),
             package=result.package,
             generated=generated,
-            patches=[name for name, _ in patches],
+            patches=[edit.name for edit in patches],
         )
         if request.dry_run:
             return adopted
@@ -442,7 +538,7 @@ def _commit(  # noqa: PLR0913 - one call site
     out: Path,
     inputs: _Inputs,
     lock: Lock,
-    patches: Sequence[tuple[str, str]],
+    patches: Sequence[HandEdit],
 ) -> None:
     name, email = _identity(git)
     wt = tmp / "worktree"
@@ -452,9 +548,9 @@ def _commit(  # noqa: PLR0913 - one call site
         for rel in lock.files:
             _write(wt, PurePosixPath(rel), (out / rel).read_bytes())
         git.run("add", "--all", "--", ".", cwd=wt)
-        _apply(git, wt, patches, tmp)
-        for patch_file, diff in patches:
-            _write(wt, PATCH_DIR / patch_file, diff.encode())
+        _apply(wt, patches)
+        for edit in patches:
+            _write(wt, PATCH_DIR / edit.name, edit.diff)
         _write(wt, PurePosixPath(inputs.spec_name), inputs.spec_data)
         _write(wt, PurePosixPath(inputs.config_rel), inputs.config_text.encode())
         _write(wt, PurePosixPath(LOCK_FILE), lock.render().encode())
