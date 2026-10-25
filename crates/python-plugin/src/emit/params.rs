@@ -139,7 +139,19 @@ impl<'a> Named<'a> {
                         _ => None,
                     })
                     .collect();
-                if objects.len() <= 1 {
+                // A union with a named model among two or more members is an alias too, as
+                // Stainless declares it (imagekit `AssetListResponseItem: TypeAlias = Union[File,
+                // Folder]`), unless it would have to make up a name for its one inline object.
+                let members = variants
+                    .iter()
+                    .filter(|v| !matches!(v, SdkType::Primitive(SdkPrimitive::Null)))
+                    .count();
+                let with_model = members >= 2
+                    && variants.iter().any(|v| matches!(v, SdkType::Ref(_)))
+                    && objects
+                        .iter()
+                        .all(|o| variant_segment(o, discriminator.as_deref()).is_some());
+                if objects.len() <= 1 && !with_model {
                     for v in variants {
                         self.visit_type(v, base);
                     }
