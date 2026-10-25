@@ -3,7 +3,6 @@
 //! magic trailing comma; otherwise its last bracket is split, the contents go on one indented line
 //! when they fit there, and otherwise one item per line with a trailing comma, each split the same
 //! way. The plugin does not run ruff, so this replaces it (Forge gaps G8, G15).
-//! Port of `python-plugin/src/emit/format.ts`.
 
 use crate::js;
 use crate::printer::{LINE_LENGTH, PythonPrinter};

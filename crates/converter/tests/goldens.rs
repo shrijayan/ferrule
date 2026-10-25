@@ -1,8 +1,6 @@
-//! The durable goldens: the OneBusAway full snapshot and the config oracle digests (ADR 0010),
-//! plus the oracle regressions. Ports of converter/test/onebusaway.test.ts,
-//! converter/test/oracle-regressions.test.ts and the Phase 2 gate's comparison
-//! (`digest` in `scripts/oracles/converter_oracles.py`). Snapshots are read, never written; a pair
-//! whose oracle files are not cached is skipped.
+//! The durable goldens: the OneBusAway full snapshot and the config oracle digests (ADR 0010), plus
+//! the oracle regressions. Snapshots are read, never written; a pair whose oracle files are not
+//! cached is skipped.
 
 use ferrule_converter::value::parse_json;
 use ferrule_converter::{ConvertOutput, Severity, Value, convert_text};
@@ -383,7 +381,7 @@ fn digest_matches_python_formatting() {
 }
 
 // ---------------------------------------------------------------------------------------------
-// OneBusAway (converter/test/onebusaway.test.ts): a full snapshot (Apache-2.0).
+// OneBusAway: a full snapshot (Apache-2.0).
 
 fn onebusaway() -> Option<ConvertOutput> {
     let dir = root().join("oracles/cache/onebusaway-config");
@@ -444,7 +442,7 @@ fn onebusaway_matches_the_committed_snapshot() {
 }
 
 // ---------------------------------------------------------------------------------------------
-// converter/test/oracle-regressions.test.ts: minimal reductions of failed config oracles.
+// Minimal reductions of failed config oracles.
 
 const HEAD: &str = "organization: { name: acme }
 environments: { production: https://api.acme.test }

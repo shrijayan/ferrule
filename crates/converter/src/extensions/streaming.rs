@@ -1,5 +1,5 @@
 //! `x-ferrule-streaming` (ADR 0003): a method's `streaming:` block in stainless.yml, with the
-//! top-level `streaming.on_event` handlers. Port of `converter/src/extensions/streaming.ts`.
+//! top-level `streaming.on_event` handlers.
 
 use super::json::{arr, bool_, deref, obj, obj_of, property_names, str_, success_response};
 use crate::Diagnostic;

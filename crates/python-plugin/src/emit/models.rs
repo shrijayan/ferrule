@@ -1,5 +1,4 @@
 //! Pydantic model files under `types/`: one root model and the inline objects it contains.
-//! Port of `python-plugin/src/emit/models.ts`.
 
 use super::common::{HEADER, escape_docstring, py_string, rel_import, sort_fields, wrap};
 use super::format::{Expr, bracket, format_expr};

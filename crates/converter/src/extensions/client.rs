@@ -1,6 +1,6 @@
 //! `x-ferrule-client` (ADR 0003): client class settings from stainless.yml `organization`,
-//! `client_settings`, `environments`, `security`, `security_schemes` and `query_settings`, plus
-//! the security schemes and servers of the spec. Port of `converter/src/extensions/client.ts`.
+//! `client_settings`, `environments`, `security`, `security_schemes` and `query_settings`, plus the
+//! security schemes and servers of the spec.
 
 use super::json::{arr, bool_, empty, num, obj, obj_of, str_};
 use crate::Diagnostic;

@@ -1,5 +1,4 @@
-//! Forge group names for stainless.yml resource paths (ADR 0003, `$client` amendment). Port of
-//! `converter/src/extensions/groups.ts`.
+//! Forge group names for stainless.yml resource paths (ADR 0003, `$client` amendment).
 //!
 //! Forge drops an operation whose `x-fern-sdk-group-name` is empty, and splits names into words
 //! (`$client` becomes the group `client`, merging with a real `client` resource). Root client

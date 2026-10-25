@@ -1,5 +1,4 @@
-//! Emitter unit tests on hand-built models. Port of `test/emit.test.ts` and the emitter parts of
-//! `test/phase3.test.ts`.
+//! Emitter unit tests on hand-built models.
 
 use ferrule_python_plugin::diagnostics::FerCode;
 use ferrule_python_plugin::emit::client::emit_client_file;

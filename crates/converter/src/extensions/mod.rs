@@ -1,4 +1,4 @@
-//! The `x-ferrule-*` extension builders (ADR 0003). Port of `converter/src/extensions/`.
+//! The `x-ferrule-*` extension builders (ADR 0003).
 
 pub mod client;
 pub mod groups;

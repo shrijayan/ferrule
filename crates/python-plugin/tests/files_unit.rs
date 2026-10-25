@@ -1,6 +1,5 @@
-//! Unit tests of the project-file emitters. Port of `python-plugin/test/files/unit.test.ts`; the
-//! inputs are the TypeScript ones as JSON, so the whole output is also compared with the
-//! TypeScript emitter.
+//! Unit tests of the project-file emitters. The inputs are the TypeScript ones as JSON, so the
+//! whole output is also compared with the TypeScript emitter.
 
 mod files_support;
 

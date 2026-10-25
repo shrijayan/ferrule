@@ -26,6 +26,12 @@ pub fn is_space(c: char) -> bool {
     )
 }
 
+/// A line terminator as JavaScript's `^`, `$` (with the `m` flag) and `.` see it.
+#[must_use]
+pub fn is_line_terminator(c: char) -> bool {
+    matches!(c, '\n' | '\r' | '\u{2028}' | '\u{2029}')
+}
+
 /// `s.trim()`.
 #[must_use]
 pub fn trim(s: &str) -> &str {
@@ -145,5 +151,38 @@ mod tests {
         assert_eq!(len("a\u{1f600}"), 3);
         assert_eq!(cmp("\u{1f600}", "\u{ff61}"), Ordering::Less);
         assert_eq!(trim("\u{feff} x\u{a0}"), "x");
+    }
+
+    #[test]
+    fn prints_more_numbers_like_javascript() {
+        let cases: &[(f64, &str)] = &[
+            (0.0, "0"),
+            (-0.0, "0"),
+            (1.0, "1"),
+            (-122.305_641, "-122.305641"),
+            (0.01, "0.01"),
+            (1_710_918_000_000.0, "1710918000000"),
+            (1e21, "1e+21"),
+            (1.5e21, "1.5e+21"),
+            (123_456_789_012_345_680_000.0, "123456789012345680000"),
+            (1e-6, "0.000001"),
+            (1e-7, "1e-7"),
+            (-2.5e-7, "-2.5e-7"),
+            (0.1 + 0.2, "0.30000000000000004"),
+            (f64::NAN, "NaN"),
+            (f64::INFINITY, "Infinity"),
+            (f64::NEG_INFINITY, "-Infinity"),
+        ];
+        for (n, want) in cases {
+            assert_eq!(number_to_string(*n), *want, "{n}");
+        }
+    }
+
+    #[test]
+    fn compares_strings_by_utf16_units() {
+        // U+1F600 sorts after U+FF5E by code point, before it by UTF-16 unit (0xD83D < 0xFF5E).
+        assert_eq!("\u{1f600}".cmp("\u{ff5e}"), std::cmp::Ordering::Greater);
+        assert_eq!(cmp("\u{1f600}", "\u{ff5e}"), std::cmp::Ordering::Less);
+        assert_eq!(len("\u{1f600}"), 2);
     }
 }

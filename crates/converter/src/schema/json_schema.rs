@@ -1,5 +1,5 @@
-//! A small JSON Schema (draft 2020-12) validator for exactly the keywords the public
-//! stainless.yml schema uses. Port of `converter/src/schema/json-schema.ts`.
+//! A small JSON Schema (draft 2020-12) validator for exactly the keywords the public stainless.yml
+//! schema uses.
 //!
 //! Anything outside [`ASSERTION_KEYWORDS`] and [`ANNOTATION_KEYWORDS`] is reported by
 //! [`unsupported_keywords`], and a test runs it over the bundled schema, so a schema update that

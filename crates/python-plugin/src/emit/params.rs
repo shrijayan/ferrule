@@ -1,6 +1,5 @@
 //! `types/<resource>_<method>_params.py`: the `TypedDict` of a method's query and body parameters,
 //! followed by the `TypedDicts` (and union aliases) of the inline objects inside them.
-//! Port of `python-plugin/src/emit/params.ts`.
 
 use std::collections::{HashMap, HashSet};
 

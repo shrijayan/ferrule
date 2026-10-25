@@ -1,5 +1,5 @@
-//! `FER11xx`: stainless.yml validation (`converter/src/schema/validate.ts`). FER1101 and FER1102
-//! (editions) live in [`crate::editions`]. Codes are stable; never reuse a retired one.
+//! `FER11xx`: stainless.yml validation. FER1101 and FER1102 (editions) live in [`crate::editions`].
+//! Codes are stable; never reuse a retired one.
 
 use super::config::config_issues;
 use super::json_schema::{ErrorSeverity, Keyword, SchemaError, validate};

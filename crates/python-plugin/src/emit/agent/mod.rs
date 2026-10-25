@@ -1,9 +1,8 @@
-//! Agent context shipped inside every generated SDK (plan §5 item 4, ADR 0013): SKILL.md,
-//! AGENTS.md and llms.txt under `src/<pkg>/_agent/` so the wheel carries them, locked to its
-//! version; with project metadata also the repository copies (plan §10), one runnable recipe
-//! per example under `examples/agent/` and a test that runs them against a mock.
-//! Pure: [`SdkClient`] in, path -> text out. Not part of the Stainless output.
-//! Port of `python-plugin/src/emit/agent/index.ts`.
+//! Agent context shipped inside every generated SDK (plan §5 item 4, ADR 0013): SKILL.md, AGENTS.md
+//! and llms.txt under `src/<pkg>/_agent/` so the wheel carries them, locked to its version; with
+//! project metadata also the repository copies (plan §10), one runnable recipe per example under
+//! `examples/agent/` and a test that runs them against a mock. Pure: [`SdkClient`] in, path -> text
+//! out. Not part of the Stainless output.
 
 use super::common::{method_params, py_string, sort_fields, stainless_method_order};
 use super::files::api_tests::{Uses, example_value};

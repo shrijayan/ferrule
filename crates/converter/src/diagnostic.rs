@@ -1,4 +1,4 @@
-//! Diagnostics helpers (`converter/src/diagnostic.ts`) and path segments.
+//! Diagnostics helpers and path segments.
 
 use crate::{Diagnostic, Severity};
 use std::fmt;
@@ -97,7 +97,7 @@ impl Diagnostic {
         }
     }
 
-    /// An error diagnostic (`error()` in `transforms/targets.ts`).
+    /// An error diagnostic.
     #[must_use]
     pub fn error(
         code: &str,

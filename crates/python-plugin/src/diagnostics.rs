@@ -1,5 +1,4 @@
 //! Diagnostics with addresses: a FER code, a pointer into the spec, and a suggested fix.
-//! Port of `python-plugin/src/diagnostics.ts`.
 
 use std::fmt;
 

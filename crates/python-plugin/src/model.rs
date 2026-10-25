@@ -1,11 +1,11 @@
 //! `SdkModel`: Ferrule's own, Forge-independent view of an SDK (ADR 0002).
 //!
-//! It describes the SDK, not the spec: names are already Python spellings, inline objects are
-//! still anonymous (the types emitter names them by path, as Stainless does), and named models
-//! are references into [`SdkClient::models`].
+//! It describes the SDK, not the spec: names are already Python spellings, inline objects are still
+//! anonymous (the types emitter names them by path, as Stainless does), and named models are
+//! references into [`SdkClient::models`].
 //!
-//! Port of `python-plugin/src/model/index.ts`. Maps that the TypeScript model keeps as objects
-//! are `Vec<(key, value)>` here, in the order the TypeScript object would iterate them.
+//! Maps that the TypeScript model keeps as objects are `Vec<(key, value)>` here, in the order the
+//! TypeScript object would iterate them.
 
 use serde_json::Value;
 

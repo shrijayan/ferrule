@@ -1,6 +1,6 @@
-//! Config editions (`converter/src/editions/index.ts`). An edition pins the defaults Stainless
-//! applies to keys a config leaves out, so a config keeps generating the same SDK when newer
-//! defaults ship. Every value is cited from a description in the public schema.
+//! Config editions. An edition pins the defaults Stainless applies to keys a config leaves out, so
+//! a config keeps generating the same SDK when newer defaults ship. Every value is cited from a
+//! description in the public schema.
 
 use crate::Diagnostic;
 use crate::schema::suggest::closest;

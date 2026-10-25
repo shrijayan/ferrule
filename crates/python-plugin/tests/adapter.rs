@@ -1,6 +1,5 @@
-//! Adapter tests: small OpenAPI documents read by Forge, then converted to the model. Port of the
-//! `toModel` tests in `test/adapter.test.ts`; the TypeScript fake Forge does not carry over, so
-//! each case is a document (Forge can only be built from one).
+//! Adapter tests: small OpenAPI documents read by Forge, then converted to the model. Each case is
+//! a document, since Forge can only be built from one.
 
 use ferrule_python_plugin::adapter::{forge_to_model, group_to_model};
 use ferrule_python_plugin::diagnostics::FerruleError;

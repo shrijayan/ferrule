@@ -1,5 +1,5 @@
 //! stainless.yml validation: the public JSON Schema, Ferrule's typed reader and `FER11xx`
-//! diagnostics. Port of `converter/src/schema/`.
+//! diagnostics.
 
 pub mod config;
 pub mod json_schema;
