@@ -13,10 +13,8 @@ root="$(cd "$(dirname "$0")/.." && pwd)"
 cfg_dir="$root/oracles/cache/onebusaway-config"
 sdk_dir="$root/oracles/cache/onebusaway-python"
 out="$root/.cache/spike"
-# FERRULE_GEN: a ferrule-gen binary (default: build it here). FERRULE_CONVERT: a command prefix
-# that replaces `ferrule-gen convert` (e.g. `node converter/src/cli.ts`).
+# FERRULE_GEN: a ferrule-gen binary (default: build it here).
 gen="${FERRULE_GEN:-$root/target/release/ferrule-gen}"
-read -ra convert <<<"${FERRULE_CONVERT:-$gen convert}"
 
 python3 "$root/oracles/fetch.py" onebusaway >/dev/null
 [ -n "${FERRULE_GEN:-}" ] || (cd "$root" && cargo build --release --locked --quiet -p ferrule-gen)
@@ -39,7 +37,7 @@ with open(sys.argv[2], "w") as f:
 PY
 
 # 2. Convert, 3. Forge + plugin.
-"${convert[@]}" "$cfg_dir/openapi.yml" "$out/stainless.yml" -o "$out/annotated.json"
+"$gen" convert "$cfg_dir/openapi.yml" "$out/stainless.yml" -o "$out/annotated.json"
 "$gen" generate "$out/annotated.json" --out "$out/generated"
 
 # 4. Drop the generated files into a copy of the oracle SDK (its runtime and tool configs).

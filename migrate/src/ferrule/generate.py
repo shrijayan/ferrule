@@ -16,7 +16,6 @@ import hashlib
 import importlib
 import os
 import re
-import shlex
 import shutil
 import subprocess
 import tempfile
@@ -78,20 +77,10 @@ type Runner = Callable[[Sequence[str]], subprocess.CompletedProcess[str]]
 
 @dataclass(frozen=True)
 class Tools:
-    """Executables the pipeline runs.
-
-    ``convert`` overrides the command prefix of the convert step (``$FERRULE_CONVERT``, e.g.
-    ``node converter/src/cli.ts``) while the converter port is unfinished; empty means
-    ``<gen> convert``.
-    """
+    """Executables the pipeline runs."""
 
     gen: Path
     ruff: str
-    convert: tuple[str, ...] = ()
-
-    def convert_command(self) -> tuple[str, ...]:
-        """Return the convert step's command prefix; spec, config and ``-o`` follow."""
-        return self.convert or (str(self.gen), "convert")
 
 
 @dataclass(frozen=True)
@@ -145,7 +134,6 @@ def resolve_tools(
     return Tools(
         gen=gen or Path(env.get("FERRULE_GEN") or root / "target/release/ferrule-gen"),
         ruff=env.get("FERRULE_RUFF", "ruff"),
-        convert=tuple(shlex.split(env.get("FERRULE_CONVERT", ""))),
     )
 
 
@@ -155,7 +143,7 @@ def plan_steps(request: GenerateRequest, work: Path) -> tuple[Step, Step]:
     t = request.tools
     convert = Step(
         "convert",
-        (*t.convert_command(), str(request.spec), str(request.config), "-o", str(annotated)),
+        (str(t.gen), "convert", str(request.spec), str(request.config), "-o", str(annotated)),
     )
     gen = Step("generate", (str(t.gen), "generate", str(annotated), "--out", str(request.out)))
     return convert, gen
@@ -301,13 +289,10 @@ def _check_inputs(request: GenerateRequest) -> None:
         if not path.is_file():
             raise fail(MISSING_INPUT, f"{path} does not exist", label, "pass an existing file")
     _check_gen(request.tools)
-    t = request.tools
-    on_path = [("FERRULE_RUFF", t.ruff)]
-    if t.convert:
-        on_path.insert(0, ("FERRULE_CONVERT", t.convert[0]))
-    for label, exe in on_path:
-        if shutil.which(exe) is None:
-            raise fail(TOOL_NOT_FOUND, f"{exe} is not on PATH", label, f"install it or set {label}")
+    ruff = request.tools.ruff
+    if shutil.which(ruff) is None:
+        hint = "install it or set FERRULE_RUFF"
+        raise fail(TOOL_NOT_FOUND, f"{ruff} is not on PATH", "FERRULE_RUFF", hint)
     if request.out.exists() and any(request.out.iterdir()):
         raise fail(OUT_NOT_EMPTY, f"{request.out} is not empty", "--out", "pass a new directory")
     if request.runtime_from is not None and not (request.runtime_from / "src").is_dir():

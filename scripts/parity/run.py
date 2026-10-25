@@ -5,8 +5,7 @@
 Usage: uv run python -m scripts.parity.run [--skip-tests] <oracle>
 
 Generation runs ``ferrule-gen`` (``$FERRULE_GEN``, default ``target/release/ferrule-gen``; build
-it with ``cargo build --release -p ferrule-gen``). ``$FERRULE_CONVERT`` replaces its convert
-command, e.g. ``node converter/src/cli.ts`` until the Rust converter lands.
+it with ``cargo build --release -p ferrule-gen``).
 
 <oracle> is a group (``onebusaway``) or a config/sdk name from oracles/manifest.yaml. Steps:
 

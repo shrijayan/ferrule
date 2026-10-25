@@ -9,7 +9,7 @@ Per spec, each stage is timed and limited, and the run stops at the first failin
 1. fetch: ``corpus/fetch.py`` (pinned, sha256-verified); YAML is parsed to JSON with the
    converter's ``yaml`` package (scripts/corpus/to_json.mjs);
 2. a minimal stainless.yml is synthesized (scripts/corpus/harness.py documents the rules);
-3. convert: ``ferrule-gen convert`` (or ``$FERRULE_CONVERT``); 4. forge: ``ferrule-gen
+3. convert: ``ferrule-gen convert``; 4. forge: ``ferrule-gen
    generate``, Forge with the Python plugin in one process (a failure whose output points at
    the plugin or carries a FER code is recorded as ``plugin``);
 5. runtime: ``ferrule_runtime.render`` plus the import sort and ``ruff format`` of

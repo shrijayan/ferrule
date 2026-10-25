@@ -107,27 +107,6 @@ def test_plan_steps(inputs: tuple[GenerateRequest, Path]) -> None:
     assert format_step(request.out, request.tools).argv[1:3] == ("format", "--no-cache")
 
 
-def test_convert_override(inputs: tuple[GenerateRequest, Path]) -> None:
-    # FERRULE_CONVERT swaps only the convert command (the TS converter until the port lands).
-    request, tmp = inputs
-    tools = resolve_tools({"FERRULE_CONVERT": "node 'converter/src/cli.ts'"}, gen=Path("/g"))
-    assert tools.convert == ("node", "converter/src/cli.ts")
-    convert, gen = plan_steps(replace(request, tools=tools), tmp / "work")
-    assert convert.argv[:3] == ("node", "converter/src/cli.ts", str(request.spec))
-    assert gen.argv[:2] == ("/g", "generate")
-
-
-def test_convert_override_must_be_on_path(inputs: tuple[GenerateRequest, Path]) -> None:
-    request, _ = inputs
-    tools = replace(request.tools, convert=("definitely-not-a-node-binary", "cli.ts"))
-    with pytest.raises(FerruleError, match="FER4002 at FERRULE_CONVERT"):
-        generate(replace(request, tools=tools), runner=fake_runner([]))
-    calls: list[tuple[str, ...]] = []
-    tools = replace(request.tools, convert=(sys.executable, "cli.ts"))
-    generate(replace(request, tools=tools), runner=fake_runner(calls))
-    assert calls[0][:2] == (sys.executable, "cli.ts")
-
-
 @pytest.mark.parametrize(
     ("text", "expected"),
     [
