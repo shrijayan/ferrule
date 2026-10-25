@@ -16,26 +16,76 @@ from scripts.parity.harness import (
 )
 
 
-def oracle(name: str, kind: str, pairs_with: str | None) -> Oracle:
-    return Oracle(name, "acme", kind, "a/b", "https://x", "0" * 40, "", None, {}, pairs_with)
+def oracle(
+    name: str,
+    kind: str,
+    pairs_with: str | None,
+    language: str | None = None,
+    paired: str | None = None,
+) -> Oracle:
+    return Oracle(
+        name,
+        "acme",
+        kind,
+        "a/b",
+        "https://x",
+        "0" * 40,
+        "",
+        None,
+        {},
+        pairs_with,
+        paired=paired,
+        language=language,
+    )
 
 
 ORACLES = [
     oracle("acme-python", "sdk", "acme-config"),
-    oracle("acme-config", "config", "acme-python"),
+    oracle("acme-config", "config", "acme-python", paired="proven"),
     oracle("lone-config", "config", None),
+]
+# The same group with SDKs in other languages, as the manifest lists them after the Python one.
+MULTI = [
+    oracle("acme-config", "config", "acme-python", paired="proven"),
+    oracle("acme-python", "sdk", "acme-config", "python"),
+    oracle("acme-typescript", "sdk", "acme-config", "typescript", "nearest"),
+    oracle("acme-go", "sdk", "acme-config", "go", "proven"),
 ]
 
 
+@pytest.mark.parametrize("oracles", [ORACLES, MULTI])
 @pytest.mark.parametrize("wanted", ["acme", "acme-config", "acme-python"])
-def test_resolve_pair(wanted: str) -> None:
-    pair = resolve_pair(ORACLES, wanted)
+def test_resolve_pair(oracles: list[Oracle], wanted: str) -> None:
+    pair = resolve_pair(oracles, wanted)
     assert (pair.config.name, pair.sdk.name) == ("acme-config", "acme-python")
+    assert (pair.language, pair.paired) == ("python", "proven")
+    assert resolve_pair(oracles, wanted, language="python") == pair
 
 
 def test_resolve_pair_unknown() -> None:
     with pytest.raises(HarnessError, match="FER4020"):
         resolve_pair(ORACLES, "lone-config")
+
+
+@pytest.mark.parametrize("wanted", ["acme", "acme-config", "acme-typescript"])
+def test_resolve_pair_by_language(wanted: str) -> None:
+    pair = resolve_pair(MULTI, wanted, language="typescript")
+    assert (pair.config.name, pair.sdk.name) == ("acme-config", "acme-typescript")
+    assert (pair.language, pair.paired) == ("typescript", "nearest")
+
+
+def test_resolve_pair_language_from_sdk_name() -> None:
+    pair = resolve_pair(MULTI, "acme-go")
+    assert (pair.sdk.name, pair.language, pair.paired) == ("acme-go", "go", "proven")
+
+
+def test_resolve_pair_language_mismatch() -> None:
+    with pytest.raises(HarnessError, match="FER4020 acme: no config oracle with a paired ruby"):
+        resolve_pair(MULTI, "acme", language="ruby")
+    with pytest.raises(HarnessError, match="FER4020"):
+        resolve_pair(MULTI, "acme-go", language="typescript")
+    with pytest.raises(HarnessError, match="FER4020"):
+        resolve_pair(ORACLES, "acme", language="go")
 
 
 def test_lock_requirements() -> None:
