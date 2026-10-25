@@ -577,3 +577,28 @@ fn maps_resources_params_and_the_api_key_query_auth() {
     no_settings.settings = None;
     assert!(to_project_files_input(&no_settings, &meta).is_none());
 }
+
+#[test]
+fn emits_project_files_for_a_bearer_token_client() {
+    // lumaai, isaacus and knock-mgmt send a bearer token, not a query parameter. Without
+    // pyproject.toml, ruff's default isort turns the runtime's `_utils` imports into a cycle and
+    // the SDK's own tests cannot even be collected.
+    let c = client(
+        vec![resource(
+            &["things"],
+            vec![method(Some(SdkType::Object(obj_with("id"))))],
+        )],
+        Some(settings()),
+        "acme/acme-python",
+    );
+    assert!(to_project_files_input(&c, &placeholder_meta()).is_some());
+    let files = emit_root_files(&c, Some(&placeholder_meta())).expect("emits");
+    for path in [
+        "pyproject.toml",
+        "README.md",
+        "tests/test_client.py",
+        "tests/conftest.py",
+    ] {
+        assert!(files.iter().any(|(p, _)| p == path), "no {path}");
+    }
+}
