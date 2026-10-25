@@ -57,6 +57,8 @@ jobs:
             target
           key: cargo-${{ runner.os }}-${{ hashFiles('Cargo.lock', 'rust-toolchain.toml') }}
       - run: mise run lint:rs
+      # The Ruby plugin's golden checks format with the gem's pinned stree and rubocop.
+      - run: mise run ruby:tools
       - run: mise run test:rs
 
   gates:
