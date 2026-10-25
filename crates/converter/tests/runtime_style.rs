@@ -140,3 +140,18 @@ fn refuses_a_runtime_without_a_package() {
     assert!(r.err[0].contains("--runtime-from"), "{:?}", r.err);
     assert!(!target.exists());
 }
+
+/// honcho-python-core's `_files.py` has no `deepcopy_with_paths`: its multipart methods copy the
+/// body with `_utils.deepcopy_minimal`. A `_files.py` with it (ogx-client-python) changes nothing.
+#[test]
+fn writes_the_multipart_copy_of_a_runtime_without_deepcopy_with_paths() {
+    let dir = fixture("multipart", (TYPES_OMIT, UTILS_NEW, CLIENT_LAZY));
+    let files = dir.join("sdk/src/acme/_files.py");
+    std::fs::write(&files, "def to_httpx_files(files):\n    return files\n").expect("files");
+    assert_eq!(
+        styles(&convert(&dir, true)),
+        everywhere(&[("multipart", "deepcopy_minimal")])
+    );
+    std::fs::write(&files, "def deepcopy_with_paths(item, paths):\n    return item\n").expect("files");
+    assert_eq!(convert(&dir, true), convert(&dir, false));
+}
