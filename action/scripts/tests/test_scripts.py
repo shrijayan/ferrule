@@ -182,3 +182,61 @@ def test_labels_ignore_fork_triggering_pr(tmp_path: Path) -> None:
 def test_labels_never_read_other_prs(tmp_path: Path) -> None:
     assert _labels(tmp_path, {"ref": "refs/heads/main"}) == ""
     assert "pr list" not in _log(tmp_path)
+
+
+STUB_CARGO = """#!/usr/bin/env bash
+printf '%s %s\\n' "$PWD" "$*" >> "$CARGO_LOG"
+"""
+
+STUB_FERRULE = """#!/usr/bin/env bash
+printf '%s %s\\n' "$1" "${FERRULE_GEN:-}" >> "$FERRULE_LOG"
+case "$1" in
+  generate) mkdir -p "$OUT" && echo gen > "$OUT/gen.py" ;;
+  verify) echo '{}' > "$REPORT" ;;
+esac
+"""
+
+
+def _regenerate(tmp: Path, **extra: str) -> tuple[Path, str, str]:
+    src = tmp / "ferrule"
+    (src / "action").mkdir(parents=True)
+    env = _env(
+        tmp,
+        GITHUB_ACTION_PATH=str(src / "action"),
+        INPUT_SPEC="openapi.json",
+        INPUT_CONFIG="stainless.yml",
+        INPUT_AGAINST="HEAD",
+        WORKSPACE=str(_repo(tmp)),
+        OUT=str(tmp / "out"),
+        REPORT=str(tmp / "report.json"),
+        MANIFEST=str(tmp / "manifest.txt"),
+        CARGO_LOG=str(tmp / "cargo.log"),
+        FERRULE_LOG=str(tmp / "ferrule.log"),
+        **extra,
+    )
+    for name, text in (("cargo", STUB_CARGO), ("ferrule", STUB_FERRULE)):
+        stub = tmp / "bin" / name
+        stub.write_text(text)
+        stub.chmod(0o755)
+    subprocess.run(  # noqa: S603
+        [BASH, str(SCRIPTS / "regenerate.sh")], env=env, capture_output=True, text=True, check=True
+    )
+    cargo = tmp / "cargo.log"
+    return (
+        src.resolve(),
+        cargo.read_text() if cargo.exists() else "",
+        (tmp / "ferrule.log").read_text(),
+    )
+
+
+def test_regenerate_builds_ferrule_gen_from_the_action_checkout(tmp_path: Path) -> None:
+    src, cargo, ferrule = _regenerate(tmp_path)
+    assert cargo == f"{src} build --release --locked --quiet -p ferrule-gen\n"
+    gen = src / "target/release/ferrule-gen"
+    assert ferrule.splitlines() == [f"generate {gen}", f"verify {gen}"]
+
+
+def test_regenerate_uses_a_given_ferrule_gen(tmp_path: Path) -> None:
+    _, cargo, ferrule = _regenerate(tmp_path, FERRULE_GEN="/opt/ferrule-gen")
+    assert cargo == ""
+    assert ferrule.splitlines()[0] == "generate /opt/ferrule-gen"
