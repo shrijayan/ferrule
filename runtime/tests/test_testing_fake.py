@@ -186,12 +186,11 @@ def test_errors(sdk: Any) -> None:
 
 
 def test_overrides(sdk: Any) -> None:
-    overrides = {
-        "GET /users/{user_id}": lambda request: {
-            "id": request.url.path.rsplit("/", 1)[-1],
-            "name": "n",
-            "tags": [],
-        },
+    def user(request: httpx.Request) -> dict[str, object]:
+        return {"id": request.url.path.rsplit("/", 1)[-1], "name": "n", "tags": []}
+
+    overrides: dict[str, object] = {
+        "GET /users/{user_id}": user,
         "POST /users": httpx.Response(409, json={"error": "taken"}),
         "GET /extra": [1, 2],
     }
@@ -215,7 +214,10 @@ def test_http_client_and_base_url_prefix(sdk: Any) -> None:
 
 
 def test_client_options_from_routes_file(sdk: Any) -> None:
-    with sdk.testing.fake(overrides={"GET /echo": lambda request: dict(request.headers)}) as client:
+    def echo(request: httpx.Request) -> dict[str, str]:
+        return dict(request.headers)
+
+    with sdk.testing.fake(overrides={"GET /echo": echo}) as client:
         assert client.get("/echo", cast_to=object)["x-fake"] == "1"
 
 
@@ -278,5 +280,9 @@ def test_missing_routes_file(sdk: Any, monkeypatch: pytest.MonkeyPatch) -> None:
 
     monkeypatch.setattr(pkgutil, "get_data", missing)
     assert sdk.testing.load_routes() == []
-    monkeypatch.setattr(pkgutil, "get_data", lambda *_: None)
+
+    def empty(_package: str, _resource: str) -> None:
+        return None
+
+    monkeypatch.setattr(pkgutil, "get_data", empty)
     assert sdk.testing.load_routes() == []
