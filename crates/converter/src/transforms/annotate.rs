@@ -240,17 +240,22 @@ impl Ctx<'_> {
             let pointer = to_json_pointer(&p);
             let mut dotted = path.to_vec();
             dotted.push(key.clone());
-            let Value::String(model) = model else {
-                self.diagnostics.push(Diagnostic::warning(
-                    "FER1004",
-                    pointer,
-                    format!(
-                        "Model {} uses the object form, which is not supported yet.",
-                        dotted.join(".")
-                    ),
-                    "Write the model as a schema name, e.g. `references: Reference`.",
-                ));
-                continue;
+            let model = match model_uri(model) {
+                ModelUri::Schema(uri) => uri,
+                ModelUri::NotForPython => continue,
+                ModelUri::Unsupported => {
+                    self.diagnostics.push(Diagnostic::warning(
+                        "FER1004",
+                        pointer,
+                        format!(
+                            "Model {} uses an object form that is not supported yet.",
+                            dotted.join(".")
+                        ),
+                        "Write the model as a schema name, e.g. `references: Reference`, or as \
+                         `{ openapi_uri: \"#/components/schemas/<Name>\" }`.",
+                    ));
+                    continue;
+                }
             };
             let schema = model.strip_prefix("#/components/schemas/").unwrap_or(model);
             let schemas = spec
@@ -300,6 +305,50 @@ impl Ctx<'_> {
             o.push(i);
             self.walk(spec, &p, &o, sub);
         }
+    }
+}
+
+enum ModelUri<'a> {
+    /// `Name` or `#/components/schemas/Name`.
+    Schema(&'a str),
+    /// The object form with `only:` or `skip:` leaving Python out.
+    NotForPython,
+    /// `type: alias`, an object without `openapi_uri`, or a URI into a sub-schema or a query.
+    Unsupported,
+}
+
+/// A `models:` value: the schema-name shorthand, or `{ type?: model, openapi_uri, only?, skip? }`.
+fn model_uri(model: &Value) -> ModelUri<'_> {
+    let m = match model {
+        Value::String(s) => return ModelUri::Schema(s),
+        Value::Object(m) => m,
+        _ => return ModelUri::Unsupported,
+    };
+    let lists_python = |v: &Value| match v {
+        Value::Array(langs) => langs.iter().any(|l| l.as_str() == Some("python")),
+        _ => false,
+    };
+    let only_others = m.get("only").is_some_and(|only| !lists_python(only));
+    let skipped = m
+        .get("skip")
+        .is_some_and(|skip| *skip == Value::Bool(true) || lists_python(skip));
+    if only_others || skipped {
+        return ModelUri::NotForPython;
+    }
+    if m.get("type").is_some_and(|t| t.as_str() != Some("model")) {
+        return ModelUri::Unsupported;
+    }
+    // A component name (FER1005 if it is not one); a path below it or a JSONPath query is not.
+    match m.get("openapi_uri").and_then(Value::as_str) {
+        Some(uri) => {
+            let name = uri.strip_prefix("#/components/schemas/").unwrap_or(uri);
+            if name.is_empty() || name.contains('/') || name.starts_with(['$', '#']) {
+                ModelUri::Unsupported
+            } else {
+                ModelUri::Schema(uri)
+            }
+        }
+        None => ModelUri::Unsupported,
     }
 }
 
