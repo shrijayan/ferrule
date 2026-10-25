@@ -350,3 +350,34 @@ fn generates_java_and_kotlin_with_the_runtime_options() {
         assert_eq!(options["artifact_name"], artifact);
     }
 }
+
+#[test]
+fn generates_ruby_with_the_runtime_options() {
+    let out = scratch("target-ruby");
+    let status = bin()
+        .arg("generate")
+        .arg(plugin_dir().join("tests/fixtures/onebusaway.json"))
+        .args(["--target", "ruby", "--out"])
+        .arg(&*out)
+        .status()
+        .expect("runs");
+    assert!(status.success());
+    // The fixture has no `x-ferrule-targets`, so the gem is named after `x-ferrule-package`.
+    let names: Vec<String> = files(&out).into_iter().map(|(p, _)| p).collect();
+    for expected in [
+        "lib/onebusaway.rb",
+        "lib/onebusaway/client.rb",
+        "rbi/onebusaway/resources/agency.rbi",
+        "sig/onebusaway/models/references.rbs",
+        "test/onebusaway/client_test.rb",
+        ".rubocop.yml",
+        ".ferrule/ruby-runtime.json",
+    ] {
+        assert!(names.iter().any(|n| n == expected), "{expected} not in {names:?}");
+    }
+    let options: serde_json::Value =
+        serde_json::from_slice(&fs::read(out.join(".ferrule/ruby-runtime.json")).expect("options")).expect("JSON");
+    assert_eq!(options["gem_name"], "onebusaway");
+    assert_eq!(options["module_name"], "Onebusaway");
+    assert_eq!(options["auth_in"], "query");
+}

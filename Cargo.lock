@@ -218,6 +218,7 @@ dependencies = [
  "ferrule-go-plugin",
  "ferrule-jvm-plugin",
  "ferrule-python-plugin",
+ "ferrule-ruby-plugin",
  "ferrule-sdk-model",
  "ferrule-ts-plugin",
  "forge",

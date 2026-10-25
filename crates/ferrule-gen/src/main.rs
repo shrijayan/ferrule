@@ -10,11 +10,10 @@
 //! `generate` replaces `forge annotated.json --target wasm://plugin.wasm --out sdk`: the same
 //! input (a JSON document, or `-` for standard input), the same output directory handling
 //! (`forge::write`), errors on standard error as `ferrule-gen: <error>` with exit code 1, and
-//! exit code 2 for a usage error. `--target` names the SDK language (ADR 0017): `python` (the
-//! default), `typescript` and `node` (`crates/ts-plugin`), `go` (`crates/go-plugin`), and `java`
-//! and `kotlin` (`crates/jvm-plugin`) have plugins; the others fail with FER202. `node` writes Stainless's legacy TypeScript layout;
-//! `typescript` writes the layout of the TypeScript target the config has (`targets.typescript`,
-//! else the legacy `targets.node`).
+//! exit code 2 for a usage error. `--target` names the SDK language (ADR 0017): [`PLUGINS`] are
+//! the ones with a plugin, and the others fail with FER202. `node` writes Stainless's legacy
+//! TypeScript layout; `typescript` writes the layout of the TypeScript target the config has
+//! (`targets.typescript`, else the legacy `targets.node`).
 //!
 //! For `typescript` and `node` only, until the annotated spec carries them: `--config` reads the version-less
 //! project settings (organization, README examples, license) from the stainless.yml, and
@@ -30,6 +29,11 @@
 //! ktfmt, and [`JVM_RUNTIME_OPTIONS`], the options the JVM runtime template is rendered with
 //! (`ferrule_runtime.render_java_files`); `ferrule generate` renders the runtime from it, removes
 //! it and runs ktfmt, as it renders Python's runtime.
+//!
+//! For Ruby, the output holds the generated files, before the gem's `rake format` lays them out,
+//! and [`RUBY_RUNTIME_OPTIONS`], the options the Ruby runtime template is rendered with
+//! (`ferrule_runtime.render_ruby_files`); `ferrule generate` renders the runtime from it, removes
+//! it and runs the formatters, as it renders Python's runtime.
 //!
 //! `model` prints the language-neutral SDK model (`ferrule-sdk-model`) of an annotated spec as
 //! deterministic JSON, for debugging and for plugin tests.
@@ -51,8 +55,8 @@ Commands:
   generate  Generate an SDK from an annotated spec (a JSON document, or - for stdin)
   model     Print the language-neutral SDK model of an annotated spec as JSON
 
-Targets: python (default), typescript, node (the legacy TypeScript layout), go, java, kotlin;
-ruby, php, csharp, cli and terraform are planned and not supported yet";
+Targets: python (default), typescript, node (the legacy TypeScript layout), go, java, kotlin,
+ruby; php, csharp, cli and terraform are planned and not supported yet";
 
 /// `ferrule-gen <crate version> forge <40-hex rev>`: the rev is the Forge commit pinned in the
 /// workspace `Cargo.lock` (read by `build.rs`). `ferrule.lock` records both parts.
@@ -91,8 +95,10 @@ const JAVA: &str = "java";
 
 const KOTLIN: &str = "kotlin";
 
+const RUBY: &str = "ruby";
+
 /// The targets with a plugin.
-const PLUGINS: [&str; 6] = [DEFAULT_TARGET, TYPESCRIPT, NODE, GO, JAVA, KOTLIN];
+const PLUGINS: [&str; 7] = [DEFAULT_TARGET, TYPESCRIPT, NODE, GO, JAVA, KOTLIN, RUBY];
 
 /// Where `generate --target go` writes the Go runtime's options (JSON), relative to `--out`.
 pub const GO_RUNTIME_OPTIONS: &str = ".ferrule/go-runtime.json";
@@ -100,6 +106,9 @@ pub const GO_RUNTIME_OPTIONS: &str = ".ferrule/go-runtime.json";
 /// Where `generate --target java|kotlin` writes the JVM runtime's options (JSON), relative to
 /// `--out`.
 pub const JVM_RUNTIME_OPTIONS: &str = ".ferrule/jvm-runtime.json";
+
+/// Where `generate --target ruby` writes the Ruby runtime's options (JSON), relative to `--out`.
+pub const RUBY_RUNTIME_OPTIONS: &str = ".ferrule/ruby-runtime.json";
 
 fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().skip(1).collect();
@@ -256,6 +265,7 @@ fn generate(args: &[String], stderr: &mut dyn Write) -> i32 {
         GO => write_go(&args),
         JAVA => write_jvm(&args, ferrule_jvm_plugin::Flavor::Java),
         KOTLIN => write_jvm(&args, ferrule_jvm_plugin::Flavor::Kotlin),
+        RUBY => write_ruby(&args),
         other => return fail(stderr, &unsupported_target(other)),
     };
     match written {
@@ -416,6 +426,26 @@ fn write_jvm(args: &GenerateArgs, flavor: ferrule_jvm_plugin::Flavor) -> Result<
     forge::write(&args.out, files)
 }
 
+/// Reads the annotated spec, maps it to the neutral model and writes the Ruby plugin's files with
+/// the runtime options; nothing for a document without operations.
+fn write_ruby(args: &GenerateArgs) -> Result<(), forge::Err> {
+    let forge = read(&args.spec)?;
+    let Some(client) = ferrule_sdk_model::forge_to_model(&forge)? else {
+        return forge::write(&args.out, Vec::<TextFile>::new());
+    };
+    let out = ferrule_ruby_plugin::generate(&client, &ferrule_ruby_plugin::RubyMeta::default())?;
+    let mut files: Vec<TextFile> = out
+        .files
+        .into_iter()
+        .map(|(path, content)| TextFile { path, content })
+        .collect();
+    files.push(TextFile {
+        path: RUBY_RUNTIME_OPTIONS.to_owned(),
+        content: out.runtime.to_json(),
+    });
+    forge::write(&args.out, files)
+}
+
 fn parse_model(args: &[String]) -> Result<PathBuf, String> {
     match args {
         [spec] if !spec.starts_with('-') || spec == "-" => Ok(PathBuf::from(spec)),
@@ -503,9 +533,9 @@ mod tests {
     fn rejects_unknown_targets_and_missing_values() {
         let err = parse_generate(&strings(&["a.json", "--out", "sdk", "--target", "cobol"])).expect_err("unknown");
         assert!(err.contains("possible values: python, typescript"), "{err}");
-        let fix = unsupported_target("ruby").fix;
+        let fix = unsupported_target("terraform").fix;
         assert!(
-            fix.contains("python or typescript or node or go or java or kotlin"),
+            fix.contains("python or typescript or node or go or java or kotlin or ruby"),
             "{fix}"
         );
         let err = parse_generate(&strings(&["a.json", "--out", "sdk", "--target"])).expect_err("no value");
