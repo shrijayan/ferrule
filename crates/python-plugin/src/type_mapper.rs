@@ -2,6 +2,7 @@
 //! here).
 
 use crate::emit::common::py_string;
+use crate::emit::format::{Expr, bracket};
 use crate::js;
 use crate::model::{SdkLiteral, SdkObject, SdkPrimitive, SdkRef, SdkType};
 use crate::printer::PythonPrinter;
@@ -117,10 +118,7 @@ pub fn to_annotation(ty: &SdkType, p: &mut PythonPrinter, ctx: &dyn AnnotationCo
             if let Some(alias) = ctx.union_name(ty) {
                 return alias;
             }
-            // Forge does not keep member order (gap G17); the oracles list enums before plain types.
-            let mut rest: Vec<&SdkType> = variants.iter().filter(|t| !is_null(t)).collect();
-            rest.sort_by_key(|t| u8::from(!matches!(t, SdkType::Literal(_))));
-            let nullable = rest.len() != variants.len();
+            let (rest, nullable) = union_members(variants);
             if rest.len() > 1 {
                 p.import_from("typing", "Union");
                 let mut parts: Vec<String> = rest.iter().map(|t| to_annotation(t, p, ctx)).collect();
@@ -147,6 +145,70 @@ pub fn to_annotation(ty: &SdkType, p: &mut PythonPrinter, ctx: &dyn AnnotationCo
         }
         SdkType::Ref(r) => ctx.ref_name(p, r),
         SdkType::Object(obj) => ctx.object_name(obj),
+    }
+}
+
+/// The members of a union as Python lists them, without `null`, and whether `null` is one.
+/// Forge does not keep member order (gap G17); the oracles list enums before plain types.
+#[must_use]
+pub fn union_members(variants: &[SdkType]) -> (Vec<&SdkType>, bool) {
+    let mut rest: Vec<&SdkType> = variants.iter().filter(|t| !is_null(t)).collect();
+    rest.sort_by_key(|t| u8::from(!matches!(t, SdkType::Literal(_))));
+    let nullable = rest.len() != variants.len();
+    (rest, nullable)
+}
+
+/// The annotation of a union of named models or objects whose alias is being declared, as
+/// bracketed members: `Union[A, B]`, or `Annotated[Union[A, B], PropertyInfo(discriminator=...)]`
+/// when the spec names a discriminator and `discriminated` is set (responses, not params).
+pub fn union_alias_expr(ty: &SdkType, p: &mut PythonPrinter, ctx: &dyn AnnotationContext, discriminated: bool) -> Expr {
+    let SdkType::Union {
+        variants,
+        discriminator,
+    } = ty
+    else {
+        return to_annotation(ty, p, ctx).into();
+    };
+    p.import_from("typing", "Union");
+    let plain = WithoutUnionNames(ctx);
+    let (rest, nullable) = union_members(variants);
+    let mut members: Vec<Expr> = rest.iter().map(|v| to_annotation(v, p, &plain).into()).collect();
+    if nullable {
+        members.push("None".into());
+    }
+    let union = bracket("Union[", members, false, "]");
+    let Some(d) = discriminator.as_ref().filter(|_| discriminated) else {
+        return union.into();
+    };
+    p.import_from("typing_extensions", "Annotated");
+    ctx.runtime(p, "_utils", "PropertyInfo");
+    bracket(
+        "Annotated[",
+        vec![
+            union.into(),
+            format!("PropertyInfo(discriminator={})", py_string(d)).into(),
+        ],
+        false,
+        "]",
+    )
+    .into()
+}
+
+/// The annotation of an alias's type as bracketed parts, so a long one splits as ruff splits it.
+pub fn alias_expr(ty: &SdkType, p: &mut PythonPrinter, ctx: &dyn AnnotationContext, discriminated: bool) -> Expr {
+    match ty {
+        SdkType::Union { .. } => union_alias_expr(ty, p, ctx, discriminated),
+        SdkType::Literal(values) => {
+            p.import_from("typing_extensions", "Literal");
+            bracket(
+                "Literal[",
+                values.iter().map(|v| py_literal(v).into()).collect(),
+                false,
+                "]",
+            )
+            .into()
+        }
+        other => to_annotation(other, p, ctx).into(),
     }
 }
 
