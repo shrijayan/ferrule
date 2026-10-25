@@ -5,7 +5,7 @@
 # release, then copy it over the working tree. Writes the verify report to $REPORT.
 #
 # Env: INPUT_SPEC, INPUT_CONFIG, INPUT_AGAINST (optional git ref), WORKSPACE, OUT, REPORT.
-# FERRULE_GEN (a ferrule-gen binary) and FERRULE_CONVERT pass through to `ferrule generate`.
+# FERRULE_GEN (a ferrule-gen binary) passes through to `ferrule generate`.
 set -euo pipefail
 
 : "${WORKSPACE:?}" "${OUT:?}" "${REPORT:?}"
