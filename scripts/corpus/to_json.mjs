@@ -1,12 +1,12 @@
 // Copyright 2026 Ferrule contributors
 // SPDX-License-Identifier: Apache-2.0
 // Parse a YAML corpus spec (data) and write it as JSON, so the Python harness needs only the
-// stdlib. Uses the converter's pinned `yaml` package with its alias-expansion limit kept on.
+// stdlib. Uses the workspace's pinned `yaml` package with its alias-expansion limit kept on.
 // Usage: node scripts/corpus/to_json.mjs <in.yaml> <out.json>
 import { readFileSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 
-const require = createRequire(new URL('../../converter/package.json', import.meta.url));
+const require = createRequire(new URL('../../package.json', import.meta.url));
 const { parse } = require('yaml');
 
 const [input, output] = process.argv.slice(2);

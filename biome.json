@@ -12,7 +12,8 @@
       "!!**/coverage",
       "!pnpm-lock.yaml",
       "!**/*.md",
-      "!**/test/golden",
+      "!crates",
+      "!target",
       "!docs/plan.html",
       "!docs/research",
       "!**/manifest.yaml"
