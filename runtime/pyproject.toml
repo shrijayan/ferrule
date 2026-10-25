@@ -26,6 +26,7 @@ packages = ["src/ferrule_runtime"]
 "template" = "ferrule_runtime/template"
 "typescript/template" = "ferrule_runtime/typescript/template"
 "go/template" = "ferrule_runtime/go/template"
+"java/template" = "ferrule_runtime/java/template"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

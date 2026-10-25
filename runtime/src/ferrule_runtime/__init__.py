@@ -3,6 +3,7 @@
 """Runtime support code copied into Ferrule-generated SDKs."""
 
 from ferrule_runtime._go import GoOptions, render_go_files
+from ferrule_runtime._java import JavaArrayFormat, JavaOptions, JavaTarget, render_java_files
 from ferrule_runtime._render import (
     Language,
     RenderError,
@@ -31,6 +32,9 @@ from ferrule_runtime.pagination import (
 
 __all__ = [
     "GoOptions",
+    "JavaArrayFormat",
+    "JavaOptions",
+    "JavaTarget",
     "Language",
     "PageField",
     "PageKind",
@@ -45,6 +49,7 @@ __all__ = [
     "render",
     "render_files",
     "render_go_files",
+    "render_java_files",
     "render_options",
     "render_pagination",
     "render_tree",

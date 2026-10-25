@@ -54,5 +54,33 @@ runtime/go/template/ is derived from the Stainless-generated OneBusAway Go SDK:
               option/requestoption.go replaced by slots. Marks are recorded here and in
               runtime/README.md instead of in the files (ADR 0004 amendment).
 
+runtime/java/template/ is derived from Stainless-generated Java and Kotlin SDKs:
+  Repository: https://github.com/OneBusAway/java-sdk
+  Commit:     c29c48ad95f08e9a6042bfb4b620bb93b7a5f0ab (release 0.1.0-alpha.60)
+  Licence:    Apache License, Version 2.0
+  Copyright:  Copyright 2026 Onebusaway SDK
+  Files:      onebusaway-sdk-java-core/src/{main,test}/kotlin/org/onebusaway/{core,errors}/**
+              (but core/ClientOptions.kt and its test), TestServerExtension.kt, the
+              META-INF/proguard rules, client-okhttp's OkHttpClientTest.kt
+  Repository: https://github.com/OneBusAway/kotlin-sdk
+  Commit:     6923446778f92f8867c591064019eec24c685c1d (release 0.1.0-alpha.81)
+  Licence:    Apache License, Version 2.0
+  Copyright:  Copyright 2026 Onebusaway SDK
+  Files:      the same files of onebusaway-sdk-kotlin-core and
+              client/okhttp/OkHttpClient.kt (the //ferrule:if kotlin text)
+  Repository: https://github.com/imagekit-developer/imagekit-java
+  Commit:     f96c35e8d1e552eeee326e2c0a25a51436b36e37
+  Licence:    Apache License, Version 2.0
+  Copyright:  Copyright 2026 Image Kit
+  Files:      client/okhttp/OkHttpClient.kt (Java text), core/UnwrapWebhookParams.kt,
+              core/handlers/EmptyHandler.kt, errors/ImageKitWebhookException.kt, and the
+              comma array-format blocks of QueryParams.kt, HttpRequestBodies.kt and
+              HttpRequestBodiesTest.kt
+  Changes:    Modified by The Ferrule Authors: artifact, package and client names, log env
+              var and repository replaced by tokens (also in directory and file names); the
+              Java and Kotlin texts merged with //ferrule:if java / kotlin blocks; array-format
+              and line-length (if fits) blocks added. Marks are recorded here and in
+              runtime/README.md instead of in the files (ADR 0004 amendment).
+
 src/ferrule_runtime/pagination.py reproduces the pagination class text of Stainless-generated
 SDKs (Apache-2.0): lithic-python, honcho-python-core, knock-python, knock-mgmt-python.

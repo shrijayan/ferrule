@@ -9,6 +9,7 @@ per-SDK names replaced by tokens; rendering is pure and byte-identical to the or
 | Python | `template/` | `render_files`, `render` | `OneBusAway/python-sdk` @ `4c20fa83` |
 | TypeScript (`typescript` target, current layout) | `typescript/template/` | `render_typescript_files` | `isaacus-dev/isaacus-typescript` @ `c56af182`, `src/internal/qs/` from `knocklabs/knock-mgmt-node` @ `ca88fdba` |
 | Go (v1) | `go/template/` | `render_go_files` | `OneBusAway/go-sdk` @ `d115209e` |
+| JVM (`java` and `kotlin` targets) | `java/template/` | `render_java_files` | `OneBusAway/java-sdk` @ `c29c48ad`, `OneBusAway/kotlin-sdk` @ `69234467`, `OkHttpClient.kt` and the webhook files from `imagekit-developer/imagekit-java` @ `f96c35e8` |
 
 - Templates are third-party code: not linted or formatted by our rules (excluded in the root
   `pyproject.toml` and `biome.json`).
@@ -17,11 +18,19 @@ per-SDK names replaced by tokens; rendering is pure and byte-identical to the or
   because the wheel layout and ADRs 0004 and 0016 refer to that path.
 
 All languages share one engine, `render_tree(root, *, replacements, flags, comment, slots,
-gated)`: whole-line directives `<comment>ferrule:if <flag>` / `else` / `endif` and
-`<comment>ferrule:slot <name>` (`#` for Python, `//` for TypeScript and Go), then token
-replacement, then a check that no `__ferrule_*__` / `__Ferrule*__` / `__FERRULE_*__` token is
-left. `gated` maps a path prefix to whether files under it are rendered. A slot line is
-replaced by text the caller supplies (empty removes it); a malformed directive is an error.
+gated, line_length)`: whole-line directives `<comment>ferrule:if <flag>` / `else` / `endif` and
+`<comment>ferrule:slot <name>` (`#` for Python, `//` for TypeScript, Go and the JVM), then
+token replacement in the text and in the path (a directory named `__ferrule_pkg_path__`
+becomes `org/acme`), then a check that no `__ferrule_*__` / `__Ferrule*__` / `__FERRULE_*__`
+token is left. `gated` maps a template path prefix to whether files under it are rendered. A
+slot line is replaced by text the caller supplies (empty removes it); a malformed directive is
+an error.
+
+`<comment>ferrule:if fits` is computed per block, never passed as a flag: it holds when the one
+line of its branch, with the tokens replaced, is at most `line_length(path)` columns (the
+formatter's line length for that file), and its `else` branch holds the formatter's wrapped
+form. That is how a line that wraps or not with the length of a name (formatters such as ktfmt
+wrap at a fixed width) renders right for any name.
 
 ## Python
 
@@ -279,6 +288,93 @@ and knock's also carry its `idempotency_header` (a `github.com/google/uuid` impo
 `Idempotency-Key` header in `NewRequestConfig` and `Clone`), which the template does not
 cover because no pinned oracle uses it.
 
+## JVM (Java and Kotlin)
+
+Stainless writes both the `java` and the `kotlin` target in Kotlin, with the same Gradle layout
+(`<artifact>-core`, `<artifact>-client-okhttp`, `<artifact>`, `-example`, `-proguard-test`). One
+template serves both: the Java target's Java-facing API sits in `//ferrule:if java` blocks and
+the Kotlin target's own text in `//ferrule:if kotlin` blocks.
+
+```python
+from ferrule_runtime import JavaOptions, render_java_files
+
+files = render_java_files(
+    JavaOptions(
+        package_name="com.acme.api",
+        client_name="Acme",
+        artifact_name="acme-java",
+        repo="acme/acme-java",
+    )
+)  # {"acme-java-core/src/main/kotlin/com/acme/api/core/Values.kt": "...", ...}: Gradle root
+```
+
+`JavaOptions(package_name, client_name, artifact_name, repo, *, target="java",
+log_env_var=None, array_format="comma", webhooks=False, empty_responses=False,
+mock_tests=True)`:
+
+- `package_name`: `reverse_domain`; every `package` line and the source directories.
+- `client_name`: `<client>Exception` and the other error classes.
+- `artifact_name`: the Gradle project prefix (`onebusaway-sdk-java`, `image-kit-java`): module
+  directories and the ProGuard rules file `META-INF/proguard/<artifact>-core.pro`.
+- `repo`: GitHub `owner/name`, linked from the Jackson version check in `Check.kt`.
+- `target`: `java` keeps the `Optional` overloads, `@JvmStatic` / `@JvmSynthetic` /
+  `@JvmOverloads` / `@file:JvmName` and the Java-only files (`AsyncStreamResponse.kt`,
+  `PhantomReachableClosingAsyncStreamResponse.kt`, their test and `OkHttpClientTest.kt`);
+  `kotlin` renders the Kotlin SDK's text (nullable types instead of `Optional`, no `@Jvm*`).
+- `log_env_var`: read by `LogLevel.fromEnv`; default `<CLIENT_SCREAMING_SNAKE>_LOG`
+  (`ONEBUSAWAY_SDK_LOG`, `IMAGE_KIT_LOG`).
+- `array_format`: `query_settings.array_format`. `comma` (the default; imagekit) joins arrays in
+  `QueryParams` and multipart bodies; `repeat` (OneBusAway) repeats the key. Other formats are
+  in no 2026 oracle.
+- `webhooks`: `core/UnwrapWebhookParams.kt` and `errors/<client>WebhookException.kt`.
+- `empty_responses`: `core/handlers/EmptyHandler.kt`, used by methods with no response body.
+- `mock_tests`: `TestServerExtension.kt` (off with `disable_mock_tests`).
+
+Tokens: `__ferrule_artifact__`, `__ferrule_pkg_path__` (a directory), `__ferrule_pkg__`,
+`__FerruleClient__`, `__FERRULE_LOG_ENV__`, `__FERRULE_REPO__`. Flags: `java`, `kotlin`,
+`comma`. ktfmt sorts each import block by path, so the package's own imports move around
+`java.*` and `kotlin.*` with its name (`io.imagekit` before them, `org.onebusaway` after): the
+renderer re-sorts every block after rendering, the order all 1,723 import blocks of the four
+oracles follow. Five `fits` blocks (ktfmt's 100 columns) hold the constructors of
+`<client>IoException`, `InvalidDataException`, `RetryableException` and `WebhookException`
+and the `Unexpected JsonNode type` throw; both forms are in the oracles (ImageKit fits,
+OnebusawaySdk wraps).
+
+### File classification
+
+Decided by comparing every file of the four oracles after normalising artifact, package and
+client names and sorting imports.
+
+| Files | Class | Notes |
+|---|---|---|
+| `<artifact>-core/src/main/kotlin/<pkg>/core/**` (39 files) | runtime | `QueryParams.kt`, `HttpRequestBodies.kt`: array format |
+| `<artifact>-core/src/main/kotlin/<pkg>/errors/**` (14 files) | runtime | |
+| `<artifact>-core/src/test/kotlin/<pkg>/core/**`, `TestServerExtension.kt` (12 files) | runtime | tests of the runtime, like Go's `_test.go` |
+| `<artifact>-core/src/main/resources/META-INF/proguard/<artifact>-core.pro` | runtime | |
+| `<artifact>-client-okhttp/.../OkHttpClient.kt`, `OkHttpClientTest.kt` | runtime | |
+| `core/ClientOptions.kt`, `core/ClientOptionsTest.kt`, `client/okhttp/<Client>OkHttpClient.kt`, `<Client>OkHttpClientAsync.kt` | generated | client settings (auth, environment variables, base URL) run through the builders, and ktfmt rewraps their KDoc by package length; like TypeScript's `src/client.ts` |
+| `client/*`, `models/**`, `services/**`, `ProGuardCompatibilityTest.kt` | generated | |
+| `core/AutoPager*.kt`, `core/Page*.kt` | generated | page types from the config's schemes (knock-java) |
+| `build.gradle.kts`, `buildSrc/**`, the Gradle wrapper, `scripts/`, `-example`, `-lib` | not runtime | project files |
+
+### Oracles
+
+| Oracle | Commit | Options | Identical |
+|---|---|---|---|
+| onebusaway-java | `c29c48ad95f08e9a6042bfb4b620bb93b7a5f0ab` (0.1.0-alpha.60, 2026-08-04) | `repeat` | 64/65 |
+| onebusaway-kotlin | `6923446778f92f8867c591064019eec24c685c1d` (0.1.0-alpha.81, 2026-07-18) | `kotlin`, `repeat` | 61/61 |
+| imagekit-java | `f96c35e8d1e552eeee326e2c0a25a51436b36e37` (2026-05-17) | webhooks, empty responses, no mock tests | 67/67 |
+| knock-java | `6e0df2347f66bbe9c7c284c352cc3466e081ad46` (2025-06-06, `generated` branch) | defaults | 28/65 |
+
+onebusaway-java's `OkHttpClient.kt` carries a hand edit (a `println` `LoggingInterceptor`
+added below the generated class), so the template takes that file from imagekit-java, whose
+copy is otherwise identical up to names. knock-java is a 2025 generation: 37 files have older
+text or do not exist yet (`Sleeper`, `LogLevel`, `LoggingHttpClient`, `ProxyAuthenticator`,
+`<client>RetryableException`, the ProGuard rules; Apache HttpClient multipart bodies), listed
+as `known_drift` in `tests/test_render_oracles_java.py`. Unverified: the Kotlin text for names
+other than OneBusAway's (one Kotlin oracle), and wrapping that depends on names shorter than
+`ImageKit` or longer than `OnebusawaySdk` outside the five `fits` blocks.
+
 ## Adding a language
 
 1. Pick the newest Apache-2.0 Stainless SDK in that language among the oracles and list every
@@ -321,7 +417,14 @@ rendered output, so the mark lives here and in `NOTICE` (ADR 0004 amendment):
 - all files under `go/template/` (module path, package, client and organisation names, max
   retries and the redacted-header list replaced by placeholders; `field.go` and
   `option/requestoption.go` gained `//ferrule:` import-order lines; `requestconfig.go` and
-  `requestoption.go` had their config-dependent lines replaced by slots).
+  `requestoption.go` had their config-dependent lines replaced by slots);
+- all files under `java/template/` (artifact, package and client names, log env var and
+  repository replaced by placeholders, also in directory and file names; the Java and Kotlin
+  texts merged with `//ferrule:if java` / `kotlin` blocks; `QueryParams.kt`,
+  `HttpRequestBodies.kt` and `HttpRequestBodiesTest.kt` gained comma-format blocks from
+  imagekit-java; the error classes and `HttpRequestBodies.kt` gained `fits` blocks;
+  `OkHttpClient.kt`, `UnwrapWebhookParams.kt`, `EmptyHandler.kt` and
+  `<client>WebhookException.kt` come from imagekit-java).
 
 MIT-licensed oracles (opencode-sdk-js, opencode-sdk-go) are compared by the tests but never
 copied; stagehand and ogx (MIT) are not used.
