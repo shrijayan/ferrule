@@ -136,21 +136,44 @@ fn generates_python_for_an_explicit_python_target() {
 
 #[test]
 fn reports_targets_without_a_plugin_as_fer202() {
-    let dir = scratch("target-ts");
+    let dir = scratch("target-go");
     let output = bin()
         .arg("generate")
         .arg(plugin_dir().join("tests/fixtures/cursor-page.json"))
-        .args(["--target=typescript", "--out"])
+        .args(["--target=go", "--out"])
         .arg(dir.join("out"))
         .output()
         .expect("runs");
     assert_eq!(output.status.code(), Some(1));
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(
-        stderr.starts_with("ferrule-gen: FER202 at --target: target typescript is not supported yet. Fix: "),
+        stderr.starts_with("ferrule-gen: FER202 at --target: target go is not supported yet. Fix: "),
         "{stderr}"
     );
     assert!(!dir.join("out").exists());
+}
+
+#[test]
+fn generates_a_typescript_sdk() {
+    let out = scratch("target-ts");
+    let status = bin()
+        .arg("generate")
+        .arg(plugin_dir().join("tests/fixtures/cursor-page.json"))
+        .args(["--target", "typescript", "--out"])
+        .arg(&*out)
+        .status()
+        .expect("runs");
+    assert!(status.success());
+    let written: Vec<String> = files(&out).into_iter().map(|(p, _)| p).collect();
+    for path in [
+        "src/client.ts",
+        "src/resources/index.ts",
+        "api.md",
+        "package.json",
+        "README.md",
+    ] {
+        assert!(written.iter().any(|p| p == path), "{path} missing in {written:?}");
+    }
 }
 
 #[test]
