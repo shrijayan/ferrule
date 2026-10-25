@@ -810,6 +810,72 @@ resources:
     assert!(original.get("x-fern-type-name").is_none());
 }
 
+/// lumaai binds `post /generations/video` to `generations.create` and
+/// `generations.video.create`, and Stainless emits both. Forge makes one method per operation
+/// unless the operation lists `x-forge-aliases`, one definition per method, each with its own
+/// extensions (an alias does not inherit the operation's).
+#[test]
+fn writes_an_endpoint_bound_to_two_methods_as_forge_aliases() {
+    let config = parse_config(
+        "
+targets: { python: { package_name: acme, production_repo: acme/acme-python } }
+resources:
+  things:
+    models: { thing: Thing }
+    methods: { list: get /a }
+    subresources:
+      parts: { methods: { retrieve: get /b, list: get /a } }
+",
+    )
+    .expect("config");
+    let r = convert(&models_spec(), &config);
+    let op = r
+        .spec
+        .get("paths")
+        .and_then(|p| p.get("/a"))
+        .and_then(|i| i.get("get"))
+        .expect("get /a");
+    for own in [
+        "x-fern-sdk-group-name",
+        "x-fern-sdk-method-name",
+        "x-ferrule-resource",
+        "x-ferrule-method-name",
+        "x-ferrule-models",
+    ] {
+        assert!(op.get(own).is_none(), "{own} on the operation");
+    }
+    let Some(Value::Array(aliases)) = op.get("x-forge-aliases") else {
+        panic!("no x-forge-aliases on get /a");
+    };
+    let models = v(&json!({"Thing": {"name": "Thing", "module": "thing"}}));
+    let package = v(&json!({"name": "acme", "repo": "acme/acme-python"}));
+    let expected = [
+        (json!(["things"]), json!({"path": ["things"], "order": [0]}), 0.0),
+        (
+            json!(["things", "parts"]),
+            json!({"path": ["things", "parts"], "order": [0, 0]}),
+            1.0,
+        ),
+    ];
+    assert_eq!(aliases.len(), expected.len());
+    for (alias, (group, resource, order)) in aliases.iter().zip(expected) {
+        assert_eq!(alias.get("x-fern-sdk-group-name"), Some(&v(&group)));
+        assert_eq!(alias.get("x-fern-sdk-method-name"), Some(&v(&json!("list"))));
+        assert_eq!(alias.get("x-ferrule-resource"), Some(&v(&resource)));
+        assert_eq!(alias.get("x-ferrule-method-name"), Some(&v(&json!("list"))));
+        assert_eq!(alias.get("x-ferrule-method-order"), Some(&Value::Number(order)));
+        assert_eq!(alias.get("x-ferrule-models"), Some(&models));
+        assert_eq!(alias.get("x-ferrule-package"), Some(&package));
+        assert!(alias.get("x-ferrule-client").is_some());
+    }
+    // An operation bound once keeps its extensions on the operation itself.
+    assert!(ext(&r.spec, "/b", "x-forge-aliases").is_none());
+    assert_eq!(
+        ext(&r.spec, "/b", "x-ferrule-method-name"),
+        Some(&v(&json!("retrieve")))
+    );
+}
+
 #[test]
 fn reports_fer1005_for_a_model_whose_schema_is_not_in_the_spec() {
     let config = parse_config("resources: { a: { models: { ghost: Ghost } } }").expect("config");
