@@ -54,7 +54,9 @@ def sh(repo: Path, *args: str, env: dict[str, str] | None = None) -> str:
 
 def commit(repo: Path, message: str, author: str) -> None:
     sh(repo, "add", "-A")
-    sh(repo, "commit", "-q", "-m", message, f"--author={author}")
+    # An explicit committer: with no HOME, git guesses one from the hostname and can refuse it.
+    committer = {"GIT_COMMITTER_NAME": "Dev", "GIT_COMMITTER_EMAIL": "dev@example.com"}
+    sh(repo, "commit", "-q", "-m", message, f"--author={author}", env=committer)
 
 
 @pytest.fixture
