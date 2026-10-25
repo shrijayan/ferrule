@@ -16,6 +16,10 @@ use std::fmt::Write as _;
 /// The cell separator gofmt's printer writes between aligned parts (`\v`, a "soft" tab).
 pub const ALIGN: char = '\u{b}';
 
+/// At the start of a line: alignment starts afresh there, as gofmt's printer does with a
+/// formfeed (before and after a multi-line element of a composite literal).
+pub const BREAK: char = '\u{c}';
+
 /// Comment text wraps at this many characters, not counting indentation or `// `.
 pub const COMMENT_WIDTH: usize = 80;
 
@@ -95,9 +99,14 @@ fn format(
 #[must_use]
 pub fn align(text: &str) -> String {
     let raw: Vec<&str> = text.split('\n').collect();
-    let lines: Vec<Vec<Cell<'_>>> = raw.iter().map(|l| cells(l)).collect();
+    let breaks: Vec<usize> = (0..raw.len()).filter(|&i| raw[i].starts_with(BREAK)).collect();
+    let lines: Vec<Vec<Cell<'_>>> = raw.iter().map(|l| cells(l.trim_start_matches(BREAK))).collect();
     let mut widths: Vec<Vec<usize>> = lines.iter().map(|l| vec![0; l.len()]).collect();
-    format(&lines, 0, lines.len(), 0, &mut Vec::new(), &mut widths);
+    let mut start = 0;
+    for end in breaks.into_iter().chain([lines.len()]) {
+        format(&lines, start, end, 0, &mut Vec::new(), &mut widths);
+        start = end;
+    }
     let mut out = String::with_capacity(text.len());
     for (i, line) in lines.iter().enumerate() {
         if i > 0 {
@@ -266,6 +275,12 @@ mod tests {
         // The middle line has no type cell, so the tag columns above and below are separate.
         let text = "\tA\x0bint\x0b`t`\n\tBBBB\x0bstring\n\tC\x0bfloat64\x0b`t`";
         assert_eq!(align(text), "\tA    int `t`\n\tBBBB string\n\tC    float64 `t`");
+    }
+
+    #[test]
+    fn a_break_starts_a_new_block() {
+        let text = "\tA:\x0b1,\n\x0c\tLonger:\x0b2,";
+        assert_eq!(align(text), "\tA: 1,\n\tLonger: 2,");
     }
 
     #[test]
