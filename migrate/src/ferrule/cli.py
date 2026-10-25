@@ -7,6 +7,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import shlex
 import sys
 import tempfile
 from pathlib import Path
@@ -18,6 +19,7 @@ from ferrule.errors import MISSING_INPUT, FerruleError, fail
 from ferrule.generate import GenerateRequest, generate, load_renderer, resolve_tools
 from ferrule.generate_go import GoRequest, generate_go, load_go_renderer
 from ferrule.generate_jvm import JvmRequest, generate_jvm, load_java_renderer, resolve_ktfmt
+from ferrule.generate_ruby import RubyRequest, generate_ruby, load_ruby_renderer
 from ferrule.rescue import rescue, write_spec
 from ferrule.verify import export_ref, verify
 
@@ -56,7 +58,7 @@ def build_parser() -> argparse.ArgumentParser:
     gen.add_argument("--gen", type=Path, help="ferrule-gen binary (default: $FERRULE_GEN)")
     gen.add_argument(
         "--target",
-        choices=("python", "go", "java", "kotlin"),
+        choices=("python", "go", "java", "kotlin", "ruby"),
         default="python",
         help="SDK language (default: python)",
     )
@@ -172,11 +174,37 @@ def _generate_jvm(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def _generate_ruby(args: argparse.Namespace) -> int:
+    if args.runtime_from is not None:
+        raise fail(
+            MISSING_INPUT,
+            "--runtime-from is not supported with --target ruby",
+            "--runtime-from",
+            "drop it: the Ruby runtime is rendered from ferrule_runtime",
+        )
+    request = RubyRequest(
+        spec=args.spec,
+        config=args.config,
+        out=args.out,
+        gen=resolve_tools(os.environ, gen=args.gen).gen,
+        stree=tuple(shlex.split(os.environ.get("FERRULE_STREE", "stree"))),
+        rubocop=tuple(shlex.split(os.environ.get("FERRULE_RUBOCOP", "rubocop"))),
+    )
+    result = generate_ruby(request, renderer=load_ruby_renderer())
+    sys.stdout.write(
+        f"generated {result.package}: {result.files} files "
+        f"({result.runtime_files} runtime) sha256 {result.digest}\n",
+    )
+    return EXIT_OK
+
+
 def _generate(args: argparse.Namespace) -> int:
     if args.target == "go":
         return _generate_go(args)
     if args.target in ("java", "kotlin"):
         return _generate_jvm(args)
+    if args.target == "ruby":
+        return _generate_ruby(args)
     request = GenerateRequest(
         spec=args.spec,
         config=args.config,
