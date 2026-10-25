@@ -1,0 +1,10 @@
+{
+  "package_name": "test.acme.api",
+  "client_name": "Acme",
+  "artifact_name": "acme-java",
+  "repo": "acme-test/acme-java",
+  "target": "java",
+  "array_format": "comma",
+  "empty_responses": true,
+  "mock_tests": true
+}
