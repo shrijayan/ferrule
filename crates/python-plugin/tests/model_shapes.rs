@@ -67,3 +67,20 @@ fn variants_named_after_a_schema_spell_initialisms_upper_case() {
 fn a_titled_array_variant_names_its_items_after_the_title() {
     check("titled_array_variant");
 }
+
+/// A union of a string and a titled object is an alias named after the field, its object
+/// `<alias><title>` (knock-mgmt `workflows.run`: `Recipient`, `RecipientObjectRecipientReference`);
+/// a nullable one is `Optional[<alias>]`, and a list of one that can be a string is
+/// `SequenceNotStr[<alias>]`.
+#[test]
+fn a_union_of_a_string_and_a_titled_object_is_an_alias() {
+    check("string_or_object");
+    let files = generated("string_or_object");
+    let resource = files.get("src/fx/resources/workflows.py").expect("workflows.py");
+    for arg in [
+        "        recipients: SequenceNotStr[workflow_run_params.Recipient],\n",
+        "        actor: Optional[workflow_run_params.Actor] | Omit = omit,\n",
+    ] {
+        assert_eq!(resource.matches(arg).count(), 2, "{arg}{resource}");
+    }
+}

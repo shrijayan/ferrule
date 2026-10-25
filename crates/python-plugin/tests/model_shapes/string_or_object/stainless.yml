@@ -1,0 +1,13 @@
+organization: {name: fx}
+targets:
+  python: {package_name: fx, production_repo: fx/fx-python, publish: {pypi: false}}
+environments: {production: 'https://api.example.com'}
+
+resources:
+  workflows:
+    methods:
+      run: put /workflows/{workflow_key}/run
+readme:
+  example_requests:
+    default: {type: request, endpoint: 'put /workflows/{workflow_key}/run', params: {workflow_key: k}}
+    headline: {type: request, endpoint: 'put /workflows/{workflow_key}/run', params: {workflow_key: k}}
