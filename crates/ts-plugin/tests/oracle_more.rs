@@ -1,8 +1,10 @@
-//! imagekit-typescript (imagekit-nodejs `9161f99f`, 2026-05-17) and knock-mgmt-typescript
-//! (knock-mgmt-node 0.32.0, `ca88fdba`) against their config oracles. Neither is regenerated whole
-//! yet: each test reports identical/total and fails when fewer files match than before (the
-//! floor). knock-mgmt-typescript does not map to the neutral model yet (FER101 on its pagination),
-//! so it is skipped with that note. Skipped too when the oracles are not cached.
+//! imagekit-typescript (imagekit-nodejs `9161f99f`, 2026-05-17), knock-mgmt-typescript
+//! (knock-mgmt-node 0.32.0, `ca88fdba`) and knock-typescript (knock-node 1.7.0) against their
+//! config oracles. None is regenerated whole yet: each test reports identical/total and fails when
+//! fewer files match than before (the floor). knock-mgmt-typescript and knock-typescript do not
+//! map to the neutral model yet (FER101 on their pagination: an unnamed items field, a
+//! `$skiptoken` request param), so they are skipped with that note. Skipped too when the oracles
+//! are not cached.
 
 mod support;
 
@@ -44,4 +46,17 @@ fn knock_mgmt_report() {
         return;
     };
     report("knock-mgmt", &o, 0);
+}
+
+#[test]
+fn knock_report() {
+    let Some(o) = support::oracle(
+        "knock-typescript",
+        "knock-config",
+        "data/specs/api/openapi.yml",
+        "data/specs/api/stainless.yml",
+    ) else {
+        return;
+    };
+    report("knock", &o, 0);
 }

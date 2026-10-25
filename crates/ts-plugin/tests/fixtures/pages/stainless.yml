@@ -1,0 +1,115 @@
+organization:
+  name: acme
+  docs: https://docs.acme.test
+  contact: support@acme.test
+
+targets:
+  python:
+    package_name: acme
+    publish:
+      pypi: false
+  typescript:
+    package_name: acme
+    production_repo: acme/acme-typescript
+    publish:
+      npm: true
+
+environments:
+  production: https://api.acme.test
+
+client_settings:
+  opts:
+    api_key:
+      type: string
+      nullable: false
+      read_env: ACME_API_KEY
+      auth:
+        security_scheme: BearerAuth
+
+pagination:
+  - name: entries_cursor
+    type: cursor
+    request:
+      after:
+        type: string
+        x-stainless-pagination-property:
+          purpose: next_cursor_param
+      before:
+        type: string
+        x-stainless-pagination-property:
+          purpose: previous_cursor_param
+      limit:
+        type: integer
+    response:
+      entries:
+        type: array
+        items:
+          type: object
+        x-stainless-pagination-property:
+          purpose: items
+      page_info:
+        type: object
+        properties:
+          after:
+            type: string
+            x-stainless-pagination-property:
+              purpose: next_cursor_field
+  - name: page
+    type: page_number
+    request:
+      page:
+        type: integer
+        description: The page number
+        x-stainless-pagination-property:
+          purpose: page_number_param
+      size:
+        type: integer
+        description: The number of items in a page
+    response:
+      total:
+        type: integer
+      items:
+        type: array
+        items: {}
+        x-stainless-pagination-property:
+          purpose: items
+      page:
+        type: integer
+        x-stainless-pagination-property:
+          purpose: current_page_number_field
+      size:
+        type: integer
+      pages:
+        type: integer
+        x-stainless-pagination-property:
+          purpose: total_page_count_field
+
+resources:
+  widgets:
+    models:
+      widget: Widget
+    methods:
+      list: get /widgets
+      search:
+        endpoint: post /widgets/search
+        paginated: page
+  gadgets:
+    methods:
+      list: get /gadgets
+      list_widgets: get /gadgets/{gadget_id}/widgets
+
+settings:
+  license: Apache-2.0
+
+readme:
+  example_requests:
+    default:
+      type: request
+      endpoint: get /widgets
+      params:
+        environment: development
+    headline:
+      type: request
+      endpoint: get /widgets
+      params:
+        environment: development
