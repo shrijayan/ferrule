@@ -1,0 +1,65 @@
+openapi: 3.1.0
+info: { title: Acme, version: 1.0.0 }
+servers: [{ url: "https://api.acme.test/v1" }]
+security: [{ ApiKeyAuth: [] }]
+paths:
+  /extractions/qa:
+    post:
+      summary: Extract answers.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [query]
+              properties:
+                query: { type: string, description: The question. }
+      responses:
+        "200":
+          description: ok
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AnswerExtractionResponse" }
+  /enrichments:
+    post:
+      summary: Enrich a document.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                text: { type: string }
+      responses:
+        "200":
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [document]
+                properties:
+                  document: { $ref: "#/components/schemas/ILGSv1Document" }
+components:
+  securitySchemes:
+    ApiKeyAuth: { type: apiKey, in: query, name: key }
+  schemas:
+    AnswerExtractionResponse:
+      type: object
+      required: [answer]
+      properties:
+        answer: { type: string }
+    ILGSv1Document:
+      type: object
+      required: [ids]
+      properties:
+        ids:
+          type: array
+          items: { $ref: "#/components/schemas/ILGSv1 ID Number" }
+    ILGSv1 ID Number:
+      type: object
+      required: [value]
+      properties:
+        value: { type: string }
