@@ -101,8 +101,10 @@ pub struct MethodExtensions {
     pub style: SdkStyle,
 }
 
-/// Operation-level extensions this plugin reads. Root and schema ones never reach a plugin.
-const KNOWN: [&str; 11] = [
+/// Operation-level extensions this plugin accepts. Root and schema ones never reach a plugin.
+/// `x-ferrule-targets` and `x-ferrule-targets-only` (ADR 0003, per-target amendment) are for
+/// other languages: Python reads neither, except to leave out models not generated for it.
+const KNOWN: [&str; 13] = [
     "x-ferrule-resource",
     "x-ferrule-method-name",
     "x-ferrule-method-order",
@@ -114,6 +116,8 @@ const KNOWN: [&str; 11] = [
     "x-ferrule-casings",
     "x-ferrule-standalone",
     "x-ferrule-style",
+    "x-ferrule-targets",
+    "x-ferrule-targets-only",
 ];
 
 /// The member `key` of `v` if `v` is an object (`members(v).key`), else `None` (`undefined`).
@@ -475,13 +479,29 @@ fn read_resource(raw: Option<&Json>) -> Result<(Vec<String>, Vec<usize>), &'stat
     Ok((path, order))
 }
 
-/// `x-ferrule-models` (`undefined` or `null` for none).
+/// Whether a model entry is generated for Python: its `x-ferrule-targets-only` (absent when the
+/// config does not restrict it) lists `python`.
+fn for_python(entry: &Json) -> Result<bool, Malformed> {
+    match member(Some(entry), "x-ferrule-targets-only") {
+        None => Ok(true),
+        Some(Json::Array(targets)) if targets.iter().all(|t| t.as_str().is_some()) => {
+            Ok(targets.iter().any(|t| t.as_str() == Some("python")))
+        }
+        Some(_) => Err(Malformed),
+    }
+}
+
+/// `x-ferrule-models` (`undefined` or `null` for none), without the models not generated for
+/// Python, which are then inlined as if the config did not name them.
 fn read_models(raw: Option<&Json>) -> Result<HashMap<String, ModelName>, Malformed> {
     let mut models = HashMap::new();
     match raw {
         None => {}
         Some(Json::Object(members)) => {
             for (schema, value) in js::entries(members) {
+                if !for_python(value)? {
+                    continue;
+                }
                 let name = as_str(member(Some(value), "name"))
                     .filter(|n| py_ident(n))
                     .ok_or(Malformed)?;

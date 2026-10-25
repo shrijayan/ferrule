@@ -393,3 +393,37 @@ fn rejects_model_properties_that_would_be_one_attribute() {
     );
     assert!(model(&body).is_ok());
 }
+
+#[test]
+fn accepts_the_per_target_extensions_and_leaves_out_models_not_generated_for_python() {
+    let r = |schema: &str| json!({ "$ref": format!("#/components/schemas/{schema}") });
+    let schemas = json!({
+        "Kept": { "type": "object", "properties": { "a": { "type": "string" } } },
+        "GoOnly": { "type": "object", "properties": { "b": { "type": "integer" } } },
+    });
+    let response = ok_response(&json!({ "type": "object", "properties": { "k": r("Kept"), "g": r("GoOnly") } }));
+    let with_targets = doc(
+        &json!({
+            "x-ferrule-targets": {
+                "python": { "package_name": "acme", "edition": "python.2025-10-08", "options": {} },
+                "go": { "edition": "go.2025-10-08", "options": {} },
+            },
+            "x-ferrule-targets-only": ["python", "go"],
+            "x-ferrule-models": {
+                "Kept": { "name": "Kept", "x-ferrule-targets-only": ["python", "go"] },
+                "GoOnly": { "name": "GoOnly", "x-ferrule-targets-only": ["go"] },
+            },
+            "responses": response,
+        }),
+        &schemas,
+    );
+    let without = doc(
+        &json!({ "x-ferrule-models": { "Kept": { "name": "Kept" } }, "responses": response }),
+        &schemas,
+    );
+    let (client, _) = only(&with_targets);
+    let (expected, _) = only(&without);
+    assert_eq!(client, expected);
+    let names: Vec<&str> = client.models.iter().map(|m| m.r#ref.name.as_str()).collect();
+    assert_eq!(names, ["Kept"]);
+}
