@@ -34,6 +34,9 @@ layout's (`src/core/**`, `src/internal/**`, `src/index.ts` and the `src/*.ts` sh
 | `@example` | every method | only when a value comes from a spec example (a path parameter's) |
 | resource tests | required / all params | a method without required params is called bare, then with request options in the params' place |
 | project files | `templates/project/` | `templates/node/project/`, plus the ten files both layouts share (`NODE_SHARED`) |
+| page classes | `src/core/pagination.ts` (`nextPageRequestOptions`), `src/pagination.ts` re-exports it | `src/pagination.ts` (`nextPageParams`, `nextPageInfo`) |
+| page types | `export type XsPage = Page<X>` | `export class XsPage extends Page<X> {}`, attached to the resource class and the client |
+| list methods | `PagePromise<XsPage, X>`, `getAPIList(path, Page<X>, ...)` | `Core.PagePromise<XsPage, X>`, `getAPIList(path, XsPage, ...)` |
 
 ## Layout
 
@@ -45,9 +48,10 @@ layout's (`src/core/**`, `src/internal/**`, `src/index.ts` and the `src/*.ts` sh
 | `naming.rs` | spellings: `PascalCase` types with acronyms (`URLEndpoints`), `camelCase` members, `kebab-case` files |
 | `types.rs` | the one type mapping; inline objects become interfaces in their parent's namespace |
 | `examples.rs` | example values for `@example`, tests and the README |
+| `pages.rs` | pagination: the config's schemes (`TsMeta.pagination`) as page classes, and the page type each list method returns and where it is declared |
 | `doc.rs`, `pretty.rs` | prettier's document printer and the JS/TS shapes Stainless emits |
 | `comment.rs` | JSDoc: the description as prettier formats markdown at 80 columns |
-| `emit/` | resource modules, `client.ts`, `api.md`, `tests/api-resources/**`, project files |
+| `emit/` | resource modules, `client.ts`, the page classes (`emit/pagination.rs`), `api.md`, `tests/api-resources/**`, project files |
 
 ## Formatter decision
 
@@ -80,12 +84,20 @@ check layouts; it is not a dependency.
   `runtime/tests/test_render_oracles_typescript_node.py`), `CHANGELOG.md`, the dropped
   `scripts/utils/upload-artifact.sh`, or OneBusAway's hand-written `examples/` and
   `package-lock.json`.
-- `tests/oracle_more.rs`: imagekit-typescript (identical/total reported, with a floor);
-  knock-mgmt-typescript is skipped while the adapter rejects its pagination (FER101).
+- `tests/oracle_more.rs`: imagekit-typescript (63/100), knock-mgmt-typescript and
+  knock-typescript (identical/total reported, with floors). knock-mgmt and knock are skipped
+  while the adapter rejects their pagination (FER101: an items field without a purpose, a
+  `$skiptoken` request param); with those two fixes they are 53/95 and 41/113, their page
+  classes (`src/core/pagination.ts`, `src/pagination.ts`) and README Auto-pagination sections
+  identical.
 - `tests/oracle_node_more.rs`: lumaai-typescript (2026-04, 49/64) and honcho-typescript
-  (2025-10, 35/72), `node` layout, reported with floors. lumaai's other files are its older
+  (2025-10, 39/73), `node` layout, reported with floors. lumaai's other files are its older
   generation's text (unpinned actions, no custom-headers env, an `@example` on every method);
-  honcho also needs pagination, non-object bodies and its MCP server package.
+  honcho's page classes are identical, it also needs non-object bodies, `Body param:` docs and
+  its MCP server package.
+- `tests/pagination.rs`: a `cursor` and a `page_number` scheme (`tests/fixtures/pages`) in both
+  layouts: the page classes whole, and list methods, page types, imports, exports, `api.md` and
+  the README section line by line.
 - `tests/golden.rs`: a small synthetic SDK (`tests/fixtures/petstore`), byte for byte, in both
   layouts (`tests/golden/petstore`, `tests/golden/petstore-node`).
 
@@ -96,8 +108,10 @@ commits, gitignored), and skip without them.
 ## Not generated yet
 
 In the `node` layout, lines whose prettier layout depends on name lengths are proven only for
-OneBusAway's names (`tests/index.test.ts`, the README snippets). In both layouts: pagination (`src/core/pagination.ts`, `getAPIList` methods, page
-aliases); streaming; file uploads (`Uploadable` bodies); unions of objects as params; webhooks
+OneBusAway's names (`tests/index.test.ts`, the README snippets). In both layouts: the
+`cursor_id`, `cursor_url`, `offset` and `fake_page` page classes and `page_number` in the
+current layout are written in the proven schemes' shapes but no oracle pins their text; the
+README's usage snippets for a paginated headline example (`const page = ...`); streaming; file uploads (`Uploadable` bodies); unions of objects as params; webhooks
 (a resource with models and no methods is not in the model); the MCP server package; client
 settings beyond one auth option (several opts, environments, idempotency header, default
 headers, query `qs` serialisation in `client.ts`).
