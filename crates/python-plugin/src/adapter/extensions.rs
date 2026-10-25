@@ -20,6 +20,7 @@ use crate::model::{
     ApiKeyLocation, ArrayFormat, AuthRole, HttpAuthScheme, NestedFormat, OptType, PaginationScheme, ParamLocation,
     SdkAuth, SdkClientOpt, SdkEnvironment, SdkPackage, SdkSecurityScheme, SdkSend, SendLocation, StreamFormat,
 };
+use crate::naming::{snake_case, split_words};
 
 /// An extension value of the wrong shape; the caller builds the FER101 diagnostic.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -189,14 +190,45 @@ fn resource_name(s: &str) -> bool {
         )
 }
 
-/// A GitHub `owner/name`; it is interpolated into docstrings, so nothing else is allowed.
-fn repo_slug(s: &str) -> bool {
-    let part = |p: &str| {
+/// A GitHub `owner/name`, optionally with the `#branch` stainless.yml allows (imagekit
+/// `imagekit-developer/imagekit-python#master`). Returns `owner/name`, which is what Stainless
+/// links. It is interpolated into docstrings, so nothing else is allowed.
+fn repo_slug(s: &str) -> Option<&str> {
+    let part = |p: &str, slash: bool| {
         !p.is_empty()
             && p.chars()
-                .all(|c| c.is_ascii_alphanumeric() || matches!(c, '_' | '.' | '-'))
+                .all(|c| c.is_ascii_alphanumeric() || matches!(c, '_' | '.' | '-') || (slash && c == '/'))
     };
-    s.is_empty() || s.split_once('/').is_some_and(|(owner, name)| part(owner) && part(name))
+    let (slug, branch) = match s.split_once('#') {
+        Some((slug, branch)) => (slug, Some(branch)),
+        None => (s, None),
+    };
+    if branch.is_some_and(|b| !part(b, true)) {
+        return None;
+    }
+    if s.is_empty() {
+        return Some(s);
+    }
+    let (owner, name) = slug.split_once('/')?;
+    (part(owner, false) && part(name, false)).then_some(slug)
+}
+
+/// A dotted module whose segments are stainless.yml keys as written (`assistantMessage`,
+/// `accounts.UrlEndpointResponse`, `trip-details.stop`). A segment that is not already a module
+/// name is `snake_cased` as resource keys are, giving Stainless's `assistant_message`.
+fn module_path(s: &str) -> Option<String> {
+    s.split('.')
+        .map(|seg| {
+            if module_name(seg) {
+                Some(seg.to_owned())
+            } else if resource_name(seg) && seg != "$client" {
+                Some(snake_case(&split_words(seg))).filter(|m| module_name(m))
+            } else {
+                None
+            }
+        })
+        .collect::<Option<Vec<_>>>()
+        .map(|segs| segs.join("."))
 }
 
 /// An http(s) URL with nothing that could close or interpolate into a Python string.
@@ -269,9 +301,9 @@ pub fn read_method_extensions(extensions: &[(&str, &Json)], pointer: &str) -> Re
 
     let raw_pkg = get("x-ferrule-package");
     let package = match (as_str(member(raw_pkg, "name")), as_str(member(raw_pkg, "repo"))) {
-        (Some(name), Some(repo)) if py_ident(name) && repo_slug(repo) => SdkPackage {
+        (Some(name), Some(repo)) if py_ident(name) && repo_slug(repo).is_some() => SdkPackage {
             name: name.to_owned(),
-            repo: repo.to_owned(),
+            repo: repo_slug(repo).unwrap_or_default().to_owned(),
         },
         _ => {
             return Err(bad(
@@ -355,7 +387,7 @@ fn read_models(raw: Option<&Json>) -> Result<HashMap<String, ModelName>, Malform
                     .ok_or(Malformed)?;
                 let module = match member(Some(value), "module") {
                     None => None,
-                    Some(Json::String(m)) if module_name(m) => Some(m.clone()),
+                    Some(Json::String(m)) => Some(module_path(m).ok_or(Malformed)?),
                     Some(_) => return Err(Malformed),
                 };
                 models.insert(
