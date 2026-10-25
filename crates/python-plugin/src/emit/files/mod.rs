@@ -7,12 +7,14 @@ pub mod input;
 pub mod layout;
 pub mod render;
 pub mod templates;
+pub mod tokens;
 
 use std::collections::{BTreeMap, BTreeSet};
 
+use input::FilesResource;
 pub use input::ProjectFilesInput;
-use input::{ExampleRequest, FilesResource};
 use render::{TemplateVars, render};
+use tokens::{flag, validates_headers};
 
 use crate::js;
 use crate::model::{ArrayFormat, NestedFormat};
@@ -37,10 +39,6 @@ pub fn emit_stats(input: &ProjectFilesInput) -> String {
         input.stats.openapi_spec_hash,
         input.stats.config_hash,
     )
-}
-
-fn result_var(e: &ExampleRequest) -> &str {
-    e.accessor.rsplit('.').next().unwrap_or(&e.accessor)
 }
 
 fn array_format(f: ArrayFormat) -> &'static str {
@@ -68,18 +66,25 @@ fn docs_label(url: &str) -> &str {
     url.strip_suffix('/').unwrap_or(url)
 }
 
+/// The README intro sentence, which the oracles wrap after "from any Python 3.9+".
+fn intro_line(title: &str) -> String {
+    format!("The {title} Python library provides convenient access to the {title} REST API from any Python 3.9+")
+}
+
 /// The value of every `%%TOKEN%%` the templates use.
 #[must_use]
 pub fn template_vars(input: &ProjectFilesInput) -> TemplateVars {
-    let ex = &input.readme_example;
-    let probe = &input.retry_probe;
     let org = &input.organization;
-    let probe_args_comma = if probe.args.is_empty() {
-        String::new()
-    } else {
-        format!("{}, ", probe.args)
-    };
-    TemplateVars::from([
+    let mut exceptions = Vec::new();
+    if validates_headers(&input.auth) {
+        exceptions.push(format!("{}Error", input.client_class));
+    }
+    exceptions.push("APIStatusError".to_owned());
+    if !input.retry_probe.paginated {
+        exceptions.push("APITimeoutError".to_owned());
+    }
+    exceptions.push("APIResponseValidationError".to_owned());
+    let mut vars = TemplateVars::from([
         ("PACKAGE", input.package_name.clone()),
         ("DIST", input.distribution_name.clone()),
         ("CLIENT", input.client_class.clone()),
@@ -90,24 +95,41 @@ pub fn template_vars(input: &ProjectFilesInput) -> TemplateVars {
         ("ORG_NAME", org.name.clone()),
         ("ORG_TITLE", org.title.clone()),
         ("CONTACT", org.contact.clone()),
+        ("SECURITY_CONTACT", org.security_contact.clone()),
         ("DOCS_URL", org.docs_url.clone()),
         ("DOCS_LABEL", docs_label(&org.docs_url).to_owned()),
         ("README_TITLE", input.readme_title.clone()),
-        ("API_KEY_ENV", input.auth.env.clone()),
-        ("AUTH_QUERY", input.auth.param.clone()),
+        ("README_ATTRIBUTION", flag(input.readme_attribution)),
+        // OneBusAway's README has blank lines around an intro line longer than the other
+        // oracles' (112 columns; theirs are 92 to 104): the only input that tells them apart.
+        ("README_INTRO_SPACED", flag(js::len(&intro_line(&org.title)) > 104)),
+        ("MOCK_TESTS", flag(input.mock_tests)),
+        ("EXCEPTIONS", exceptions.join(", ")),
         ("ARRAY_FORMAT", array_format(input.query.array_format).to_owned()),
         ("OBJECT_FORMAT", object_format(input.query.object_format).to_owned()),
-        ("EX_ACCESSOR", ex.accessor.clone()),
-        ("EX_METHOD", ex.method.clone()),
-        ("EX_ARGS", ex.args.clone()),
-        ("EX_RESULT", result_var(ex).to_owned()),
-        ("PROBE_VERB", probe.http_method.as_str().to_owned()),
-        ("PROBE_PATH", probe.path.clone()),
-        ("PROBE_ACCESSOR", probe.accessor.clone()),
-        ("PROBE_METHOD", probe.method.clone()),
-        ("PROBE_ARGS", probe.args.clone()),
-        ("PROBE_ARGS_COMMA", probe_args_comma),
-    ])
+    ]);
+    tokens::auth_vars(&input.auth, &mut vars);
+    tokens::example_vars(&input.readme_example, &input.retry_probe, &mut vars);
+    vars
+}
+
+/// Lock files list a package's dependents (`# via x`) sorted by name, the generated package
+/// among them.
+fn sort_dependents(text: &str) -> String {
+    let mut out: Vec<&str> = Vec::new();
+    let mut run: Vec<&str> = Vec::new();
+    for line in text.split_inclusive('\n') {
+        if line.starts_with("    # via ") {
+            run.push(line);
+            continue;
+        }
+        run.sort_unstable();
+        out.append(&mut run);
+        out.push(line);
+    }
+    run.sort_unstable();
+    out.append(&mut run);
+    out.concat()
 }
 
 /// Every project file, keyed by its path in the SDK repository, sorted by path (JavaScript string
@@ -123,7 +145,15 @@ pub fn emit_project_files(input: &ProjectFilesInput) -> Vec<(String, String)> {
     // A later file with the same path replaces an earlier one, as `Map.set` does.
     let mut files: BTreeMap<String, String> = BTreeMap::new();
     for (path, template) in templates::TEMPLATES {
+        if *path == "scripts/mock" && !input.mock_tests {
+            continue;
+        }
         let text = render(template, &vars).unwrap_or_else(|e| panic!("bundled template {path} does not render: {e}"));
+        let text = if matches!(*path, "requirements.lock" | "requirements-dev.lock") {
+            sort_dependents(&text)
+        } else {
+            text
+        };
         files.insert((*path).to_owned(), text);
     }
     files.insert("api.md".to_owned(), api_md::emit_api_md(input));

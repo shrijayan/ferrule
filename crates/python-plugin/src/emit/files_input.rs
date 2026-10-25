@@ -2,15 +2,21 @@
 //! model cannot know yet come in [`ProjectMeta`]: `x-ferrule-config` does not carry them (proposed
 //! ADR 0003 amendment), so the plugin passes deterministic placeholders until it does.
 
+use serde_json::{Map, Value};
+
 use super::common::{
     leaf, method_params, method_ref, resource_class_base, resource_module, resource_tree, return_model, sort_fields,
     stainless_method_order, types_dir,
 };
 use super::files::input::{
-    ApiKeyQueryAuth, ExampleRequest, FilesMethod, FilesParam, FilesResource, Organization, ParamLocation,
+    Auth, AuthOpt, AuthScheme, ExampleRequest, FilesMethod, FilesParam, FilesResource, Organization, ParamLocation,
     ProjectFilesInput, PyName, PythonEdition, QueryFormat, Stats,
 };
-use crate::model::{SdkClient, SdkMethod, SdkParam, SdkResource, SendLocation};
+use super::files_example::examples;
+use crate::model::{
+    ApiKeyLocation, HttpAuthScheme, SdkClient, SdkClientSettings, SdkMethod, SdkParam, SdkResource, SdkSecurityScheme,
+    SendLocation,
+};
 use crate::naming::{singular, snake_case, split_words};
 
 /// The organization fields of [`ProjectMeta`].
@@ -19,6 +25,16 @@ pub struct MetaOrganization {
     pub title: String,
     pub contact: String,
     pub docs_url: String,
+    /// `organization.security_contact`; `None` names `contact` in SECURITY.md.
+    pub security_contact: Option<String>,
+}
+
+/// `readme.example_requests.default` of the config: `endpoint` such as `post /embeddings`, and
+/// the request's parameters by wire name.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ReadmeRequest {
+    pub endpoint: String,
+    pub params: Map<String, Value>,
 }
 
 /// What the project files need that the annotated spec does not carry yet.
@@ -30,8 +46,15 @@ pub struct ProjectMeta {
     pub organization: Option<MetaOrganization>,
     pub readme_title: Option<String>,
     pub stats: Option<Stats>,
-    /// `readme.example_requests.default`; else the first method without required parameters.
+    /// A ready README example; it takes precedence over `readme_request`.
     pub readme_example: Option<ExampleRequest>,
+    /// `readme.example_requests.default`; else the first method without required parameters,
+    /// else the first method with its required parameters from the spec's examples.
+    pub readme_request: Option<ReadmeRequest>,
+    /// `readme.include_stainless_attribution` (default true).
+    pub readme_attribution: bool,
+    /// Not `settings.disable_mock_tests` (default false).
+    pub mock_tests: bool,
 }
 
 /// Placeholders the plugin uses until `x-ferrule-config` carries the real values.
@@ -45,7 +68,78 @@ pub fn placeholder_meta() -> ProjectMeta {
         readme_title: None,
         stats: None,
         readme_example: None,
+        readme_request: None,
+        readme_attribution: true,
+        mock_tests: true,
     }
+}
+
+/// `API Key` for `api_key`: the option's words capitalized, `API` in capitals.
+fn auth_label(name: &str) -> String {
+    split_words(name)
+        .iter()
+        .map(|w| {
+            if w == "api" {
+                "API".to_owned()
+            } else {
+                let mut c = w.chars();
+                c.next()
+                    .map_or_else(String::new, |f| f.to_uppercase().chain(c).collect())
+            }
+        })
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+/// The client's credentials: the options that authenticate (`auth`, or sent as a query
+/// parameter), and how the first one is sent.
+fn auth(s: &SdkClientSettings) -> Auth {
+    let opts: Vec<AuthOpt> = s
+        .opts
+        .iter()
+        .filter(|o| o.auth.is_some() || o.send.as_ref().is_some_and(|x| x.location == SendLocation::Query))
+        .map(|o| {
+            let label = auth_label(&o.name);
+            AuthOpt {
+                name: o.name.clone(),
+                env: o.read_env.clone(),
+                value: format!("My {label}"),
+                label,
+                has_default: o.default.is_some(),
+            }
+        })
+        .collect();
+    let first = s
+        .opts
+        .iter()
+        .find(|o| o.auth.is_some() || o.send.as_ref().is_some_and(|x| x.location == SendLocation::Query));
+    let scheme = first.map_or(AuthScheme::None, |o| {
+        if let Some(send) = o.send.as_ref().filter(|x| x.location == SendLocation::Query) {
+            return AuthScheme::Query(send.name.clone());
+        }
+        let scheme = o
+            .auth
+            .as_ref()
+            .and_then(|a| s.security_schemes.iter().find(|(name, _)| *name == a.security_scheme))
+            .map(|(_, scheme)| scheme);
+        match scheme {
+            Some(SdkSecurityScheme::Http {
+                scheme: HttpAuthScheme::Basic,
+                ..
+            }) => AuthScheme::Basic,
+            Some(SdkSecurityScheme::ApiKey {
+                location: ApiKeyLocation::Header,
+                name,
+            }) => AuthScheme::Header(name.clone()),
+            Some(SdkSecurityScheme::ApiKey {
+                location: ApiKeyLocation::Query,
+                name,
+            }) => AuthScheme::Query(name.clone()),
+            Some(SdkSecurityScheme::Http { .. }) => AuthScheme::Bearer,
+            _ => AuthScheme::None,
+        }
+    });
+    Auth { scheme, opts }
 }
 
 fn files_param(p: &SdkParam, location: ParamLocation) -> FilesParam {
@@ -149,41 +243,13 @@ fn files_resource(client: &SdkClient, r: &SdkResource, parent: Option<&SdkResour
     }
 }
 
-fn first_example(resources: &[SdkResource]) -> Option<ExampleRequest> {
-    for r in resources {
-        for m in stainless_method_order(&r.methods) {
-            if m.path_params.is_empty() && method_params(m).iter().all(|p| !p.required) {
-                return Some(ExampleRequest {
-                    accessor: r.path.join("."),
-                    method: m.name.clone(),
-                    args: String::new(),
-                    http_method: m.http_method,
-                    path: m.path.clone(),
-                });
-            }
-        }
-        if let Some(nested) = first_example(&r.subresources) {
-            return Some(nested);
-        }
-    }
-    None
-}
-
-/// The project-file input, or `None` for a client the file templates cannot describe yet.
+/// The project-file input, or `None` for a client without settings or without a method.
 #[must_use]
 pub fn to_project_files_input(client: &SdkClient, meta: &ProjectMeta) -> Option<ProjectFilesInput> {
     let s = client.settings.as_ref()?;
-    let key = s
-        .opts
-        .iter()
-        .find(|o| o.send.as_ref().is_some_and(|x| x.location == SendLocation::Query) && o.read_env.is_some())?;
-    let send = key.send.as_ref()?;
-    let env = key.read_env.as_ref()?;
-    let example = meta
-        .readme_example
-        .clone()
-        .or_else(|| first_example(&client.resources))?;
+    let (example, probe) = examples(client, meta.readme_example.as_ref(), meta.readme_request.as_ref())?;
     let org = meta.organization.as_ref();
+    let contact = org.map_or_else(String::new, |o| o.contact.clone());
     Some(ProjectFilesInput {
         edition: PythonEdition::Python20251008,
         package_name: client.package.name.clone(),
@@ -199,14 +265,16 @@ pub fn to_project_files_input(client: &SdkClient, meta: &ProjectMeta) -> Option<
         organization: Organization {
             name: s.name.clone(),
             title: org.map_or_else(|| s.class_name.clone(), |o| o.title.clone()),
-            contact: org.map_or_else(String::new, |o| o.contact.clone()),
+            security_contact: org
+                .and_then(|o| o.security_contact.clone())
+                .unwrap_or_else(|| contact.clone()),
+            contact,
             docs_url: org.map_or_else(String::new, |o| o.docs_url.clone()),
         },
         readme_title: meta.readme_title.clone().unwrap_or_else(|| s.class_name.clone()),
-        auth: ApiKeyQueryAuth {
-            env: env.clone(),
-            param: send.name.clone(),
-        },
+        readme_attribution: meta.readme_attribution,
+        mock_tests: meta.mock_tests,
+        auth: auth(s),
         query: QueryFormat {
             array_format: s.array_format,
             object_format: s.nested_format,
@@ -216,7 +284,7 @@ pub fn to_project_files_input(client: &SdkClient, meta: &ProjectMeta) -> Option<
             openapi_spec_hash: String::new(),
             config_hash: String::new(),
         }),
-        retry_probe: example.clone(),
+        retry_probe: probe,
         readme_example: example,
         shared_types: client
             .models
