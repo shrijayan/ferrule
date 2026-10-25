@@ -82,6 +82,20 @@ Used in: crates/python-plugin/src/emit/files/templates/ (the bearer, basic and h
 Modified: names replaced by template tokens, auth styles selected by %%if%% blocks, branding
           removed (see crates/python-plugin/src/emit/files/BRANDING.md).
 
+Stainless-generated TypeScript SDK files (Apache-2.0)
+------------------------------------------------------------------------
+Used in: crates/ts-plugin/src/emit/templates/ (TypeScript code and project templates)
+Sources:
+  - isaacus-dev/isaacus-typescript @ c56af182d21e32ea472def11c3af17641d8f89c3 (Apache-2.0,
+    Copyright 2026 Isaacus): src/client.ts (the client options, constructor and request
+    machinery), copied to client_head.ts.tmpl and client_tail.ts.tmpl.
+  - knocklabs/knock-mgmt-node @ ca88fdba703717f355ad3e18e850a0bb23e548f6 (Apache-2.0,
+    Copyright 2026 Knock Mgmt): the getAPIList/requestAPIList methods of src/client.ts, in
+    client_tail.ts.tmpl.
+Modified: names replaced by %%TOKEN%% placeholders and %%if%% directives; the marks are kept
+          in crates/ts-plugin/src/emit/client.rs, not in the templates, so rendered output
+          stays byte-identical.
+
 ------------------------------------------------------------------------
 Fern (Apache-2.0 / MIT), https://github.com/fern-api/fern
 ------------------------------------------------------------------------
