@@ -656,6 +656,69 @@ fn flattens_nested_response_fields_item_fields_and_header_fields() {
     );
 }
 
+/// The `response` map of each scheme in a `pagination:` list.
+fn responses(pagination: &serde_json::Value) -> Vec<Value> {
+    let (schemes, _) = read_schemes(&v(json!({ "pagination": pagination })));
+    schemes
+        .iter()
+        .map(|s| s.extension.get("response").cloned().unwrap_or(Value::Null))
+        .collect()
+}
+
+// Reduced from knock-mgmt (`entries_cursor`) and ogx (`openai_cursor_page`): neither names the
+// items field, and Stainless reads the one top-level `type: array` response field as the items
+// (`SyncEntriesCursor.entries`, `SyncOpenAICursorPage.data`).
+#[test]
+fn reads_the_single_unannotated_top_level_array_as_the_items_field() {
+    let got = responses(&json!([
+        {
+            "name": "entries_cursor",
+            "type": "cursor",
+            "request": {"after": {"x-stainless-pagination-property": {"purpose": "next_cursor_param"}}},
+            "response": {
+                "entries": {"type": "array", "items": {"type": "object"}},
+                "page_info": {
+                    "type": "object",
+                    "properties": {
+                        "after": {"type": "string", "x-stainless-pagination-property": {"purpose": "next_cursor_field"}}
+                    }
+                }
+            }
+        },
+        {
+            "name": "openai_cursor_page",
+            "type": "cursor",
+            "response": {
+                "data": {"type": "array", "items": {}},
+                "has_more": {"type": "boolean"},
+                "last_id": {"type": "string", "x-stainless-pagination-property": {"purpose": "next_cursor_field"}}
+            }
+        },
+        {
+            "name": "two_arrays",
+            "type": "cursor",
+            "response": {"a": {"type": "array"}, "b": {"type": "array"}}
+        },
+        {
+            "name": "explicit",
+            "type": "cursor",
+            "response": {
+                "rows": {"type": "array", "x-stainless-pagination-property": {"purpose": "items"}},
+                "tags": {"type": "array"}
+            }
+        }
+    ]));
+    assert_eq!(
+        got,
+        vec![
+            v(json!({"entries": "items", "page_info.after": "next_cursor_field"})),
+            v(json!({"data": "items", "has_more": "has_more", "last_id": "next_cursor_field"})),
+            v(json!({"a": "a", "b": "b"})),
+            v(json!({"rows": "items", "tags": "tags"})),
+        ]
+    );
+}
+
 #[test]
 fn accepts_the_single_object_form_and_rejects_unknown_types() {
     let (single, _) = read_schemes(&v(
