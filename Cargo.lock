@@ -217,6 +217,7 @@ dependencies = [
  "ferrule-converter",
  "ferrule-python-plugin",
  "ferrule-sdk-model",
+ "ferrule-ts-plugin",
  "forge",
  "serde_json",
 ]

@@ -2,15 +2,23 @@
 //!
 //! ```text
 //! ferrule-gen convert openapi.yml stainless.yml -o annotated.json
-//! ferrule-gen generate annotated.json --out sdk [--target python]
+//! ferrule-gen generate annotated.json --out sdk [--target python|typescript]
+//!     [--config stainless.yml] [--openapi openapi.yml]
 //! ferrule-gen model annotated.json
 //! ```
 //!
 //! `generate` replaces `forge annotated.json --target wasm://plugin.wasm --out sdk`: the same
 //! input (a JSON document, or `-` for standard input), the same output directory handling
 //! (`forge::write`), errors on standard error as `ferrule-gen: <error>` with exit code 1, and
-//! exit code 2 for a usage error. `--target` names the SDK language (ADR 0017); Python, the
-//! default, is the only one with a plugin so far, and the others fail with FER202.
+//! exit code 2 for a usage error. `--target` names the SDK language (ADR 0017): `python` (the
+//! default) and `typescript` (`crates/ts-plugin`, the current `typescript` layout) have plugins;
+//! the others fail with FER202.
+//!
+//! For `typescript` only, until the annotated spec carries them: `--config` reads the version-less
+//! project settings (organization, README examples, license) from the stainless.yml, and
+//! `--openapi` reads examples, tag descriptions and the written property order from the original
+//! spec (the annotated one is written with sorted keys). Without them the plugin uses
+//! placeholders and the annotated spec.
 //!
 //! `model` prints the language-neutral SDK model (`ferrule-sdk-model`) of an annotated spec as
 //! deterministic JSON, for debugging and for plugin tests.
@@ -24,7 +32,7 @@ use ferrule_python_plugin::PythonPlugin;
 use ferrule_sdk_model::{FerCode, FerruleError};
 
 const USAGE: &str = "Usage: ferrule-gen convert <SPEC> <CONFIG> -o <OUT>
-       ferrule-gen generate <SPEC> --out <OUT> [--target <TARGET>]
+       ferrule-gen generate <SPEC> --out <OUT> [--target <TARGET>] [--config <YML>] [--openapi <SPEC>]
        ferrule-gen model <SPEC>
 
 Commands:
@@ -32,7 +40,7 @@ Commands:
   generate  Generate an SDK from an annotated spec (a JSON document, or - for stdin)
   model     Print the language-neutral SDK model of an annotated spec as JSON
 
-Targets: python (default); typescript, node, go, java, kotlin, ruby, php, csharp, cli and
+Targets: python (default), typescript; node, go, java, kotlin, ruby, php, csharp, cli and
 terraform are planned and not supported yet";
 
 /// `ferrule-gen <crate version> forge <40-hex rev>`: the rev is the Forge commit pinned in the
@@ -44,8 +52,8 @@ const VERSION: &str = concat!(
     env!("FERRULE_FORGE_REV")
 );
 
-/// The SDK languages `--target` accepts, by their stainless.yml `targets` key; only the first
-/// has a plugin.
+/// The SDK languages `--target` accepts, by their stainless.yml `targets` key; the first two
+/// have plugins.
 const TARGETS: [&str; 11] = [
     "python",
     "typescript",
@@ -61,6 +69,8 @@ const TARGETS: [&str; 11] = [
 ];
 
 const DEFAULT_TARGET: &str = "python";
+
+const TYPESCRIPT: &str = "typescript";
 
 fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().skip(1).collect();
@@ -108,6 +118,10 @@ struct GenerateArgs {
     spec: PathBuf,
     out: PathBuf,
     target: String,
+    /// `--config`: the stainless.yml (TypeScript project settings).
+    config: Option<PathBuf>,
+    /// `--openapi`: the original spec (TypeScript examples and property order).
+    openapi: Option<PathBuf>,
 }
 
 /// The value of `--name <value>` or `--name=value` at `args[*i]`, advancing `i` past it.
@@ -136,6 +150,8 @@ fn parse_generate(args: &[String]) -> Result<GenerateArgs, String> {
     let mut spec: Option<PathBuf> = None;
     let mut out: Option<PathBuf> = None;
     let mut target: Option<String> = None;
+    let mut config: Option<PathBuf> = None;
+    let mut openapi: Option<PathBuf> = None;
     let mut i = 0;
     while i < args.len() {
         if let Some(value) = flag_value(args, &mut i, "--out", Some("-o"), "OUT") {
@@ -149,6 +165,10 @@ fn parse_generate(args: &[String]) -> Result<GenerateArgs, String> {
                 ));
             }
             target = Some(value);
+        } else if let Some(value) = flag_value(args, &mut i, "--config", None, "YML") {
+            config = Some(PathBuf::from(value?));
+        } else if let Some(value) = flag_value(args, &mut i, "--openapi", None, "SPEC") {
+            openapi = Some(PathBuf::from(value?));
         } else if args[i].starts_with('-') && args[i] != "-" {
             return Err(format!("unexpected argument '{}' found", args[i]));
         } else if spec.is_none() {
@@ -163,6 +183,8 @@ fn parse_generate(args: &[String]) -> Result<GenerateArgs, String> {
             spec,
             out,
             target: target.unwrap_or_else(|| DEFAULT_TARGET.to_owned()),
+            config,
+            openapi,
         }),
         (spec, out) => {
             let mut missing = Vec::new();
@@ -186,7 +208,7 @@ fn unsupported_target(target: &str) -> FerruleError {
         FerCode::Fer202,
         "--target",
         format!("target {target} is not supported yet"),
-        format!("generate with --target {DEFAULT_TARGET}, the only target with a plugin so far"),
+        format!("generate with --target {DEFAULT_TARGET} or --target {TYPESCRIPT}, the targets with a plugin so far"),
     )
 }
 
@@ -195,10 +217,12 @@ fn generate(args: &[String], stderr: &mut dyn Write) -> i32 {
         Ok(args) => args,
         Err(message) => return usage(stderr, &message),
     };
-    if args.target != DEFAULT_TARGET {
-        return fail(stderr, &unsupported_target(&args.target));
-    }
-    match write_sdk(&args) {
+    let written = match args.target.as_str() {
+        DEFAULT_TARGET => write_sdk(&args),
+        TYPESCRIPT => write_typescript(&args),
+        other => return fail(stderr, &unsupported_target(other)),
+    };
+    match written {
         Ok(()) => 0,
         Err(err) => fail(stderr, &err),
     }
@@ -208,6 +232,68 @@ fn generate(args: &[String], stderr: &mut dyn Write) -> i32 {
 fn write_sdk(args: &GenerateArgs) -> Result<(), forge::Err> {
     let forge = read(&args.spec)?;
     forge::write(&args.out, forge::run(&forge, &PythonPlugin::default())?)
+}
+
+/// One file of the TypeScript SDK, for `forge::write`.
+struct TsFile(String, String);
+
+impl forge::File for TsFile {
+    fn path(&self) -> &str {
+        &self.0
+    }
+
+    fn content(&self) -> Result<std::borrow::Cow<'_, [u8]>, forge::Err> {
+        Ok(std::borrow::Cow::Borrowed(self.1.as_bytes()))
+    }
+}
+
+/// Reads a JSON or YAML document with the converter's reader, as `serde_json` in written order.
+fn read_document(path: &Path) -> Result<serde_json::Value, forge::Err> {
+    let text = fs::read_to_string(path).map_err(|err| format!("{}: {err}", path.display()))?;
+    let value = ferrule_converter::parse_spec(&text)
+        .or_else(|_| ferrule_converter::yaml::parse(&text))
+        .map_err(|err| format!("{}: {err}", path.display()))?;
+    Ok(converter_json(&value))
+}
+
+/// A converter value as `serde_json`, keys in the same order.
+fn converter_json(v: &ferrule_converter::Value) -> serde_json::Value {
+    use ferrule_converter::Value as V;
+    match v {
+        V::Null => serde_json::Value::Null,
+        V::Bool(b) => serde_json::Value::Bool(*b),
+        V::Number(n) => {
+            #[expect(clippy::cast_possible_truncation, reason = "checked to be integral and in range")]
+            let int = (n.fract() == 0.0 && n.abs() < 9.0e15).then_some(*n as i64);
+            int.map_or_else(
+                || serde_json::Number::from_f64(*n).map_or(serde_json::Value::Null, serde_json::Value::Number),
+                |i| serde_json::Value::Number(i.into()),
+            )
+        }
+        V::String(s) => serde_json::Value::String(s.clone()),
+        V::Array(a) => serde_json::Value::Array(a.iter().map(converter_json).collect()),
+        V::Object(m) => serde_json::Value::Object(m.iter().map(|(k, v)| (k.clone(), converter_json(v))).collect()),
+    }
+}
+
+/// Reads the annotated spec, maps it to the neutral model and writes the TypeScript SDK's files
+/// (the runtime comes from `ferrule_runtime.render_typescript_files`, as Python's does).
+fn write_typescript(args: &GenerateArgs) -> Result<(), forge::Err> {
+    let forge = read(&args.spec)?;
+    let Some(client) = ferrule_sdk_model::forge_to_model(&forge)? else {
+        return forge::write(&args.out, Vec::<TsFile>::new());
+    };
+    let meta = match &args.config {
+        Some(path) => ferrule_ts_plugin::TsMeta::from_config(&read_document(path)?),
+        None => ferrule_ts_plugin::TsMeta::placeholder(),
+    };
+    let doc = match &args.openapi {
+        Some(path) => read_document(path)?,
+        None => read_document(&args.spec)?,
+    };
+    let extras = ferrule_ts_plugin::SpecExtras::new(doc);
+    let files = ferrule_ts_plugin::generate(&client, &meta, &extras);
+    forge::write(&args.out, files.into_iter().map(|(p, c)| TsFile(p, c)).collect())
 }
 
 fn parse_model(args: &[String]) -> Result<PathBuf, String> {
@@ -276,6 +362,21 @@ mod tests {
         }
         let parsed = parse_generate(&strings(&["-", "--out=sdk", "--target=go"])).expect("valid");
         assert_eq!((parsed.spec, parsed.target.as_str()), (PathBuf::from("-"), "go"));
+        let parsed = parse_generate(&strings(&[
+            "a.json",
+            "-o",
+            "sdk",
+            "--target",
+            "typescript",
+            "--config",
+            "s.yml",
+            "--openapi=o.yml",
+        ]))
+        .expect("valid");
+        assert_eq!(
+            (parsed.target.as_str(), parsed.config, parsed.openapi),
+            ("typescript", Some(PathBuf::from("s.yml")), Some(PathBuf::from("o.yml")))
+        );
     }
 
     #[test]
