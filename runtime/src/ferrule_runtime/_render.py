@@ -7,6 +7,9 @@ see ``runtime/NOTICE``) with names replaced by tokens and a few config-dependent
 in ``#ferrule:if <flag>`` / ``#ferrule:else`` / ``#ferrule:endif`` directive lines. Rendering
 substitutes the tokens and resolves the directives; the output is byte-identical to the files a
 Stainless-generated SDK with the same settings ships.
+
+Other languages (``runtime/<language>/template``) go through the same engine,
+:func:`render_tree`, with their own comment syntax for directives (``//ferrule:if``).
 """
 
 from __future__ import annotations
@@ -16,7 +19,7 @@ import re
 from dataclasses import dataclass
 from importlib import resources
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal
 
 from ferrule_runtime.pagination import PageScheme, render_pagination
 
@@ -25,14 +28,18 @@ if TYPE_CHECKING:
     from importlib.resources.abc import Traversable
 
 __all__ = [
+    "Language",
     "RenderError",
     "RuntimeOptions",
     "default_client_name",
     "render",
     "render_files",
     "render_options",
+    "render_tree",
     "template_root",
 ]
+
+Language = Literal["python", "typescript", "go"]
 
 PKG_PLACEHOLDER = "__ferrule_pkg__"
 CLIENT_PLACEHOLDER = "__FerruleClient__"
@@ -43,8 +50,8 @@ TIMEOUT_COMMENT_PLACEHOLDER = "__FERRULE_TIMEOUT_COMMENT__"
 MAX_RETRIES_PLACEHOLDER = "__FERRULE_MAX_RETRIES__"
 FILE_UPLOADS_HINT_PLACEHOLDER = "__FERRULE_FILE_UPLOADS_HINT__"
 
-_DIRECTIVE = re.compile(r"^#ferrule:(if|else|endif)(?: ([a-z0-9_]+))?$")
-_LEFTOVER = re.compile(r"__(?:ferrule_pkg|Ferrule[A-Za-z]+|FERRULE_[A-Z_]+)__")
+_DIRECTIVE_OPS = r"ferrule:(if|else|endif|slot)(?: ([a-z0-9_]+))?$"
+_LEFTOVER = re.compile(r"__(?:ferrule_[a-z_]+|Ferrule[A-Za-z]+|FERRULE_[A-Z_]+)__")
 _CAMEL_BOUNDARY = re.compile(r"(?<=[a-z0-9])(?=[A-Z])")
 _IDENT = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 _BASE_MODEL_HINT = (
@@ -92,12 +99,16 @@ class RuntimeOptions:
     """Adds the ``testing/`` fake server (``<pkg>.testing``); not in Stainless output (ADR 0016)."""
 
 
-def template_root() -> Traversable:
-    """Locate the runtime template (package data in a wheel, ``runtime/template`` in-repo)."""
-    packaged = resources.files("ferrule_runtime").joinpath("template")
+def template_root(language: Language = "python") -> Traversable:
+    """Locate a runtime template (package data in a wheel, ``runtime/...`` in-repo).
+
+    Python's is ``runtime/template``; every other language's is ``runtime/<language>/template``.
+    """
+    parts = ("template",) if language == "python" else (language, "template")
+    packaged = resources.files("ferrule_runtime").joinpath(*parts)
     if packaged.is_dir():
         return packaged
-    return Path(__file__).resolve().parents[2] / "template"
+    return Path(__file__).resolve().parents[2].joinpath(*parts)
 
 
 def _walk(root: Traversable, prefix: str = "") -> Iterable[tuple[str, Traversable]]:
@@ -111,32 +122,103 @@ def _walk(root: Traversable, prefix: str = "") -> Iterable[tuple[str, Traversabl
             yield rel, entry
 
 
-def resolve_directives(text: str, flags: Mapping[str, bool], path: str) -> str:
+def _branch(  # noqa: PLR0913 - one directive line and the state it updates
+    op: str,
+    name: str | None,
+    stack: list[tuple[bool, bool]],
+    flags: Mapping[str, bool],
+    *,
+    path: str,
+    marker: str,
+) -> None:
+    """Apply an ``if``/``else``/``endif`` directive to the ``(condition, in_else)`` stack."""
+    if op == "if":
+        if name is None or name not in flags:
+            msg = f"{path}: unknown template flag {name!r}"
+            raise RenderError(msg)
+        stack.append((flags[name], False))
+    elif not stack:
+        msg = f"{path}: {marker}{op} without {marker}if"
+        raise RenderError(msg)
+    elif op == "else":
+        stack[-1] = (stack[-1][0], True)
+    else:
+        stack.pop()
+
+
+def resolve_directives(
+    text: str,
+    flags: Mapping[str, bool],
+    path: str,
+    *,
+    comment: str = "#",
+    slots: Mapping[str, str] | None = None,
+) -> str:
+    """Resolve whole-line ``<comment>ferrule:`` directives.
+
+    ``if <flag>`` / ``else`` / ``endif`` keep or drop lines; ``slot <name>`` is replaced by
+    ``slots[name]`` (text the caller generates, such as config-dependent Go client options).
+    """
+    marker = f"{comment}ferrule:"
+    directive = re.compile(re.escape(comment) + _DIRECTIVE_OPS)
     out: list[str] = []
-    stack: list[tuple[bool, bool]] = []  # (condition, in_else)
+    stack: list[tuple[bool, bool]] = []
     for line in text.splitlines(keepends=True):
-        match = _DIRECTIVE.match(line.strip())
+        stripped = line.strip()
+        match = directive.match(stripped)
+        active = all(cond != in_else for cond, in_else in stack)
         if match is None:
-            if all(cond != in_else for cond, in_else in stack):
+            if stripped.startswith(marker):
+                msg = f"{path}: malformed directive {stripped!r}"
+                raise RenderError(msg)
+            if active:
                 out.append(line)
             continue
-        op, flag = match.groups()
-        if op == "if":
-            if flag not in flags:
-                msg = f"{path}: unknown template flag {flag!r}"
-                raise RenderError(msg)
-            stack.append((flags[flag], False))
-        elif not stack:
-            msg = f"{path}: #ferrule:{op} without #ferrule:if"
+        op, name = match.groups()
+        if op != "slot":
+            _branch(op, name, stack, flags, path=path, marker=marker)
+            continue
+        if slots is None or name not in slots:
+            msg = f"{path}: unknown template slot {name!r}"
             raise RenderError(msg)
-        elif op == "else":
-            stack[-1] = (stack[-1][0], True)
-        else:
-            stack.pop()
+        if active:
+            out.append(slots[name])
     if stack:
-        msg = f"{path}: unterminated #ferrule:if"
+        msg = f"{path}: unterminated {marker}if"
         raise RenderError(msg)
     return "".join(out)
+
+
+def render_tree(  # noqa: PLR0913 - keyword-only settings of one render
+    root: Traversable,
+    *,
+    replacements: Mapping[str, str],
+    flags: Mapping[str, bool],
+    comment: str = "#",
+    slots: Mapping[str, str] | None = None,
+    gated: Mapping[str, bool] | None = None,
+) -> dict[str, str]:
+    """Render every file under ``root``: the one code path all languages share (pure).
+
+    Directives are resolved first, then tokens are replaced in ``replacements`` order (callers
+    list the longest token first). ``gated`` maps a path prefix (``testing/``) to whether files
+    under it are rendered. A token left over after replacement is an error.
+    """
+    files: dict[str, str] = {}
+    for rel, entry in _walk(root):
+        if any(rel.startswith(prefix) and not keep for prefix, keep in (gated or {}).items()):
+            continue
+        text = resolve_directives(
+            entry.read_bytes().decode("utf-8"), flags, rel, comment=comment, slots=slots
+        )
+        for token, value in replacements.items():
+            text = text.replace(token, value)
+        leftover = _LEFTOVER.search(text)
+        if leftover is not None:
+            msg = f"{rel}: unknown template token {leftover.group(0)}"
+            raise RenderError(msg)
+        files[rel] = text
+    return files
 
 
 def timeout_comment(seconds: int) -> str:
@@ -237,18 +319,12 @@ def render_options(
         "base_model_hint_fits": len(_BASE_MODEL_HINT.format(pkg=pkg)) <= options.line_length,
     }
 
-    files: dict[str, str] = {}
-    for rel, entry in _walk(template_root()):
-        if rel.startswith(_TESTING_DIR) and not options.testing:
-            continue
-        text = resolve_directives(entry.read_bytes().decode("utf-8"), flags, rel)
-        for token, value in replacements.items():
-            text = text.replace(token, value)
-        leftover = _LEFTOVER.search(text)
-        if leftover is not None:
-            msg = f"{rel}: unknown template token {leftover.group(0)}"
-            raise RenderError(msg)
-        files[rel] = text
+    files = render_tree(
+        template_root(),
+        replacements=replacements,
+        flags=flags,
+        gated={_TESTING_DIR: options.testing},
+    )
     if pagination:
         files["pagination.py"] = render_pagination(pagination, line_length=options.line_length)
     return files
