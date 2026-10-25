@@ -1,5 +1,4 @@
-//! Resolving `target`, `to` and `from` arguments, and editing the document by path. Port of
-//! `converter/src/transforms/targets.ts`.
+//! Resolving `target`, `to` and `from` arguments, and editing the document by path.
 
 use super::jsonpath::{JsonPathError, Segment, Selector, evaluate_segments, parse_json_path, query};
 use crate::Diagnostic;

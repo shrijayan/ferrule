@@ -1,6 +1,5 @@
 //! Maps Forge's groups, methods, models and types to [`SdkClient`] (ADR 0002). With
 //! [`super::extensions`], the only code that knows Forge's interface.
-//! Port of `python-plugin/src/adapter/to-model.ts`.
 
 use std::collections::HashSet;
 
@@ -161,14 +160,17 @@ impl Context<'_> {
                             r#ref: r.clone(),
                             description: model.description().to_owned(),
                             ty: SdkObject::default(),
+                            alias: None,
                         };
                         self.decls.push((schema.to_owned(), decl));
-                        let body = match self.read_type(model.ty())? {
-                            SdkType::Object(o) => o,
-                            t => return Err(self.unsupported(&format!("named model of kind {}", sdk_kind(&t)))),
-                        };
+                        let body = self.read_type(model.ty())?;
                         if let Some((_, slot)) = self.decls.iter_mut().find(|(k, _)| k == schema) {
-                            slot.ty = body;
+                            match body {
+                                SdkType::Object(o) => slot.ty = o,
+                                // An object without properties: an empty class, as Stainless prints it.
+                                SdkType::Unknown => {}
+                                other => slot.alias = Some(other),
+                            }
                         }
                     }
                     return Ok(SdkType::Ref(r));
@@ -240,7 +242,7 @@ impl Context<'_> {
             SdkType::Ref(r) => self
                 .decls
                 .iter()
-                .find(|(_, d)| d.r#ref.module == r.module && d.r#ref.name == r.name)
+                .find(|(_, d)| d.r#ref.module == r.module && d.r#ref.name == r.name && d.alias.is_none())
                 .map(|(_, d)| &d.ty),
             _ => None,
         }

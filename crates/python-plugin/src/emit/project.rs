@@ -1,14 +1,17 @@
-//! Assembles the files of the SDK from one [`SdkClient`]: `_client.py`, `resources/**`,
-//! `types/**` (`pagination.py` is rendered by the runtime), then the project files and the agent
-//! context. Everything is emitted from Forge's `generate`, which sees every group;
-//! `generate_group` emits nothing (Forge gaps G7, G10). Port of `python-plugin/src/emit/project.ts`.
+//! Assembles the files of the SDK from one [`SdkClient`]: `_client.py`, `resources/**`, `types/**`
+//! (`pagination.py` is rendered by the runtime), then the project files and the agent context.
+//! Everything is emitted from Forge's `generate`, which sees every group; `generate_group` emits
+//! nothing (Forge gaps G7, G10).
 
 use super::agent::emit_agent_files;
 use super::client::emit_client_file;
-use super::common::{HEADER, method_params, method_ref, py_string, resource_module, return_model};
+use super::common::{
+    HEADER, method_params, method_ref, py_string, resource_module, return_model, stainless_method_order,
+};
+use super::cycles::Cycles;
 use super::files::emit_project_files;
 use super::files_input::{ProjectMeta, to_project_files_input};
-use super::models::{ModelFile, emit_alias_file, emit_model_file};
+use super::models::{AliasFile, ModelFile, emit_alias_model_file, emit_model_file};
 use super::package_init::{emit_package_init, emit_version};
 use super::params::emit_params_file;
 use super::resources::{Mode, class_name, emit_resource_file};
@@ -91,6 +94,9 @@ struct Out {
     files: OrderedMap<String>,
     exports: OrderedMap<OrderedMap<String>>,
     pkg: String,
+    cycles: Cycles,
+    /// Classes `types/__init__.py` rebuilds, as `module.Class` under `types`.
+    rebuild: Vec<String>,
 }
 
 impl Out {
@@ -109,12 +115,22 @@ impl Out {
             && let Some(inline) = ret.inline
         {
             let content = match inline {
-                SdkType::Object(obj) => emit_model_file(&ModelFile {
+                SdkType::Object(obj) => {
+                    if self.cycles.needs_rebuild(obj) {
+                        self.rebuild.push(format!("{}.{}", ret.r#ref.module, ret.r#ref.name));
+                    }
+                    emit_model_file(&ModelFile {
+                        r#ref: &ret.r#ref,
+                        ty: obj,
+                        prefix_children: true,
+                        cycles: Some(&self.cycles),
+                    })
+                }
+                other => emit_alias_model_file(&AliasFile {
                     r#ref: &ret.r#ref,
-                    ty: obj,
-                    prefix_children: true,
+                    ty: other,
+                    cycles: Some(&self.cycles),
                 }),
-                other => emit_alias_file(&ret.r#ref, other),
             };
             self.files
                 .set_value(&module_path(&self.pkg, &format!("types.{}", ret.r#ref.module)), content);
@@ -147,19 +163,30 @@ impl Out {
             self.exports.entry("", OrderedMap::default).set_value("shared", names);
         }
         for decl in &client.models {
-            // `{ description: decl.description, ...decl.type }`: the type's own description wins.
-            let ty = SdkObject {
-                description: decl.ty.description.clone().or_else(|| Some(decl.description.clone())),
-                ..decl.ty.clone()
-            };
-            self.files.set_value(
-                &module_path(&pkg, &format!("types.{}", decl.r#ref.module)),
+            let content = if let Some(alias) = &decl.alias {
+                emit_alias_model_file(&AliasFile {
+                    r#ref: &decl.r#ref,
+                    ty: alias,
+                    cycles: Some(&self.cycles),
+                })
+            } else {
+                // `{ description: decl.description, ...decl.type }`: the type's own description wins.
+                let ty = SdkObject {
+                    description: decl.ty.description.clone().or_else(|| Some(decl.description.clone())),
+                    ..decl.ty.clone()
+                };
+                if self.cycles.needs_rebuild(&ty) {
+                    self.rebuild.push(format!("{}.{}", decl.r#ref.module, decl.r#ref.name));
+                }
                 emit_model_file(&ModelFile {
                     r#ref: &decl.r#ref,
                     ty: &ty,
                     prefix_children: false,
-                }),
-            );
+                    cycles: Some(&self.cycles),
+                })
+            };
+            self.files
+                .set_value(&module_path(&pkg, &format!("types.{}", decl.r#ref.module)), content);
             if !decl.r#ref.module.starts_with("shared.") {
                 self.export(&decl.r#ref.module, &decl.r#ref.name);
             }
@@ -194,9 +221,38 @@ impl Out {
                     p.import_from(&format!(".{module}"), &format!("{name} as {name}"));
                 }
             }
+            if dir.is_empty() {
+                rebuild_block(&mut p, &self.rebuild);
+            }
             self.files.set_value(&module_path(&pkg, &init), p.render());
         }
     }
+}
+
+/// Rebuilds the classes that refer to models in reference cycles once every module is imported,
+/// as Stainless does (see [`Cycles`]).
+fn rebuild_block(p: &mut PythonPrinter, classes: &[String]) {
+    if classes.is_empty() {
+        return;
+    }
+    for c in classes {
+        p.import_from(".", c.split('.').next().unwrap_or(c));
+    }
+    p.import_from("..", "_compat");
+    p.line("# Rebuild cyclical models only after all modules are imported.");
+    p.line("# This ensures that, when building the deferred (due to cyclical references) model schema,");
+    p.line("# Pydantic can resolve the necessary references.");
+    p.line("# See: https://github.com/pydantic/pydantic/issues/11250 for more context.");
+    p.block("if _compat.PYDANTIC_V1:", |p| {
+        for c in classes {
+            p.line(&format!("{c}.update_forward_refs()  # type: ignore"));
+        }
+    });
+    p.block("else:", |p| {
+        for c in classes {
+            p.line(&format!("{c}.model_rebuild(_parent_namespace_depth=0)"));
+        }
+    });
 }
 
 fn sorted(files: OrderedMap<String>) -> FileTree {
@@ -216,6 +272,8 @@ pub fn emit_code_files(client: &SdkClient, meta: Option<&ProjectMeta>) -> Result
         files: OrderedMap::default(),
         exports: OrderedMap::default(),
         pkg: pkg.clone(),
+        cycles: Cycles::of(&client.models),
+        rebuild: Vec::new(),
     };
     out.exports.set_value("", OrderedMap::default());
 
@@ -234,7 +292,8 @@ pub fn emit_code_files(client: &SdkClient, meta: Option<&ProjectMeta>) -> Result
                 resources_init(&members),
             );
         }
-        for method in &resource.methods {
+        // In the oracles' method order, the order `types/__init__.py` rebuilds response classes in.
+        for method in stainless_method_order(&resource.methods) {
             out.method_types(Some(resource), method);
         }
     }

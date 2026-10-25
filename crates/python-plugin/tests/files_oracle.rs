@@ -1,7 +1,6 @@
 //! Golden comparison of the project-file emitters for OneBusAway, byte for byte: against the
 //! TypeScript emitter (while it exists) and against the pinned oracle after the branding
-//! substitutions of `src/emit/files/BRANDING.md`. Port of
-//! `python-plugin/test/files/oracle.test.ts`; the oracle part is skipped when the oracle isn't
+//! substitutions of `src/emit/files/BRANDING.md`. The oracle part is skipped when the oracle isn't
 //! fetched (`python3 oracles/fetch.py onebusaway`).
 
 mod files_support;
@@ -11,8 +10,7 @@ use std::path::{Path, PathBuf};
 use ferrule_python_plugin::emit::files::emit_project_files;
 use files_support::{input, onebusaway_json, repo};
 
-/// Oracle files emitted from a template (every non-`src/` file Stainless generates). Same list
-/// as `TEMPLATE_FILES` in `python-plugin/test/files/oracle-files.ts`.
+/// Oracle files emitted from a template (every non-`src/` file Stainless generates).
 const TEMPLATE_FILES: &[&str] = &[
     ".devcontainer/Dockerfile",
     ".devcontainer/devcontainer.json",
@@ -70,8 +68,8 @@ const DROPPED_FILES: &[&str] = &["scripts/utils/upload-artifact.sh"];
 /// Oracle files that are not generated output (written by the SDK owner or by release-please).
 const NOT_GENERATED: &[&str] = &["CHANGELOG.md"];
 
-/// Known, unexplained diffs (see `KNOWN_DIFFS` in `oracle.test.ts`): the oracle parenthesizes a
-/// one-name import that fits on one line. Compared with parenthesized imports collapsed.
+/// Known, unexplained diffs: the oracle parenthesizes a one-name import that fits on one line.
+/// Compared with parenthesized imports collapsed.
 const KNOWN_DIFFS: &[&str] = &["tests/api_resources/test_arrivals_and_departures_for_location.py"];
 
 const CI_UPLOAD: &str = "
@@ -96,8 +94,8 @@ const CI_UPLOAD: &str = "
         run: ./scripts/utils/upload-artifact.sh
 ";
 
-/// Every line where Ferrule's output differs from the oracle on purpose: (file or `*`, oracle
-/// text, Ferrule text). Same list as `BRANDING` in `oracle-files.ts`.
+/// Every line where Ferrule's output differs from the oracle on purpose: (file or `*`, oracle text,
+/// Ferrule text).
 const BRANDING: &[(&str, &str, &str)] = &[
     (
         "*",

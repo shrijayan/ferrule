@@ -1,4 +1,4 @@
-//! ADR 0002: Forge stays behind the adapter. Port of `test/boundary.test.ts`.
+//! ADR 0002: Forge stays behind the adapter.
 
 use std::fs;
 use std::path::{Path, PathBuf};

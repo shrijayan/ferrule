@@ -1,0 +1,165 @@
+openapi: 3.1.0
+info: {title: fx, version: '1'}
+servers: [{url: 'https://api.example.com'}]
+
+paths:
+  /workflows/{key}:
+    get:
+      operationId: getWorkflow
+      parameters: [{name: key, in: path, required: true, schema: {type: string}}]
+      responses:
+        '200':
+          description: ok
+          content: {application/json: {schema: {$ref: '#/components/schemas/Workflow'}}}
+  /workflows/{key}/activate:
+    put:
+      operationId: activateWorkflow
+      parameters: [{name: key, in: path, required: true, schema: {type: string}}]
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [workflow]
+                properties:
+                  workflow: {$ref: '#/components/schemas/Workflow'}
+  /audiences:
+    get:
+      operationId: listAudiences
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  anyOf:
+                    - {$ref: '#/components/schemas/StaticAudience'}
+                    - {$ref: '#/components/schemas/DynamicAudience'}
+components:
+  schemas:
+    Workflow:
+      type: object
+      description: A workflow.
+      required: [key, steps]
+      properties:
+        key: {type: string}
+        steps: {type: array, items: {$ref: '#/components/schemas/WorkflowStep'}}
+        audience: {$ref: '#/components/schemas/Audience'}
+        conditions: {$ref: '#/components/schemas/ConditionGroup'}
+        resolution: {$ref: '#/components/schemas/StreamingResolution'}
+        extensions: {$ref: '#/components/schemas/Extensions'}
+        channel_data: {$ref: '#/components/schemas/ChannelData'}
+        source: {$ref: '#/components/schemas/Source'}
+        owners:
+          type: array
+          items:
+            anyOf:
+              - {type: string}
+              - {$ref: '#/components/schemas/StaticAudience'}
+    WorkflowStep:
+      description: A step within a workflow.
+      anyOf:
+        - {$ref: '#/components/schemas/WorkflowDelayStep'}
+        - {$ref: '#/components/schemas/WorkflowBranchStep'}
+    WorkflowDelayStep:
+      type: object
+      required: [type]
+      properties:
+        type: {type: string, enum: [delay]}
+        seconds: {type: integer}
+    WorkflowBranchStep:
+      type: object
+      required: [type, cases]
+      properties:
+        type: {type: string, enum: [branch]}
+        cases:
+          type: array
+          items:
+            type: object
+            required: [steps]
+            properties:
+              name: {type: string}
+              steps: {type: array, items: {$ref: '#/components/schemas/WorkflowStep'}}
+    ConditionGroup:
+      description: A group of conditions to be evaluated.
+      anyOf:
+        - {$ref: '#/components/schemas/ConditionGroupAllMatch'}
+        - {$ref: '#/components/schemas/ConditionGroupAnyMatch'}
+    ConditionGroupAllMatch:
+      type: object
+      description: A group of conditions that must all be met.
+      properties:
+        all: {type: array, items: {type: string}}
+    ConditionGroupAnyMatch:
+      type: object
+      description: A group of conditions that any must be met.
+      properties:
+        any: {type: array, items: {type: string}}
+    Audience:
+      description: An audience.
+      oneOf:
+        - {$ref: '#/components/schemas/StaticAudience'}
+        - {$ref: '#/components/schemas/DynamicAudience'}
+      discriminator: {propertyName: type}
+    StaticAudience:
+      type: object
+      required: [key, type]
+      properties:
+        key: {type: string}
+        type: {type: string, enum: [static]}
+    DynamicAudience:
+      type: object
+      required: [key, type]
+      properties:
+        key: {type: string}
+        type: {type: string, enum: [dynamic]}
+    StreamingResolution:
+      type: string
+      description: A streaming resolution.
+      enum: ['240', '360', '480']
+    Extensions:
+      type: array
+      description: Extensions to apply.
+      items:
+        discriminator: {propertyName: name}
+        oneOf:
+          - {$ref: '#/components/schemas/RemoveBg'}
+          - {$ref: '#/components/schemas/AutoDescription'}
+    RemoveBg:
+      type: object
+      required: [name]
+      properties:
+        name: {type: string, enum: [remove-bg]}
+        add_shadow: {type: boolean}
+    AutoDescription:
+      type: object
+      required: [name]
+      properties:
+        name: {type: string, enum: [auto-description]}
+    ChannelData:
+      type: object
+      description: Channel data keyed by channel id.
+      additionalProperties:
+        type: object
+        properties:
+          tokens: {type: array, items: {type: string}}
+    Source:
+      description: Where the workflow reads from.
+      discriminator: {propertyName: type}
+      oneOf:
+        - title: S3
+          type: object
+          required: [type, bucket]
+          properties:
+            type: {type: string, enum: [S3]}
+            bucket: {type: string}
+        - title: Web folder
+          type: object
+          required: [type, base_url]
+          properties:
+            type: {type: string, enum: [WEB_FOLDER]}
+            base_url: {type: string}

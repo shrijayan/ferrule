@@ -1,7 +1,7 @@
-//! Swagger 2.0 to OpenAPI 3.0 (`converter/src/swagger2/index.ts`): the pinned Forge reader knows
-//! only OpenAPI 3. Runs before `openapi.transforms`. Pure. Body and form parameters become
-//! request bodies noted with `x-ferrule-normalized`; the document gets one FER1610 info
-//! diagnostic. See docs/forge-gaps.md (G24).
+//! Swagger 2.0 to OpenAPI 3.0: the pinned Forge reader knows only OpenAPI 3. Runs before
+//! `openapi.transforms`. Pure. Body and form parameters become request bodies noted with
+//! `x-ferrule-normalized`; the document gets one FER1610 info diagnostic. See docs/forge-gaps.md
+//! (G24).
 
 use crate::Diagnostic;
 use crate::normalize::NORMALIZED_KEY;

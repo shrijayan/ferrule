@@ -1,12 +1,11 @@
 //! A pure, deterministic evaluator for the JSONPath Plus subset that `openapi.transforms` uses.
-//! Port of `converter/src/transforms/jsonpath.ts`.
 //!
 //! Supported: `$`, `.name`, `..name`, `.*`, `..*`, `['name']`, `["name"]`, `[0]`, `[-1]`, `[*]`,
 //! unions (`['a','b']`, `[0,2]`), slices (`[0:2]`, `[::2]`) and filters (`[?(@.name == "id")]`).
 //! Filters accept `@`, `@property`, `@parentProperty`, `@parent`, `@root`/`$`, member access, the
 //! literals JSON has plus `undefined` and `/regex/flags`, `! && || == === != !== < <= > >=`,
-//! parentheses, and the string/array methods `includes`, `startsWith`, `endsWith`, `match`,
-//! `test`, `toLowerCase`, `toUpperCase` and `trim`. Dot names run to the next `.` or `[`, so
+//! parentheses, and the string/array methods `includes`, `startsWith`, `endsWith`, `match`, `test`,
+//! `toLowerCase`, `toUpperCase` and `trim`. Dot names run to the next `.` or `[`, so
 //! `$.paths./users/{id}.get` works as in JSONPath Plus.
 //!
 //! Anything else (script expressions, `^` parent, `~` property names, type selectors) is a

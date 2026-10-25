@@ -1,8 +1,7 @@
-//! api.md: every resource's types and methods, as the oracle SDKs list them. Port of
-//! `python-plugin/src/emit/files/api-md.ts`.
+//! api.md: every resource's types and methods, as the oracle SDKs list them.
 
 use super::input::{FilesMethod, FilesResource, ParamLocation, ProjectFilesInput};
-use super::js;
+use crate::js;
 
 /// `from <module> import a, b`, parenthesized one per line past `width` columns.
 #[must_use]

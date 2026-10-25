@@ -1,6 +1,5 @@
-//! Port of the extension tests in `test/adapter.test.ts`, `test/phase3.test.ts` and
-//! `test/untrusted.test.ts`. Spec and config text is untrusted: values that become Python
-//! identifiers are validated, so nothing can inject code into the SDK.
+//! Spec and config text is untrusted: values that become Python identifiers are validated, so
+//! nothing can inject code into the SDK.
 
 use serde_json::{Value, json};
 

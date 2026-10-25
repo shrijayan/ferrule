@@ -1,6 +1,5 @@
 //! `tests/api_resources/**`: one test module per resource with methods, sync and async from one
-//! pass ([`Mode`]), in the shape of the oracle SDKs' generated tests. Port of
-//! `python-plugin/src/emit/files/api-tests.ts`.
+//! pass ([`Mode`]), in the shape of the oracle SDKs' generated tests.
 
 use std::collections::BTreeSet;
 
@@ -8,9 +7,9 @@ use serde_json::Value;
 
 use super::api_md::import_line;
 use super::input::{FilesMethod, FilesParam, FilesResource, ParamLocation, ProjectFilesInput};
-use super::js;
 use super::render::isort_compare;
 use crate::emit::common::{HEADER, py_string};
+use crate::js;
 use crate::model::{SdkLiteral, SdkPrimitive, SdkType};
 
 /// Helpers a test module imports from `<pkg>._utils` because an example value uses them:

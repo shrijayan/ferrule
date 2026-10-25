@@ -1,6 +1,5 @@
-//! `resources/<name>.py`: the sync and async resource classes and their raw/streaming wrappers.
-//! One pass per class with a sync/async mode flag (CLAUDE.md: DRY across sync and async).
-//! Port of `python-plugin/src/emit/resources.ts`.
+//! `resources/<name>.py`: the sync and async resource classes and their raw/streaming wrappers. One
+//! pass per class with a sync/async mode flag (CLAUDE.md: DRY across sync and async).
 
 use std::collections::HashSet;
 

@@ -1,5 +1,4 @@
 //! `ferrule-gen convert`: the only module in the converter crate that touches the file system.
-//! Port of `converter/src/cli.ts`.
 
 use crate::{Severity, convert_text};
 use std::io::Write;

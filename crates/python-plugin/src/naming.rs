@@ -1,5 +1,4 @@
 //! Names are carried as word lists; these render them in Python conventions.
-//! Port of `python-plugin/src/naming.ts`.
 
 const PY_KEYWORDS: [&str; 35] = [
     "False", "None", "True", "and", "as", "assert", "async", "await", "break", "class", "continue", "def", "del",

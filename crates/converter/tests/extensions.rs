@@ -1,6 +1,3 @@
-//! Port of converter/test/extensions/client.test.ts, streaming.test.ts, pagination.test.ts and
-//! json.test.ts (vitest).
-
 use ferrule_converter::extensions::client::{build_client, timeout_seconds, upper_snake};
 use ferrule_converter::extensions::groups::{CLIENT_GROUP, collides_with_client_group, forge_group_path, forge_words};
 use ferrule_converter::extensions::json::{
@@ -53,9 +50,6 @@ fn assert_match(actual: &Value, expected: serde_json::Value) {
         "expected {actual:?} to match {expected:?}"
     );
 }
-
-// ---------------------------------------------------------------------------------------------
-// client.test.ts
 
 fn client_spec() -> Value {
     v(json!({
@@ -323,9 +317,6 @@ fn upper_snake_examples() {
     }
 }
 
-// ---------------------------------------------------------------------------------------------
-// streaming.test.ts
-
 const STREAMING_POINTER: &str = "/resources/chat/methods/create";
 
 fn streaming_spec() -> Value {
@@ -536,9 +527,6 @@ fn normalizes_kinds_and_keeps_config_order() {
     assert_eq!(Value::Array(read_on_event(&config)), expected);
     assert_eq!(read_on_event(&Value::object()), Vec::<Value>::new());
 }
-
-// ---------------------------------------------------------------------------------------------
-// pagination.test.ts
 
 fn pagination_spec() -> Value {
     v(json!({
@@ -817,9 +805,6 @@ fn collects_path_level_and_operation_level_query_params_only() {
     assert_eq!(shape.response_schema, None);
     assert_eq!(shape.body, Vec::<String>::new());
 }
-
-// ---------------------------------------------------------------------------------------------
-// json.test.ts
 
 fn json_spec() -> Value {
     v(json!({

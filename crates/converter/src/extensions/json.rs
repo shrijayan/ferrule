@@ -1,4 +1,4 @@
-//! Untyped JSON readers shared by the extension builders (`converter/src/extensions/json.ts`).
+//! Untyped JSON readers shared by the extension builders.
 
 use crate::value::{Map, Value};
 use std::collections::HashSet;

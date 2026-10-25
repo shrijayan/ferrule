@@ -1,13 +1,12 @@
 //! `types/<resource>_<method>_params.py`: the `TypedDict` of a method's query and body parameters,
 //! followed by the `TypedDicts` (and union aliases) of the inline objects inside them.
-//! Port of `python-plugin/src/emit/params.ts`.
 
 use std::collections::{HashMap, HashSet};
 
 use super::common::{FieldLike, HEADER, method_params, method_ref, py_string, rel_import, sort_fields};
 use super::format::{bracket, print_expr};
 use super::models::{all_list, docstring};
-use crate::model::{SdkMethod, SdkObject, SdkPrimitive, SdkRef, SdkResource, SdkType};
+use crate::model::{SdkLiteral, SdkMethod, SdkObject, SdkPrimitive, SdkRef, SdkResource, SdkType};
 use crate::naming::{class_segment, pascal_case, singular, split_words};
 use crate::printer::PythonPrinter;
 use crate::type_mapper::{AnnotationContext, WithoutUnionNames, to_annotation};
@@ -96,12 +95,42 @@ impl<'a> Named<'a> {
         self.postorder.push((name.to_owned(), Node::Class(obj)));
     }
 
+    /// Names the inline objects under the type of an alias module `name` (whose root the caller
+    /// prints): the items of an array or the values of a map are `<name>Item`; the object
+    /// variants of a union are named after the schemas they come from (`<name>Variant<i>`
+    /// without one), without the root's name, as Stainless names them (`ConditionGroupAllMatch`).
+    pub fn add_alias_root(&mut self, ty: &'a SdkType, name: &str) {
+        match ty {
+            SdkType::Array(items) | SdkType::Map(items) => self.visit_type(items, &format!("{name}Item")),
+            SdkType::Union {
+                variants,
+                discriminator,
+            } => {
+                let mut i = 0;
+                for v in variants {
+                    if let SdkType::Object(o) = v {
+                        let segment =
+                            variant_segment(o, discriminator.as_deref()).unwrap_or_else(|| format!("{name}Variant{i}"));
+                        self.visit_object(o, &segment);
+                        i += 1;
+                    } else {
+                        self.visit_type(v, &format!("{name}Item"));
+                    }
+                }
+            }
+            _ => {}
+        }
+    }
+
     fn visit_type(&mut self, t: &'a SdkType, base: &str) {
         match t {
             SdkType::Object(obj) => self.visit_object(obj, base),
             SdkType::Array(items) => self.visit_type(items, base),
             SdkType::Map(values) => self.visit_type(values, base),
-            SdkType::Union { variants, .. } => {
+            SdkType::Union {
+                variants,
+                discriminator,
+            } => {
                 let objects: Vec<&SdkObject> = variants
                     .iter()
                     .filter_map(|v| match v {
@@ -109,7 +138,19 @@ impl<'a> Named<'a> {
                         _ => None,
                     })
                     .collect();
-                if objects.len() <= 1 {
+                // A union with a named model among two or more members is an alias too, as
+                // Stainless declares it (imagekit `AssetListResponseItem: TypeAlias = Union[File,
+                // Folder]`), unless it would have to make up a name for its one inline object.
+                let members = variants
+                    .iter()
+                    .filter(|v| !matches!(v, SdkType::Primitive(SdkPrimitive::Null)))
+                    .count();
+                let with_model = members >= 2
+                    && variants.iter().any(|v| matches!(v, SdkType::Ref(_)))
+                    && objects
+                        .iter()
+                        .all(|o| variant_segment(o, discriminator.as_deref()).is_some());
+                if objects.len() <= 1 && !with_model {
                     for v in variants {
                         self.visit_type(v, base);
                     }
@@ -118,11 +159,8 @@ impl<'a> Named<'a> {
                 self.aliases.insert(id(t), base.to_owned());
                 self.preorder.push((base.to_owned(), Node::Alias(t)));
                 for (i, v) in objects.into_iter().enumerate() {
-                    let hint = v
-                        .hint
-                        .as_ref()
-                        .map_or_else(|| format!("Variant{i}"), |h| pascal_case(&split_words(h)));
-                    self.visit_object(v, &format!("{base}{hint}"));
+                    let segment = variant_segment(v, discriminator.as_deref()).unwrap_or_else(|| format!("Variant{i}"));
+                    self.visit_object(v, &format!("{base}{segment}"));
                 }
                 self.postorder.push((base.to_owned(), Node::Alias(t)));
             }
@@ -148,6 +186,32 @@ impl<'a> Named<'a> {
         let segment = class_segment(&if in_array { singular(&words) } else { words });
         self.visit_type(f.ty(), &format!("{prefix}{segment}"));
     }
+}
+
+/// The name of an inline object variant of a union: after the schema it comes from, else after
+/// the one value its discriminator property takes (`S3_COMPATIBLE` is `S3Compatible`, imagekit
+/// `OriginResponse`), else `None`.
+///
+/// Stainless prefers the value over the schema name when the discriminator has no `mapping`
+/// (imagekit `ExtensionItemRemoveBg` from `RemovedotBGExtension`) and the schema name when it
+/// has one (knock-mgmt `AudienceStaticAudienceRequest`, opencode `PatchPart`). Forge does not say
+/// whether a mapping was written, so the schema name comes first.
+fn variant_segment(obj: &SdkObject, discriminator: Option<&str>) -> Option<String> {
+    if let Some(h) = &obj.hint {
+        return Some(pascal_case(&split_words(h)));
+    }
+    if let Some(d) = discriminator
+        && let Some(f) = obj.fields.iter().find(|f| f.wire_name == d)
+        && let SdkType::Literal(values) = &f.ty
+        && let [SdkLiteral::String(value)] = values.as_slice()
+    {
+        let words: Vec<String> = split_words(value).iter().map(|w| w.to_ascii_lowercase()).collect();
+        let segment = class_segment(&words);
+        if !segment.is_empty() {
+            return Some(segment);
+        }
+    }
+    None
 }
 
 /// Names the inline objects of a method's parameters: a field's object is named after the field

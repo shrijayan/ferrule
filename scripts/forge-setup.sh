@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Check out Forge at the pinned commit into .cache/forge. ferrule-gen gets Forge through Cargo
-# (Cargo.toml, the same commit); this checkout is for the telemetry check (ADR 0006) and the
-# weekly canary, which builds ferrule-gen against Forge's latest commit.
+# (Cargo.toml, the same commit); this checkout is for the weekly canary, which builds ferrule-gen
+# against Forge's latest commit (FORGE_REF=latest).
 set -euo pipefail
 
 FORGE_REPO="https://github.com/cloudflare/forge.git"

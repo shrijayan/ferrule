@@ -1,4 +1,4 @@
-//! Helpers shared by the emitters. Port of `python-plugin/src/emit/common.ts`.
+//! Helpers shared by the emitters.
 
 use crate::js;
 use crate::model::{SdkField, SdkMethod, SdkParam, SdkRef, SdkResource, SdkType};

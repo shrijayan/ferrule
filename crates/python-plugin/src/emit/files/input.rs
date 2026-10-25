@@ -1,6 +1,5 @@
 //! What the project-file emitters need, as a narrow type of its own, so they don't depend on the
-//! whole SDK model. Port of `python-plugin/src/emit/files/input.ts`. Everything is already a
-//! Python or text spelling.
+//! whole SDK model. Everything is already a Python or text spelling.
 
 use serde_json::Value;
 

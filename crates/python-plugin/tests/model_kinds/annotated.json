@@ -1,0 +1,750 @@
+{
+  "components": {
+    "schemas": {
+      "Audience": {
+        "description": "An audience.",
+        "discriminator": {
+          "propertyName": "type"
+        },
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/StaticAudience"
+          },
+          {
+            "$ref": "#/components/schemas/DynamicAudience"
+          }
+        ],
+        "x-fern-type-name": "Audience"
+      },
+      "AutoDescription": {
+        "properties": {
+          "name": {
+            "enum": [
+              "auto-description"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "type": "object"
+      },
+      "ChannelData": {
+        "additionalProperties": {
+          "properties": {
+            "tokens": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "type": "object"
+        },
+        "description": "Channel data keyed by channel id.",
+        "type": "object",
+        "x-fern-type-name": "ChannelData"
+      },
+      "ConditionGroup": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/ConditionGroupAllMatch"
+          },
+          {
+            "$ref": "#/components/schemas/ConditionGroupAnyMatch"
+          }
+        ],
+        "description": "A group of conditions to be evaluated.",
+        "x-fern-type-name": "ConditionGroup"
+      },
+      "ConditionGroupAllMatch": {
+        "description": "A group of conditions that must all be met.",
+        "properties": {
+          "all": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "ConditionGroupAnyMatch": {
+        "description": "A group of conditions that any must be met.",
+        "properties": {
+          "any": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "DynamicAudience": {
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "dynamic"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "type"
+        ],
+        "type": "object",
+        "x-fern-type-name": "DynamicAudience"
+      },
+      "Extensions": {
+        "description": "Extensions to apply.",
+        "items": {
+          "discriminator": {
+            "propertyName": "name"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/components/schemas/RemoveBg"
+            },
+            {
+              "$ref": "#/components/schemas/AutoDescription"
+            }
+          ]
+        },
+        "type": "array",
+        "x-fern-type-name": "Extensions"
+      },
+      "RemoveBg": {
+        "properties": {
+          "add_shadow": {
+            "type": "boolean"
+          },
+          "name": {
+            "enum": [
+              "remove-bg"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "type": "object"
+      },
+      "Source": {
+        "description": "Where the workflow reads from.",
+        "discriminator": {
+          "propertyName": "type"
+        },
+        "oneOf": [
+          {
+            "properties": {
+              "bucket": {
+                "type": "string"
+              },
+              "type": {
+                "enum": [
+                  "S3"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "type",
+              "bucket"
+            ],
+            "title": "S3",
+            "type": "object"
+          },
+          {
+            "properties": {
+              "base_url": {
+                "type": "string"
+              },
+              "type": {
+                "enum": [
+                  "WEB_FOLDER"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "type",
+              "base_url"
+            ],
+            "title": "Web folder",
+            "type": "object"
+          }
+        ],
+        "x-fern-type-name": "Source"
+      },
+      "StaticAudience": {
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "static"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "type"
+        ],
+        "type": "object",
+        "x-fern-type-name": "StaticAudience"
+      },
+      "StreamingResolution": {
+        "description": "A streaming resolution.",
+        "enum": [
+          "240",
+          "360",
+          "480"
+        ],
+        "type": "string",
+        "x-fern-type-name": "StreamingResolution"
+      },
+      "Workflow": {
+        "description": "A workflow.",
+        "properties": {
+          "audience": {
+            "$ref": "#/components/schemas/Audience"
+          },
+          "channel_data": {
+            "$ref": "#/components/schemas/ChannelData"
+          },
+          "conditions": {
+            "$ref": "#/components/schemas/ConditionGroup"
+          },
+          "extensions": {
+            "$ref": "#/components/schemas/Extensions"
+          },
+          "key": {
+            "type": "string"
+          },
+          "owners": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "$ref": "#/components/schemas/StaticAudience"
+                }
+              ]
+            },
+            "type": "array"
+          },
+          "resolution": {
+            "$ref": "#/components/schemas/StreamingResolution"
+          },
+          "source": {
+            "$ref": "#/components/schemas/Source"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/WorkflowStep"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "key",
+          "steps"
+        ],
+        "type": "object",
+        "x-fern-type-name": "Workflow"
+      },
+      "WorkflowBranchStep": {
+        "properties": {
+          "cases": {
+            "items": {
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "steps": {
+                  "items": {
+                    "$ref": "#/components/schemas/WorkflowStep"
+                  },
+                  "type": "array"
+                }
+              },
+              "required": [
+                "steps"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "type": {
+            "enum": [
+              "branch"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "cases"
+        ],
+        "type": "object",
+        "x-fern-type-name": "WorkflowBranchStep"
+      },
+      "WorkflowDelayStep": {
+        "properties": {
+          "seconds": {
+            "type": "integer"
+          },
+          "type": {
+            "enum": [
+              "delay"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "type": "object",
+        "x-fern-type-name": "WorkflowDelayStep"
+      },
+      "WorkflowStep": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/WorkflowDelayStep"
+          },
+          {
+            "$ref": "#/components/schemas/WorkflowBranchStep"
+          }
+        ],
+        "description": "A step within a workflow.",
+        "x-fern-type-name": "WorkflowStep"
+      }
+    }
+  },
+  "info": {
+    "title": "fx",
+    "version": "1"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/audiences": {
+      "get": {
+        "operationId": "listAudiences",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/components/schemas/StaticAudience"
+                      },
+                      {
+                        "$ref": "#/components/schemas/DynamicAudience"
+                      }
+                    ]
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "ok"
+          }
+        },
+        "x-fern-sdk-group-name": [
+          "workflows"
+        ],
+        "x-fern-sdk-method-name": "list_audiences",
+        "x-ferrule-client": {
+          "defaultEnvironment": "production",
+          "defaultHeaders": {},
+          "envPrefix": "FX",
+          "environments": [
+            {
+              "name": "production",
+              "url": "https://api.example.com"
+            }
+          ],
+          "name": "fx",
+          "omitPlatformHeaders": false,
+          "opts": [],
+          "query": {
+            "arrayFormat": "comma",
+            "nestedFormat": "brackets"
+          },
+          "retries": {
+            "initialDelaySeconds": 0.5,
+            "maxDelaySeconds": 8,
+            "maxRetries": 2
+          },
+          "security": [],
+          "securitySchemes": {},
+          "timeoutSeconds": 60
+        },
+        "x-ferrule-method-name": "list_audiences",
+        "x-ferrule-method-order": 2,
+        "x-ferrule-models": {
+          "Audience": {
+            "module": "audience",
+            "name": "Audience"
+          },
+          "ChannelData": {
+            "module": "channel_data",
+            "name": "ChannelData"
+          },
+          "ConditionGroup": {
+            "module": "condition_group",
+            "name": "ConditionGroup"
+          },
+          "DynamicAudience": {
+            "module": "dynamic_audience",
+            "name": "DynamicAudience"
+          },
+          "Extensions": {
+            "module": "shared.extensions",
+            "name": "Extensions"
+          },
+          "Source": {
+            "module": "source",
+            "name": "Source"
+          },
+          "StaticAudience": {
+            "module": "static_audience",
+            "name": "StaticAudience"
+          },
+          "StreamingResolution": {
+            "module": "shared.streaming_resolution",
+            "name": "StreamingResolution"
+          },
+          "Workflow": {
+            "module": "workflow",
+            "name": "Workflow"
+          },
+          "WorkflowBranchStep": {
+            "module": "workflow_branch_step",
+            "name": "WorkflowBranchStep"
+          },
+          "WorkflowDelayStep": {
+            "module": "workflow_delay_step",
+            "name": "WorkflowDelayStep"
+          },
+          "WorkflowStep": {
+            "module": "workflow_step",
+            "name": "WorkflowStep"
+          }
+        },
+        "x-ferrule-package": {
+          "name": "fx",
+          "repo": ""
+        },
+        "x-ferrule-resource": {
+          "order": [
+            1
+          ],
+          "path": [
+            "workflows"
+          ]
+        }
+      }
+    },
+    "/workflows/{key}": {
+      "get": {
+        "operationId": "getWorkflow",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Workflow"
+                }
+              }
+            },
+            "description": "ok"
+          }
+        },
+        "x-fern-sdk-group-name": [
+          "workflows"
+        ],
+        "x-fern-sdk-method-name": "retrieve",
+        "x-ferrule-client": {
+          "defaultEnvironment": "production",
+          "defaultHeaders": {},
+          "envPrefix": "FX",
+          "environments": [
+            {
+              "name": "production",
+              "url": "https://api.example.com"
+            }
+          ],
+          "name": "fx",
+          "omitPlatformHeaders": false,
+          "opts": [],
+          "query": {
+            "arrayFormat": "comma",
+            "nestedFormat": "brackets"
+          },
+          "retries": {
+            "initialDelaySeconds": 0.5,
+            "maxDelaySeconds": 8,
+            "maxRetries": 2
+          },
+          "security": [],
+          "securitySchemes": {},
+          "timeoutSeconds": 60
+        },
+        "x-ferrule-method-name": "retrieve",
+        "x-ferrule-method-order": 0,
+        "x-ferrule-models": {
+          "Audience": {
+            "module": "audience",
+            "name": "Audience"
+          },
+          "ChannelData": {
+            "module": "channel_data",
+            "name": "ChannelData"
+          },
+          "ConditionGroup": {
+            "module": "condition_group",
+            "name": "ConditionGroup"
+          },
+          "DynamicAudience": {
+            "module": "dynamic_audience",
+            "name": "DynamicAudience"
+          },
+          "Extensions": {
+            "module": "shared.extensions",
+            "name": "Extensions"
+          },
+          "Source": {
+            "module": "source",
+            "name": "Source"
+          },
+          "StaticAudience": {
+            "module": "static_audience",
+            "name": "StaticAudience"
+          },
+          "StreamingResolution": {
+            "module": "shared.streaming_resolution",
+            "name": "StreamingResolution"
+          },
+          "Workflow": {
+            "module": "workflow",
+            "name": "Workflow"
+          },
+          "WorkflowBranchStep": {
+            "module": "workflow_branch_step",
+            "name": "WorkflowBranchStep"
+          },
+          "WorkflowDelayStep": {
+            "module": "workflow_delay_step",
+            "name": "WorkflowDelayStep"
+          },
+          "WorkflowStep": {
+            "module": "workflow_step",
+            "name": "WorkflowStep"
+          }
+        },
+        "x-ferrule-package": {
+          "name": "fx",
+          "repo": ""
+        },
+        "x-ferrule-resource": {
+          "order": [
+            1
+          ],
+          "path": [
+            "workflows"
+          ]
+        }
+      }
+    },
+    "/workflows/{key}/activate": {
+      "put": {
+        "operationId": "activateWorkflow",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "workflow": {
+                      "$ref": "#/components/schemas/Workflow"
+                    }
+                  },
+                  "required": [
+                    "workflow"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "ok"
+          }
+        },
+        "x-fern-sdk-group-name": [
+          "workflows"
+        ],
+        "x-fern-sdk-method-name": "activate",
+        "x-ferrule-client": {
+          "defaultEnvironment": "production",
+          "defaultHeaders": {},
+          "envPrefix": "FX",
+          "environments": [
+            {
+              "name": "production",
+              "url": "https://api.example.com"
+            }
+          ],
+          "name": "fx",
+          "omitPlatformHeaders": false,
+          "opts": [],
+          "query": {
+            "arrayFormat": "comma",
+            "nestedFormat": "brackets"
+          },
+          "retries": {
+            "initialDelaySeconds": 0.5,
+            "maxDelaySeconds": 8,
+            "maxRetries": 2
+          },
+          "security": [],
+          "securitySchemes": {},
+          "timeoutSeconds": 60
+        },
+        "x-ferrule-method-name": "activate",
+        "x-ferrule-method-order": 1,
+        "x-ferrule-models": {
+          "Audience": {
+            "module": "audience",
+            "name": "Audience"
+          },
+          "ChannelData": {
+            "module": "channel_data",
+            "name": "ChannelData"
+          },
+          "ConditionGroup": {
+            "module": "condition_group",
+            "name": "ConditionGroup"
+          },
+          "DynamicAudience": {
+            "module": "dynamic_audience",
+            "name": "DynamicAudience"
+          },
+          "Extensions": {
+            "module": "shared.extensions",
+            "name": "Extensions"
+          },
+          "Source": {
+            "module": "source",
+            "name": "Source"
+          },
+          "StaticAudience": {
+            "module": "static_audience",
+            "name": "StaticAudience"
+          },
+          "StreamingResolution": {
+            "module": "shared.streaming_resolution",
+            "name": "StreamingResolution"
+          },
+          "Workflow": {
+            "module": "workflow",
+            "name": "Workflow"
+          },
+          "WorkflowBranchStep": {
+            "module": "workflow_branch_step",
+            "name": "WorkflowBranchStep"
+          },
+          "WorkflowDelayStep": {
+            "module": "workflow_delay_step",
+            "name": "WorkflowDelayStep"
+          },
+          "WorkflowStep": {
+            "module": "workflow_step",
+            "name": "WorkflowStep"
+          }
+        },
+        "x-ferrule-package": {
+          "name": "fx",
+          "repo": ""
+        },
+        "x-ferrule-resource": {
+          "order": [
+            1
+          ],
+          "path": [
+            "workflows"
+          ]
+        }
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.example.com"
+    }
+  ],
+  "x-ferrule-client": {
+    "defaultEnvironment": "production",
+    "defaultHeaders": {},
+    "envPrefix": "FX",
+    "environments": [
+      {
+        "name": "production",
+        "url": "https://api.example.com"
+      }
+    ],
+    "name": "fx",
+    "omitPlatformHeaders": false,
+    "opts": [],
+    "query": {
+      "arrayFormat": "comma",
+      "nestedFormat": "brackets"
+    },
+    "retries": {
+      "initialDelaySeconds": 0.5,
+      "maxDelaySeconds": 8,
+      "maxRetries": 2
+    },
+    "security": [],
+    "securitySchemes": {},
+    "timeoutSeconds": 60
+  },
+  "x-ferrule-config": {
+    "edition": "2025-10-08",
+    "packageName": "fx",
+    "projectName": "fx",
+    "pythonEdition": "python.2025-10-08",
+    "version": 1
+  }
+}

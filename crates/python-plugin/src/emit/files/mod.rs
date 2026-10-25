@@ -1,11 +1,9 @@
-//! The non-code files of a generated SDK: README.md, api.md, .stats.yml, project and CI files,
-//! and the test suite. Pure: input in, path -> text out. Port of
-//! `python-plugin/src/emit/files/index.ts`.
+//! The non-code files of a generated SDK: README.md, api.md, .stats.yml, project and CI files, and
+//! the test suite. Pure: input in, path -> text out.
 
 pub mod api_md;
 pub mod api_tests;
 pub mod input;
-mod js;
 pub mod render;
 pub mod templates;
 
@@ -15,6 +13,7 @@ pub use input::ProjectFilesInput;
 use input::{ExampleRequest, FilesResource};
 use render::{TemplateVars, render};
 
+use crate::js;
 use crate::model::{ArrayFormat, NestedFormat};
 
 fn count_methods(resources: &[FilesResource]) -> usize {

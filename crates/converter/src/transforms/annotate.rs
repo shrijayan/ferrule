@@ -1,5 +1,4 @@
 //! Annotate the spec from the config: Fern grouping extensions and `x-ferrule-*` (ADR 0003).
-//! Port of `converter/src/transforms/annotate.ts`.
 
 use super::targets::{get_at, get_at_mut};
 use crate::Diagnostic;
