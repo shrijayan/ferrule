@@ -231,7 +231,12 @@ fn emit_method(
     let params_name = params_ref.as_ref().map_or_else(String::new, |r| {
         format!("{}.{}", r.module.rsplit('.').next().unwrap_or(""), r.name)
     });
-    if let Some(r) = &params_ref {
+    // A method whose one argument is an array body never names its params module.
+    let array_body_only = method.body_whole
+        && method.query_params.is_empty()
+        && named.preorder().is_empty()
+        && method.body_params.iter().all(|q| matches!(q.ty, SdkType::Array(_)));
+    if let Some(r) = params_ref.as_ref().filter(|_| !array_body_only) {
         let parts: Vec<&str> = r.module.split('.').collect();
         let mut target = vec!["types"];
         target.extend(&parts[..parts.len() - 1]);
@@ -253,7 +258,22 @@ fn emit_method(
     if let Some(page) = page {
         items.push(format!("page={sync_or_async}{}[{model}]", page.page).into());
     }
-    if !body.is_empty() && in_body {
+    if let ([whole], true) = (body.as_slice(), method.body_whole) {
+        // Stainless checks a map against the method's params, an array against its own type.
+        let against = if matches!(whole.ty, SdkType::Map(_)) {
+            params_name.clone()
+        } else {
+            to_annotation(&whole.ty, p, &ctx)
+        };
+        let f = if awaits {
+            "async_maybe_transform"
+        } else {
+            "maybe_transform"
+        };
+        imp(s, p, "_utils", f);
+        let open = format!("body={}{f}(", if awaits { "await " } else { "" });
+        items.push(call(&open, vec!["body".into(), against.into()], false).into());
+    } else if !body.is_empty() && in_body {
         items.push(transform_expr(s, p, "body", &body, &params_name, awaits && page.is_none()).into());
     }
     imp(s, p, "_base_client", "make_request_options");

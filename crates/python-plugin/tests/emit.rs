@@ -76,6 +76,7 @@ fn method(response: Option<SdkType>) -> SdkMethod {
         body: None,
         body_params: Vec::new(),
         body_media_type: None,
+        body_whole: false,
         response,
         pagination: None,
         streaming: None,
