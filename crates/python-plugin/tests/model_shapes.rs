@@ -60,3 +60,10 @@ fn check(shape: &str) {
 fn variants_named_after_a_schema_spell_initialisms_upper_case() {
     check("variant_names");
 }
+
+/// A titled array variant beside a string names its items `<field><title>` (knock-mgmt
+/// `RequestTemplate.headers`: `HeadersRequestTemplateHeadersArray`).
+#[test]
+fn a_titled_array_variant_names_its_items_after_the_title() {
+    check("titled_array_variant");
+}
