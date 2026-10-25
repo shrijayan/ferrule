@@ -25,6 +25,8 @@ pub const DANGLING_REF: &str = "FER1606";
 pub const ITEMS_TUPLE: &str = "FER1607";
 /// An `anyOf`/`oneOf` member that is only `nullable: true`; rewritten to `type: "null"`.
 pub const NULLABLE_ONLY_MEMBER: &str = "FER1608";
+/// A titled inline union member moved to `components.schemas`, so it is named after its title.
+pub const TITLE_HOISTED: &str = "FER1609";
 
 pub const NORMALIZED_KEY: &str = "x-ferrule-normalized";
 
@@ -456,6 +458,170 @@ fn properties(value: &mut Value, path: &mut Vec<Seg>, diagnostics: &mut Vec<Diag
     }
 }
 
+/// The `components.schemas` key a titled member moves to: its title in words, each capitalised
+/// as Stainless spells a title in a class name (`Google Cloud Storage (GCS)` is
+/// `GoogleCloudStorageGcs`, imagekit-python `origin_create_params.py`).
+fn title_key(title: &str) -> String {
+    forge_words(title)
+        .iter()
+        .map(|w| {
+            let mut chars = w.chars();
+            chars
+                .next()
+                .map_or_else(String::new, |c| c.to_uppercase().collect::<String>() + chars.as_str())
+        })
+        .collect()
+}
+
+/// Whether an inline union member is one Stainless names after its title: an object, or an
+/// array of objects (whose items take the name).
+fn is_titled_shape(member: &Map) -> bool {
+    let is_object =
+        |m: &Map| !m.contains_key("$ref") && matches!(m.get("properties"), Some(Value::Object(p)) if !p.is_empty());
+    if member.contains_key("$ref") || !matches!(member.get("title"), Some(Value::String(t)) if !t.is_empty()) {
+        return false;
+    }
+    is_object(member)
+        || (member.get("type").and_then(Value::as_str) == Some("array")
+            && matches!(member.get("items"), Some(Value::Object(items)) if is_object(items)))
+}
+
+/// The schemas `title-hoisted` adds, with each one's content as it was before the pass.
+struct Hoisted<'a> {
+    /// `components.schemas` before the pass.
+    original: &'a Map,
+    /// Key, the member as it was, the member as it moves.
+    added: Vec<(String, Value, Value)>,
+}
+
+impl Hoisted<'_> {
+    /// The key `member` (as it was before the pass) moves to, and whether it is new, or `None`
+    /// when the key holds a different schema.
+    fn place(&self, key: &str, member: &Value) -> Option<bool> {
+        if let Some(existing) = self.original.get(key) {
+            return (existing == member).then_some(false);
+        }
+        match self.added.iter().find(|(k, _, _)| k == key) {
+            Some((_, before, _)) => (before == member).then_some(false),
+            None => Some(true),
+        }
+    }
+}
+
+/// `title-hoisted` (FER1609): Stainless names an inline object member of a union without a
+/// discriminator after its `title`, which Forge does not expose for inline schemas (gap G30).
+/// The member moves to `components.schemas` under its title, where the plugin reads it as the
+/// schema name, or becomes a `$ref` to an equal schema already there. Deepest first.
+fn hoist_titled(value: &mut Value, path: &mut Vec<Seg>, hoisted: &mut Hoisted<'_>, diagnostics: &mut Vec<Diagnostic>) {
+    match value {
+        Value::Array(a) => {
+            for (i, v) in a.iter_mut().enumerate() {
+                path.push(Seg::Index(i));
+                hoist_titled(v, path, hoisted, diagnostics);
+                path.pop();
+            }
+        }
+        Value::Object(m) => {
+            let before: Vec<(&str, Vec<Value>)> = ["anyOf", "oneOf"]
+                .into_iter()
+                .filter_map(|k| match m.get(k) {
+                    Some(Value::Array(members)) if !m.contains_key("discriminator") => Some((k, members.clone())),
+                    _ => None,
+                })
+                .collect();
+            for (k, v) in m.iter_mut() {
+                if let (true, Value::Object(names)) = (NAME_MAPS.contains(&k.as_str()), &mut *v) {
+                    for (n, c) in names.iter_mut() {
+                        path.push(Seg::Key(k.clone()));
+                        path.push(Seg::Key(n.clone()));
+                        hoist_titled(c, path, hoisted, diagnostics);
+                        path.pop();
+                        path.pop();
+                    }
+                } else if !is_data_key(k) {
+                    path.push(Seg::Key(k.clone()));
+                    hoist_titled(v, path, hoisted, diagnostics);
+                    path.pop();
+                }
+            }
+            for (key, originals) in before {
+                let Some(Value::Array(members)) = m.get_mut(key) else {
+                    continue;
+                };
+                for (i, (member, original)) in members.iter_mut().zip(originals).enumerate() {
+                    let Value::Object(node) = &*member else { continue };
+                    if !is_titled_shape(node) {
+                        continue;
+                    }
+                    let title = node.get("title").and_then(Value::as_str).unwrap_or_default().to_owned();
+                    let name = title_key(&title);
+                    if name.is_empty() {
+                        continue;
+                    }
+                    let Some(new) = hoisted.place(&name, &original) else {
+                        continue;
+                    };
+                    let mut reference = Map::new();
+                    reference.insert("$ref", Value::from(format!("#/components/schemas/{name}")));
+                    note(&mut reference, "title-hoisted");
+                    let moved = std::mem::replace(member, Value::Object(reference));
+                    if new {
+                        hoisted.added.push((name.clone(), original, moved));
+                    }
+                    let mut p = path.clone();
+                    p.extend([Seg::from(key), Seg::Index(i)]);
+                    diagnostics.push(Diagnostic::info(
+                        TITLE_HOISTED,
+                        to_json_pointer(&p),
+                        format!("inline `{key}` member titled \"{title}\" moved to components.schemas.{name}, so it is named after its title, as Stainless names it"),
+                        "nothing to do; Forge does not expose titles of inline schemas (docs/forge-gaps.md G30)",
+                    ));
+                }
+            }
+        }
+        _ => {}
+    }
+}
+
+/// Runs `title-hoisted` on the whole document and adds the moved members to `components.schemas`.
+fn hoist_titled_members(out: &mut Value, diagnostics: &mut Vec<Diagnostic>) {
+    let original = match out.get("components").and_then(|c| c.get("schemas")) {
+        Some(Value::Object(s)) => s.clone(),
+        _ => Map::new(),
+    };
+    let mut hoisted = Hoisted {
+        original: &original,
+        added: Vec::new(),
+    };
+    hoist_titled(out, &mut Vec::new(), &mut hoisted, diagnostics);
+    if hoisted.added.is_empty() {
+        return;
+    }
+    let Value::Object(root) = out else { return };
+    if !matches!(root.get("components"), Some(Value::Object(_))) {
+        root.insert("components", Value::object());
+    }
+    let Some(Value::Object(components)) = root.get_mut("components") else {
+        return;
+    };
+    if !matches!(components.get("schemas"), Some(Value::Object(_))) {
+        components.insert("schemas", Value::object());
+    }
+    let Some(Value::Object(schemas)) = components.get_mut("schemas") else {
+        return;
+    };
+    for (name, _, mut moved) in hoisted.added {
+        // Forge describes a model by its title when it has no description; the title is now the
+        // name, not a description.
+        if let Value::Object(m) = &mut moved
+            && !m.contains_key("description")
+        {
+            m.remove("title");
+        }
+        schemas.insert(name, moved);
+    }
+}
+
 const METHODS: [&str; 8] = ["get", "put", "post", "delete", "options", "head", "patch", "trace"];
 
 fn resolve_param<'a>(p: &'a Value, component_params: Option<&'a Value>) -> Option<&'a Value> {
@@ -605,5 +771,6 @@ pub fn normalize(spec: &Value) -> (Value, Vec<Diagnostic>) {
     let mut diagnostics = walker.diagnostics;
     properties(&mut out, &mut Vec::new(), &mut diagnostics);
     parameters(&mut out, &mut diagnostics);
+    hoist_titled_members(&mut out, &mut diagnostics);
     (out, diagnostics)
 }
