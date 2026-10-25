@@ -1,0 +1,28 @@
+organization: {name: fx}
+targets:
+  python: {package_name: fx, publish: {pypi: false}}
+environments: {production: 'https://api.example.com'}
+
+resources:
+  $shared:
+    models:
+      streaming_resolution: StreamingResolution
+      extensions: Extensions
+  workflows:
+    models:
+      workflow: Workflow
+      workflow_step: WorkflowStep
+      workflow_delay_step: WorkflowDelayStep
+      workflow_branch_step: WorkflowBranchStep
+      condition_group: ConditionGroup
+      audience: Audience
+      static_audience: StaticAudience
+      dynamic_audience: DynamicAudience
+      channel_data: ChannelData
+    methods:
+      retrieve: get /workflows/{key}
+      activate: put /workflows/{key}/activate
+readme:
+  example_requests:
+    default: {type: request, endpoint: 'get /workflows/{key}', params: {}}
+    headline: {type: request, endpoint: 'get /workflows/{key}', params: {}}
