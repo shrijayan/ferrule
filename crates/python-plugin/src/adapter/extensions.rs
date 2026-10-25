@@ -591,10 +591,12 @@ fn to_value(j: &Json) -> serde_json::Value {
 
 fn read_opt(v: &Json) -> Result<SdkClientOpt, Malformed> {
     let m = Some(v);
+    // The `snake_case` of the config key, as Stainless names it (stagehand `BROWSERBASE_API_KEY`
+    // -> `browserbase_api_key`, papr `X-Session-Token` -> `x_session_token`).
     let name = as_str(member(m, "name"))
+        .map(|n| snake_case(&split_words(n)))
         .filter(|n| py_ident(n))
-        .ok_or(Malformed)?
-        .to_owned();
+        .ok_or(Malformed)?;
     let ty = match as_str(member(m, "type")) {
         Some("string") => OptType::String,
         Some("number") => OptType::Number,
