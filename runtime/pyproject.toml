@@ -25,6 +25,7 @@ packages = ["src/ferrule_runtime"]
 [tool.hatch.build.targets.wheel.force-include]
 "template" = "ferrule_runtime/template"
 "typescript/template" = "ferrule_runtime/typescript/template"
+"typescript-node/template" = "ferrule_runtime/typescript-node/template"
 "go/template" = "ferrule_runtime/go/template"
 "java/template" = "ferrule_runtime/java/template"
 "ruby/template" = "ferrule_runtime/ruby/template"

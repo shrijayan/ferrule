@@ -8,6 +8,7 @@ per-SDK names replaced by tokens; rendering is pure and byte-identical to the or
 |---|---|---|---|
 | Python | `template/` | `render_files`, `render` | `OneBusAway/python-sdk` @ `4c20fa83` |
 | TypeScript (`typescript` target, current layout) | `typescript/template/` | `render_typescript_files` | `isaacus-dev/isaacus-typescript` @ `c56af182`, `src/internal/qs/` from `knocklabs/knock-mgmt-node` @ `ca88fdba` |
+| TypeScript (`node` target, legacy layout) | `typescript-node/template/` | `render_typescript_node_files` | `OneBusAway/js-sdk` @ `f3ca3f47` |
 | Go (v1) | `go/template/` | `render_go_files` | `OneBusAway/go-sdk` @ `d115209e` |
 | JVM (`java` and `kotlin` targets) | `java/template/` | `render_java_files` | `OneBusAway/java-sdk` @ `c29c48ad`, `OneBusAway/kotlin-sdk` @ `69234467`, `OkHttpClient.kt` and the webhook files from `imagekit-developer/imagekit-java` @ `f96c35e8` |
 | Ruby | `ruby/template/` | `render_ruby_files` | `OneBusAway/ruby-sdk` @ `46a574dd` |
@@ -146,7 +147,7 @@ The plugin emits `<pkg>/testing/_routes.json` (missing file = no routes):
 
 For SDKs on the `typescript` target (Stainless's current layout, TypeScript 5.8). The legacy
 `node` layout (`src/core.ts`, `src/_shims/**`: OneBusAway js-sdk, lumaai, honcho, ogx) is a
-different runtime and is not templated.
+different runtime, templated separately (see "TypeScript, `node` layout" below).
 
 ```python
 from ferrule_runtime import TypeScriptOptions, render_typescript_files
@@ -221,6 +222,64 @@ no `utils/query.ts`), listed per file as `known_drift` in
 (`b7cdf1a4`, 2026-07-14, not pinned) 38 of 40 files are identical; the other two are knock's
 hand edits (`utils/query.ts` re-exports `src/lib/stringifyQuery.ts`, `index.ts` exports
 `src/lib`).
+
+## TypeScript, `node` layout
+
+For SDKs on the `node` target (Stainless's legacy TypeScript layout, TypeScript 4.8, `node-fetch`
+shims). It has its own template because the layouts share no runtime file but the one-line
+`src/resources.ts` (`test_layouts_share_one_file`): the request machinery is `src/core.ts`
+instead of `src/client.ts` + `src/internal/**`, errors and uploads live in `src/error.ts` and
+`src/uploads.ts` instead of `src/core/`, and fetch comes from `src/_shims/**`.
+
+```python
+from ferrule_runtime import TypeScriptNodeOptions, render_typescript_node_files
+
+files = render_typescript_node_files(
+    TypeScriptNodeOptions(
+        client_name="OnebusawaySDK", package_name="onebusaway-sdk", repo="OneBusAway/js-sdk"
+    )
+)  # {"src/core.ts": "...", "src/_shims/index.js": "...", ...}: paths from the SDK root
+```
+
+`TypeScriptNodeOptions(client_name, package_name, repo, *, error_name=None)`: `package_name`
+is the npm package the shims import themselves by (`onebusaway-sdk/_shims/auto/runtime`),
+`repo` the GitHub `owner/name` the shims' file-upload error links to, `error_name` the base
+error (default `<client_name>Error`).
+
+Tokens: `__FerruleClient__`, `__FerruleError__`, `__ferrule_package__`, `__FERRULE_REPO__`.
+Flags, computed from prettier's `printWidth` of 110: `ensure_present_fits` (`ensurePresent`'s
+`if (value == null) throw new <Error>(...)` on one line) and `registry_fits` (the "can't
+import ... after import ..." error of `src/_shims/registry.ts` on one line, which depends on
+the package name's length). Two more lines would wrap with an error name longer than 24
+characters (`Cannot generate b64 string`) or 30 (`Could not coerce`); no oracle has one, so
+those layouts are not templated.
+
+### File classification
+
+| Files | Class | Notes |
+|---|---|---|
+| `src/core.ts` | runtime | `APIClient`, `APIPromise`, `AbstractPage`, the helpers; two width-dependent lines |
+| `src/_shims/**` (27 files) | runtime | `registry.ts`: one width-dependent line |
+| `src/{error,uploads,resource,resources}.ts`, `src/shims/{node,web}.ts` | runtime | |
+| `src/internal/utils/query.ts` | runtime | the basic `stringifyQuery`; 2025 generations kept it in `core.ts` |
+| `src/index.ts` | generated | the client class, its options and resources (`crates/ts-plugin`, node layout) |
+| `src/version.ts`, `src/resources/**`, `src/pagination.ts` | generated | |
+| `src/streaming.ts`, `src/internal/{decoders,qs,stream-utils}*` | not templated | only ogx-typescript (MIT) has them |
+| `tests/*.test.ts`, project files | not runtime | `crates/ts-plugin` templates, as for the current layout |
+
+### Oracles
+
+| Oracle | Commit | Identical |
+|---|---|---|
+| onebusaway-typescript | `f3ca3f47613e2522ead33f4398984cdb47423622` (1.20.0, 2026-07-18) | 36/36 |
+| lumaai-typescript | `4dbfae0fcabab74fa7a35ebfcc1b67ab30fb1e11` (1.21.0, 2026-04-07) | 35/36 |
+| honcho-typescript | `91d258060f786577c51bc33ad873fb9434a6ac5c` (2025-10-08) | 34/35 |
+
+lumaai's `core.ts` is the 2026-04 `readEnv` (`?.trim() ?? undefined`); honcho's is a 2025
+generation (query stringifying inline, no `content-length: 0` check, older `Retry-After`
+handling), and it has no `internal/utils/query.ts`. Both are `known_drift` in
+`tests/test_render_oracles_typescript_node.py`. ogx-typescript (MIT) is not compared: every
+file carries ogx's own licence header.
 
 ## Go
 
@@ -469,6 +528,9 @@ rendered output, so the mark lives here and in `NOTICE` (ADR 0004 amendment):
   format replaced by placeholders; `src/index.ts`, `src/internal/utils/log.ts` and
   `src/internal/utils/query.ts` gained `//ferrule:` lines; `query.ts` combines isaacus's and
   knock-mgmt-node's versions);
+- all files under `typescript-node/template/` (client, error and package names and the
+  repository replaced by tokens; `src/core.ts` and `src/_shims/registry.ts` gained `//ferrule:`
+  lines choosing prettier's one-line or wrapped layout);
 - all files under `go/template/` (module path, package, client and organisation names, max
   retries and the redacted-header list replaced by placeholders; `field.go` and
   `option/requestoption.go` gained `//ferrule:` import-order lines; `requestconfig.go` and

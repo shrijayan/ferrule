@@ -40,6 +40,19 @@ src/internal/qs/ is the vendored copy of neoqs (https://github.com/PuruVJ/neoqs)
 rewrite of qs (https://github.com/ljharb/qs), BSD-3-Clause, Copyright (c) 2014 Nathan
 LaFreniere and other contributors, as its LICENSE.md and README.md note.
 
+runtime/typescript-node/template/ is derived from the Stainless-generated OneBusAway JS SDK
+(the legacy `node` layout):
+  Repository: https://github.com/OneBusAway/js-sdk
+  Commit:     f3ca3f47613e2522ead33f4398984cdb47423622 (release 1.20.0)
+  Licence:    Apache License, Version 2.0
+  Copyright:  Copyright 2026 Onebusaway SDK
+  Files:      src/core.ts, src/error.ts, src/uploads.ts, src/resource.ts, src/resources.ts,
+              src/shims/*.ts, src/_shims/**, src/internal/utils/query.ts
+  Changes:    Modified by The Ferrule Authors: client, error and package names and the
+              repository replaced by tokens; //ferrule: directive lines added to src/core.ts
+              and src/_shims/registry.ts. Marks are recorded here and in runtime/README.md
+              instead of in the files (ADR 0004 amendment).
+
 runtime/go/template/ is derived from the Stainless-generated OneBusAway Go SDK:
   Repository: https://github.com/OneBusAway/go-sdk
   Commit:     d115209ec6337f8d7ee52ad0cc8866a0005d6e65 (release 1.15.0)

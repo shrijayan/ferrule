@@ -32,6 +32,11 @@ Sources:
     copied to runtime/typescript/template/. Modified by The Ferrule Authors (names replaced by
     tokens, //ferrule: directives and slots); marks kept in runtime/README.md and
     runtime/NOTICE. src/internal/qs/ embeds neoqs/qs (BSD-3-Clause), as its LICENSE.md notes.
+  - OneBusAway/js-sdk @ f3ca3f47613e2522ead33f4398984cdb47423622 (Apache-2.0, Copyright 2026
+    Onebusaway SDK): the TypeScript runtime of the legacy `node` layout (src/core.ts,
+    src/_shims, src/error.ts, src/uploads.ts and the entry-point re-exports), copied to
+    runtime/typescript-node/template/. Modified by The Ferrule Authors (names replaced by
+    tokens, //ferrule: directives); marks kept in runtime/README.md and runtime/NOTICE.
   - OneBusAway/go-sdk @ d115209ec6337f8d7ee52ad0cc8866a0005d6e65 (Apache-2.0, Copyright
     2026 Onebusaway SDK): the Go v1 runtime (internal/, option/, field.go,
     default_http_client.go), copied to runtime/go/template/. Modified by The Ferrule Authors
