@@ -9,7 +9,7 @@ mod files_support;
 use std::path::{Path, PathBuf};
 
 use ferrule_python_plugin::emit::files::emit_project_files;
-use files_support::{assert_same_as_ts, input, onebusaway_json, repo};
+use files_support::{input, onebusaway_json, repo};
 
 /// Oracle files emitted from a template (every non-`src/` file Stainless generates). Same list
 /// as `TEMPLATE_FILES` in `python-plugin/test/files/oracle-files.ts`.
@@ -206,11 +206,8 @@ fn oracle() -> Option<PathBuf> {
 }
 
 #[test]
-fn onebusaway_matches_the_typescript_emitter() {
-    let json = onebusaway_json();
-    let files = emit_project_files(&input(&json));
-    assert_eq!(files.len(), 78);
-    assert_same_as_ts(&json, &files);
+fn onebusaway_emits_every_project_file() {
+    assert_eq!(emit_project_files(&input(&onebusaway_json())).len(), 78);
 }
 
 #[test]

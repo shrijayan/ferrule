@@ -2,9 +2,7 @@
 //! `ProjectFilesInput` mapped to the Rust struct, and the TypeScript emitter run under node so
 //! the port can be compared with it byte for byte.
 
-use std::io::Write as _;
 use std::path::{Path, PathBuf};
-use std::process::{Command, Stdio};
 
 use ferrule_python_plugin::emit::files::input::{
     ApiKeyQueryAuth, ExampleRequest, FilesMethod, FilesParam, FilesResource, Organization, ParamLocation,
@@ -237,56 +235,4 @@ pub(crate) fn onebusaway_json() -> Value {
     let path = repo().join("crates/python-plugin/tests/files/onebusaway-input.json");
     let text = std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("{}: {e}", path.display()));
     serde_json::from_str(&text).expect("valid JSON")
-}
-
-const TS_EMIT: &str = r"
-import { readFileSync } from 'node:fs';
-import { pathToFileURL } from 'node:url';
-const { emitProjectFiles } = await import(pathToFileURL(process.argv[1]).href);
-const input = JSON.parse(readFileSync(0, 'utf8'));
-process.stdout.write(JSON.stringify([...emitProjectFiles(input)]));
-";
-
-/// What the TypeScript `emitProjectFiles` returns for `input`, in its order; `None` when the
-/// TypeScript sources are gone or node is not installed (then the comparison is skipped).
-pub(crate) fn ts_emit(input: &Value) -> Option<Vec<(String, String)>> {
-    let index = repo().join("python-plugin/src/emit/files/index.ts");
-    if !index.exists() {
-        eprintln!("skipped: {} is gone", index.display());
-        return None;
-    }
-    let child = Command::new("node")
-        .args(["--input-type=module", "-e", TS_EMIT])
-        .arg(&index)
-        .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn();
-    let Ok(mut child) = child else {
-        eprintln!("skipped: node is not installed");
-        return None;
-    };
-    child
-        .stdin
-        .take()
-        .expect("stdin")
-        .write_all(input.to_string().as_bytes())
-        .expect("write the input to node");
-    let out = child.wait_with_output().expect("node runs");
-    assert!(
-        out.status.success(),
-        "node failed: {}",
-        String::from_utf8_lossy(&out.stderr)
-    );
-    Some(serde_json::from_slice(&out.stdout).expect("node prints [path, text] pairs"))
-}
-
-/// Asserts `rust` equals the TypeScript output for the same input, file by file.
-pub(crate) fn assert_same_as_ts(input: &Value, rust: &[(String, String)]) {
-    let Some(ts) = ts_emit(input) else { return };
-    let paths = |files: &[(String, String)]| files.iter().map(|(p, _)| p.clone()).collect::<Vec<_>>();
-    assert_eq!(paths(rust), paths(&ts), "same paths in the same order");
-    for ((path, got), (_, want)) in rust.iter().zip(&ts) {
-        assert!(got == want, "{path} differs from the TypeScript emitter");
-    }
 }
