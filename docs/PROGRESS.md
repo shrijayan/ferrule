@@ -108,3 +108,28 @@ Already on main: rescue/adopt, three-way merge, GitHub Action, Forge-parse norma
    `worktree-agent-a8eae2c…` (runtime tests).
 3. Pick five targets with 0 breaking and run the Phase 4 gate:
    `mise run check && mise run adopt:gate`. Record the result here.
+
+## Rust move (ADR 0014): done (2026-10-25)
+
+The converter and the plugin are Rust: `crates/converter`, `crates/python-plugin` (a native
+`forge::Plugin`; only `src/adapter/` and the `src/plugin.rs` entry import Forge) and the
+`ferrule-gen` binary in `crates/ferrule-gen`. Forge is a Cargo git dependency at the same commit
+as `scripts/forge-setup.sh`. `converter/` and `python-plugin/` (TypeScript) are deleted;
+`runtime/` and `migrate/` stay Python, and `site/` is the only TypeScript left.
+
+Proof, all-Rust pipeline:
+- OneBusAway parity: 0 breaking, 0 additive, 1,110 of its own tests passing, deterministic.
+- `mise run adopt:gate -- onebusaway`: OK. `mise run spike`: OK.
+- All 11 converter oracle snapshots match (`crates/converter/tests/snapshots/`).
+- Plugin output byte-identical to every golden (5 + 7 + 85 files), and 0 code-file differences
+  against the TypeScript plugin on 243 files before it was deleted.
+
+What changed for users:
+- No Node is needed to generate an SDK: `cargo build --release -p ferrule-gen`, then
+  `ferrule generate|adopt`. They take `--gen PATH` (default `$FERRULE_GEN`, else
+  `target/release/ferrule-gen` in the checkout). `FERRULE_FORGE`, `FERRULE_PLUGIN`,
+  `FERRULE_NODE`, `FERRULE_CONVERTER` and `plugin.wasm` are gone; `mise run forge:setup` is only
+  needed for the Forge telemetry check and the canary.
+- `ferrule.lock` is `lock_version` 2: `generator: "ferrule-gen <version>"` replaces
+  `plugin_sha256`, and `forge_commit` comes from `ferrule-gen --version`. Version 1 locks still
+  read.
