@@ -571,6 +571,51 @@ mod tests {
     }
 
     #[test]
+    fn names_variants_without_a_schema_after_their_tag() {
+        let variant = |tag: &str| {
+            SdkType::Object(SdkObject {
+                fields: vec![field(
+                    "type",
+                    true,
+                    SdkType::Literal(vec![crate::model::SdkLiteral::String(tag.into())]),
+                )],
+                ..SdkObject::default()
+            })
+        };
+        let union = SdkType::Union {
+            variants: vec![variant("S3_COMPATIBLE"), variant("web-folder"), variant("GCS")],
+            discriminator: Some("type".into()),
+        };
+        let r = SdkRef {
+            name: "Origin".into(),
+            module: "origin".into(),
+        };
+        let out = emit_alias_model_file(&AliasFile {
+            r#ref: &r,
+            ty: &union,
+            cycles: None,
+        });
+        assert!(
+            out.contains("__all__ = [\"Origin\", \"S3Compatible\", \"WebFolder\", \"Gcs\"]"),
+            "{out}"
+        );
+        // Without a discriminator there is no tag to go by.
+        let plain = SdkType::Union {
+            variants: vec![variant("a"), variant("b")],
+            discriminator: None,
+        };
+        let out = emit_alias_model_file(&AliasFile {
+            r#ref: &r,
+            ty: &plain,
+            cycles: None,
+        });
+        assert!(
+            out.contains("Origin: TypeAlias = Union[OriginVariant0, OriginVariant1]"),
+            "{out}"
+        );
+    }
+
+    #[test]
     fn aliases_non_object_responses() {
         let out = emit_alias_file(
             &SdkRef {
