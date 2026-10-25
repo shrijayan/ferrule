@@ -176,6 +176,27 @@ fn generates_a_typescript_sdk() {
     }
 }
 
+/// `package.json` runs `./scripts/test`, so the scripts must be executable, as in the oracles.
+#[cfg(unix)]
+#[test]
+fn typescript_scripts_are_executable() {
+    use std::os::unix::fs::PermissionsExt;
+    let out = scratch("target-ts-modes");
+    let status = bin()
+        .arg("generate")
+        .arg(plugin_dir().join("tests/fixtures/cursor-page.json"))
+        .args(["--target", "typescript", "--out"])
+        .arg(&*out)
+        .status()
+        .expect("runs");
+    assert!(status.success());
+    let mode = |p: &str| fs::metadata(out.join(p)).expect("written").permissions().mode();
+    for p in ["scripts/test", "scripts/build", "scripts/utils/git-swap.sh"] {
+        assert_eq!(mode(p) & 0o111, 0o111, "{p} is not executable");
+    }
+    assert_eq!(mode("package.json") & 0o111, 0, "package.json is executable");
+}
+
 #[test]
 fn reports_unknown_targets_as_usage_errors() {
     let output = bin()
