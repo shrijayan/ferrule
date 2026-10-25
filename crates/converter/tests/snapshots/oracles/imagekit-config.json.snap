@@ -1,5 +1,5 @@
 {
-  "sha256": "756ac9ae41986544c40877fe89d1cf5b8e67b04e24d05c5d590c8278010dfdb5",
+  "sha256": "ade13b63b152c906aab1577f66c7a9ca960874c0d6522cfa8e330f53532dda09",
   "root": {
     "x-ferrule-client": {
       "defaultEnvironment": "production",
