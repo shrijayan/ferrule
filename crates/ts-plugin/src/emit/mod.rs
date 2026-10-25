@@ -16,12 +16,16 @@ pub const HEADER: &str = "// File generated from our OpenAPI spec by Ferrule. Se
 /// A generated file: path from the SDK root and text.
 pub type File = (String, String);
 
-/// Every code file: `src/client.ts`, `src/version.ts`, `src/resources/**`, `api.md` and
-/// `tests/api-resources/**`.
+/// Every code file: `src/client.ts` (`src/index.ts` in the `node` layout), `src/version.ts`,
+/// `src/resources/**`, `api.md` and `tests/api-resources/**`.
 #[must_use]
 pub fn code_files(ctx: &Ctx<'_>) -> Vec<File> {
     let mut out = resource_files(ctx);
-    out.push(client::emit_client(ctx));
+    out.push(if ctx.node() {
+        client::emit_node_index(ctx)
+    } else {
+        client::emit_client(ctx)
+    });
     out.push(client::emit_version(ctx));
     out.extend(api_md::emit_api_md(ctx));
     out.extend(api_tests::test_files(ctx));

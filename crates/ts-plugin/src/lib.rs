@@ -21,7 +21,7 @@ pub mod types;
 use ferrule_sdk_model::Client;
 
 pub use extras::SpecExtras;
-pub use meta::{TsMeta, TsSettings, ts_settings};
+pub use meta::{Layout, TsMeta, TsSettings, ts_settings};
 
 /// Whether a generated file is executable in the oracles: the `scripts/` entry points and the
 /// shell helpers in `scripts/utils/` (`bin/` scripts are run with `bash`).
@@ -36,11 +36,18 @@ pub fn is_executable(path: &str) -> bool {
     }
 }
 
-/// Every file the plugin writes for `client`, sorted by path.
+/// Every file the plugin writes for `client`, in the layout of the TypeScript target its config
+/// has ([`Layout::of`]), sorted by path.
 #[must_use]
 pub fn generate(client: &Client, meta: &TsMeta, extras: &SpecExtras) -> Vec<emit::File> {
-    let client = client.for_target(meta::TARGET);
-    let ctx = ctx::Ctx::new(&client, ts_settings(&client, meta), extras);
+    generate_layout(client, meta, extras, Layout::of(client))
+}
+
+/// Every file the plugin writes for `client` in `layout`, sorted by path.
+#[must_use]
+pub fn generate_layout(client: &Client, meta: &TsMeta, extras: &SpecExtras, layout: Layout) -> Vec<emit::File> {
+    let client = client.for_target(layout.target());
+    let ctx = ctx::Ctx::new(&client, ts_settings(&client, meta, layout), extras);
     let mut files = emit::code_files(&ctx);
     files.extend(emit::project::project_files(&ctx));
     files.sort_by(|a, b| a.0.cmp(&b.0));

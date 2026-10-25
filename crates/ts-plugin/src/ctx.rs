@@ -7,8 +7,8 @@ use ferrule_sdk_model::Client;
 use ferrule_sdk_model::model::{Method, ModelDecl, Resource, Type, TypeRef};
 
 use crate::extras::SpecExtras;
-use crate::meta::TsSettings;
-use crate::naming::{camel_case, kebab_case, singular, type_name, words_of};
+use crate::meta::{Layout, TsSettings};
+use crate::naming::{camel_case, camel_case_plain, kebab_case, singular, type_name, words_of};
 
 /// One resource, named.
 #[derive(Debug, Clone)]
@@ -92,7 +92,27 @@ pub struct Ctx<'a> {
     homes: HashMap<String, Home>,
 }
 
-fn build<'a>(client: &'a Client, extras: &SpecExtras, res: &'a Resource, parent: &[String]) -> TsResource<'a> {
+/// A property, method or parameter name in `layout`'s spelling: `stopIDs` in the current layout,
+/// `stopIds` in the `node` layout.
+#[must_use]
+pub fn member_name<S: AsRef<str>>(
+    layout: Layout,
+    words: &[S],
+    casings: &[ferrule_sdk_model::model::CustomCasing],
+) -> String {
+    match layout {
+        Layout::Typescript => camel_case(words, casings),
+        Layout::Node => camel_case_plain(words, casings),
+    }
+}
+
+fn build<'a>(
+    client: &'a Client,
+    layout: Layout,
+    extras: &SpecExtras,
+    res: &'a Resource,
+    parent: &[String],
+) -> TsResource<'a> {
     let mut keys = parent.to_vec();
     keys.push(res.name.written.clone());
     let files = keys
@@ -108,9 +128,12 @@ fn build<'a>(client: &'a Client, extras: &SpecExtras, res: &'a Resource, parent:
     TsResource {
         res,
         class: type_name(&words, &client.casings),
-        prop: camel_case(&words, &client.casings),
+        prop: member_name(layout, &words, &client.casings),
         package: !res.subresources.is_empty() || res.standalone,
-        children: subs.into_iter().map(|s| build(client, extras, s, &keys)).collect(),
+        children: subs
+            .into_iter()
+            .map(|s| build(client, layout, extras, s, &keys))
+            .collect(),
         keys,
         files,
         description,
@@ -176,7 +199,10 @@ impl<'a> Ctx<'a> {
     pub fn new(client: &'a Client, settings: TsSettings, extras: &'a SpecExtras) -> Self {
         let mut tops: Vec<&Resource> = client.resources.iter().collect();
         tops.sort_by_key(|r| r.order);
-        let resources = tops.into_iter().map(|r| build(client, extras, r, &[])).collect();
+        let resources = tops
+            .into_iter()
+            .map(|r| build(client, settings.layout, extras, r, &[]))
+            .collect();
         let mut ctx = Self {
             client,
             settings,
@@ -186,6 +212,18 @@ impl<'a> Ctx<'a> {
         };
         ctx.homes = ctx.find_homes();
         ctx
+    }
+
+    /// Whether the SDK has the legacy `node` layout.
+    #[must_use]
+    pub fn node(&self) -> bool {
+        self.settings.layout == Layout::Node
+    }
+
+    /// A property, method or parameter name in the layout's spelling ([`member_name`]).
+    #[must_use]
+    pub fn member<S: AsRef<str>>(&self, words: &[S]) -> String {
+        member_name(self.settings.layout, words, &self.client.casings)
     }
 
     /// Every resource, depth first.

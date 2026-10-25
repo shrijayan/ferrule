@@ -4,7 +4,7 @@
 use super::File;
 use super::resource::{exports_of, plan_methods};
 use crate::ctx::{Ctx, TsResource};
-use crate::naming::{camel_case, words_of};
+use crate::naming::words_of;
 use crate::types::Mapper;
 
 /// The file api.md links a resource's names to: its module, or a standalone API's shim.
@@ -40,9 +40,9 @@ fn section(ctx: &Ctx<'_>, r: &TsResource<'_>, level: usize, out: &mut Vec<String
         let chain = ctx.chain(r);
         let accessor = r.accessor(&chain);
         for p in &plans {
-            let mut args: Vec<String> = super::resource::positional(p.m)
+            let mut args: Vec<String> = super::resource::positional(ctx, p.m)
                 .iter()
-                .map(|q| camel_case(&words_of(&q.field.name), &ctx.client.casings))
+                .map(|q| ctx.member(&words_of(&q.field.name)))
                 .collect();
             if p.params_type.is_some() {
                 args.push("{ ...params }".to_owned());
@@ -53,7 +53,8 @@ fn section(ctx: &Ctx<'_>, r: &TsResource<'_>, level: usize, out: &mut Vec<String
                 p.m.path,
                 p.name,
                 args.join(", "),
-                p.response
+                // A model of another module by its name alone: `Shared.ResponseWrapper` -> `ResponseWrapper`.
+                p.response.rsplit('.').next().unwrap_or(&p.response)
             ));
         }
     }

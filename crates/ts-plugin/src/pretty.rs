@@ -131,8 +131,13 @@ fn object(o: &Object) -> Doc {
     )
 }
 
-/// `key: value` with prettier's assignment layout for object properties.
+/// `key: value` with prettier's assignment layout for object properties. A value of
+/// `Expr::raw("")` prints the key alone: a shorthand property (`query`) or a spread
+/// (`...options`).
 fn property(key: &str, value: &Expr) -> Doc {
+    if matches!(value, Expr::Raw(s) if s.is_empty()) {
+        return text(key.to_owned());
+    }
     let key_doc = text(key.to_owned());
     // `isObjectPropertyWithShortKey`: a key narrower than tabWidth + 3 never breaks after `:`.
     let short_key = crate::doc::width(key) < 2 + 3;

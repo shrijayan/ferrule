@@ -1,5 +1,9 @@
 //! A resource's module: the class with its methods and subresources, the types it declares
 //! (models, inline responses, params), and the `declare namespace` that re-exports them.
+//!
+//! One pass for both layouts: the `node` layout imports `APIResource` from `src/resource.ts` and
+//! `Core` from `src/core.ts`, takes every path parameter positionally, overloads a method whose
+//! params are all optional (`isRequestOptions`), and writes paths as plain template literals.
 
 use ferrule_sdk_model::model::{HttpMethod, Method, Type};
 
@@ -9,8 +13,8 @@ use crate::comment::jsdoc;
 use crate::ctx::{Ctx, TsResource, relative};
 use crate::doc::{Doc, concat, text};
 use crate::examples::{Examples, Fill};
-use crate::naming::{camel_case, type_name, words_of};
-use crate::pretty::{EXAMPLE_WIDTH, Expr, WIDTH, const_decl, expr, render, signature, specifiers};
+use crate::naming::{camel_case, plural, type_name, words_of};
+use crate::pretty::{EXAMPLE_WIDTH, Expr, Object, WIDTH, const_decl, expr, render, signature, specifiers};
 use crate::types::{Decl, DeclKind, Mapper};
 
 /// How a method takes its non-path parameters.
@@ -79,7 +83,7 @@ pub fn plan_methods<'a>(ctx: &Ctx<'a>, r: &TsResource<'a>, mapper: &mut Mapper<'
     sorted_methods(r)
         .into_iter()
         .map(|m| {
-            let name = camel_case(&words_of(&m.name), &ctx.client.casings);
+            let name = ctx.member(&words_of(&m.name));
             let response_name = method_type(&prefix, m, "Response", ctx);
             let (response, response_decl) = match m.response.as_ref().map(|r| &r.ty) {
                 None => ("void".to_owned(), None),
@@ -98,7 +102,7 @@ pub fn plan_methods<'a>(ctx: &Ctx<'a>, r: &TsResource<'a>, mapper: &mut Mapper<'
             let body_fields = m.body.as_ref().and_then(|b| ctx.client.object_of(&b.ty));
             let has_query = !m.query_params.is_empty();
             let has_body = body_fields.is_some_and(|o| !o.fields.is_empty());
-            let has_path = !path_in_params(m).is_empty();
+            let has_path = !path_in_params(ctx, m).is_empty();
             let params_arg = match (has_query, has_body) {
                 _ if has_path => ParamsArg::Mixed,
                 (false, false) => ParamsArg::None,
@@ -115,7 +119,7 @@ pub fn plan_methods<'a>(ctx: &Ctx<'a>, r: &TsResource<'a>, mapper: &mut Mapper<'
                 let params_name = method_type(&prefix, m, "Params", ctx);
                 let mut nested = Vec::new();
                 let mut fields = Vec::new();
-                for p in path_in_params(m) {
+                for p in path_in_params(ctx, m) {
                     fields.push(mapper.field(&p.field, &params_name, &mut nested));
                 }
                 for p in query_params(ctx, m) {
@@ -153,11 +157,11 @@ pub fn plan_methods<'a>(ctx: &Ctx<'a>, r: &TsResource<'a>, mapper: &mut Mapper<'
         .collect()
 }
 
-/// The path parameters a method takes positionally: all of them, or only the last when there
-/// are several (the others go in its params object).
+/// The path parameters a method takes positionally: all of them in the `node` layout; in the
+/// current layout only the last when there are several (the others go in its params object).
 #[must_use]
-pub fn positional(m: &Method) -> &[ferrule_sdk_model::model::Param] {
-    if m.path_params.len() > 1 {
+pub fn positional<'m>(ctx: &Ctx<'_>, m: &'m Method) -> &'m [ferrule_sdk_model::model::Param] {
+    if m.path_params.len() > 1 && !ctx.node() {
         &m.path_params[m.path_params.len() - 1..]
     } else {
         &m.path_params
@@ -166,8 +170,8 @@ pub fn positional(m: &Method) -> &[ferrule_sdk_model::model::Param] {
 
 /// The path parameters a method takes in its params object.
 #[must_use]
-pub fn path_in_params(m: &Method) -> &[ferrule_sdk_model::model::Param] {
-    if m.path_params.len() > 1 {
+pub fn path_in_params<'m>(ctx: &Ctx<'_>, m: &'m Method) -> &'m [ferrule_sdk_model::model::Param] {
+    if m.path_params.len() > 1 && !ctx.node() {
         &m.path_params[..m.path_params.len() - 1]
     } else {
         &[]
@@ -208,18 +212,26 @@ pub fn example_var(ctx: &Ctx<'_>, r: &TsResource<'_>, plan: &MethodPlan<'_>) -> 
             };
             format!("{}s", result_var(item))
         }
+        // The `node` layout names a list's result in the plural: `routesForAgencies`.
+        Some(_) if ctx.node() && plan.m.name.written == "list" => {
+            ctx.member(&plural(&crate::naming::singular(&words_of(&r.res.name))))
+        }
         Some(_) if STANDARD.contains(&plan.m.name.written.as_str()) => {
-            camel_case(&crate::naming::singular(&words_of(&r.res.name)), &ctx.client.casings)
+            ctx.member(&crate::naming::singular(&words_of(&r.res.name)))
         }
         Some(_) => "response".to_owned(),
         None => result_var(&plan.response),
     }
 }
 
-/// The `@example` code of a method.
-fn example_code(ctx: &Ctx<'_>, chain: &[&TsResource<'_>], plan: &MethodPlan<'_>) -> Vec<String> {
+/// The `@example` code of a method. The `node` layout writes one only when the call uses an
+/// example from the spec (onebusaway-typescript: a path parameter's `example`).
+fn example_code(ctx: &Ctx<'_>, chain: &[&TsResource<'_>], plan: &MethodPlan<'_>) -> Option<Vec<String>> {
     let ex = Examples { ctx };
     let args = ex.args(plan.m, Fill::Required);
+    if ctx.node() && !args.from_spec {
+        return None;
+    }
     let accessor = format!("{}.{}", chain[chain.len() - 1].accessor(chain), plan.name);
     let call = Expr::Await(Box::new(Expr::Call(accessor, args.exprs())));
     let doc: Doc = if plan.response == "void" {
@@ -227,62 +239,172 @@ fn example_code(ctx: &Ctx<'_>, chain: &[&TsResource<'_>], plan: &MethodPlan<'_>)
     } else {
         const_decl(&example_var(ctx, chain[chain.len() - 1], plan), &call)
     };
-    render(&doc, 0, EXAMPLE_WIDTH).split('\n').map(str::to_owned).collect()
+    Some(render(&doc, 0, EXAMPLE_WIDTH).split('\n').map(str::to_owned).collect())
 }
 
 fn http_verb(m: HttpMethod) -> &'static str {
     m.as_str()
 }
 
-/// `'/embeddings'` or ``path`/v1/sources/${key}` ``.
+/// `'/embeddings'` or ``path`/v1/sources/${key}` ``; a plain template literal in the `node`
+/// layout.
 fn path_expr(m: &Method, ctx: &Ctx<'_>) -> String {
     if m.path_params.is_empty() {
         return crate::js::string_literal(&m.path);
     }
     let mut out = m.path.clone();
     for p in &m.path_params {
-        let name = if path_in_params(m).iter().any(|q| q.field.wire_name == p.field.wire_name) {
+        let name = if path_in_params(ctx, m)
+            .iter()
+            .any(|q| q.field.wire_name == p.field.wire_name)
+        {
             p.field.wire_name.clone()
         } else {
-            camel_case(&words_of(&p.field.name), &ctx.client.casings)
+            ctx.member(&words_of(&p.field.name))
         };
         out = out.replace(&format!("{{{}}}", p.field.wire_name), &format!("${{{name}}}"));
     }
-    format!("path`{out}`")
+    if ctx.node() {
+        format!("`{out}`")
+    } else {
+        format!("path`{out}`")
+    }
 }
 
-/// The lines of one method, at two spaces.
-fn method_lines(ctx: &Ctx<'_>, chain: &[&TsResource<'_>], plan: &MethodPlan<'_>) -> Vec<String> {
+/// A method's doc comment: its description, `@deprecated`, `@example`.
+fn method_doc(ctx: &Ctx<'_>, chain: &[&TsResource<'_>], plan: &MethodPlan<'_>) -> Vec<String> {
     let m = plan.m;
-    let mut example = vec!["@example".to_owned(), "```ts".to_owned()];
-    example.extend(example_code(ctx, chain, plan));
-    example.push("```".to_owned());
     let mut sections = Vec::new();
     if m.deprecated {
         sections.push(vec!["@deprecated".to_owned()]);
     }
-    sections.push(example);
+    if let Some(code) = example_code(ctx, chain, plan) {
+        let mut example = vec!["@example".to_owned(), "```ts".to_owned()];
+        example.extend(code);
+        example.push("```".to_owned());
+        sections.push(example);
+    }
     let description = if m.description.is_empty() {
         &m.summary
     } else {
         &m.description
     };
-    let mut out = jsdoc(description, &sections, 2);
-    let mut params: Vec<Doc> = positional(m)
-        .iter()
-        .map(|p| {
-            text(format!(
-                "{}: string",
-                camel_case(&words_of(&p.field.name), &ctx.client.casings)
-            ))
-        })
-        .collect();
-    let arg = match plan.params_arg {
+    jsdoc(description, &sections, 2)
+}
+
+/// The name a method's params object has in its signature.
+fn params_name(arg: ParamsArg) -> Option<&'static str> {
+    match arg {
         ParamsArg::None => None,
         ParamsArg::Query => Some("query"),
         ParamsArg::Body => Some("body"),
         ParamsArg::Mixed => Some("params"),
+    }
+}
+
+/// `{ key, ...options }`: an object literal of shorthand properties and spreads (an empty raw
+/// value prints the key alone), on one line until it does not fit.
+fn literal(props: Vec<(String, Expr)>) -> Expr {
+    Expr::Object(Object { props, expanded: false })
+}
+
+/// The lines of one method of a `node`-layout resource, at two spaces.
+fn node_method_lines(ctx: &Ctx<'_>, chain: &[&TsResource<'_>], plan: &MethodPlan<'_>) -> Vec<String> {
+    let m = plan.m;
+    let mut out = method_doc(ctx, chain, plan);
+    let positional: Vec<String> = positional(ctx, m)
+        .iter()
+        .map(|p| ctx.member(&words_of(&p.field.name)))
+        .collect();
+    let mut head: Vec<Doc> = positional.iter().map(|p| text(format!("{p}: string"))).collect();
+    let options = text("options?: Core.RequestOptions");
+    let ret = text(format!(": Core.APIPromise<{}>", plan.response));
+    let arg = params_name(plan.params_arg);
+    match (arg, &plan.params_type) {
+        (Some(arg), Some(t)) if !plan.params_required => {
+            let mut first = head.clone();
+            first.extend([text(format!("{arg}?: {t}")), options.clone()]);
+            out.push(render(&signature(&plan.name, &first, &ret, ";"), 2, WIDTH));
+            let mut second = head.clone();
+            second.push(options.clone());
+            out.push(render(&signature(&plan.name, &second, &ret, ";"), 2, WIDTH));
+            head.extend([text(format!("{arg}: {t} | Core.RequestOptions = {{}}")), options]);
+            out.push(render(&signature(&plan.name, &head, &ret, " {"), 2, WIDTH));
+            out.push(format!("    if (isRequestOptions({arg})) {{"));
+            let mut again: Vec<Expr> = positional.iter().map(|p| Expr::raw(p)).collect();
+            again.extend([Expr::raw("{}"), Expr::raw(arg)]);
+            let call = concat(vec![
+                text("return "),
+                expr(&Expr::Call(format!("this.{}", plan.name), again)),
+                text(";"),
+            ]);
+            out.push(render(&call, 6, WIDTH));
+            out.push("    }".to_owned());
+        }
+        (Some(arg), Some(t)) => {
+            head.extend([text(format!("{arg}: {t}")), options]);
+            out.push(render(&signature(&plan.name, &head, &ret, " {"), 2, WIDTH));
+        }
+        _ => {
+            head.push(options);
+            out.push(render(&signature(&plan.name, &head, &ret, " {"), 2, WIDTH));
+        }
+    }
+    let shorthand = |k: &str| (k.to_owned(), Expr::raw(""));
+    let mut props: Vec<(String, Expr)> = Vec::new();
+    match plan.params_arg {
+        ParamsArg::None => {}
+        ParamsArg::Query => props.push(shorthand("query")),
+        ParamsArg::Body => props.push(shorthand("body")),
+        ParamsArg::Mixed => {
+            let query: Vec<String> = query_params(ctx, m).iter().map(|p| p.field.wire_name.clone()).collect();
+            let mut names = query.clone();
+            names.push("...body".to_owned());
+            out.push(render(&specifiers("const ", &names, " = params;"), 4, WIDTH));
+            props.push((
+                "query".to_owned(),
+                literal(query.iter().map(|q| shorthand(q)).collect()),
+            ));
+            props.push(shorthand("body"));
+        }
+    }
+    let void = plan.response == "void";
+    let last = if props.is_empty() && !void {
+        Expr::raw("options")
+    } else {
+        props.push(shorthand("...options"));
+        if void {
+            props.push((
+                "headers".to_owned(),
+                literal(vec![
+                    ("Accept".to_owned(), Expr::str("*/*")),
+                    shorthand("...options?.headers"),
+                ]),
+            ));
+        }
+        literal(props)
     };
+    let call = Expr::Call(
+        format!("this._client.{}", http_verb(m.http_method)),
+        vec![Expr::Raw(path_expr(m, ctx)), last],
+    );
+    out.push(render(&concat(vec![text("return "), expr(&call), text(";")]), 4, WIDTH));
+    out.push("  }".to_owned());
+    out
+}
+
+/// The lines of one method, at two spaces.
+fn method_lines(ctx: &Ctx<'_>, chain: &[&TsResource<'_>], plan: &MethodPlan<'_>) -> Vec<String> {
+    if ctx.node() {
+        return node_method_lines(ctx, chain, plan);
+    }
+    let m = plan.m;
+    let mut out = method_doc(ctx, chain, plan);
+    let mut params: Vec<Doc> = positional(ctx, m)
+        .iter()
+        .map(|p| text(format!("{}: string", ctx.member(&words_of(&p.field.name)))))
+        .collect();
+    let arg = params_name(plan.params_arg);
     if let (Some(arg), Some(t)) = (arg, &plan.params_type) {
         params.push(text(if plan.params_required {
             format!("{arg}: {t}")
@@ -301,7 +423,10 @@ fn method_lines(ctx: &Ctx<'_>, chain: &[&TsResource<'_>], plan: &MethodPlan<'_>)
         ParamsArg::Body => format!("return this._client.{verb}({path}, {{ body, ...options }});"),
         ParamsArg::Mixed => {
             // `const { fileId, environment, ...body } = params;`
-            let mut names: Vec<String> = path_in_params(m).iter().map(|p| p.field.wire_name.clone()).collect();
+            let mut names: Vec<String> = path_in_params(ctx, m)
+                .iter()
+                .map(|p| p.field.wire_name.clone())
+                .collect();
             let has_body = m
                 .body
                 .as_ref()
@@ -442,6 +567,9 @@ fn import_lines(
     plans: &[MethodPlan<'_>],
 ) -> Vec<String> {
     // Imports, now that the body knows what it uses.
+    if ctx.node() {
+        return node_import_lines(ctx, r, dir, namespaces, plans);
+    }
     let mut imports: Vec<String> = vec![format!(
         "import {{ APIResource }} from '{}';",
         relative(dir, "core/resource")
@@ -478,6 +606,48 @@ fn import_lines(
                 relative(dir, "internal/utils/path")
             ));
         }
+    }
+    imports
+}
+
+/// The imports of a `node`-layout resource module: `APIResource`, `isRequestOptions` for
+/// overloaded methods, `Core`, then the namespaces and subresources as in the current layout.
+fn node_import_lines(
+    ctx: &Ctx<'_>,
+    r: &TsResource<'_>,
+    dir: &str,
+    namespaces: &[(String, String)],
+    plans: &[MethodPlan<'_>],
+) -> Vec<String> {
+    let mut imports: Vec<String> = vec![format!(
+        "import {{ APIResource }} from '{}';",
+        relative(dir, "resource")
+    )];
+    if plans.iter().any(|p| p.params_type.is_some() && !p.params_required) {
+        imports.push(format!(
+            "import {{ isRequestOptions }} from '{}';",
+            relative(dir, "core")
+        ));
+    }
+    if !plans.is_empty() {
+        imports.push(format!("import * as Core from '{}';", relative(dir, "core")));
+    }
+    let mut namespaces = namespaces.to_vec();
+    namespaces.sort_by(|a, b| a.0.cmp(&b.0));
+    for (ns, target) in &namespaces {
+        imports.push(format!("import * as {ns} from '{}';", relative(dir, target)));
+    }
+    for c in &r.children {
+        let target = relative(dir, &c.module());
+        imports.push(format!("import * as {}API from '{target}';", c.class));
+        let mut names = vec![c.class.clone()];
+        names.extend(exports_of(ctx, c));
+        names.sort();
+        imports.push(render(
+            &specifiers("import ", &names, &format!(" from '{target}';")),
+            0,
+            WIDTH,
+        ));
     }
     imports
 }

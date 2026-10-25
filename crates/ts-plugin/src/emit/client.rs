@@ -1,24 +1,30 @@
 //! `src/client.ts`: the client class. The options, constructor and auth come from the client
 //! settings; the request machinery between `stringifyQuery` and `buildBody` is the fixed fragment
 //! every current-layout Stainless SDK shares (`templates/client_tail.ts.tmpl`); then the error
-//! statics, the resources and the `declare namespace`.
+//! statics, the resources and the `declare namespace`. The `node` layout's client is
+//! `src/index.ts` ([`emit_node_index`]): a subclass of `Core.APIClient` (the request machinery is
+//! the runtime's `src/core.ts`), followed by the SDK's exports.
 //!
 //! The templates are text of isaacus-dev/isaacus-typescript@c56af182 and, for the pagination
-//! methods, knocklabs/knock-mgmt-node@ca88fdba (Apache-2.0, see `NOTICE`). Modified by The
-//! Ferrule Authors: per-SDK names and values replaced by `%%TOKEN%%`s, pagination behind
-//! `%%if pagination%%`.
+//! methods, knocklabs/knock-mgmt-node@ca88fdba; the `node` templates (`templates/node/index_*`)
+//! of OneBusAway/js-sdk@f3ca3f47 (Apache-2.0, see `NOTICE`). Modified by The Ferrule Authors:
+//! per-SDK names and values replaced by `%%TOKEN%%`s, pagination behind `%%if pagination%%`, an
+//! API key sent in the query behind `%%if query_auth%%`.
 
-use ferrule_sdk_model::model::{ClientOpt, SecurityScheme};
+use ferrule_sdk_model::model::{ClientOpt, SecurityScheme, SendLocation};
 
 use super::resource::exports_of;
 use super::template::render as fill;
 use super::{File, HEADER};
 use crate::ctx::{Ctx, TsResource};
-use crate::naming::{camel_case, words_of};
-use crate::pretty::{WIDTH, render, specifiers};
+use crate::doc::{concat, text};
+use crate::naming::words_of;
+use crate::pretty::{Expr, WIDTH, assignment, render, specifiers};
 
 const HEAD: &str = include_str!("templates/client_head.ts.tmpl");
 const TAIL: &str = include_str!("templates/client_tail.ts.tmpl");
+const NODE_HEAD: &str = include_str!("templates/node/index_head.ts.tmpl");
+const NODE_TAIL: &str = include_str!("templates/node/index_tail.ts.tmpl");
 
 const IMPORTS_TOP: &str = "import type { RequestInit, RequestInfo, BodyInit } from './internal/builtin-types';
 import type { HTTPMethod, PromiseOrValue, MergedRequestInit, FinalizedRequestInit } from './internal/types';
@@ -121,17 +127,21 @@ fn members(ctx: &Ctx<'_>) -> Vec<String> {
             }
             out.push("   */".to_owned());
         }
-        out.push(format!("  {}: API.{} = new API.{}(this);", r.prop, r.class, r.class));
+        let left = text(format!("{}: API.{}", r.prop, r.class));
+        let right = Expr::Raw(format!("new API.{}(this)", r.class));
+        let member = concat(vec![assignment(left, " =", &right, false), text(";")]);
+        out.push(render(&member, 2, WIDTH));
     }
     out
 }
 
-/// The `export declare namespace <Client>` blocks of the resources.
+/// The `export declare namespace <Client>` blocks of the resources, then the shared models.
 fn namespace(ctx: &Ctx<'_>) -> Vec<String> {
     let client = &ctx.settings.client_class;
+    let options = if ctx.node() { "Core" } else { "Opts" };
     let mut out = vec![
         format!("export declare namespace {client} {{"),
-        "  export type RequestOptions = Opts.RequestOptions;".to_owned(),
+        format!("  export type RequestOptions = {options}.RequestOptions;"),
     ];
     for r in &ctx.resources {
         out.push(String::new());
@@ -141,8 +151,120 @@ fn namespace(ctx: &Ctx<'_>) -> Vec<String> {
         }
         out.push(render(&specifiers("export ", &names, ";"), 2, WIDTH));
     }
+    // The current layout lists them too (imagekit-typescript); not emitted there yet, as that
+    // changes the golden petstore SDK.
+    let shared = if ctx.node() { ctx.shared_models() } else { Vec::new() };
+    if !shared.is_empty() {
+        out.push(String::new());
+        for d in shared {
+            let t = ctx.type_of(&d.r#ref);
+            out.push(format!("  export type {t} = API.{t};"));
+        }
+    }
     out.push("}".to_owned());
     out
+}
+
+/// The documentation lines of the auth option in `ClientOptions`, at three spaces.
+fn opt_doc(opt: Option<&ClientOpt>) -> String {
+    let env = opt.and_then(|o| o.read_env.clone()).unwrap_or_default();
+    let doc = opt
+        .and_then(|o| o.description.clone())
+        .unwrap_or_else(|| format!("Defaults to process.env['{env}']."));
+    crate::comment::format_markdown(&doc, 1000)
+        .into_iter()
+        .map(|l| {
+            if l.is_empty() {
+                "   *".to_owned()
+            } else {
+                format!("   * {l}")
+            }
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
+/// The `authHeaders` body of a `node`-layout client: the scheme's header, or nothing when the
+/// key goes in the query.
+fn node_auth_headers(ctx: &Ctx<'_>, opt: &ClientOpt, prop: &str) -> String {
+    if opt.send.as_ref().is_some_and(|s| s.location == SendLocation::Query) {
+        return "    return {};".to_owned();
+    }
+    let scheme = ctx.client.settings.as_ref().and_then(|s| {
+        let name = &opt.auth.as_ref()?.security_scheme;
+        s.security_schemes.iter().find(|n| &n.name == name).map(|n| &n.scheme)
+    });
+    match scheme {
+        Some(SecurityScheme::ApiKey { name, .. }) => {
+            format!("    return {{ {}: this.{prop} }};", crate::js::property_key(name))
+        }
+        _ => format!("    return {{ Authorization: `Bearer ${{this.{prop}}}` }};"),
+    }
+}
+
+/// `src/index.ts` of the `node` layout: the client class, its resources, the namespace and the
+/// package's exports.
+#[must_use]
+pub fn emit_node_index(ctx: &Ctx<'_>) -> File {
+    let s = &ctx.settings;
+    let client = s.client_class.as_str();
+    let opt = auth_opt(ctx);
+    let opt_words = opt.map(|o| words_of(&o.name)).unwrap_or_default();
+    let prop = ctx.member(&opt_words);
+    let opt_env = opt.and_then(|o| o.read_env.clone()).unwrap_or_default();
+    let placeholder = crate::js::string_literal(&super::api_tests::placeholder(&opt_words));
+    let query_key = opt
+        .and_then(|o| o.send.as_ref())
+        .filter(|send| send.location == SendLocation::Query)
+        .map(|send| crate::js::property_key(&send.name));
+    let auth = opt.map(|o| node_auth_headers(ctx, o, &prop)).unwrap_or_default();
+    let doc = opt_doc(opt);
+    let timeout = timeout_ms(ctx);
+    let vars = [
+        ("OPT_DOC", doc.as_str()),
+        ("OPT", prop.as_str()),
+        ("OPT_ENV", opt_env.as_str()),
+        ("OPT_PLACEHOLDER", placeholder.as_str()),
+        ("ENV", s.env_prefix.as_str()),
+        ("TITLE", s.title.as_str()),
+        ("CLIENT", client),
+        ("BASE_URL", ctx.client.base_url.as_str()),
+        ("TIMEOUT", timeout.as_str()),
+        ("QUERY_KEY", query_key.as_deref().unwrap_or_default()),
+        ("AUTH_HEADERS", auth.as_str()),
+    ];
+    let flags = [("query_auth", query_key.is_some())];
+    let mut out = vec![
+        HEADER.to_owned(),
+        String::new(),
+        "import { type Agent } from './_shims/index';".to_owned(),
+        "import * as Core from './core';".to_owned(),
+        "import * as Errors from './error';".to_owned(),
+        "import * as Uploads from './uploads';".to_owned(),
+        "import * as API from './resources/index';".to_owned(),
+    ];
+    out.extend(resource_imports(ctx));
+    out.push(String::new());
+    out.push(fill(NODE_HEAD, &vars, &flags).trim_end_matches('\n').to_owned());
+    out.push(String::new());
+    out.extend(members(ctx));
+    out.push(String::new());
+    out.push(fill(NODE_TAIL, &vars, &flags).trim_end_matches('\n').to_owned());
+    out.push("}".to_owned());
+    out.push(String::new());
+    for r in &ctx.resources {
+        out.push(format!("{client}.{} = {};", r.class, r.class));
+    }
+    out.push(String::new());
+    out.extend(namespace(ctx));
+    out.push(String::new());
+    out.push("export { toFile, fileFromPath } from './uploads';".to_owned());
+    let mut errors = vec![format!("{client}Error")];
+    errors.extend(ERRORS.iter().map(|&e| e.to_owned()));
+    out.push(render(&specifiers("export ", &errors, " from './error';"), 0, WIDTH));
+    out.push(String::new());
+    out.push(format!("export default {client};"));
+    ("src/index.ts".to_owned(), out.join("\n") + "\n")
 }
 
 /// `src/client.ts`.
@@ -152,7 +274,7 @@ pub fn emit_client(ctx: &Ctx<'_>) -> File {
     let client = s.client_class.as_str();
     let opt = auth_opt(ctx);
     let opt_words = opt.map(|o| words_of(&o.name)).unwrap_or_default();
-    let prop = camel_case(&opt_words, &ctx.client.casings);
+    let prop = ctx.member(&opt_words);
     let opt_env = opt.and_then(|o| o.read_env.clone()).unwrap_or_default();
     let opt_doc = opt
         .and_then(|o| o.description.clone())
