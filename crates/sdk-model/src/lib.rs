@@ -14,6 +14,7 @@ pub mod diagnostics;
 pub mod js;
 pub mod json;
 pub mod model;
+pub mod target;
 
 pub use adapter::{forge_to_model, group_to_model, methods_to_model};
 pub use diagnostics::{FerCode, FerruleError};

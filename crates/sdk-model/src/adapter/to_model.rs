@@ -17,7 +17,7 @@ use crate::js;
 use crate::model::{
     Body, Client, ClientSettings, CustomCasing, Discriminator, DiscriminatorCase, EnumMember, Field, HttpMethod,
     Literal, Method, ModelDecl, Name, Object, Package, Pagination, Param, Resource, Response, Scalar, Streaming,
-    StyleSwitch, Type, TypeRef, Union, Variant,
+    StyleSwitch, TargetSettings, Type, TypeRef, Union, Variant,
 };
 
 /// The reserved resource name of methods on the client itself (ADR 0003).
@@ -267,6 +267,7 @@ impl Context<'_> {
                             description: model.description().to_owned(),
                             deprecated: model.is_deprecated(),
                             ty: Type::Object(Object::default()),
+                            only: self.ext.model_only.get(schema).cloned(),
                         });
                         let body = self.read_type(model.ty())?;
                         if let Some(slot) = self.decls.iter_mut().find(|d| d.r#ref.schema == schema) {
@@ -491,6 +492,7 @@ impl Context<'_> {
             response,
             pagination,
             streaming,
+            only: self.ext.only.clone(),
         })
     }
 }
@@ -617,6 +619,7 @@ fn to_client<'f>(
 ) -> Result<Option<Client>, FerruleError> {
     let mut root = MutableResource::new(Name::default(), Vec::new(), 0);
     let mut casings: Option<Vec<CustomCasing>> = None;
+    let mut targets: Option<Vec<(String, TargetSettings)>> = None;
     let mut standalone: Vec<ResourcePosition> = Vec::new();
     let mut client_methods = Vec::new();
     let mut decls: Vec<ModelDecl> = Vec::new();
@@ -642,6 +645,9 @@ fn to_client<'f>(
         }
         if style.is_none() {
             style = Some(ext.style.clone());
+        }
+        if targets.is_none() {
+            targets = Some(ext.targets.clone());
         }
         if standalone.is_empty() {
             standalone.clone_from(&ext.standalone);
@@ -672,6 +678,7 @@ fn to_client<'f>(
     let (version, description, base_url) = info;
     Ok(Some(Client {
         package,
+        targets: targets.unwrap_or_default(),
         version: version.to_owned(),
         description: description.to_owned(),
         base_url: base_url.to_owned(),

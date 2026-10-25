@@ -65,6 +65,10 @@ empty `Object` in Python but as "any value" after the mapping. No fixture or ora
 
 ## Declarations, methods, resources, client
 
+- Everything below maps `client.for_target("python")`: the models stainless.yml leaves out for
+  Python (`ModelDecl.only` without `python`) are inlined there, as the Python adapter inlines a
+  schema `x-ferrule-models` does not name for it. The Python adapter does not yet drop methods
+  whose `Method.only` leaves Python out; no fixture or oracle has one.
 - `SdkModelDecl { ref, description }`: `ModelDecl.ref`, `.description`. `ty`/`alias`: map
   `ModelDecl.ty`; an object is the class, `Unknown` an empty class, anything else the alias.
 - `SdkClient.models`: `client.models` mapped, then stably sorted by Python module (UTF-16 order,
@@ -126,7 +130,8 @@ merged params, the paths by Python name) is derived.
 `Field.default`; `Param.exploded`; `Body.description`; `Response.status`,
 `Response.media_type`; `Union.exclusive`, variant names and
 discriminator values, `Discriminator.mapping`; enum member names; integer and float sizes,
-`uuid`, `bytes`, `binary`; HTTP methods beyond the five; `ModelDecl.deprecated`;
+`uuid`, `bytes`, `binary`; HTTP methods beyond the five; `ModelDecl.deprecated`; `Client.targets`, `Method.only` and
+`ModelDecl.only` (every stainless.yml target and its `skip:`/`only:` lists);
 `ClientSettings.default_environment`, `initial_retry_delay_seconds`, `max_retry_delay_seconds`.
 
 ## Steps
