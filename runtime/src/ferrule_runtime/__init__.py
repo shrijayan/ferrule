@@ -22,6 +22,7 @@ from ferrule_runtime._typescript import (
     TypeScriptOptions,
     render_typescript_files,
 )
+from ferrule_runtime._typescript_node import TypeScriptNodeOptions, render_typescript_node_files
 from ferrule_runtime.pagination import (
     PageField,
     PageKind,
@@ -48,6 +49,7 @@ __all__ = [
     "RubyAuthIn",
     "RubyOptions",
     "RuntimeOptions",
+    "TypeScriptNodeOptions",
     "TypeScriptOptions",
     "default_client_name",
     "render",
@@ -59,6 +61,7 @@ __all__ = [
     "render_ruby_files",
     "render_tree",
     "render_typescript_files",
+    "render_typescript_node_files",
     "retry_delay",
     "should_retry",
     "template_root",
