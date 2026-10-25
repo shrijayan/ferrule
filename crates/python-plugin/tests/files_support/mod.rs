@@ -151,6 +151,7 @@ fn method(v: &Value) -> FilesMethod {
             name: string(r, "name"),
             module: string(r, "module"),
         }),
+        stream_switch: opt_string(v, "streamSwitch"),
     }
 }
 
