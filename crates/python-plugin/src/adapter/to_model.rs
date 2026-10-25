@@ -151,10 +151,21 @@ impl Context<'_> {
             ),
             Type::Array(a) => SdkType::Array(Box::new(self.read_type(a.elem())?)),
             Type::Object(o) => self.read_object(o)?,
-            Type::Union(u) => SdkType::Union {
-                variants: u.members().map(|m| self.read_type(m)).collect::<Result<_, _>>()?,
-                discriminator: u.discriminator().map(|d| d.wire_name().to_owned()),
-            },
+            Type::Union(u) => {
+                // A member that is itself a union is flattened into this one, its own
+                // discriminator dropped, as Stainless does (ogx `OpenAIResponseMessageOutputUnion`).
+                let mut variants = Vec::new();
+                for m in u.members() {
+                    match self.read_type(m)? {
+                        SdkType::Union { variants: inner, .. } => variants.extend(inner),
+                        other => variants.push(other),
+                    }
+                }
+                SdkType::Union {
+                    variants,
+                    discriminator: u.discriminator().map(|d| d.wire_name().to_owned()),
+                }
+            }
             Type::Intersection(i) => SdkType::Object(self.read_intersection(i.members())?),
             Type::Model(model) => {
                 let schema = model.schema_name();
