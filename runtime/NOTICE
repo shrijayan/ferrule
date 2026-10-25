@@ -67,6 +67,21 @@ runtime/go/template/ is derived from the Stainless-generated OneBusAway Go SDK:
               option/requestoption.go replaced by slots. Marks are recorded here and in
               runtime/README.md instead of in the files (ADR 0004 amendment).
 
+runtime/go-v2/template/ is derived from the Stainless-generated ImageKit Go SDK (Go v2 layout):
+  Repository: https://github.com/imagekit-developer/imagekit-go
+  Commit:     bc22fec799949ebdc6c8effff9e45e1234b4b512 (release 2.5.0)
+  Licence:    Apache License, Version 2.0
+  Copyright:  Copyright 2026 Image Kit
+  Files:      internal/** except internal/version.go, option/*, packages/param/*,
+              packages/respjson/*, field.go, default_http_client.go
+  Changes:    Modified by The Ferrule Authors: module path, package, client and organisation
+              names, max retries and the redacted-header list replaced by tokens, the README
+              link's module by a token; //ferrule: lines added to field.go (import order, the
+              file helper's name) and option/requestoption.go (import order, encoding/base64);
+              the config-dependent lines of internal/requestconfig/requestconfig.go and
+              option/requestoption.go replaced by slots. Marks are recorded here and in
+              runtime/README.md instead of in the files (ADR 0004 amendment).
+
 runtime/java/template/ is derived from Stainless-generated Java and Kotlin SDKs:
   Repository: https://github.com/OneBusAway/java-sdk
   Commit:     c29c48ad95f08e9a6042bfb4b620bb93b7a5f0ab (release 0.1.0-alpha.60)

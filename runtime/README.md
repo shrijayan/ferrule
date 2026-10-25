@@ -10,6 +10,7 @@ per-SDK names replaced by tokens; rendering is pure and byte-identical to the or
 | TypeScript (`typescript` target, current layout) | `typescript/template/` | `render_typescript_files` | `isaacus-dev/isaacus-typescript` @ `c56af182`, `src/internal/qs/` from `knocklabs/knock-mgmt-node` @ `ca88fdba` |
 | TypeScript (`node` target, legacy layout) | `typescript-node/template/` | `render_typescript_node_files` | `OneBusAway/js-sdk` @ `f3ca3f47` |
 | Go (v1) | `go/template/` | `render_go_files` | `OneBusAway/go-sdk` @ `d115209e` |
+| Go (v2, `enable_v2`) | `go-v2/template/` | `render_go_files(layout="v2")` | `imagekit-developer/imagekit-go` @ `bc22fec7` |
 | JVM (`java` and `kotlin` targets) | `java/template/` | `render_java_files` | `OneBusAway/java-sdk` @ `c29c48ad`, `OneBusAway/kotlin-sdk` @ `69234467`, `OkHttpClient.kt` and the webhook files from `imagekit-developer/imagekit-java` @ `f96c35e8` |
 | Ruby | `ruby/template/` | `render_ruby_files` | `OneBusAway/ruby-sdk` @ `46a574dd` |
 | PHP | `php/template/` | `render_php_files` | `imagekit-developer/imagekit-php` @ `9f9309d5` |
@@ -285,9 +286,12 @@ file carries ogx's own licence header.
 
 ## Go
 
-For SDKs on Stainless's Go v1 layout. v2 (`enable_v2`: imagekit-go, knock-mgmt-go, ogx,
-stagehand) adds `internal/encoding/`, `internal/paramutil/`, `packages/param/`,
-`packages/respjson/`, `shared/constant/` and `backcompat.go` and is not templated yet.
+Two layouts, two templates: Stainless's Go v1 (`go/template/`, OneBusAway's runtime) and Go v2
+(`go-v2/template/`, imagekit-go's; `targets.go.options.enable_v2`: imagekit-go, knock-mgmt-go,
+ogx, stagehand). v2 adds `internal/encoding/`, `internal/paramutil/`, `packages/param/` and
+`packages/respjson/`, and only 4 of v1's 25 files are the same in v2 (`default_http_client.go`,
+`apiform/form.go`, `testutil.go`, `middleware.go`), so a layout switch inside one template would
+be directives around nearly every file; two templates keep each byte-identical to its source.
 
 ```python
 from ferrule_runtime import GoOptions, render_go_files
@@ -299,7 +303,7 @@ files = render_go_files(
 
 `GoOptions(module_path, package_name, client_name, *, org_name=None, max_retries=2,
 redacted_headers=("api-key", "x-api-key"), config_fields="", config_clone="",
-client_options="")`:
+client_options="", layout="v1", new_file=False)`:
 
 - `module_path`: the `go.mod` module; every internal import and the pkg.go.dev README links.
 - `package_name`: the root package of `field.go` and `default_http_client.go`.
@@ -312,11 +316,17 @@ client_options="")`:
   `client_options` (the `WithEnvironment*` and client-setting options appended to
   `option/requestoption.go`, starting with a blank line). gofmt aligns a struct block to its
   longest field name; a client setting longer than `RequestTimeout` would realign the runtime's
-  own lines, which the template does not do.
+  own lines, which the template does not do. In v2 a `base64.` in `client_options` (HTTP Basic
+  auth) also imports `encoding/base64`.
+- `layout`: `"v1"` or `"v2"`, the template rendered.
+- `new_file` (v2 only): `field.go`'s file helper is `NewFile` rather than `File`, as Stainless
+  names it when the root package declares a type `File` (imagekit-go, ogx-client-go).
 
 Tokens: `__ferrule_module__`, `__ferrule_pkg__`, `__FerruleClient__`, `__FERRULE_ORG__`,
 `__FERRULE_MAX_RETRIES__` (`NewRequestConfig`'s `MaxRetries: 2`; a non-default value is
-unverified), `__FERRULE_SENSITIVE_HEADERS__`. Flags `module_before_io` and
+unverified), `__FERRULE_SENSITIVE_HEADERS__`, and in v2 `__ferrule_docs_module__` (the module
+without its `/vN` suffix, as the pkg.go.dev README link names it: imagekit-go/v2's links
+`github.com/imagekit-developer/imagekit-go`). Flags `module_before_io` and
 `module_before_sjson` keep gofmt's import order in `field.go` and `option/requestoption.go`,
 where the module's packages share an import group with `io` or `github.com/tidwall/sjson`
 (the reversed order is in no oracle; it follows gofmt's sort by import path).
@@ -331,7 +341,9 @@ where the module's packages share an import group with `io` or `github.com/tidwa
 | `internal/version.go` | generated | version, like `src/version.ts` |
 | `client.go`, `aliases.go`, `shared/**`, resource files, `api.md`, `examples/` | generated | |
 | `packages/pagination/pagination.go` | generated | page types from the config (knock-go) |
-| `packages/ssestream/ssestream.go` | not templated | SSE: only opencode-sdk-go (MIT) has it |
+| `packages/ssestream/ssestream.go` | not templated | SSE: only opencode-sdk-go and ogx-client-go (MIT) have it |
+| v2: `internal/{encoding/json,paramutil}/**`, `packages/{param,respjson}/**` (54 runtime files in all) | runtime | as v1 otherwise |
+| v2: `shared/constant/constants.go`, `backcompat.go` | generated | constants of the spec's `const`s; aliases of models moved to `shared` |
 | `go.mod`, `go.sum`, `scripts/`, `lib/` | not runtime | project files and hand-written code |
 
 ### Oracles
@@ -341,6 +353,9 @@ where the module's packages share an import group with `io` or `github.com/tidwa
 | onebusaway-go | `d115209ec6337f8d7ee52ad0cc8866a0005d6e65` (1.15.0, 2026-07-18), slots from its config | 25/25 |
 | knock-go | `4b86a0d68f0ac65c1b1ccca2cca5b4893ee572ac` (1.5.0, 2025-06-06) | 11/25 |
 | opencode-sdk-go (MIT, compared only) | `04c05a5d98bed833f9e8ed91616e6153880c1873` (0.1.0-alpha.28, 2025-07-29) | 11/25 |
+| imagekit-go (v2) | `bc22fec799949ebdc6c8effff9e45e1234b4b512` (2.5.0, 2026-05-13), slots from its config | 54/54 |
+| knock-mgmt-go (v2) | `85ae774cbff4c13f21a38608378d90d4947bc022` (0.2.0, 2026-07-09), slots from its config | 54/54 |
+| ogx-client-go (v2, MIT, compared only) | `c66deeffe54455aee6aab72e063f3b8eeef96274` (0.4.0-alpha.1), compared without its `file_header` | 54/54 |
 
 knock-go and opencode-sdk-go are 2025 generations (`api` struct tags, no header redaction in
 `WithDebugLog`, no `default_http_client.go`, older request code); `known_drift` in
@@ -624,6 +639,9 @@ rendered output, so the mark lives here and in `NOTICE` (ADR 0004 amendment):
   retries and the redacted-header list replaced by placeholders; `field.go` and
   `option/requestoption.go` gained `//ferrule:` import-order lines; `requestconfig.go` and
   `requestoption.go` had their config-dependent lines replaced by slots);
+- all files under `go-v2/template/` (the same tokens and slots, the README link's module as
+  `__ferrule_docs_module__`; `field.go` gained the `new_file` lines and
+  `option/requestoption.go` the `base64` lines);
 - all files under `java/template/` (artifact, package and client names, log env var and
   repository replaced by placeholders, also in directory and file names; the Java and Kotlin
   texts merged with `//ferrule:if java` / `kotlin` blocks; `QueryParams.kt`,
@@ -643,5 +661,5 @@ rendered output, so the mark lives here and in `NOTICE` (ADR 0004 amendment):
   `ParamsBase.cs` replaced by a slot; `RetriesTest.cs` gained a `//ferrule:if ns_before_moq`
   block).
 
-MIT-licensed oracles (opencode-sdk-js, opencode-sdk-go, stagehand-net) are compared by the
-tests but never copied; ogx (MIT) is not used.
+MIT-licensed oracles (opencode-sdk-js, opencode-sdk-go, ogx-client-go, stagehand-net) are
+compared by the tests but never copied.
