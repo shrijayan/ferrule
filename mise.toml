@@ -9,7 +9,7 @@ gitleaks = "latest"
 rust = "1.99.0"
 
 [tasks."forge:setup"]
-description = "Clone and build the pinned Forge commit into .cache/forge"
+description = "Check out the pinned Forge commit into .cache/forge (telemetry check, canary)"
 run = "bash scripts/forge-setup.sh"
 
 [tasks.install]
@@ -59,27 +59,39 @@ run = "python3 oracles/fetch.py"
 [tasks."corpus:fetch"]
 run = "python3 corpus/fetch.py"
 
+[tasks."build:gen"]
+description = "Build target/release/ferrule-gen: converter, Forge and the Python plugin in one binary"
+run = "cargo build --release --locked -p ferrule-gen"
+
 [tasks.golden]
-run = ["pnpm --filter @ferrule/python-plugin build", "pnpm --filter @ferrule/python-plugin golden"]
+description = "Golden output: plugin goldens, agent context, project files vs the oracle, converter snapshots"
+run = [
+  "cargo test -p ferrule-python-plugin --test golden --test agent --test files_oracle",
+  "cargo test -p ferrule-converter --test goldens",
+]
 
 [tasks.spike]
-description = "Phase 1 gate: OneBusAway agencies_with_coverage through converter, Forge and plugin"
+description = "Phase 1 gate: OneBusAway agencies_with_coverage through ferrule-gen"
 run = "bash scripts/spike.sh"
 
 [tasks."converter:oracles"]
 description = "Phase 2 gate: convert every config oracle and compare with snapshots"
+depends = ["build:gen"]
 run = "python3 -m scripts.oracles.converter_oracles"
 
 [tasks.parity]
 description = "Regenerate an oracle and measure parity"
+depends = ["build:gen"]
 run = "uv run python -m scripts.parity.run"
 
 [tasks."adopt:gate"]
 description = "Phase 4 gate: adopt five public Stainless SDKs locally and prove nothing changed"
+depends = ["build:gen"]
 run = "uv run python -m scripts.adopt.gate"
 
 [tasks.corpus]
-description = "Run the spec corpus through convert, Forge, plugin and the compile gate"
+description = "Run the spec corpus through ferrule-gen and the compile gate"
+depends = ["build:gen"]
 run = "uv run python -m scripts.corpus.run"
 
 [tasks.board]

@@ -1,16 +1,22 @@
 #!/usr/bin/env bash
-# Clone @cloudflare/forge at the pinned commit and build it from source.
-# Forge is not published to npm yet (ADR 0005), so this is the pin.
+# Check out Forge at the pinned commit into .cache/forge. ferrule-gen gets Forge through Cargo
+# (Cargo.toml, the same commit); this checkout is for the telemetry check (ADR 0006) and the
+# weekly canary, which builds ferrule-gen against Forge's latest commit.
 set -euo pipefail
 
 FORGE_REPO="https://github.com/cloudflare/forge.git"
+# Keep in step with the `rev` of the forge dependency in Cargo.toml (ADR 0005, ADR 0014).
 FORGE_PIN="91f52a40c746e8a2ac0271d8be0b7c82cdf28798"
-# FORGE_REF=latest (forge-canary.yml) builds Forge's main branch tip instead of the pin.
+# FORGE_REF=latest (forge-canary.yml) checks out Forge's main branch tip instead of the pin.
 FORGE_REF="${FORGE_REF:-$FORGE_PIN}"
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
 dir="$root/.cache/forge"
 
+grep -q "rev = \"$FORGE_PIN\"" "$root/Cargo.toml" || {
+  echo "FORGE_PIN differs from the forge rev in Cargo.toml" >&2
+  exit 1
+}
 if [ ! -d "$dir/.git" ]; then
   git clone --filter=blob:none "$FORGE_REPO" "$dir"
 fi
@@ -22,11 +28,4 @@ else
   git -C "$dir" checkout --quiet --detach "$FORGE_REF"
   test "$(git -C "$dir" rev-parse HEAD)" = "$FORGE_REF"
 fi
-
-(cd "$dir" && cargo build --release --locked --features wasm)
-# The TypeScript plugin library (@cloudflare/forge/plugin, /ts) and its WIT.
-(cd "$dir" && pnpm install --frozen-lockfile)
-(cd "$dir/packages/forge" && node scripts/build.mjs)
-# Re-link the workspace so python-plugin gets the forge-plugin bin from the fresh build.
-(cd "$root" && pnpm install --frozen-lockfile)
-echo "forge $(git -C "$dir" rev-parse --short HEAD) built: $dir/target/release/forge"
+echo "forge $(git -C "$dir" rev-parse --short HEAD) checked out: $dir"
