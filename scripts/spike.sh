@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Phase 1 exit gate (docs/phases/phase-1.md): generate OneBusAway's
 # `agencies_with_coverage` resource from the pinned oracle pair through
-# converter -> Forge -> plugin, then check it the way the plan's compile gate
+# ferrule-gen (converter -> Forge -> plugin), then check it the way the plan's compile gate
 # does (ruff, pyright strict, mypy strict) inside a copy of the oracle SDK, and
 # diff it against the oracle's own files.
 #
@@ -13,12 +13,13 @@ root="$(cd "$(dirname "$0")/.." && pwd)"
 cfg_dir="$root/oracles/cache/onebusaway-config"
 sdk_dir="$root/oracles/cache/onebusaway-python"
 out="$root/.cache/spike"
-forge="$root/.cache/forge/target/release/forge"
-wasm="$root/python-plugin/dist/plugin.wasm"
+# FERRULE_GEN: a ferrule-gen binary (default: build it here). FERRULE_CONVERT: a command prefix
+# that replaces `ferrule-gen convert` (e.g. `node converter/src/cli.ts`).
+gen="${FERRULE_GEN:-$root/target/release/ferrule-gen}"
+read -ra convert <<<"${FERRULE_CONVERT:-$gen convert}"
 
 python3 "$root/oracles/fetch.py" onebusaway >/dev/null
-[ -x "$forge" ] || bash "$root/scripts/forge-setup.sh"
-pnpm --dir "$root" --filter @ferrule/python-plugin build >/dev/null
+[ -n "${FERRULE_GEN:-}" ] || (cd "$root" && cargo build --release --locked --quiet -p ferrule-gen)
 
 rm -rf "$out"
 mkdir -p "$out"
@@ -38,8 +39,8 @@ with open(sys.argv[2], "w") as f:
 PY
 
 # 2. Convert, 3. Forge + plugin.
-node "$root/converter/src/cli.ts" "$cfg_dir/openapi.yml" "$out/stainless.yml" -o "$out/annotated.json"
-"$forge" "$out/annotated.json" --target "wasm://$wasm" --out "$out/generated"
+"${convert[@]}" "$cfg_dir/openapi.yml" "$out/stainless.yml" -o "$out/annotated.json"
+"$gen" generate "$out/annotated.json" --out "$out/generated"
 
 # 4. Drop the generated files into a copy of the oracle SDK (its runtime and tool configs).
 mkdir -p "$out/sdk"

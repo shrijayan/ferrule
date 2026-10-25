@@ -9,8 +9,9 @@ Per spec, each stage is timed and limited, and the run stops at the first failin
 1. fetch: ``corpus/fetch.py`` (pinned, sha256-verified); YAML is parsed to JSON with the
    converter's ``yaml`` package (scripts/corpus/to_json.mjs);
 2. a minimal stainless.yml is synthesized (scripts/corpus/harness.py documents the rules);
-3. convert: the converter CLI; 4. forge: Forge with the Python plugin (a failure whose output
-   points at the WASM plugin is recorded as ``plugin``);
+3. convert: ``ferrule-gen convert`` (or ``$FERRULE_CONVERT``); 4. forge: ``ferrule-gen
+   generate``, Forge with the Python plugin in one process (a failure whose output points at
+   the plugin or carries a FER code is recorded as ``plugin``);
 5. runtime: ``ferrule_runtime.render`` plus the import sort and ``ruff format`` of
    ``ferrule generate``;
 6. compile: ruff, pyright and mypy with the generated SDK's own configuration (ADR 0012), in a
@@ -216,7 +217,7 @@ def generate_stages(spec: Spec, out: Path) -> bool:
     out.mkdir(parents=True)
     tools = resolve_tools(os.environ)
     request = GenerateRequest(spec.work / "spec.json", spec.work / "stainless.yml", out, tools)
-    convert, forge = plan_steps(request, spec.work)
+    convert, gen = plan_steps(request, spec.work)
 
     def do_convert() -> dict[str, object]:
         text = spec.check(run(convert.argv, TIMEOUTS["convert"]), "converter")
@@ -226,14 +227,14 @@ def generate_stages(spec: Spec, out: Path) -> bool:
         return False
 
     def do_forge() -> dict[str, object]:
-        spec.check(run(forge.argv, TIMEOUTS["forge"]), "forge")
+        spec.check(run(gen.argv, TIMEOUTS["forge"]), "ferrule-gen generate")
         found = tree_limits(out)
         spec.counts["files"] = found["files"]
         return found
 
     if not spec.stage("forge", do_forge):
         err = str(spec.stages["forge"].get("error", "")).lower()
-        if "wasm" in err or "plugin" in err or FER_RE.search(err.upper()):
+        if "plugin" in err or FER_RE.search(err.upper()):
             spec.stages["plugin"] = spec.stages.pop("forge")
             spec.stages["forge"] = {"ok": True, "note": "failure is inside the plugin"}
         return False
