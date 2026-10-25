@@ -1,0 +1,920 @@
+{
+  "components": {
+    "schemas": {
+      "AspectRatio": {
+        "default": "16:9",
+        "enum": [
+          "1:1",
+          "16:9",
+          "9:16",
+          "4:3",
+          "3:4",
+          "21:9",
+          "9:21"
+        ],
+        "type": "string"
+      },
+      "Assets": {
+        "properties": {
+          "image": {
+            "format": "uri",
+            "type": "string"
+          },
+          "progress_video": {
+            "format": "uri",
+            "type": "string"
+          },
+          "video": {
+            "format": "uri",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "AudioGenerationRequest": {
+        "properties": {
+          "callback_url": {
+            "format": "uri",
+            "type": "string"
+          },
+          "generation_type": {
+            "default": "add_audio",
+            "enum": [
+              "add_audio"
+            ],
+            "type": "string"
+          },
+          "negative_prompt": {
+            "type": "string"
+          },
+          "prompt": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "Concept": {
+        "properties": {
+          "key": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "key"
+        ],
+        "type": "object"
+      },
+      "Error": {
+        "properties": {
+          "detail": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "Generation": {
+        "properties": {
+          "assets": {
+            "$ref": "#/components/schemas/Assets"
+          },
+          "created_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "failure_reason": {
+            "type": "string"
+          },
+          "generation_type": {
+            "$ref": "#/components/schemas/GenerationType",
+            "default": "video"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "request": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/GenerationRequest"
+              },
+              {
+                "$ref": "#/components/schemas/ImageGenerationRequest"
+              },
+              {
+                "$ref": "#/components/schemas/UpscaleVideoGenerationRequest"
+              },
+              {
+                "$ref": "#/components/schemas/AudioGenerationRequest"
+              },
+              {
+                "$ref": "#/components/schemas/ReframeImageRequest"
+              },
+              {
+                "$ref": "#/components/schemas/ReframeVideoRequest"
+              },
+              {
+                "$ref": "#/components/schemas/ModifyVideoRequest"
+              }
+            ]
+          },
+          "state": {
+            "$ref": "#/components/schemas/State"
+          }
+        },
+        "type": "object",
+        "x-fern-type-name": "Generation"
+      },
+      "GenerationReference": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "type": {
+            "default": "generation",
+            "enum": [
+              "generation"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "id"
+        ],
+        "type": "object"
+      },
+      "GenerationRequest": {
+        "properties": {
+          "aspect_ratio": {
+            "$ref": "#/components/schemas/AspectRatio"
+          },
+          "callback_url": {
+            "format": "uri",
+            "type": "string"
+          },
+          "concepts": {
+            "items": {
+              "$ref": "#/components/schemas/Concept"
+            },
+            "type": "array"
+          },
+          "duration": {
+            "$ref": "#/components/schemas/VideoModelOutputDuration"
+          },
+          "generation_type": {
+            "default": "video",
+            "enum": [
+              "video"
+            ],
+            "type": "string"
+          },
+          "keyframes": {
+            "$ref": "#/components/schemas/Keyframes"
+          },
+          "loop": {
+            "type": "boolean"
+          },
+          "model": {
+            "$ref": "#/components/schemas/VideoModel"
+          },
+          "prompt": {
+            "type": "string"
+          },
+          "resolution": {
+            "$ref": "#/components/schemas/VideoModelOutputResolution"
+          }
+        },
+        "required": [
+          "model"
+        ],
+        "type": "object"
+      },
+      "GenerationType": {
+        "enum": [
+          "video",
+          "image"
+        ],
+        "type": "string"
+      },
+      "ImageFormat": {
+        "default": "jpg",
+        "enum": [
+          "jpg",
+          "png"
+        ],
+        "type": "string"
+      },
+      "ImageGenerationRequest": {
+        "properties": {
+          "aspect_ratio": {
+            "$ref": "#/components/schemas/AspectRatio"
+          },
+          "callback_url": {
+            "format": "uri",
+            "type": "string"
+          },
+          "character_ref": {
+            "properties": {
+              "identity0": {
+                "$ref": "#/components/schemas/ImageIdentity"
+              }
+            },
+            "type": "object"
+          },
+          "format": {
+            "$ref": "#/components/schemas/ImageFormat",
+            "default": "jpg"
+          },
+          "generation_type": {
+            "default": "image",
+            "enum": [
+              "image"
+            ],
+            "type": "string"
+          },
+          "image_ref": {
+            "items": {
+              "$ref": "#/components/schemas/ImageRef"
+            },
+            "type": "array"
+          },
+          "model": {
+            "$ref": "#/components/schemas/ImageModel"
+          },
+          "modify_image_ref": {
+            "$ref": "#/components/schemas/ModifyImageRef"
+          },
+          "prompt": {
+            "type": "string"
+          },
+          "style_ref": {
+            "items": {
+              "$ref": "#/components/schemas/ImageRef"
+            },
+            "type": "array"
+          },
+          "sync": {
+            "default": false,
+            "type": "boolean"
+          },
+          "sync_timeout": {
+            "default": 60,
+            "type": "number"
+          }
+        },
+        "required": [
+          "model"
+        ],
+        "type": "object"
+      },
+      "ImageIdentity": {
+        "properties": {
+          "images": {
+            "items": {
+              "format": "uri",
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "ImageModel": {
+        "default": "photon-1",
+        "enum": [
+          "photon-1",
+          "photon-flash-1"
+        ],
+        "type": "string"
+      },
+      "ImageRef": {
+        "properties": {
+          "url": {
+            "format": "uri",
+            "type": "string"
+          },
+          "weight": {
+            "type": "number"
+          }
+        },
+        "type": "object"
+      },
+      "ImageReference": {
+        "properties": {
+          "type": {
+            "default": "image",
+            "enum": [
+              "image"
+            ],
+            "type": "string"
+          },
+          "url": {
+            "format": "uri",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "url"
+        ],
+        "type": "object"
+      },
+      "Keyframe": {
+        "discriminator": {
+          "mapping": {
+            "generation": "#/components/schemas/GenerationReference",
+            "image": "#/components/schemas/ImageReference"
+          },
+          "propertyName": "type"
+        },
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/GenerationReference"
+          },
+          {
+            "$ref": "#/components/schemas/ImageReference"
+          }
+        ]
+      },
+      "Keyframes": {
+        "properties": {
+          "frame0": {
+            "$ref": "#/components/schemas/Keyframe"
+          },
+          "frame1": {
+            "$ref": "#/components/schemas/Keyframe"
+          }
+        },
+        "type": "object"
+      },
+      "Media": {
+        "properties": {
+          "url": {
+            "format": "uri",
+            "type": "string"
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "type": "object"
+      },
+      "ModifyImageRef": {
+        "properties": {
+          "url": {
+            "format": "uri",
+            "type": "string"
+          },
+          "weight": {
+            "type": "number"
+          }
+        },
+        "type": "object"
+      },
+      "ModifyVideoMode": {
+        "enum": [
+          "adhere_1",
+          "adhere_2",
+          "adhere_3",
+          "flex_1",
+          "flex_2",
+          "flex_3",
+          "reimagine_1",
+          "reimagine_2",
+          "reimagine_3"
+        ],
+        "type": "string"
+      },
+      "ModifyVideoModel": {
+        "enum": [
+          "ray-2",
+          "ray-flash-2"
+        ],
+        "type": "string"
+      },
+      "ModifyVideoRequest": {
+        "properties": {
+          "callback_url": {
+            "format": "uri",
+            "type": "string"
+          },
+          "first_frame": {
+            "$ref": "#/components/schemas/Media"
+          },
+          "generation_type": {
+            "default": "modify_video",
+            "enum": [
+              "modify_video"
+            ],
+            "type": "string"
+          },
+          "media": {
+            "$ref": "#/components/schemas/Media"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/ModifyVideoMode"
+          },
+          "model": {
+            "$ref": "#/components/schemas/ModifyVideoModel"
+          },
+          "prompt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "media",
+          "model",
+          "mode",
+          "generation_type"
+        ],
+        "type": "object"
+      },
+      "ReframeImageModels": {
+        "enum": [
+          "photon-1",
+          "photon-flash-1"
+        ],
+        "type": "string"
+      },
+      "ReframeImageRequest": {
+        "properties": {
+          "aspect_ratio": {
+            "$ref": "#/components/schemas/AspectRatio"
+          },
+          "callback_url": {
+            "format": "uri",
+            "type": "string"
+          },
+          "format": {
+            "$ref": "#/components/schemas/ImageFormat"
+          },
+          "generation_type": {
+            "default": "reframe_image",
+            "enum": [
+              "reframe_image"
+            ],
+            "type": "string"
+          },
+          "grid_position_x": {
+            "type": "integer"
+          },
+          "grid_position_y": {
+            "type": "integer"
+          },
+          "media": {
+            "$ref": "#/components/schemas/Media"
+          },
+          "model": {
+            "$ref": "#/components/schemas/ReframeImageModels"
+          },
+          "prompt": {
+            "default": "",
+            "type": "string"
+          },
+          "resized_height": {
+            "type": "integer"
+          },
+          "resized_width": {
+            "type": "integer"
+          },
+          "x_end": {
+            "type": "integer"
+          },
+          "x_start": {
+            "type": "integer"
+          },
+          "y_end": {
+            "type": "integer"
+          },
+          "y_start": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "media",
+          "aspect_ratio",
+          "model",
+          "generation_type"
+        ],
+        "type": "object"
+      },
+      "ReframeVideoModels": {
+        "enum": [
+          "ray-2",
+          "ray-flash-2"
+        ],
+        "type": "string"
+      },
+      "ReframeVideoRequest": {
+        "properties": {
+          "aspect_ratio": {
+            "$ref": "#/components/schemas/AspectRatio"
+          },
+          "callback_url": {
+            "format": "uri",
+            "type": "string"
+          },
+          "first_frame": {
+            "$ref": "#/components/schemas/Media"
+          },
+          "generation_type": {
+            "default": "reframe_video",
+            "enum": [
+              "reframe_video"
+            ],
+            "type": "string"
+          },
+          "grid_position_x": {
+            "type": "integer"
+          },
+          "grid_position_y": {
+            "type": "integer"
+          },
+          "media": {
+            "$ref": "#/components/schemas/Media"
+          },
+          "model": {
+            "$ref": "#/components/schemas/ReframeVideoModels"
+          },
+          "prompt": {
+            "default": "",
+            "type": "string"
+          },
+          "resized_height": {
+            "type": "integer"
+          },
+          "resized_width": {
+            "type": "integer"
+          },
+          "x_end": {
+            "type": "integer"
+          },
+          "x_start": {
+            "type": "integer"
+          },
+          "y_end": {
+            "type": "integer"
+          },
+          "y_start": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "media",
+          "aspect_ratio",
+          "model",
+          "generation_type"
+        ],
+        "type": "object"
+      },
+      "State": {
+        "enum": [
+          "queued",
+          "dreaming",
+          "completed",
+          "failed"
+        ],
+        "type": "string"
+      },
+      "UpscaleVideoGenerationRequest": {
+        "properties": {
+          "callback_url": {
+            "format": "uri",
+            "type": "string"
+          },
+          "generation_type": {
+            "default": "upscale_video",
+            "enum": [
+              "upscale_video"
+            ],
+            "type": "string"
+          },
+          "resolution": {
+            "$ref": "#/components/schemas/VideoModelOutputResolution"
+          }
+        },
+        "type": "object"
+      },
+      "VideoModel": {
+        "enum": [
+          "ray-2",
+          "ray-flash-2"
+        ],
+        "type": "string"
+      },
+      "VideoModelOutputDuration": {
+        "anyOf": [
+          {
+            "enum": [
+              "5s",
+              "9s"
+            ],
+            "type": "string"
+          },
+          {
+            "type": "string"
+          }
+        ]
+      },
+      "VideoModelOutputResolution": {
+        "anyOf": [
+          {
+            "enum": [
+              "540p",
+              "720p",
+              "1080p",
+              "4k"
+            ],
+            "type": "string"
+          },
+          {
+            "type": "string"
+          }
+        ]
+      }
+    },
+    "securitySchemes": {
+      "BearerAuth": {
+        "bearerFormat": "JWT",
+        "scheme": "bearer",
+        "type": "http"
+      }
+    }
+  },
+  "info": {
+    "title": "reduced",
+    "version": "0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/generations/video": {
+      "post": {
+        "operationId": "createGeneration",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Generation"
+                }
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Generations"
+        ],
+        "x-forge-aliases": [
+          {
+            "x-fern-sdk-group-name": [
+              "generations"
+            ],
+            "x-fern-sdk-method-name": "create",
+            "x-ferrule-casings": {
+              "lumaai": {
+                "pascal": "LumaAI"
+              }
+            },
+            "x-ferrule-client": {
+              "defaultEnvironment": "production",
+              "defaultHeaders": {},
+              "envPrefix": "LUMAAI",
+              "environments": [
+                {
+                  "name": "production",
+                  "url": "https://api.lumalabs.ai/dream-machine/v1"
+                }
+              ],
+              "name": "lumaai",
+              "omitPlatformHeaders": false,
+              "opts": [
+                {
+                  "auth": {
+                    "role": "value",
+                    "securityScheme": "BearerAuth"
+                  },
+                  "name": "auth_token",
+                  "nullable": false,
+                  "readEnv": "LUMAAI_API_KEY",
+                  "type": "string"
+                }
+              ],
+              "query": {
+                "arrayFormat": "comma",
+                "nestedFormat": "brackets"
+              },
+              "retries": {
+                "initialDelaySeconds": 0.5,
+                "maxDelaySeconds": 8,
+                "maxRetries": 2
+              },
+              "security": [
+                {
+                  "BearerAuth": []
+                }
+              ],
+              "securitySchemes": {
+                "BearerAuth": {
+                  "scheme": "bearer",
+                  "type": "http"
+                }
+              },
+              "timeoutSeconds": 60
+            },
+            "x-ferrule-method-name": "create",
+            "x-ferrule-method-order": 0,
+            "x-ferrule-models": {
+              "Generation": {
+                "module": "generation",
+                "name": "Generation"
+              }
+            },
+            "x-ferrule-package": {
+              "name": "lumaai",
+              "repo": "lumalabs/lumaai-python"
+            },
+            "x-ferrule-resource": {
+              "order": [
+                0
+              ],
+              "path": [
+                "generations"
+              ]
+            }
+          },
+          {
+            "x-fern-sdk-group-name": [
+              "generations",
+              "video"
+            ],
+            "x-fern-sdk-method-name": "create",
+            "x-ferrule-casings": {
+              "lumaai": {
+                "pascal": "LumaAI"
+              }
+            },
+            "x-ferrule-client": {
+              "defaultEnvironment": "production",
+              "defaultHeaders": {},
+              "envPrefix": "LUMAAI",
+              "environments": [
+                {
+                  "name": "production",
+                  "url": "https://api.lumalabs.ai/dream-machine/v1"
+                }
+              ],
+              "name": "lumaai",
+              "omitPlatformHeaders": false,
+              "opts": [
+                {
+                  "auth": {
+                    "role": "value",
+                    "securityScheme": "BearerAuth"
+                  },
+                  "name": "auth_token",
+                  "nullable": false,
+                  "readEnv": "LUMAAI_API_KEY",
+                  "type": "string"
+                }
+              ],
+              "query": {
+                "arrayFormat": "comma",
+                "nestedFormat": "brackets"
+              },
+              "retries": {
+                "initialDelaySeconds": 0.5,
+                "maxDelaySeconds": 8,
+                "maxRetries": 2
+              },
+              "security": [
+                {
+                  "BearerAuth": []
+                }
+              ],
+              "securitySchemes": {
+                "BearerAuth": {
+                  "scheme": "bearer",
+                  "type": "http"
+                }
+              },
+              "timeoutSeconds": 60
+            },
+            "x-ferrule-method-name": "create",
+            "x-ferrule-method-order": 0,
+            "x-ferrule-models": {
+              "Generation": {
+                "module": "generation",
+                "name": "Generation"
+              }
+            },
+            "x-ferrule-package": {
+              "name": "lumaai",
+              "repo": "lumalabs/lumaai-python"
+            },
+            "x-ferrule-resource": {
+              "order": [
+                0,
+                2
+              ],
+              "path": [
+                "generations",
+                "video"
+              ]
+            }
+          }
+        ]
+      }
+    }
+  },
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ],
+  "servers": [
+    {
+      "url": "https://api.lumalabs.ai/dream-machine/v1"
+    }
+  ],
+  "x-ferrule-casings": {
+    "lumaai": {
+      "pascal": "LumaAI"
+    }
+  },
+  "x-ferrule-client": {
+    "defaultEnvironment": "production",
+    "defaultHeaders": {},
+    "envPrefix": "LUMAAI",
+    "environments": [
+      {
+        "name": "production",
+        "url": "https://api.lumalabs.ai/dream-machine/v1"
+      }
+    ],
+    "name": "lumaai",
+    "omitPlatformHeaders": false,
+    "opts": [
+      {
+        "auth": {
+          "role": "value",
+          "securityScheme": "BearerAuth"
+        },
+        "name": "auth_token",
+        "nullable": false,
+        "readEnv": "LUMAAI_API_KEY",
+        "type": "string"
+      }
+    ],
+    "query": {
+      "arrayFormat": "comma",
+      "nestedFormat": "brackets"
+    },
+    "retries": {
+      "initialDelaySeconds": 0.5,
+      "maxDelaySeconds": 8,
+      "maxRetries": 2
+    },
+    "security": [
+      {
+        "BearerAuth": []
+      }
+    ],
+    "securitySchemes": {
+      "BearerAuth": {
+        "scheme": "bearer",
+        "type": "http"
+      }
+    },
+    "timeoutSeconds": 60
+  },
+  "x-ferrule-config": {
+    "edition": "2025-10-08",
+    "packageName": "lumaai",
+    "projectName": "lumaai",
+    "pythonEdition": "python.2025-10-08",
+    "version": 1
+  }
+}
