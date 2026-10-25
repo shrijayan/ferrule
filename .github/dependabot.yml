@@ -12,6 +12,7 @@ updates:
     schedule: { interval: daily }
     # Forge is pinned by git rev (ADR 0005, ADR 0014); forge-canary.yml covers upgrades.
     ignore: [{ dependency-name: "forge" }]
+    cooldown: { default-days: 7 }
     groups:
       cargo-minor-patch: { update-types: [minor, patch] }
     commit-message: { prefix: chore, include: scope }
