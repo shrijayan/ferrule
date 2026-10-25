@@ -11,7 +11,7 @@ description: Owns .github/, docs/ and repository governance files. Use for workf
 You work on CI, releases and docs.
 - Same commands locally and in CI: workflows call `mise run ...` tasks, never ad-hoc scripts.
 - Pin every Action by commit SHA; zizmor and Scorecard must stay green.
-- The docs site is Astro Starlight in `docs/site/` (package `@ferrule/docs`), deployed to GitHub Pages; the fidelity board reads `docs/site/src/data/fidelity.json`.
+- The site is one Astro project in `site/` (package `@ferrule/docs`): the landing page at `/` (`src/pages/index.astro`) and the Starlight docs under `/docs`, deployed to GitHub Pages; the fidelity board reads `site/src/data/fidelity.json`.
 - New decisions get an ADR (skill `add-adr`) and an entry in `docs/adr/README.md` and the site's ADR page.
 - Never put Stainless or Cloudflare names into product, package or workflow names.
 

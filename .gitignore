@@ -16,8 +16,8 @@ htmlcov/
 oracles/cache/
 corpus/cache/
 # docs site
-docs/site/dist/
-docs/site/.astro/
+site/dist/
+site/.astro/
 .DS_Store
 .claude/worktrees/
 reports/

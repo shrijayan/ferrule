@@ -96,6 +96,8 @@ describe('oracle parity (onebusaway, when oracles/cache is fetched)', () => {
   const code = [...golden.keys()].filter((p) =>
     /^src\/onebusaway\/(_client\.py|resources\/|types\/)/.test(p),
   );
+  // Without the cache there are no files to compare, and a suite with no tests fails.
+  it.skipIf(code.length > 0)('needs oracles/cache and uvx', () => undefined);
   it.skipIf(!haveRuff).each(code)('%s matches but for the header', (path) => {
     const expected = readFileSync(join(oracle, path), 'utf8');
     expect(dropHeader(golden.get(path) ?? '')).toBe(dropHeader(expected));

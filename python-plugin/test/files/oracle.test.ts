@@ -47,7 +47,6 @@ function walk(dir: string): string[] {
 
 describe.skipIf(!existsSync(oracle))('OneBusAway oracle project files', () => {
   const files = emitProjectFiles(input);
-  const oracleFiles = walk(oracle);
   const ownerFiles = (p: string): boolean =>
     NOT_GENERATED.includes(p) || (p.startsWith('examples/') && p !== 'examples/.keep');
 
@@ -62,7 +61,8 @@ describe.skipIf(!existsSync(oracle))('OneBusAway oracle project files', () => {
   });
 
   it('emits every generated non-src file of the oracle', () => {
-    const missing = oracleFiles.filter(
+    // Walked here, not at collection: Vitest collects a skipped describe's body too.
+    const missing = walk(oracle).filter(
       (p) => !files.has(p) && !ownerFiles(p) && !DROPPED_FILES.includes(p),
     );
     expect(missing).toEqual([]);
