@@ -263,6 +263,70 @@ fn covers(o: &Oracle) {
     assert!(missing.is_empty(), "not emitted: {missing:?}");
 }
 
+/// imagekit-java (Apache-2.0, `f96c35e8`), the same generation as the proven imagekit-python pin.
+/// Bodies, unions, uploads and webhooks are not all generated yet, so this test is a ratchet: it
+/// fails when fewer files match than [`IMAGEKIT_IDENTICAL`].
+const IMAGEKIT_JAVA: Oracle = Oracle {
+    name: "imagekit-java",
+    flavor: Flavor::Java,
+    spec: "specs/imagekit-config.yml",
+    config: "imagekit-config/stainless-config/main.yaml",
+    version: "3.1.0",
+    example: ("files", "upload"),
+    known: &[],
+};
+
+const IMAGEKIT_IDENTICAL: usize = 186;
+
+#[test]
+fn imagekit_java_matches_at_least_the_ratchet() {
+    let o = &IMAGEKIT_JAVA;
+    let Some(oracle) = common::oracle(o.name) else { return };
+    let Some(annotated) = common::annotated(o.spec, o.config) else {
+        return;
+    };
+    let meta = JvmMeta {
+        version: Some(o.version.into()),
+        example: Some((vec![o.example.0.into()], o.example.1.into())),
+        year: Some(2026),
+        docs_url: Some("https://imagekit.io/docs/api-reference".into()),
+        contact: Some("developer@imagekit.io".into()),
+        mock_tests: Some(false),
+        ..JvmMeta::default()
+    };
+    let out = generate(&common::model(&annotated), o.flavor, &meta).expect("generates");
+    let Some(files) = common::ktfmt(&out.files, "imagekit-java-ratchet") else {
+        return;
+    };
+    common::dump("FERRULE_JVM_DUMP_IMAGEKIT", &files);
+    let mut identical = Vec::new();
+    let mut differing = Vec::new();
+    for (path, text) in &files {
+        match std::fs::read_to_string(oracle.join(path)) {
+            Ok(raw) if common::brand(path, &raw) == *text => identical.push(path.clone()),
+            _ => differing.push(path.clone()),
+        }
+    }
+    eprintln!(
+        "imagekit-java: {}/{} generated files identical",
+        identical.len(),
+        files.len()
+    );
+    if let Ok(list) = std::env::var("FERRULE_JVM_REPORT_IMAGEKIT") {
+        let report = format!(
+            "identical:\n{}\ndiffer:\n{}\n",
+            identical.join("\n"),
+            differing.join("\n")
+        );
+        std::fs::write(Path::new(&list), report).expect("report");
+    }
+    assert!(
+        identical.len() >= IMAGEKIT_IDENTICAL,
+        "{} files match imagekit-java, fewer than the ratchet {IMAGEKIT_IDENTICAL}",
+        identical.len()
+    );
+}
+
 #[test]
 fn onebusaway_kotlin_matches_the_oracle() {
     compare(&ONEBUSAWAY_KOTLIN);
