@@ -1,0 +1,5 @@
+[toolchain]
+# Same channel as the pinned Forge commit (.cache/forge/rust-toolchain.toml).
+channel = "1.99.0"
+profile = "minimal"
+components = ["rustfmt", "clippy"]

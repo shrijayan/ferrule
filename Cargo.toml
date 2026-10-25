@@ -1,0 +1,31 @@
+[workspace]
+resolver = "3"
+members = ["crates/converter", "crates/python-plugin", "crates/ferrule-gen"]
+
+[workspace.package]
+version = "0.0.0"
+edition = "2024"
+license = "Apache-2.0"
+repository = "https://github.com/shrijayan/ferrule"
+publish = false
+
+[workspace.dependencies]
+# Pinned to the same commit as FORGE_PIN in scripts/forge-setup.sh (ADR 0005, ADR 0014).
+forge = { git = "https://github.com/cloudflare/forge.git", rev = "91f52a40c746e8a2ac0271d8be0b7c82cdf28798", default-features = false }
+serde_json = { version = "1.0.151", features = ["preserve_order"] }
+ferrule-converter = { path = "crates/converter" }
+ferrule-python-plugin = { path = "crates/python-plugin" }
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+warnings = "deny"
+
+[workspace.lints.clippy]
+all = { level = "deny", priority = -1 }
+pedantic = { level = "deny", priority = -1 }
+# Names like `ferrule_converter::ConvertResult` repeat the crate name on purpose.
+module_name_repetitions = "allow"
+
+[profile.release]
+lto = "fat"
+codegen-units = 1
