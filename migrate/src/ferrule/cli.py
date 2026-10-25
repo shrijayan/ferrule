@@ -14,8 +14,9 @@ from typing import TYPE_CHECKING
 
 from ferrule import __version__
 from ferrule.adopt import AdoptRequest, adopt
-from ferrule.errors import FerruleError
+from ferrule.errors import MISSING_INPUT, FerruleError, fail
 from ferrule.generate import GenerateRequest, generate, load_renderer, resolve_tools
+from ferrule.generate_go import GoRequest, generate_go, load_go_renderer
 from ferrule.rescue import rescue, write_spec
 from ferrule.verify import export_ref, verify
 
@@ -52,6 +53,12 @@ def build_parser() -> argparse.ArgumentParser:
     gen.add_argument("--out", type=Path, required=True, help="new, empty output directory")
     gen.add_argument("--runtime-from", type=Path, help="copy the runtime from this SDK checkout")
     gen.add_argument("--gen", type=Path, help="ferrule-gen binary (default: $FERRULE_GEN)")
+    gen.add_argument(
+        "--target",
+        choices=("python", "go"),
+        default="python",
+        help="SDK language (default: python)",
+    )
 
     ver = subs["verify"]
     ver.add_argument("--against", required=True, help="old SDK: a directory or a git ref")
@@ -117,7 +124,32 @@ def _adopt(args: argparse.Namespace) -> int:
     return EXIT_FAILED if report.breaking else EXIT_OK
 
 
+def _generate_go(args: argparse.Namespace) -> int:
+    if args.runtime_from is not None:
+        raise fail(
+            MISSING_INPUT,
+            "--runtime-from is not supported with --target go",
+            "--runtime-from",
+            "drop it: the Go runtime is rendered from ferrule_runtime",
+        )
+    request = GoRequest(
+        spec=args.spec,
+        config=args.config,
+        out=args.out,
+        gen=resolve_tools(os.environ, gen=args.gen).gen,
+        gofmt=os.environ.get("FERRULE_GOFMT", "gofmt"),
+    )
+    result = generate_go(request, renderer=load_go_renderer())
+    sys.stdout.write(
+        f"generated {result.package}: {result.files} files "
+        f"({result.runtime_files} runtime) sha256 {result.digest}\n",
+    )
+    return EXIT_OK
+
+
 def _generate(args: argparse.Namespace) -> int:
+    if args.target == "go":
+        return _generate_go(args)
     request = GenerateRequest(
         spec=args.spec,
         config=args.config,
