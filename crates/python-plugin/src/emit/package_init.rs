@@ -117,6 +117,26 @@ pub fn emit_package_init(pkg: &str, client: &str) -> String {
     format!("{HEADER}\n{}", INIT.replace("@CLIENT@", client).replace("@PKG@", pkg))
 }
 
+/// [`emit_package_init`] that also re-exports `ENVIRONMENTS` when the client has several
+/// environments, as lithic's and honcho's `__init__.py` do.
+#[must_use]
+pub fn emit_package_init_with(pkg: &str, client: &str, environments: bool) -> String {
+    let text = emit_package_init(pkg, client);
+    if !environments {
+        return text;
+    }
+    text.replacen(
+        "from ._client import (\n    Client,",
+        "from ._client import (\n    ENVIRONMENTS,\n    Client,",
+        1,
+    )
+    .replacen(
+        &format!("    \"Async{client}\",\n"),
+        &format!("    \"Async{client}\",\n    \"ENVIRONMENTS\",\n"),
+        1,
+    )
+}
+
 /// `_version.py`; release-please bumps the marked line.
 #[must_use]
 pub fn emit_version(pkg: &str, version: &str) -> String {
