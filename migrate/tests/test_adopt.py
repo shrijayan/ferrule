@@ -52,9 +52,13 @@ def sh(repo: Path, *args: str, env: dict[str, str] | None = None) -> str:
     ).stdout.strip()
 
 
+COMMITTER = {"GIT_COMMITTER_NAME": "Ferrule Tests", "GIT_COMMITTER_EMAIL": "tests@example.com"}
+
+
 def commit(repo: Path, message: str, author: str) -> None:
     sh(repo, "add", "-A")
-    sh(repo, "commit", "-q", "-m", message, f"--author={author}")
+    # HOME is /nonexistent, so repos without user.* config would have no committer identity.
+    sh(repo, "commit", "-q", "-m", message, f"--author={author}", env=COMMITTER)
 
 
 @pytest.fixture
