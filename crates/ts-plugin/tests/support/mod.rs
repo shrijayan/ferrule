@@ -198,7 +198,9 @@ const BRANDING: &[(&str, &str, &str)] = &[
 fn brand_ci(text: &str) -> String {
     let mut out: Vec<String> = Vec::new();
     for line in text.split_inclusive('\n') {
-        if line.starts_with("    runs-on: ${{ github.repository == 'stainless-sdks/") {
+        if line.starts_with("    runs-on: ${{ github.repository == 'stainless-sdks/")
+            || line.starts_with("    runs-on: ${{ startsWith(github.repository, 'stainless-sdks/')")
+        {
             out.push("    runs-on: ubuntu-latest\n".to_owned());
         } else {
             out.push(line.to_owned());

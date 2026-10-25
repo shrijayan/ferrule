@@ -7,12 +7,32 @@ mod support;
 
 use ferrule_ts_plugin::{Layout, generate};
 
-/// Every code file (`src/**`, `api.md`, `tests/api-resources/**`) matches; the project files
-/// are not the `node` layout's yet.
-const CODE: usize = 64;
+/// Generated files that differ from the oracle on purpose, with the reason.
+const DELIBERATE: &[(&str, &str)] = &[(
+    "README.md",
+    "the oracle's \"Examples and Sample Code\" section is OneBusAway's own edit: it links the \
+     hand-written examples/README.md, which no other node-layout oracle has",
+)];
+
+/// Oracle files the plugin does not write, and why.
+const NOT_EMITTED: &[(&str, &str)] = &[
+    ("CHANGELOG.md", "written by release-please, not generated"),
+    (
+        "scripts/utils/upload-artifact.sh",
+        "uploads to Stainless storage; BRANDING.md",
+    ),
+    (
+        "package-lock.json",
+        "added by OneBusAway: the generated project uses yarn.lock (lumaai, honcho)",
+    ),
+    (
+        "examples/",
+        "OneBusAway's hand-written example scripts; examples/.keep is generated",
+    ),
+];
 
 #[test]
-fn onebusaway_code_matches_the_oracle() {
+fn onebusaway_matches_the_oracle() {
     let Some(o) = support::oracle(
         "onebusaway-typescript",
         "onebusaway-config",
@@ -26,14 +46,25 @@ fn onebusaway_code_matches_the_oracle() {
     support::dump("onebusaway", &files);
     let (same, differ) = support::compare(&o, &files);
     eprintln!("onebusaway-typescript: {}/{} identical", same.len(), files.len());
-    let code: Vec<&String> = differ
+    let unexpected: Vec<&String> = differ
         .iter()
-        .filter(|p| p.starts_with("src/") || p.starts_with("tests/api-resources/") || *p == "api.md")
+        .filter(|p| !DELIBERATE.iter().any(|(d, _)| d == p))
         .collect();
-    assert!(code.is_empty(), "code files differ from the oracle: {code:#?}");
-    let matched = same
-        .iter()
-        .filter(|p| p.starts_with("src/") || p.starts_with("tests/api-resources/") || *p == "api.md")
-        .count();
-    assert_eq!(matched, CODE);
+    assert!(unexpected.is_empty(), "differ from the oracle: {unexpected:#?}");
+    for (p, _) in DELIBERATE {
+        assert!(differ.iter().any(|d| d == p), "{p} is listed as deliberate but matches");
+    }
+    // Every other oracle file is the runtime (rendered by ferrule_runtime) or listed above.
+    let runtime = support::runtime_files(Layout::Node);
+    let missing: Vec<String> = support::tree(&o.sdk)
+        .into_iter()
+        .filter(|p| !files.iter().any(|(f, _)| f == p))
+        .filter(|p| !runtime.contains(p))
+        .filter(|p| {
+            !NOT_EMITTED
+                .iter()
+                .any(|(n, _)| p == n || (n.ends_with('/') && p.starts_with(n)))
+        })
+        .collect();
+    assert!(missing.is_empty(), "not emitted: {missing:#?}");
 }

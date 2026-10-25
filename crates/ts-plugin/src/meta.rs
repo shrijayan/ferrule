@@ -75,6 +75,10 @@ pub struct McpServer {
 
 /// What the TypeScript project needs that the annotated spec does not carry yet.
 #[derive(Debug, Clone, PartialEq)]
+#[expect(
+    clippy::struct_excessive_bools,
+    reason = "independent stainless.yml switches, each read by one template directive"
+)]
 pub struct TsMeta {
     /// The SDK version (`package.json`, `src/version.ts`).
     pub version: String,
@@ -95,6 +99,8 @@ pub struct TsMeta {
     pub license: String,
     /// `settings.disable_mock_tests`: generated tests are `test.skip`.
     pub disable_mock_tests: bool,
+    /// `readme.include_stainless_attribution` (default `true`): the README says what generated it.
+    pub readme_attribution: bool,
     /// `settings.sort_schema_properties` (default `true`): properties sorted by name, else in
     /// the order the spec writes them.
     pub sort_schema_properties: bool,
@@ -120,6 +126,7 @@ impl TsMeta {
             readme_examples: Vec::new(),
             license: "Apache-2.0".to_owned(),
             disable_mock_tests: false,
+            readme_attribution: true,
             sort_schema_properties: true,
             model_homes: Vec::new(),
         }
@@ -150,6 +157,10 @@ impl TsMeta {
             .and_then(|v| v.get("disable_mock_tests"))
             .and_then(Value::as_bool)
             .unwrap_or(false);
+        meta.readme_attribution = config
+            .pointer("/readme/include_stainless_attribution")
+            .and_then(Value::as_bool)
+            .unwrap_or(true);
         meta.sort_schema_properties = settings
             .and_then(|v| v.get("sort_schema_properties"))
             .and_then(Value::as_bool)
@@ -208,6 +219,10 @@ fn model_homes(r: &Value, keys: &mut Vec<String>, out: &mut Vec<(String, Vec<Str
 
 /// The resolved settings every emitter reads.
 #[derive(Debug, Clone, PartialEq)]
+#[expect(
+    clippy::struct_excessive_bools,
+    reason = "independent stainless.yml switches, each read by one template directive"
+)]
 pub struct TsSettings {
     pub layout: Layout,
     /// The npm package, such as `isaacus` or `@knocklabs/mgmt`.
@@ -233,6 +248,7 @@ pub struct TsSettings {
     pub mcp_server: Option<McpServer>,
     pub license: String,
     pub disable_mock_tests: bool,
+    pub readme_attribution: bool,
     pub sort_schema_properties: bool,
     pub model_homes: Vec<(String, Vec<String>)>,
 }
@@ -296,6 +312,7 @@ pub fn ts_settings(client: &Client, meta: &TsMeta, layout: Layout) -> TsSettings
         mcp_server,
         license: meta.license.clone(),
         disable_mock_tests: meta.disable_mock_tests,
+        readme_attribution: meta.readme_attribution,
         sort_schema_properties: meta.sort_schema_properties,
         model_homes: meta.model_homes.clone(),
     }

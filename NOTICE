@@ -105,7 +105,11 @@ Sources:
     Onebusaway SDK): scripts/mock and the mock-server lines of scripts/test and CONTRIBUTING.md
     (the %%if mock%% branches in project/), and the publish-npm.yml lines of a release by npm
     token without an MCP server package; and the client class of src/index.ts of the legacy
-    `node` layout, copied to node/index_head.ts.tmpl and node/index_tail.ts.tmpl.
+    `node` layout, copied to node/index_head.ts.tmpl and node/index_tail.ts.tmpl, and the
+    project files of that layout (package and TypeScript configuration, CI workflows, bin/ and
+    scripts/, README.md, CONTRIBUTING.md, SECURITY.md, LICENSE, yarn.lock and the runtime tests
+    in tests/*.test.ts), copied to node/project/. Branding removed as
+    crates/ts-plugin/BRANDING.md lists.
 Modified: names replaced by %%TOKEN%% placeholders and %%if%% directives; the marks are kept
           in crates/ts-plugin/src/emit/client.rs, not in the templates, so rendered output
           stays byte-identical.
