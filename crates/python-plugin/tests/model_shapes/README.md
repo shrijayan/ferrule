@@ -39,3 +39,8 @@ oracle file named below (knock-mgmt-python 0.1.0-alpha.2), not generated.
   singular: `-ches`, `-shes`, `-xes`, `-sses` and `-zzes` lose `es`, and a map of lists names its
   items as a list does. The fixture leaves out the items' own description, which Forge does not
   expose (gap G20; the oracle's `Branch` has it as a docstring).
+- `extra_properties`: `SourceEnvironmentSettings.settings`, an object with properties and
+  `additionalProperties: true` (knock-mgmt-python `types/source_environment_settings.py`). After
+  its fields the class declares, under `if TYPE_CHECKING:`, `__pydantic_extra__: Dict[str,
+  object] = FieldInfo(init=False)` and a `__getattr__` stub returning the extra values' type,
+  and `__pydantic_extra__: Dict[str, object]` otherwise.
