@@ -1,0 +1,371 @@
+{
+  "components": {
+    "schemas": {
+      "GuideActivationParams": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/GuideBooleanActivationParams"
+          },
+          {
+            "$ref": "#/components/schemas/GuideScheduledActivationParams"
+          }
+        ]
+      },
+      "GuideBooleanActivationParams": {
+        "properties": {
+          "status": {
+            "description": "Whether to activate or deactivate the guide.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "type": "object"
+      },
+      "GuideScheduledActivationParams": {
+        "properties": {
+          "from": {
+            "description": "When to activate the guide.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "until": {
+            "description": "When to deactivate the guide.",
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "OriginRequest": {
+        "discriminator": {
+          "propertyName": "type"
+        },
+        "oneOf": [
+          {
+            "properties": {
+              "bucket": {
+                "description": "S3 bucket name.",
+                "type": "string"
+              },
+              "credentials": {
+                "description": "Bucket credentials.",
+                "properties": {
+                  "accessKey": {
+                    "description": "Access key for the bucket.",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "accessKey"
+                ],
+                "type": "object"
+              },
+              "name": {
+                "description": "Display name of the origin.",
+                "type": "string"
+              },
+              "type": {
+                "const": "S3",
+                "type": "string"
+              }
+            },
+            "required": [
+              "name",
+              "type",
+              "bucket"
+            ],
+            "title": "S3",
+            "type": "object"
+          },
+          {
+            "properties": {
+              "bucket": {
+                "description": "Cloudinary bucket name.",
+                "type": "string"
+              },
+              "name": {
+                "description": "Display name of the origin.",
+                "type": "string"
+              },
+              "type": {
+                "const": "CLOUDINARY_BACKUP",
+                "type": "string"
+              }
+            },
+            "required": [
+              "name",
+              "type",
+              "bucket"
+            ],
+            "title": "Cloudinary Backup",
+            "type": "object"
+          },
+          {
+            "properties": {
+              "forwardHostHeader": {
+                "description": "Whether to forward the Host header.",
+                "type": "boolean"
+              },
+              "name": {
+                "description": "Display name of the origin.",
+                "type": "string"
+              },
+              "type": {
+                "const": "WEB_PROXY",
+                "type": "string"
+              }
+            },
+            "required": [
+              "name",
+              "type"
+            ],
+            "title": "Web Proxy",
+            "type": "object"
+          }
+        ],
+        "x-fern-type-name": "OriginRequest"
+      }
+    }
+  },
+  "info": {
+    "title": "fx",
+    "version": "1"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/guides/{guide_key}/activate": {
+      "put": {
+        "operationId": "activateGuide",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "guide_key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The environment slug.",
+            "in": "query",
+            "name": "environment",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The slug of a branch to use.",
+            "in": "query",
+            "name": "branch",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GuideActivationParams"
+              }
+            }
+          },
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "ok"
+          }
+        },
+        "summary": "Activates a guide.",
+        "x-fern-sdk-group-name": [
+          "guides"
+        ],
+        "x-fern-sdk-method-name": "activate",
+        "x-ferrule-client": {
+          "defaultEnvironment": "production",
+          "defaultHeaders": {},
+          "envPrefix": "FX",
+          "environments": [
+            {
+              "name": "production",
+              "url": "https://api.example.com"
+            }
+          ],
+          "name": "fx",
+          "omitPlatformHeaders": false,
+          "opts": [],
+          "query": {
+            "arrayFormat": "comma",
+            "nestedFormat": "brackets"
+          },
+          "retries": {
+            "initialDelaySeconds": 0.5,
+            "maxDelaySeconds": 8,
+            "maxRetries": 2
+          },
+          "security": [],
+          "securitySchemes": {},
+          "timeoutSeconds": 60
+        },
+        "x-ferrule-method-name": "activate",
+        "x-ferrule-method-order": 0,
+        "x-ferrule-models": {
+          "OriginRequest": {
+            "module": "origin_request",
+            "name": "OriginRequest"
+          }
+        },
+        "x-ferrule-package": {
+          "name": "fx",
+          "repo": "fx/fx-python"
+        },
+        "x-ferrule-resource": {
+          "order": [
+            0
+          ],
+          "path": [
+            "guides"
+          ]
+        }
+      }
+    },
+    "/origins": {
+      "post": {
+        "operationId": "createOrigin",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OriginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "ok"
+          }
+        },
+        "summary": "Creates an origin.",
+        "x-fern-sdk-group-name": [
+          "origins"
+        ],
+        "x-fern-sdk-method-name": "create",
+        "x-ferrule-client": {
+          "defaultEnvironment": "production",
+          "defaultHeaders": {},
+          "envPrefix": "FX",
+          "environments": [
+            {
+              "name": "production",
+              "url": "https://api.example.com"
+            }
+          ],
+          "name": "fx",
+          "omitPlatformHeaders": false,
+          "opts": [],
+          "query": {
+            "arrayFormat": "comma",
+            "nestedFormat": "brackets"
+          },
+          "retries": {
+            "initialDelaySeconds": 0.5,
+            "maxDelaySeconds": 8,
+            "maxRetries": 2
+          },
+          "security": [],
+          "securitySchemes": {},
+          "timeoutSeconds": 60
+        },
+        "x-ferrule-method-name": "create",
+        "x-ferrule-method-order": 0,
+        "x-ferrule-models": {
+          "OriginRequest": {
+            "module": "origin_request",
+            "name": "OriginRequest"
+          }
+        },
+        "x-ferrule-package": {
+          "name": "fx",
+          "repo": "fx/fx-python"
+        },
+        "x-ferrule-resource": {
+          "order": [
+            1
+          ],
+          "path": [
+            "origins"
+          ]
+        }
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.example.com"
+    }
+  ],
+  "x-ferrule-client": {
+    "defaultEnvironment": "production",
+    "defaultHeaders": {},
+    "envPrefix": "FX",
+    "environments": [
+      {
+        "name": "production",
+        "url": "https://api.example.com"
+      }
+    ],
+    "name": "fx",
+    "omitPlatformHeaders": false,
+    "opts": [],
+    "query": {
+      "arrayFormat": "comma",
+      "nestedFormat": "brackets"
+    },
+    "retries": {
+      "initialDelaySeconds": 0.5,
+      "maxDelaySeconds": 8,
+      "maxRetries": 2
+    },
+    "security": [],
+    "securitySchemes": {},
+    "timeoutSeconds": 60
+  },
+  "x-ferrule-config": {
+    "edition": "2025-10-08",
+    "packageName": "fx",
+    "projectName": "fx",
+    "pythonEdition": "python.2025-10-08",
+    "version": 1
+  }
+}

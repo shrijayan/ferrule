@@ -1,0 +1,73 @@
+openapi: 3.1.0
+info: {title: fx, version: '1'}
+servers: [{url: 'https://api.example.com'}]
+
+paths:
+  /guides/{guide_key}/activate:
+    put:
+      operationId: activateGuide
+      summary: Activates a guide.
+      parameters:
+        - {name: guide_key, in: path, required: true, schema: {type: string}}
+        - {name: environment, in: query, required: true, description: The environment slug., schema: {type: string}}
+        - {name: branch, in: query, required: false, description: The slug of a branch to use., schema: {type: string}}
+      requestBody:
+        required: false
+        content: {application/json: {schema: {$ref: '#/components/schemas/GuideActivationParams'}}}
+      responses:
+        '200': {description: ok, content: {application/json: {schema: {type: object, properties: {id: {type: string}}}}}}
+  /origins:
+    post:
+      operationId: createOrigin
+      summary: Creates an origin.
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/OriginRequest'}}}
+      responses:
+        '200': {description: ok, content: {application/json: {schema: {type: object, properties: {id: {type: string}}}}}}
+components:
+  schemas:
+    GuideActivationParams:
+      oneOf:
+        - {$ref: '#/components/schemas/GuideBooleanActivationParams'}
+        - {$ref: '#/components/schemas/GuideScheduledActivationParams'}
+    GuideBooleanActivationParams:
+      type: object
+      required: [status]
+      properties:
+        status: {type: boolean, description: Whether to activate or deactivate the guide.}
+    GuideScheduledActivationParams:
+      type: object
+      properties:
+        from: {type: string, format: date-time, description: When to activate the guide.}
+        until: {type: string, format: date-time, description: When to deactivate the guide.}
+    OriginRequest:
+      discriminator: {propertyName: type}
+      oneOf:
+        - title: S3
+          type: object
+          required: [name, type, bucket]
+          properties:
+            name: {type: string, description: Display name of the origin.}
+            type: {type: string, const: S3}
+            bucket: {type: string, description: S3 bucket name.}
+            credentials:
+              type: object
+              description: Bucket credentials.
+              required: [accessKey]
+              properties:
+                accessKey: {type: string, description: Access key for the bucket.}
+        - title: Cloudinary Backup
+          type: object
+          required: [name, type, bucket]
+          properties:
+            name: {type: string, description: Display name of the origin.}
+            type: {type: string, const: CLOUDINARY_BACKUP}
+            bucket: {type: string, description: Cloudinary bucket name.}
+        - title: Web Proxy
+          type: object
+          required: [name, type]
+          properties:
+            name: {type: string, description: Display name of the origin.}
+            type: {type: string, const: WEB_PROXY}
+            forwardHostHeader: {type: boolean, description: Whether to forward the Host header.}

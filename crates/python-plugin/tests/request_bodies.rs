@@ -65,3 +65,10 @@ fn a_nullable_object_body_becomes_keyword_arguments() {
 fn a_map_or_array_body_is_one_body_argument() {
     check("map_and_array");
 }
+
+/// A union of objects (knock-mgmt `guides.activate`, imagekit `accounts.origins.create`): an
+/// `@overload` per variant, `@required_args`, and a `TypedDict` per variant.
+#[test]
+fn a_union_body_is_one_overload_per_variant() {
+    check("union_of_objects");
+}
