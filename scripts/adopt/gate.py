@@ -4,6 +4,9 @@
 
 Usage: uv run python -m scripts.adopt.gate [name ...]   (default: TARGETS)
 
+Generation runs ``ferrule-gen`` (``$FERRULE_GEN``, default ``target/release/ferrule-gen``);
+``$FERRULE_CONVERT`` replaces its convert command, as for the parity harness.
+
 For each config oracle with a paired SDK (oracles/manifest.yaml):
 
 1. clone the pinned SDK from oracles/cache into .cache/adopt/<name> (local only, never pushed);
@@ -121,14 +124,10 @@ def adopt_one(name: str) -> dict[str, object]:
         raise ValueError(msg)
     repo = prepare(pair.config.group, pair.sdk.url, pair.sdk.sha)
 
+    # FERRULE_CONVERT, if set, passes through (the TS converter until the Rust port lands).
     env = {
         **os.environ,
-        "FERRULE_FORGE": os.environ.get(
-            "FERRULE_FORGE", str(ROOT / ".cache/forge/target/release/forge")
-        ),
-        "FERRULE_PLUGIN": os.environ.get(
-            "FERRULE_PLUGIN", str(ROOT / "python-plugin/dist/plugin.wasm")
-        ),
+        "FERRULE_GEN": os.environ.get("FERRULE_GEN") or str(ROOT / "target/release/ferrule-gen"),
     }
     proc = subprocess.run(  # noqa: S603 - our own CLI
         ["uv", "run", "ferrule", "adopt", str(repo), "--config", str(config), "--spec", str(spec)],  # noqa: S607
