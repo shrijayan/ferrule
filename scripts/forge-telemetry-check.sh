@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
-# Fail if the pinned Forge build gains a network-capable dependency (ADR 0006).
+# ADR 0006: fail if ferrule-gen, as built (Forge included, at the pin in Cargo.toml), depends on a
+# network-capable crate. Checks the dependency tree we compile, not Forge's optional features.
 set -euo pipefail
-dir="$(cd "$(dirname "$0")/.." && pwd)/.cache/forge"
+root="$(cd "$(dirname "$0")/.." && pwd)"
 deny='^(reqwest|hyper|ureq|isahc|curl|surf|attohttpc|sentry|opentelemetry|tokio-tungstenite)$'
-found="$(cd "$dir" && cargo tree --features wasm -e normal --prefix none \
+found="$(cd "$root" && cargo tree --locked -p ferrule-gen -e normal --prefix none \
   | awk '{print $1}' | sort -u | grep -E "$deny" || true)"
 if [ -n "$found" ]; then
-  echo "network-capable crates in forge: $found" >&2
+  echo "network-capable crates in ferrule-gen: $found" >&2
   exit 1
 fi
-echo "forge: no network-capable crates"
+echo "ferrule-gen (forge included): no network-capable crates"
