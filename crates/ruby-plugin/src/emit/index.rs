@@ -78,10 +78,20 @@ pub fn lib_file(g: &Gen<'_>) -> (String, String) {
     (format!("lib/{lib}.rb"), out)
 }
 
+/// What a top-level alias names.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Kind {
+    Class,
+    /// An enum, union or namespace.
+    Module,
+    /// A converter constant (`Labels = HashOf[...]`), typed as a converter in each view.
+    Converter,
+}
+
 /// The top-level aliases: params, named models and the namespaces of nested models, sorted by
-/// name ignoring case; `true` marks a module (an enum, union or namespace).
-fn aliases(g: &Gen<'_>) -> Vec<(String, bool)> {
-    let mut out: Vec<(String, bool)> = Vec::new();
+/// name ignoring case.
+fn aliases(g: &Gen<'_>) -> Vec<(String, Kind)> {
+    let mut out: Vec<(String, Kind)> = Vec::new();
     // A converter constant's item models (`LabelsItem` before `Labels`) are top-level too.
     let before = |d: &'_ Decl| match d {
         Decl::Alias(a) => a.before.clone(),
@@ -97,9 +107,14 @@ fn aliases(g: &Gen<'_>) -> Vec<(String, bool)> {
             continue;
         }
         let top = r.segs[0].clone();
-        let module = r.segs.len() > 1 || !matches!(decl, Decl::Class(_));
+        let kind = match decl {
+            _ if r.segs.len() > 1 => Kind::Module,
+            Decl::Class(_) => Kind::Class,
+            Decl::Alias(_) => Kind::Converter,
+            Decl::Enum(_) | Decl::Union(_) => Kind::Module,
+        };
         if !out.iter().any(|(n, _)| *n == top) {
-            out.push((top, module));
+            out.push((top, kind));
         }
     }
     out.sort_by(|a, b| {
@@ -134,17 +149,30 @@ pub fn models_files(g: &Gen<'_>) -> Vec<(String, String)> {
     let mut rb = models_header(g);
     let mut rbi = format!("# typed: strong\n\nmodule {m}\n");
     let mut rbs = format!("module {m}\n");
-    for (i, (name, module)) in aliases.iter().enumerate() {
+    let converter = format!("{m}::Internal::Type::Converter");
+    for (i, (name, kind)) in aliases.iter().enumerate() {
         let value = format!("{m}::Models::{name}");
         let doc = assign(name, text(value.clone()));
-        let _ = writeln!(rb, "\n  {}", print(&doc, RB_WIDTH, 2));
+        rb.push('\n');
+        if *kind == Kind::Converter {
+            let _ = writeln!(rb, "  # @type [{converter}]");
+        }
+        let _ = writeln!(rb, "  {}", print(&doc, RB_WIDTH, 2));
         if i > 0 {
             rbi.push('\n');
             rbs.push('\n');
         }
-        let _ = writeln!(rbi, "  {name} = {value}");
-        let kind = if *module { "module" } else { "class" };
-        let _ = writeln!(rbs, "  {kind} {name} = {value}");
+        match kind {
+            Kind::Converter => {
+                let _ = writeln!(rbi, "  {name} = T.let({value}, {converter})");
+                let _ = writeln!(rbs, "  {name}: {converter}");
+            }
+            Kind::Class | Kind::Module => {
+                let _ = writeln!(rbi, "  {name} = {value}");
+                let word = if *kind == Kind::Module { "module" } else { "class" };
+                let _ = writeln!(rbs, "  {word} {name} = {value}");
+            }
+        }
     }
     rb.push_str("end\n");
     rbi.push_str("end\n");
