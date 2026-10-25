@@ -104,7 +104,22 @@ impl AnnotationContext for ModelContext<'_, '_> {
     }
 }
 
+/// Field names that would shadow an attribute of Pydantic's `BaseModel`: Stainless appends `_`
+/// and keeps the wire name as the alias (`schema_`: knock-mgmt, imagekit, ogx, perplexity). The
+/// oracles keep other names that `BaseModel` v1 also has, such as `fields`.
+const SHADOWS_BASE_MODEL: [&str; 1] = ["schema"];
+
+/// The attribute name of a model field.
+fn model_py_name(field: &SdkField) -> String {
+    if SHADOWS_BASE_MODEL.contains(&field.py_name.as_str()) {
+        format!("{}_", field.py_name)
+    } else {
+        field.py_name.clone()
+    }
+}
+
 fn field_lines(p: &mut PythonPrinter, field: &SdkField, ctx: &dyn AnnotationContext, indent: &str) -> Vec<String> {
+    let py_name = model_py_name(field);
     let mut ann = to_annotation(&field.ty, p, ctx);
     if !field.required && !is_nullable(&field.ty) {
         // A plain union takes `None` as one more member: `Union[A, B, None]`.
@@ -117,7 +132,7 @@ fn field_lines(p: &mut PythonPrinter, field: &SdkField, ctx: &dyn AnnotationCont
     }
     // Optional fields, and required nullable ones (as the oracles print them), default to None.
     let has_default = !field.required || is_nullable(&field.ty);
-    let alias = field.py_name != field.wire_name;
+    let alias = py_name != field.wire_name;
     if alias {
         p.import_from("pydantic", "Field as FieldInfo");
     }
@@ -129,7 +144,7 @@ fn field_lines(p: &mut PythonPrinter, field: &SdkField, ctx: &dyn AnnotationCont
         args.push("default=None".to_owned());
     }
     let args = args.join(", ");
-    let head = format!("{indent}{}: {ann}", field.py_name);
+    let head = format!("{indent}{py_name}: {ann}");
     let one = format!("{head} = FieldInfo({args})");
     let mut lines = if !alias {
         vec![if has_default { format!("{head} = None") } else { head }]
