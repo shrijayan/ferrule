@@ -723,6 +723,63 @@ resources: { a: { models: { thing: { type: { $ref: \"#/components/schemas/Thing\
     );
 }
 
+/// imagekit `$shared.models`: `Transformation: { openapi_uri: '#/components/schemas/Transformation' }`
+/// is a model (Stainless writes `types/shared/transformation.py`); `only:` or `skip:` leaving
+/// Python out (`AITag: { only: [go, ruby, java] }`) is not one in Python, and says nothing.
+#[test]
+fn reads_the_object_model_form_and_honours_only_and_skip() {
+    let config = parse_config(
+        "
+resources:
+  $shared:
+    models:
+      transformation: { openapi_uri: \"#/components/schemas/Thing\" }
+      references: { type: model, openapi_uri: Ref, only: [python, go] }
+      ai_tag: { openapi_uri: \"#/components/schemas/Thing\", only: [go, ruby, java] }
+      skipped: { openapi_uri: Ref, skip: [python] }
+      skipped_all: { openapi_uri: Ref, skip: true }
+  a: { methods: { list: get /a } }
+",
+    )
+    .expect("config");
+    let r = convert(&models_spec(), &config);
+    assert_eq!(r.diagnostics, none());
+    assert_eq!(
+        ext(&r.spec, "/a", "x-ferrule-models"),
+        Some(&v(&json!({
+            "Thing": {"name": "Transformation", "module": "shared.transformation"},
+            "Ref": {"name": "References", "module": "shared.references"}
+        })))
+    );
+}
+
+/// `openapi_uri` into a sub-schema (`#/components/schemas/Extensions/items`) or a query, and
+/// `type: alias`, are not read yet: FER1004 at the entry, when the entry is for Python.
+#[test]
+fn warns_on_object_models_it_cannot_read() {
+    let config = parse_config(
+        "
+resources:
+  a:
+    models:
+      item: { openapi_uri: \"#/components/schemas/Thing/items\" }
+      old: { type: alias, to: thing }
+      java_only: { openapi_uri: \"#/components/schemas/Thing/items\", only: [java] }
+    methods: { list: get /a }
+",
+    )
+    .expect("config");
+    let r = convert(&models_spec(), &config);
+    assert_eq!(
+        codes(&r.diagnostics),
+        [
+            ("FER1004", "warning".to_owned(), "/resources/a/models/item"),
+            ("FER1004", "warning".to_owned(), "/resources/a/models/old"),
+        ]
+    );
+    assert_eq!(ext(&r.spec, "/a", "x-ferrule-models"), Some(&v(&json!({}))));
+}
+
 #[test]
 fn names_every_schema_models_points_at_with_the_last_name_winning() {
     let config = parse_config(
