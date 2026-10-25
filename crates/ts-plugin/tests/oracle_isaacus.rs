@@ -1,6 +1,6 @@
 //! isaacus-typescript (0.23.0, `c56af182`) regenerated from its config oracle, byte for byte
-//! after the branding substitution of the header line. Skipped when the oracles are not cached
-//! (`oracles/cache/isaacus-config`, `.cache/ts-oracles/isaacus-typescript`).
+//! after the branding substitutions of `crates/ts-plugin/BRANDING.md`. Skipped when the oracles
+//! are not cached (`oracles/cache/isaacus-config`, `.cache/ts-oracles/isaacus-typescript`).
 
 mod support;
 
@@ -8,6 +8,16 @@ use ferrule_ts_plugin::generate;
 
 /// Generated files that differ from the oracle on purpose, with the reason.
 const DELIBERATE: &[(&str, &str)] = &[];
+
+/// Oracle files the plugin does not write, and why.
+const NOT_EMITTED: &[(&str, &str)] = &[
+    ("CHANGELOG.md", "written by release-please, not generated"),
+    (
+        "scripts/utils/upload-artifact.sh",
+        "uploads to Stainless storage; BRANDING.md",
+    ),
+    ("packages/mcp-server/", "the MCP server package is not generated yet"),
+];
 
 #[test]
 fn isaacus_matches_the_oracle() {
@@ -31,4 +41,17 @@ fn isaacus_matches_the_oracle() {
     for (p, _) in DELIBERATE {
         assert!(differ.iter().any(|d| d == p), "{p} is listed as deliberate but matches");
     }
+    // Every other oracle file is the runtime (rendered by ferrule_runtime) or listed above.
+    let runtime = support::runtime_files();
+    let missing: Vec<String> = support::tree(&o.sdk)
+        .into_iter()
+        .filter(|p| !files.iter().any(|(f, _)| f == p))
+        .filter(|p| !runtime.contains(p))
+        .filter(|p| {
+            !NOT_EMITTED
+                .iter()
+                .any(|(n, _)| p == n || (n.ends_with('/') && p.starts_with(n)))
+        })
+        .collect();
+    assert!(missing.is_empty(), "not emitted: {missing:#?}");
 }
