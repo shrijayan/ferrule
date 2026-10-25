@@ -47,7 +47,8 @@ function walk(dir: string): string[] {
 
 describe.skipIf(!existsSync(oracle))('OneBusAway oracle project files', () => {
   const files = emitProjectFiles(input);
-  const oracleFiles = walk(oracle);
+  // describe.skipIf still runs this body to collect tests, so don't read a missing oracle.
+  const oracleFiles = existsSync(oracle) ? walk(oracle) : [];
   const ownerFiles = (p: string): boolean =>
     NOT_GENERATED.includes(p) || (p.startsWith('examples/') && p !== 'examples/.keep');
 
