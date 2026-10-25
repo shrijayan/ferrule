@@ -223,6 +223,10 @@ pub struct SdkMethod {
     pub body_variants: Vec<SdkBodyVariant>,
     /// The wire name of the property that discriminates `body_variants`, if the spec names one.
     pub body_discriminator: Option<String>,
+    /// For a `multipart/form-data` body: the paths of its binary fields (Python names, `<array>`
+    /// for every item of an array), sent as files (`extract_files(..., paths=[["file"]])`).
+    /// Empty for a body sent as JSON.
+    pub body_file_paths: Vec<Vec<String>>,
     /// The decoded `2XX` JSON response, or `None` for none.
     pub response: Option<SdkType>,
     pub pagination: Option<SdkPagination>,

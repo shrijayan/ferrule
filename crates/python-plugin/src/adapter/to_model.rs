@@ -411,11 +411,36 @@ impl Context<'_> {
             body_whole,
             body_variants,
             body_discriminator,
+            body_file_paths: content
+                .filter(|c| c.media_type().eq_ignore_ascii_case("multipart/form-data"))
+                .map(|c| file_paths(c.ty()))
+                .unwrap_or_default(),
             response,
             pagination,
             streaming,
         })
     }
+}
+
+/// The paths of the binary fields of a multipart body's object, by Python name: `["file"]`, or
+/// `["files", "<array>"]` for an array of them.
+fn file_paths(ty: Type<'_>) -> Vec<Vec<String>> {
+    let obj = match ty {
+        Type::Object(o) => o,
+        Type::Model(m) => return file_paths(m.ty()),
+        _ => return Vec::new(),
+    };
+    let is_binary = |t: Type<'_>| matches!(t, Type::Scalar(Scalar::Binary));
+    obj.fields()
+        .filter_map(|f| {
+            let name = snake_case(f.name().words());
+            match f.ty() {
+                t if is_binary(t) => Some(vec![name]),
+                Type::Array(a) if is_binary(a.elem()) => Some(vec![name, "<array>".to_owned()]),
+                _ => None,
+            }
+        })
+        .collect()
 }
 
 /// A body field as a keyword argument.

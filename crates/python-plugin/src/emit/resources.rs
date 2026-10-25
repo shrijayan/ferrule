@@ -7,7 +7,7 @@ use super::common::{
     HEADER, args_docstring, keyword_path_params, leaf, method_params, method_ref, py_string, rel_import,
     resource_class_base, resource_module, return_model, stainless_method_order,
 };
-use super::format::{Bracket, Expr, bracket, call, print_expr};
+use super::format::{Bracket, Expr, bracket, call, flat, print_expr};
 use super::models::all_list;
 use super::params::{ParamsContext, UnionBody, name_params, name_union_body};
 use crate::diagnostics::{FerCode, FerruleError};
@@ -222,6 +222,50 @@ fn path_expr(s: &FileState<'_>, p: &mut PythonPrinter, method: &SdkMethod) -> Ex
     call("path_template(", items, false).into()
 }
 
+/// The statements before the call of a multipart method (ogx `files.create`): the body dict
+/// copied with its file paths, the files taken out, and the multipart content type.
+fn print_multipart_prelude(s: &FileState<'_>, p: &mut PythonPrinter, method: &SdkMethod, body: &[&SdkParam]) {
+    imp(s, p, "_files", "deepcopy_with_paths");
+    imp(s, p, "_utils", "extract_files");
+    p.import_from("typing", "Mapping");
+    p.import_from("typing", "cast");
+    let paths = || -> Expr {
+        let lists = method
+            .body_file_paths
+            .iter()
+            .map(|path| bracket("[", path.iter().map(|k| py_string(k).into()).collect(), false, "]").into())
+            .collect();
+        bracket("[", lists, false, "]").into()
+    };
+    let dict = bracket(
+        "{",
+        body.iter()
+            .map(|q| format!("{}: {}", py_string(&q.py_name), q.py_name).into())
+            .collect(),
+        body.len() > 1,
+        "}",
+    );
+    print_expr(
+        p,
+        &call("deepcopy_with_paths(", vec![dict.into(), paths()], body.len() > 1).into(),
+        "body = ",
+        "",
+    );
+    let extract = call(
+        "extract_files(",
+        vec![
+            "cast(Mapping[str, object], body)".into(),
+            Expr::Atom(format!("paths={}", flat(&paths()))),
+        ],
+        false,
+    );
+    print_expr(p, &extract.into(), "files = ", "");
+    p.line("# It should be noted that the actual Content-Type header that will be");
+    p.line("# sent to the server will contain a `boundary` parameter, e.g.");
+    p.line("# multipart/form-data; boundary=---abc--");
+    p.line("extra_headers = {\"Content-Type\": \"multipart/form-data\", **(extra_headers or {})}");
+}
+
 /// `maybe_transform({...}, module.Params)`; awaited in async methods that await.
 fn transform_expr(
     s: &FileState<'_>,
@@ -387,11 +431,25 @@ fn emit_method(
         .collect();
     let in_body =
         page.is_some_and(|pg| pg.param_location == ParamLocation::Body) || method.http_method != HttpVerb::Get;
+    let multipart = !method.body_file_paths.is_empty() && !body.is_empty() && in_body;
+    if multipart {
+        print_multipart_prelude(s, p, method, &body);
+    }
     let mut items: Vec<Expr> = vec![path_expr(s, p, method)];
     if let Some(page) = page {
         items.push(format!("page={sync_or_async}{}[{model}]", page.page).into());
     }
-    if let ([whole], true) = (body.as_slice(), method.body_whole) {
+    if multipart {
+        let f = if awaits {
+            "async_maybe_transform"
+        } else {
+            "maybe_transform"
+        };
+        imp(s, p, "_utils", f);
+        let open = format!("body={}{f}(", if awaits { "await " } else { "" });
+        items.push(call(&open, vec!["body".into(), params_name.clone().into()], false).into());
+        items.push("files=files".into());
+    } else if let ([whole], true) = (body.as_slice(), method.body_whole) {
         // Stainless checks a map against the method's params, an array against its own type.
         let against = if matches!(whole.ty, SdkType::Map(_)) {
             params_name.clone()
