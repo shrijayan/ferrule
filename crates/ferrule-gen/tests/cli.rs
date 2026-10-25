@@ -12,11 +12,35 @@ fn plugin_dir() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("../../python-plugin")
 }
 
-fn scratch(name: &str) -> PathBuf {
-    let dir = Path::new(env!("CARGO_TARGET_TMPDIR")).join(name);
-    let _ = fs::remove_dir_all(&dir);
-    fs::create_dir_all(&dir).expect("scratch directory");
-    dir
+/// A fresh directory outside the repository, so the generated Python never meets the repo's
+/// ruff and pyright runs; removed again when dropped.
+struct Scratch(PathBuf);
+
+impl Scratch {
+    fn new(name: &str) -> Self {
+        let dir = std::env::temp_dir().join(format!("ferrule-gen-test-{}-{name}", std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        fs::create_dir_all(&dir).expect("scratch directory");
+        Self(dir)
+    }
+}
+
+impl Drop for Scratch {
+    fn drop(&mut self) {
+        let _ = fs::remove_dir_all(&self.0);
+    }
+}
+
+impl std::ops::Deref for Scratch {
+    type Target = Path;
+
+    fn deref(&self) -> &Path {
+        &self.0
+    }
+}
+
+fn scratch(name: &str) -> Scratch {
+    Scratch::new(name)
 }
 
 fn files(dir: &Path) -> Vec<(String, Vec<u8>)> {
@@ -49,7 +73,7 @@ fn generates_the_golden_tree() {
         .arg("generate")
         .arg(plugin_dir().join("test/fixtures/cursor-page.json"))
         .arg("--out")
-        .arg(&out)
+        .arg(&*out)
         .status()
         .expect("runs");
     assert!(status.success());
