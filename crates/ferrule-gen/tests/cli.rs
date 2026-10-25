@@ -9,7 +9,7 @@ fn bin() -> Command {
 }
 
 fn plugin_dir() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR")).join("../../python-plugin")
+    Path::new(env!("CARGO_MANIFEST_DIR")).join("../python-plugin")
 }
 
 /// A fresh directory outside the repository, so the generated Python never meets the repo's
@@ -71,19 +71,19 @@ fn generates_the_golden_tree() {
     let out = scratch("cursor-page");
     let status = bin()
         .arg("generate")
-        .arg(plugin_dir().join("test/fixtures/cursor-page.json"))
+        .arg(plugin_dir().join("tests/fixtures/cursor-page.json"))
         .arg("--out")
         .arg(&*out)
         .status()
         .expect("runs");
     assert!(status.success());
-    assert_eq!(files(&out), files(&plugin_dir().join("test/golden/cursor-page")));
+    assert_eq!(files(&out), files(&plugin_dir().join("tests/golden/cursor-page")));
 }
 
 #[test]
 fn reports_plugin_errors_on_stderr_with_exit_code_1() {
     let dir = scratch("bad");
-    let fixture = fs::read_to_string(plugin_dir().join("test/fixtures/cursor-page.json")).expect("fixture");
+    let fixture = fs::read_to_string(plugin_dir().join("tests/fixtures/cursor-page.json")).expect("fixture");
     let bad = fixture.replacen("\"x-ferrule-method-name\": \"list\"", "\"x-ferrule-method-name\": 3", 1);
     assert_ne!(bad, fixture);
     let spec = dir.join("bad.json");

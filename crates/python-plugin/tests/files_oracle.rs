@@ -1,6 +1,6 @@
 //! Golden comparison of the project-file emitters for OneBusAway, byte for byte: against the
 //! TypeScript emitter (while it exists) and against the pinned oracle after the branding
-//! substitutions of `python-plugin/src/emit/files/BRANDING.md`. Port of
+//! substitutions of `src/emit/files/BRANDING.md`. Port of
 //! `python-plugin/test/files/oracle.test.ts`; the oracle part is skipped when the oracle isn't
 //! fetched (`python3 oracles/fetch.py onebusaway`).
 

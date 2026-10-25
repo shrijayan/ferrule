@@ -4,7 +4,7 @@
 //! Each `<name>.txt` is derived from the file at the output path in
 //! OneBusAway/python-sdk@4c20fa834c2a (Apache-2.0).
 //! Modified by The Ferrule Authors: per-SDK values replaced by %%TOKENS%%, branding per
-//! `python-plugin/src/emit/files/BRANDING.md`. The text is byte-identical to the TypeScript
+//! `src/emit/files/BRANDING.md`. The text is byte-identical to the TypeScript
 //! templates, which `python-plugin/test/files/extract-templates.ts` generates; do not edit by
 //! hand.
 

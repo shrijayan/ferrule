@@ -234,7 +234,7 @@ pub(crate) fn input(v: &Value) -> ProjectFilesInput {
 
 /// The OneBusAway input the TypeScript tests use, as JSON.
 pub(crate) fn onebusaway_json() -> Value {
-    let path = repo().join("python-plugin/test/files/onebusaway-input.json");
+    let path = repo().join("crates/python-plugin/tests/files/onebusaway-input.json");
     let text = std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("{}: {e}", path.display()));
     serde_json::from_str(&text).expect("valid JSON")
 }

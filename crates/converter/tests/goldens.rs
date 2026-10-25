@@ -15,7 +15,7 @@ fn root() -> PathBuf {
 }
 
 fn snapshots() -> PathBuf {
-    root().join("converter/test/__snapshots__")
+    root().join("crates/converter/tests/snapshots")
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -439,7 +439,7 @@ fn onebusaway_matches_the_committed_snapshot() {
     let expected = std::fs::read_to_string(snapshots().join("onebusaway.json.snap")).expect("snapshot");
     assert!(
         result.output == expected,
-        "output differs from converter/test/__snapshots__/onebusaway.json.snap"
+        "output differs from crates/converter/tests/snapshots/onebusaway.json.snap"
     );
 }
 

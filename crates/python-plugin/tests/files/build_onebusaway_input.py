@@ -1,9 +1,8 @@
 # Copyright 2026 Ferrule contributors
 # SPDX-License-Identifier: Apache-2.0
-# ruff: noqa: INP001 -- a standalone dev script, not part of a package
-"""Builds test/files/onebusaway-input.json, the ProjectFilesInput of the OneBusAway oracle.
+"""Builds tests/files/onebusaway-input.json, the ProjectFilesInput of the OneBusAway oracle.
 
-Run: python3 -I python-plugin/test/files/build_onebusaway_input.py (after
+Run: python3 -I crates/python-plugin/tests/files/build_onebusaway_input.py (after
 `python3 oracles/fetch.py onebusaway`). Parameters and types come from the paired spec and
 config; the names SdkModel will supply (resource titles, result variables, type names and
 modules) are read from the oracle's api.md, standing in for the code emitters until the lead
@@ -18,7 +17,7 @@ from typing import Any
 
 import yaml
 
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = Path(__file__).resolve().parents[4]
 CFG = ROOT / "oracles/cache/onebusaway-config"
 SDK = ROOT / "oracles/cache/onebusaway-python"
 OUT = Path(__file__).with_name("onebusaway-input.json")
