@@ -40,11 +40,11 @@ agency = client.agency.retrieve("1")
 
 // biome-ignore lint/correctness/noUnusedVariables: used by the template below
 const agentTree = [
-  'onebusaway/',
+  'onebusaway/_agent/',
   '├── <b>SKILL.md</b>',
   '├── <b>AGENTS.md</b>',
-  '├── <b>llms.txt</b>',
-  '└── recipes/   # tested',
+  '└── <b>llms.txt</b>',
+  'examples/agent/   # tested recipes',
 ].join('\n');
 
 // The only difference between the two files is the generator named in the header.
@@ -612,7 +612,7 @@ const testsLabel = (r: BoardRow): string => {
             </div>
           </div>
           <div class="tile w2 reveal d1">
-            <div class="lab">Agent context <span class="soon">phase 5</span></div>
+            <div class="lab">Agent context</div>
             <h3>Docs for agents, in the wheel</h3>
             <p>Locked to the installed version, so coding agents never read docs for a release you don't run.</p>
             <div class="viz">
