@@ -60,7 +60,7 @@ run = "cargo build --release --locked -p ferrule-gen"
 [tasks.golden]
 description = "Golden output: plugin goldens, agent context, project files vs the oracle, converter snapshots"
 run = [
-  "cargo test -p ferrule-python-plugin --test golden --test agent --test files_oracle",
+  "cargo test -p ferrule-python-plugin --test golden --test agent --test files_oracle --test project_files_oracles",
   "cargo test -p ferrule-converter --test goldens",
 ]
 
