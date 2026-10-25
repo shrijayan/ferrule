@@ -57,6 +57,8 @@ pub enum ParamLocation {
     Path,
     Query,
     Body,
+    /// A header parameter: the tests pass it after the others.
+    Header,
 }
 
 #[derive(Debug, Clone, PartialEq)]

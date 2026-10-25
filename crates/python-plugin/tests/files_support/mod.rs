@@ -131,6 +131,7 @@ fn param(v: &Value) -> FilesParam {
             "path" => ParamLocation::Path,
             "query" => ParamLocation::Query,
             "body" => ParamLocation::Body,
+            "header" => ParamLocation::Header,
             other => panic!("unknown location {other}"),
         },
         ty: sdk_type(get(v, "type")),

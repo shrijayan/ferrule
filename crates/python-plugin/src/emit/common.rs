@@ -372,6 +372,27 @@ pub fn method_params(method: &SdkMethod) -> Vec<&SdkParam> {
     sort_fields(method.query_params.iter().chain(&method.body_params))
 }
 
+/// The header parameters of a method in the oracle order (ogx `models.list`, stagehand
+/// `sessions.act`): by wire name, required first. They follow the other keyword arguments.
+#[must_use]
+pub fn header_params(method: &SdkMethod) -> Vec<&SdkParam> {
+    sort_fields(&method.header_params)
+}
+
+/// Every keyword argument of a method: [`method_params`], then [`header_params`].
+#[must_use]
+pub fn method_args(method: &SdkMethod) -> Vec<&SdkParam> {
+    let mut out = method_params(method);
+    out.extend(header_params(method));
+    out
+}
+
+/// Whether `q` is one of the method's header parameters.
+#[must_use]
+pub fn is_header(method: &SdkMethod, q: &SdkParam) -> bool {
+    method.header_params.iter().any(|h| std::ptr::eq(h, q))
+}
+
 const EXTRA_ARGS: [(&str, &str); 4] = [
     ("extra_headers", "Send extra headers"),
     ("extra_query", "Add additional query parameters to the request"),
