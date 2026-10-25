@@ -56,3 +56,47 @@ def test_render_tree_gates_prefixes_and_rejects_leftover_tokens(tmp_path: Path) 
     assert files == {"keep/a.ts": "Acme\n"}
     with pytest.raises(RenderError, match="__FERRULE_UNKNOWN__"):
         render_tree(tmp_path, replacements={}, flags={}, comment="//")
+
+
+def test_fits_keeps_the_one_line_form_when_it_fits() -> None:
+    text = "#ferrule:if fits\nshort\n#ferrule:else\nwrapped\n#ferrule:endif\n"
+    assert resolve_directives(text, {}, "t", fits=lambda line: len(line) <= 5) == "short\n"
+    assert resolve_directives(text, {}, "t", fits=lambda line: len(line) <= 4) == "wrapped\n"
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "#ferrule:if fits\na\nb\n#ferrule:endif\n",  # the branch is one line
+        "#ferrule:if fits\n#ferrule:if x\n#ferrule:endif\n#ferrule:endif\n",
+        "#ferrule:if fits\n",
+    ],
+)
+def test_fits_needs_a_one_line_branch(text: str) -> None:
+    with pytest.raises(RenderError, match="if fits needs"):
+        resolve_directives(text, {"x": True}, "t", fits=lambda _line: True)
+
+
+def test_fits_needs_a_line_length() -> None:
+    with pytest.raises(RenderError, match="if fits needs"):
+        resolve_directives("#ferrule:if fits\na\n#ferrule:endif\n", {}, "t")
+
+
+def test_render_tree_replaces_path_tokens_and_measures_rendered_lines(tmp_path: Path) -> None:
+    (tmp_path / "__ferrule_pkg_path__").mkdir()
+    (tmp_path / "__ferrule_pkg_path__" / "__FerruleClient__.kt").write_text(
+        "//ferrule:if fits\nval __FerruleClient__\n//ferrule:else\nval\n    __FerruleClient__\n"
+        "//ferrule:endif\n"
+    )
+
+    def render(client: str) -> dict[str, str]:
+        return render_tree(
+            tmp_path,
+            replacements={"__ferrule_pkg_path__": "org/acme", "__FerruleClient__": client},
+            flags={},
+            comment="//",
+            line_length=lambda rel: 10 if rel.endswith(".kt") else None,
+        )
+
+    assert render("Acme") == {"org/acme/Acme.kt": "val Acme\n"}
+    assert render("AcmeClient") == {"org/acme/AcmeClient.kt": "val\n    AcmeClient\n"}

@@ -24,7 +24,7 @@ from typing import TYPE_CHECKING, Any, Literal
 from ferrule_runtime.pagination import PageScheme, render_pagination
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable, Mapping, Sequence
+    from collections.abc import Callable, Iterable, Mapping, Sequence
     from importlib.resources.abc import Traversable
 
 __all__ = [
@@ -51,6 +51,7 @@ MAX_RETRIES_PLACEHOLDER = "__FERRULE_MAX_RETRIES__"
 FILE_UPLOADS_HINT_PLACEHOLDER = "__FERRULE_FILE_UPLOADS_HINT__"
 
 _DIRECTIVE_OPS = r"ferrule:(if|else|endif|slot)(?: ([a-z0-9_]+))?$"
+_FITS = "fits"  # ``if fits``: computed per block from the line length, never a caller flag
 _LEFTOVER = re.compile(r"__(?:ferrule_[a-z_]+|Ferrule[A-Za-z]+|FERRULE_[A-Z_]+)__")
 _CAMEL_BOUNDARY = re.compile(r"(?<=[a-z0-9])(?=[A-Z])")
 _IDENT = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
@@ -146,24 +147,53 @@ def _branch(  # noqa: PLR0913 - one directive line and the state it updates
         stack.pop()
 
 
-def resolve_directives(
+def _fits(
+    lines: Sequence[str],
+    index: int,
+    fits: Callable[[str], bool] | None,
+    *,
+    path: str,
+    marker: str,
+) -> bool:
+    """Evaluate ``if fits`` at ``lines[index]``: its branch must be one line, then else/endif."""
+    candidate, closing = [*lines[index + 1 : index + 3], "", ""][:2]
+    if (
+        fits is None
+        or closing.strip() not in (f"{marker}else", f"{marker}endif")
+        or candidate.strip().startswith(marker)
+    ):
+        msg = f"{path}: {marker}if fits needs a line-length rule and a one-line branch"
+        raise RenderError(msg)
+    return fits(candidate.rstrip("\n"))
+
+
+def _within(limit: int, substitute: Callable[[str], str]) -> Callable[[str], bool]:
+    """``fits`` for one file: the line, with the tokens replaced, has at most ``limit`` columns."""
+    return lambda line: len(substitute(line)) <= limit
+
+
+def resolve_directives(  # noqa: PLR0913 - keyword-only settings of one file
     text: str,
     flags: Mapping[str, bool],
     path: str,
     *,
     comment: str = "#",
     slots: Mapping[str, str] | None = None,
+    fits: Callable[[str], bool] | None = None,
 ) -> str:
     """Resolve whole-line ``<comment>ferrule:`` directives.
 
     ``if <flag>`` / ``else`` / ``endif`` keep or drop lines; ``slot <name>`` is replaced by
     ``slots[name]`` (text the caller generates, such as config-dependent Go client options).
+    ``if fits`` holds when the one line after it fits the formatter's line length (``fits``,
+    given that line); its ``else`` branch holds the formatter's wrapped form.
     """
     marker = f"{comment}ferrule:"
     directive = re.compile(re.escape(comment) + _DIRECTIVE_OPS)
     out: list[str] = []
     stack: list[tuple[bool, bool]] = []
-    for line in text.splitlines(keepends=True):
+    lines = text.splitlines(keepends=True)
+    for index, line in enumerate(lines):
         stripped = line.strip()
         match = directive.match(stripped)
         active = all(cond != in_else for cond, in_else in stack)
@@ -175,6 +205,9 @@ def resolve_directives(
                 out.append(line)
             continue
         op, name = match.groups()
+        if op == "if" and name == _FITS:
+            stack.append((_fits(lines, index, fits, path=path, marker=marker), False))
+            continue
         if op != "slot":
             _branch(op, name, stack, flags, path=path, marker=marker)
             continue
@@ -197,27 +230,44 @@ def render_tree(  # noqa: PLR0913 - keyword-only settings of one render
     comment: str = "#",
     slots: Mapping[str, str] | None = None,
     gated: Mapping[str, bool] | None = None,
+    line_length: Callable[[str], int | None] | None = None,
 ) -> dict[str, str]:
     """Render every file under ``root``: the one code path all languages share (pure).
 
     Directives are resolved first, then tokens are replaced in ``replacements`` order (callers
-    list the longest token first). ``gated`` maps a path prefix (``testing/``) to whether files
-    under it are rendered. A token left over after replacement is an error.
+    list the longest token first), in the text and in the path (a directory named
+    ``__ferrule_pkg_path__`` becomes ``org/acme``). ``gated`` maps a template path prefix
+    (``testing/``, before replacement) to whether files under it are rendered. A token left over
+    after replacement is an error. ``line_length`` gives a file's formatter line length (or
+    ``None``) for ``if fits`` blocks, measured on the line with the tokens replaced.
     """
+
+    def substitute(text: str) -> str:
+        for token, value in replacements.items():
+            text = text.replace(token, value)
+        return text
+
     files: dict[str, str] = {}
     for rel, entry in _walk(root):
         if any(rel.startswith(prefix) and not keep for prefix, keep in (gated or {}).items()):
             continue
+        limit = None if line_length is None else line_length(rel)
         text = resolve_directives(
-            entry.read_bytes().decode("utf-8"), flags, rel, comment=comment, slots=slots
+            entry.read_bytes().decode("utf-8"),
+            flags,
+            rel,
+            comment=comment,
+            slots=slots,
+            fits=None if limit is None else _within(limit, substitute),
         )
-        for token, value in replacements.items():
-            text = text.replace(token, value)
-        leftover = _LEFTOVER.search(text)
-        if leftover is not None:
-            msg = f"{rel}: unknown template token {leftover.group(0)}"
-            raise RenderError(msg)
-        files[rel] = text
+        text = substitute(text)
+        out = substitute(rel)
+        for where in (out, text):
+            leftover = _LEFTOVER.search(where)
+            if leftover is not None:
+                msg = f"{rel}: unknown template token {leftover.group(0)}"
+                raise RenderError(msg)
+        files[out] = text
     return files
 
 
