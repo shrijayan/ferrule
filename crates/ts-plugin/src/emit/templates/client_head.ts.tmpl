@@ -1,0 +1,191 @@
+export interface ClientOptions {
+  /**
+%%OPT_DOC%%
+   */
+  %%OPT%%?: string | undefined;
+
+  /**
+   * Override the default base URL for the API, e.g., "https://api.example.com/v2/"
+   *
+   * Defaults to process.env['%%ENV%%_BASE_URL'].
+   */
+  baseURL?: string | null | undefined;
+
+  /**
+   * The maximum amount of time (in milliseconds) that the client should wait for a response
+   * from the server before timing out a single request.
+   *
+   * Note that request timeouts are retried by default, so in a worst-case scenario you may wait
+   * much longer than this timeout before the promise succeeds or fails.
+   *
+   * @unit milliseconds
+   */
+  timeout?: number | undefined;
+  /**
+   * Additional `RequestInit` options to be passed to `fetch` calls.
+   * Properties will be overridden by per-request `fetchOptions`.
+   */
+  fetchOptions?: MergedRequestInit | undefined;
+
+  /**
+   * Specify a custom `fetch` function implementation.
+   *
+   * If not provided, we expect that `fetch` is defined globally.
+   */
+  fetch?: Fetch | undefined;
+
+  /**
+   * The maximum number of times that the client will retry a request in case of a
+   * temporary failure, like a network error or a 5XX error from the server.
+   *
+   * @default 2
+   */
+  maxRetries?: number | undefined;
+
+  /**
+   * Default headers to include with every request to the API.
+   *
+   * These can be removed in individual requests by explicitly setting the
+   * header to `null` in request options.
+   */
+  defaultHeaders?: HeadersLike | undefined;
+
+  /**
+   * Default query parameters to include with every request to the API.
+   *
+   * These can be removed in individual requests by explicitly setting the
+   * param to `undefined` in request options.
+   */
+  defaultQuery?: Record<string, string | undefined> | undefined;
+
+  /**
+   * Set the log level.
+   *
+   * Defaults to process.env['%%ENV%%_LOG'] or 'warn' if it isn't set.
+   */
+  logLevel?: LogLevel | undefined;
+
+  /**
+   * Set the logger.
+   *
+   * Defaults to globalThis.console.
+   */
+  logger?: Logger | undefined;
+}
+
+/**
+ * API Client for interfacing with the %%TITLE%% API.
+ */
+export class %%CLIENT%% {
+  %%OPT%%: string;
+
+  baseURL: string;
+  maxRetries: number;
+  timeout: number;
+  logger: Logger;
+  logLevel: LogLevel | undefined;
+  fetchOptions: MergedRequestInit | undefined;
+
+  private fetch: Fetch;
+  #encoder: Opts.RequestEncoder;
+  protected idempotencyHeader?: string;
+  private _options: ClientOptions;
+
+  /**
+   * API Client for interfacing with the %%TITLE%% API.
+   *
+   * @param {string | undefined} [opts.%%OPT%%=process.env['%%OPT_ENV%%'] ?? undefined]
+   * @param {string} [opts.baseURL=process.env['%%ENV%%_BASE_URL'] ?? %%BASE_URL%%] - Override the default base URL for the API.
+   * @param {number} [opts.timeout=1 minute] - The maximum amount of time (in milliseconds) the client will wait for a response before timing out.
+   * @param {MergedRequestInit} [opts.fetchOptions] - Additional `RequestInit` options to be passed to `fetch` calls.
+   * @param {Fetch} [opts.fetch] - Specify a custom `fetch` function implementation.
+   * @param {number} [opts.maxRetries=2] - The maximum number of times the client will retry a request.
+   * @param {HeadersLike} opts.defaultHeaders - Default headers to include with every request to the API.
+   * @param {Record<string, string | undefined>} opts.defaultQuery - Default query parameters to include with every request to the API.
+   */
+  constructor({
+    baseURL = readEnv('%%ENV%%_BASE_URL'),
+    %%OPT%% = readEnv('%%OPT_ENV%%'),
+    ...opts
+  }: ClientOptions = {}) {
+    if (%%OPT%% === undefined) {
+      throw new Errors.%%CLIENT%%Error(
+        "The %%OPT_ENV%% environment variable is missing or empty; either provide it, or instantiate the %%CLIENT%% client with an %%OPT%% option, like new %%CLIENT%%({ %%OPT%%: %%OPT_PLACEHOLDER%% }).",
+      );
+    }
+
+    const options: ClientOptions = {
+      %%OPT%%,
+      ...opts,
+      baseURL: baseURL || `%%BASE_URL%%`,
+    };
+
+    this.baseURL = options.baseURL!;
+    this.timeout = options.timeout ?? %%CLIENT%%.DEFAULT_TIMEOUT /* 1 minute */;
+    this.logger = options.logger ?? console;
+    const defaultLogLevel = 'warn';
+    // Set default logLevel early so that we can log a warning in parseLogLevel.
+    this.logLevel = defaultLogLevel;
+    this.logLevel =
+      parseLogLevel(options.logLevel, 'ClientOptions.logLevel', this) ??
+      parseLogLevel(readEnv('%%ENV%%_LOG'), "process.env['%%ENV%%_LOG']", this) ??
+      defaultLogLevel;
+    this.fetchOptions = options.fetchOptions;
+    this.maxRetries = options.maxRetries ?? 2;
+    this.fetch = options.fetch ?? Shims.getDefaultFetch();
+    this.#encoder = Opts.FallbackEncoder;
+
+    const customHeadersEnv = readEnv('%%ENV%%_CUSTOM_HEADERS');
+    if (customHeadersEnv) {
+      const parsed: Record<string, string> = {};
+      for (const line of customHeadersEnv.split('\n')) {
+        const colon = line.indexOf(':');
+        if (colon >= 0) {
+          parsed[line.substring(0, colon).trim()] = line.substring(colon + 1).trim();
+        }
+      }
+      options.defaultHeaders = { ...parsed, ...options.defaultHeaders };
+    }
+
+    this._options = options;
+
+    this.%%OPT%% = %%OPT%%;
+  }
+
+  /**
+   * Create a new client instance re-using the same options given to the current client with optional overriding.
+   */
+  withOptions(options: Partial<ClientOptions>): this {
+    const client = new (this.constructor as any as new (props: ClientOptions) => typeof this)({
+      ...this._options,
+      baseURL: this.baseURL,
+      maxRetries: this.maxRetries,
+      timeout: this.timeout,
+      logger: this.logger,
+      logLevel: this.logLevel,
+      fetch: this.fetch,
+      fetchOptions: this.fetchOptions,
+      %%OPT%%: this.%%OPT%%,
+      ...options,
+    });
+    return client;
+  }
+
+  /**
+   * Check whether the base URL is set to its default.
+   */
+  #baseURLOverridden(): boolean {
+    return this.baseURL !== '%%BASE_URL%%';
+  }
+
+  protected defaultQuery(): Record<string, string | undefined> | undefined {
+    return this._options.defaultQuery;
+  }
+
+  protected validateHeaders({ values, nulls }: NullableHeaders) {
+    return;
+  }
+
+  protected async authHeaders(opts: FinalRequestOptions): Promise<NullableHeaders | undefined> {
+%%AUTH_HEADERS%%
+  }

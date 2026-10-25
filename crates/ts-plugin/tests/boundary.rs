@@ -18,7 +18,7 @@ fn sources(dir: &Path, out: &mut Vec<std::path::PathBuf>) {
 fn no_source_file_imports_forge() {
     let mut files = Vec::new();
     sources(&Path::new(env!("CARGO_MANIFEST_DIR")).join("src"), &mut files);
-    assert!(!files.is_empty());
+    assert_ne!(files.len(), 0, "no sources found");
     for f in files {
         let text = std::fs::read_to_string(&f).expect("readable");
         for (i, line) in text.lines().enumerate() {
