@@ -48,22 +48,26 @@ pub fn oracle(name: &str) -> Option<PathBuf> {
     }
 }
 
+/// Why the formatter tests skip when [`formatters`] finds nothing.
+pub const NOT_INSTALLED: &str =
+    "the Ruby formatters are not installed: run `mise run ruby:tools` (or set FERRULE_STREE and FERRULE_RUBOCOP)";
+
 /// A formatter's command: `$<var>` (words split on spaces, such as `bundle exec stree`), else
-/// `name` on the `PATH`; `None` when neither is there.
+/// `crates/ruby-plugin/tools/bin/<name>` once `mise run ruby:tools` has installed the bundle into
+/// `.cache/ruby-tools`; `None` when neither is there.
 pub fn tool(var: &str, name: &str) -> Option<Vec<String>> {
     if let Some(cmd) = std::env::var_os(var) {
         let words: Vec<String> = cmd.to_string_lossy().split_whitespace().map(str::to_owned).collect();
         return (!words.is_empty()).then_some(words);
     }
-    std::env::var_os("PATH").and_then(|paths| {
-        std::env::split_paths(&paths)
-            .map(|d| d.join(name))
-            .find(|p| p.is_file())
-            .map(|p| vec![p.to_string_lossy().into_owned()])
-    })
+    let bin = Path::new(env!("CARGO_MANIFEST_DIR")).join("tools/bin").join(name);
+    root()
+        .join(".cache/ruby-tools/ruby")
+        .is_dir()
+        .then(|| vec![bin.to_string_lossy().into_owned()])
 }
 
-/// `syntax_tree`'s `stree` (`$FERRULE_STREE`) and rubocop (`$FERRULE_RUBOCOP`), if both are there.
+/// `syntax_tree`'s `stree` and rubocop (see [`tool`]), if both are there.
 pub fn formatters() -> Option<(Vec<String>, Vec<String>)> {
     Some((tool("FERRULE_STREE", "stree")?, tool("FERRULE_RUBOCOP", "rubocop")?))
 }

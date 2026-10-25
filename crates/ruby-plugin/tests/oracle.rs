@@ -1,7 +1,7 @@
 //! The generated gem against real Stainless Ruby SDKs, byte for byte after `syntax_tree` and rubocop lay out
 //! the `.rbi` and `.rbs` views (as the gem's `rake format` does) and the branding of the `.keep`
-//! files. Skipped when `oracles/cache` is not fetched; the `.rbi` and `.rbs` files are compared
-//! only when `stree` is available (`$FERRULE_STREE`, see `tests/common`).
+//! files. Skipped when `oracles/cache` is not fetched, and the comparisons when the formatters are
+//! not installed (`mise run ruby:tools`, see `tests/common`).
 //!
 //! onebusaway-ruby (Apache-2.0) is the same generation as the proven Python pin: the md5 of its
 //! `openapi.yml` and `stainless-config.yml` equal the `.stats.yml` hashes of `ruby-sdk` at
@@ -106,7 +106,7 @@ fn compare(oracle: &std::path::Path, files: &[(String, String)], known: &[(&str,
 fn onebusaway_matches_the_oracle() {
     let Some((oracle, out)) = onebusaway() else { return };
     let Some(files) = common::format(&out.files) else {
-        eprintln!("skipped: the gem's formatters are not installed (FERRULE_STREE, FERRULE_RUBOCOP)");
+        eprintln!("skipped: {}", common::NOT_INSTALLED);
         return;
     };
     let (identical, differing) = compare(&oracle, &files, ONEBUSAWAY_KNOWN);
@@ -301,7 +301,7 @@ fn imagekit_matches_the_oracle_but_for_the_known_differences() {
     let Some((oracle, out)) = imagekit() else { return };
     common::dump("FERRULE_RUBY_DUMP_RAW", &out.files);
     let Some(files) = common::format(&out.files) else {
-        eprintln!("skipped: the gem's formatters are not installed (FERRULE_STREE, FERRULE_RUBOCOP)");
+        eprintln!("skipped: {}", common::NOT_INSTALLED);
         return;
     };
     let (identical, differing) = compare(&oracle, &files, IMAGEKIT_KNOWN);

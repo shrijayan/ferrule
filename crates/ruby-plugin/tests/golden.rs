@@ -45,7 +45,7 @@ fn synthetic_is_deterministic_and_formats() {
     let files = generated();
     assert_eq!(files, generated());
     let Some(formatted) = common::format(&files) else {
-        eprintln!("skipped formatting: stree or rubocop is not installed");
+        eprintln!("skipped formatting: {}", common::NOT_INSTALLED);
         return;
     };
     assert_eq!(common::format(&formatted), Some(formatted));
