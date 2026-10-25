@@ -37,8 +37,10 @@ Anything generic (a Forge bug, a missing field) goes to Forge as an issue or PR,
 ## Repository layout
 
 ```
-converter/       TS: stainless.yml -> annotated spec (overlays + x-ferrule-*)
-python-plugin/   TS -> plugin.wasm; emits the Python SDK. Only src/adapter/ imports Forge.
+crates/          Rust workspace (ADR 0014); Forge is a Cargo git dependency at the FORGE_PIN commit
+  converter/     stainless.yml -> annotated spec (overlays + x-ferrule-*)
+  python-plugin/ native forge::Plugin; emits the Python SDK. Only src/adapter/ (+ the src/plugin.rs entry) imports Forge.
+  ferrule-gen/   binary: `ferrule-gen convert` and `ferrule-gen generate`
 runtime/         Python runtime + NOTICE, copied into every generated SDK
 migrate/         Python CLI `ferrule`: generate, adopt, rescue, verify, merge
 action/          GitHub Action + regeneration bot
@@ -56,13 +58,15 @@ part; report the change you need instead.
 ## Commands
 
 ```bash
-mise install                    # Node, pnpm, Python, uv, lefthook, gitleaks
-mise run install                # pnpm install --frozen-lockfile + uv sync
-mise run check                  # everything ci.yml runs (lint, types, tests, both languages)
-mise run lint:ts                # biome     (lint:py: ruff)
-mise run typecheck:ts           # tsc       (typecheck:py: pyright + mypy)
-mise run test:ts                # vitest    (test:py: pytest)
-mise run forge:setup            # build the pinned Forge commit into .cache/forge
+mise install                    # Rust, Python, uv, Node + pnpm (site only), lefthook, gitleaks
+mise run install                # pnpm install --frozen-lockfile (site) + uv sync
+mise run check                  # everything ci.yml runs (lint, types, tests: Rust, Python, site TS)
+mise run lint:rs                # cargo fmt --check + clippy, warnings denied (lint:py: ruff, lint:ts: biome)
+mise run test:rs                # cargo test (test:py: pytest)
+mise run typecheck:py           # pyright + mypy (typecheck:ts: tsc for the site)
+mise run golden                 # the Rust golden tests (crates/python-plugin/tests/golden/)
+cargo build --release -p ferrule-gen  # target/release/ferrule-gen, used by `ferrule generate|adopt`
+mise run forge:setup            # build the Forge CLI into .cache/forge (telemetry check, canary only)
 mise run docs:build             # build the docs site
 mise run parity -- onebusaway   # one oracle
 mise run corpus -- --tier 1
