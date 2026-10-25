@@ -1,0 +1,16 @@
+organization: {name: fx}
+targets:
+  python: {package_name: fx, production_repo: fx/fx-python, publish: {pypi: false}}
+environments: {production: 'https://api.example.com'}
+
+resources:
+  fields:
+    models:
+      message_type_json_field: MessageTypeJsonField
+    methods:
+      retrieve: get /fields/{key}
+      update: put /fields/{key}
+readme:
+  example_requests:
+    default: {type: request, endpoint: 'get /fields/{key}', params: {key: k}}
+    headline: {type: request, endpoint: 'get /fields/{key}', params: {key: k}}
