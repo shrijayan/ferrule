@@ -96,6 +96,17 @@ fn a_model_field_named_schema_is_schema_underscore() {
     assert!(params.contains("\n    schema: str\n"), "{params}");
 }
 
+/// Model fields Pydantic would treat as private (`_`) or protected (`model_`) are prefixed
+/// `api_` (knock `__typename` is `api_typename`, ogx and opencode `model_id` is `api_model_id`);
+/// a params `TypedDict` keeps `model_id`.
+#[test]
+fn private_and_protected_model_fields_are_prefixed_api() {
+    check("protected_field_names");
+    let files = generated("protected_field_names");
+    let params = files.get("src/fx/types/tenant_set_params.py").expect("params");
+    assert!(params.contains("\n    model_id: Required[str]\n"), "{params}");
+}
+
 /// The items of a list are named in the singular, `-es` plurals included (knock-mgmt `branches`
 /// is `Branch`), also in a map of lists (knock-mgmt `example_payloads` is `ExamplePayload`).
 #[test]
