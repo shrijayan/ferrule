@@ -10,4 +10,5 @@
 /mise.toml                      @shrijayan
 
 # Golden output: every diff is a reviewed decision.
-/python-plugin/test/golden/     @shrijayan
+/crates/python-plugin/tests/golden/  @shrijayan
+/crates/converter/tests/snapshots/   @shrijayan

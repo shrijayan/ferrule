@@ -1,7 +1,7 @@
 name: forge-canary
 
-# Weekly: run the full gate set against Forge's latest release instead of the pinned commit,
-# so breakage shows up before anyone bumps the pin in scripts/forge-setup.sh.
+# Weekly: build ferrule-gen and run the gates against Forge's latest commit instead of the pinned
+# one, so breakage shows up before anyone bumps the pin (Cargo.toml and scripts/forge-setup.sh).
 on:
   schedule:
     - cron: "23 5 * * 1"
@@ -29,17 +29,20 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      # No Forge cache here: the cache key is the pinned commit, and we want latest.
       - uses: ./.github/actions/setup
-        with:
-          forge: "false"
-      - name: Build Forge latest
-        if: hashFiles('scripts/forge-setup.sh') != ''
+      - name: Check out Forge latest
         run: mise run forge:setup
-      - run: mise run check
+      # ferrule-gen pins Forge by git rev (ADR 0014); patch that dependency to the fresh checkout.
+      - name: Build against Forge latest
+        run: |
+          mkdir -p .cargo
+          printf '[patch."https://github.com/cloudflare/forge.git"]\nforge = { path = ".cache/forge" }\n' > .cargo/config.toml
+          cargo update -p forge
+          cargo build --release -p ferrule-gen
+      - run: cargo test --workspace
+      - run: bash scripts/ci/run-if-present.sh oracles:fetch -- onebusaway
       - run: bash scripts/ci/run-if-present.sh golden
-      - run: bash scripts/ci/run-if-present.sh determinism
-      - run: bash scripts/ci/run-if-present.sh parity
+      - run: bash scripts/ci/run-if-present.sh parity -- onebusaway
       - name: Open issue on failure
         if: failure()
         env:
