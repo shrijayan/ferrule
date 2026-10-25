@@ -1,0 +1,109 @@
+openapi: 3.1.0
+info:
+  title: Acme
+  version: 1.0.0
+servers:
+  - url: https://api.acme.test
+security:
+  - BearerAuth: []
+paths:
+  /v1/notes:
+    get:
+      summary: List notes
+      description: Lists the notes, newest first.
+      parameters:
+        - name: after
+          in: query
+          description: The cursor to fetch entries after.
+          schema:
+            type: string
+        - name: before
+          in: query
+          description: The cursor to fetch entries before.
+          schema:
+            type: string
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: A page of notes.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, page_info]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Note'
+                  page_info:
+                    $ref: '#/components/schemas/PageInfo'
+  /v1/boards/{board_id}/notes:
+    get:
+      summary: List the notes of a board
+      parameters:
+        - name: board_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: after
+          in: query
+          schema:
+            type: string
+        - name: before
+          in: query
+          schema:
+            type: string
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: A page of board notes.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, page_info]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      required: [id]
+                      properties:
+                        id:
+                          type: string
+                        pinned:
+                          type: boolean
+                  page_info:
+                    $ref: '#/components/schemas/PageInfo'
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    Note:
+      type: object
+      required: [id]
+      properties:
+        id:
+          type: string
+        body:
+          type: string
+    PageInfo:
+      type: object
+      required: [page_size]
+      properties:
+        after:
+          type: string
+        before:
+          type: string
+        page_size:
+          type: integer

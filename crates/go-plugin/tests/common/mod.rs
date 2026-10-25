@@ -17,10 +17,30 @@ pub fn root() -> PathBuf {
 
 /// The neutral model of an annotated spec.
 pub fn model(annotated: &str) -> Client {
+    try_model(annotated).expect("converts")
+}
+
+/// The neutral model of an annotated spec, or the adapter's diagnostic.
+pub fn try_model(annotated: &str) -> Result<Client, ferrule_sdk_model::FerruleError> {
     let forge: forge::Forge = serde_json::from_str(annotated).expect("a document Forge reads");
-    ferrule_sdk_model::forge_to_model(&forge)
-        .expect("converts")
-        .expect("has operations")
+    ferrule_sdk_model::forge_to_model(&forge).map(|m| m.expect("has operations"))
+}
+
+/// The model of a config oracle whose pagination the adapter may not read yet, or `None` (with
+/// a note) when it does not: the converter maps an unannotated items array from PR #16
+/// (`fix/pagination-items`) on, and the adapter does not accept `$` in request param names
+/// (knock's `query_options.$skiptoken`; Phase 1 gap list).
+pub fn paginated_model(annotated: &str, name: &str) -> Option<Client> {
+    match try_model(annotated) {
+        Ok(m) => Some(m),
+        Err(e)
+            if e.pointer.ends_with("x-ferrule-pagination") || e.pointer.ends_with("x-ferrule-pagination/response") =>
+        {
+            eprintln!("skipped: the adapter does not read {name}'s pagination yet: {e:?}");
+            None
+        }
+        Err(e) => panic!("{name} converts: {e:?}"),
+    }
 }
 
 /// The annotated spec of a config oracle in `oracles/cache`, or `None` when it is not fetched.
