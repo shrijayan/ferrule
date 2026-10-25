@@ -1,5 +1,5 @@
 {
-  "sha256": "9f95e75134e76688334af1104369c6a0080ebf837db5ca29c8cdbd663e48d726",
+  "sha256": "1100c7668390fb8099a21391aaa4f09d9f139a0ae537270eb842ac6128597629",
   "root": {
     "x-ferrule-casings": {
       "lumaai": {
@@ -58,6 +58,24 @@
       "projectName": "lumaai",
       "pythonEdition": "python.2025-10-08",
       "version": 1
+    },
+    "x-ferrule-targets": {
+      "node": {
+        "edition": "node.2025-10-08",
+        "options": {},
+        "package_name": "lumaai",
+        "production_repo": "lumalabs/lumaai-node"
+      },
+      "python": {
+        "edition": "python.2025-10-08",
+        "options": {
+          "options": {
+            "use_uv": false
+          }
+        },
+        "package_name": "lumaai",
+        "production_repo": "lumalabs/lumaai-python"
+      }
     }
   },
   "mirrored": {
@@ -138,6 +156,24 @@
         "path": [
           "credits"
         ]
+      },
+      "x-ferrule-targets": {
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "lumaai",
+          "production_repo": "lumalabs/lumaai-node"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "lumaai",
+          "production_repo": "lumalabs/lumaai-python"
+        }
       }
     },
     "GET /generations": {
@@ -159,6 +195,24 @@
         "path": [
           "generations"
         ]
+      },
+      "x-ferrule-targets": {
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "lumaai",
+          "production_repo": "lumalabs/lumaai-node"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "lumaai",
+          "production_repo": "lumalabs/lumaai-python"
+        }
       }
     },
     "GET /generations/concepts/list": {
@@ -183,6 +237,24 @@
           "generations",
           "concepts"
         ]
+      },
+      "x-ferrule-targets": {
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "lumaai",
+          "production_repo": "lumalabs/lumaai-node"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "lumaai",
+          "production_repo": "lumalabs/lumaai-python"
+        }
       }
     },
     "POST /generations/image": {
@@ -207,6 +279,24 @@
           "generations",
           "image"
         ]
+      },
+      "x-ferrule-targets": {
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "lumaai",
+          "production_repo": "lumalabs/lumaai-node"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "lumaai",
+          "production_repo": "lumalabs/lumaai-python"
+        }
       }
     },
     "POST /generations/image/reframe": {
@@ -231,6 +321,24 @@
           "generations",
           "image"
         ]
+      },
+      "x-ferrule-targets": {
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "lumaai",
+          "production_repo": "lumalabs/lumaai-node"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "lumaai",
+          "production_repo": "lumalabs/lumaai-python"
+        }
       }
     },
     "POST /generations/video": {
@@ -310,6 +418,24 @@
             "path": [
               "generations"
             ]
+          },
+          "x-ferrule-targets": {
+            "node": {
+              "edition": "node.2025-10-08",
+              "options": {},
+              "package_name": "lumaai",
+              "production_repo": "lumalabs/lumaai-node"
+            },
+            "python": {
+              "edition": "python.2025-10-08",
+              "options": {
+                "options": {
+                  "use_uv": false
+                }
+              },
+              "package_name": "lumaai",
+              "production_repo": "lumalabs/lumaai-python"
+            }
           }
         },
         {
@@ -390,6 +516,24 @@
               "generations",
               "video"
             ]
+          },
+          "x-ferrule-targets": {
+            "node": {
+              "edition": "node.2025-10-08",
+              "options": {},
+              "package_name": "lumaai",
+              "production_repo": "lumalabs/lumaai-node"
+            },
+            "python": {
+              "edition": "python.2025-10-08",
+              "options": {
+                "options": {
+                  "use_uv": false
+                }
+              },
+              "package_name": "lumaai",
+              "production_repo": "lumalabs/lumaai-python"
+            }
           }
         }
       ]
@@ -416,6 +560,24 @@
           "generations",
           "video"
         ]
+      },
+      "x-ferrule-targets": {
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "lumaai",
+          "production_repo": "lumalabs/lumaai-node"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "lumaai",
+          "production_repo": "lumalabs/lumaai-python"
+        }
       }
     },
     "POST /generations/video/reframe": {
@@ -440,6 +602,24 @@
           "generations",
           "video"
         ]
+      },
+      "x-ferrule-targets": {
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "lumaai",
+          "production_repo": "lumalabs/lumaai-node"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "lumaai",
+          "production_repo": "lumalabs/lumaai-python"
+        }
       }
     },
     "DELETE /generations/{id}": {
@@ -461,6 +641,24 @@
         "path": [
           "generations"
         ]
+      },
+      "x-ferrule-targets": {
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "lumaai",
+          "production_repo": "lumalabs/lumaai-node"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "lumaai",
+          "production_repo": "lumalabs/lumaai-python"
+        }
       }
     },
     "GET /generations/{id}": {
@@ -482,6 +680,24 @@
         "path": [
           "generations"
         ]
+      },
+      "x-ferrule-targets": {
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "lumaai",
+          "production_repo": "lumalabs/lumaai-node"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "lumaai",
+          "production_repo": "lumalabs/lumaai-python"
+        }
       }
     },
     "POST /generations/{id}/audio": {
@@ -503,6 +719,24 @@
         "path": [
           "generations"
         ]
+      },
+      "x-ferrule-targets": {
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "lumaai",
+          "production_repo": "lumalabs/lumaai-node"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "lumaai",
+          "production_repo": "lumalabs/lumaai-python"
+        }
       }
     },
     "POST /generations/{id}/upscale": {
@@ -524,6 +758,24 @@
         "path": [
           "generations"
         ]
+      },
+      "x-ferrule-targets": {
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "lumaai",
+          "production_repo": "lumalabs/lumaai-node"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "lumaai",
+          "production_repo": "lumalabs/lumaai-python"
+        }
       }
     },
     "GET /ping": {
@@ -545,6 +797,24 @@
         "path": [
           "ping"
         ]
+      },
+      "x-ferrule-targets": {
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "lumaai",
+          "production_repo": "lumalabs/lumaai-node"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          },
+          "package_name": "lumaai",
+          "production_repo": "lumalabs/lumaai-python"
+        }
       }
     }
   }

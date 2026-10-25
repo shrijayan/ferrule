@@ -1,5 +1,5 @@
 {
-  "sha256": "ade13b63b152c906aab1577f66c7a9ca960874c0d6522cfa8e330f53532dda09",
+  "sha256": "19fd0abdc5d96ed4f231fc7c6ab2eb8a5aafcd14f82f0c6ce985a0e418df1e74",
   "root": {
     "x-ferrule-client": {
       "defaultEnvironment": "production",
@@ -74,6 +74,90 @@
       "projectName": "imagekitio",
       "pythonEdition": "python.2025-10-08",
       "version": 1
+    },
+    "x-ferrule-targets": {
+      "cli": {
+        "edition": "cli.2025-10-08",
+        "options": {
+          "binary_name": "imagekit"
+        }
+      },
+      "csharp": {
+        "edition": "csharp.2025-10-08",
+        "options": {},
+        "package_name": "Imagekit"
+      },
+      "go": {
+        "edition": "go.2025-10-08",
+        "options": {
+          "options": {
+            "enable_v2": true
+          }
+        },
+        "package_name": "imagekit",
+        "production_repo": "imagekit-developer/imagekit-go#master"
+      },
+      "java": {
+        "edition": "java.2025-10-08",
+        "options": {
+          "reverse_domain": "io.imagekit"
+        },
+        "production_repo": "imagekit-developer/imagekit-java#master"
+      },
+      "kotlin": {
+        "edition": "kotlin.2025-10-08",
+        "options": {
+          "reverse_domain": "io.imagekit"
+        }
+      },
+      "php": {
+        "edition": "php.2025-10-08",
+        "options": {
+          "composer_package_name": "imagekit/imagekit"
+        },
+        "package_name": "imagekit"
+      },
+      "python": {
+        "edition": "python.2025-10-08",
+        "options": {
+          "options": {
+            "use_uv": false
+          },
+          "project_name": "imagekitio"
+        },
+        "package_name": "imagekitio",
+        "production_repo": "imagekit-developer/imagekit-python#master"
+      },
+      "ruby": {
+        "edition": "ruby.2025-10-08",
+        "options": {
+          "gem_name": "imagekitio"
+        },
+        "production_repo": "imagekit-developer/imagekit-ruby#master"
+      },
+      "terraform": {
+        "edition": "terraform.2025-10-08",
+        "options": {
+          "options": {
+            "infer_all_services": false
+          },
+          "provider_name": "imagekit"
+        }
+      },
+      "typescript": {
+        "edition": "typescript.2025-10-08",
+        "options": {
+          "options": {
+            "mcp_server": {
+              "enable_all_resources": true,
+              "generate_cloudflare_worker": true,
+              "package_name": "@imagekit/api-mcp"
+            }
+          }
+        },
+        "package_name": "@imagekit/nodejs",
+        "production_repo": "imagekit-developer/imagekit-nodejs#master"
+      }
     }
   },
   "mirrored": {
@@ -145,6 +229,15 @@
       "timeoutSeconds": 60
     },
     "x-ferrule-models": {
+      "AITag": {
+        "module": "shared.AITag",
+        "name": "AITag",
+        "x-ferrule-targets-only": [
+          "go",
+          "java",
+          "ruby"
+        ]
+      },
       "BaseOverlay": {
         "module": "shared.BaseOverlay",
         "name": "BaseOverlay"
@@ -153,9 +246,27 @@
         "module": "BaseWebhookEvent",
         "name": "BaseWebhookEvent"
       },
+      "CustomMetadata": {
+        "module": "shared.CustomMetadata",
+        "name": "CustomMetadata",
+        "x-ferrule-targets-only": [
+          "go",
+          "java",
+          "ruby"
+        ]
+      },
       "CustomMetadataField": {
         "module": "CustomMetadataField",
         "name": "CustomMetadataField"
+      },
+      "EmbeddedMetadata": {
+        "module": "shared.EmbeddedMetadata",
+        "name": "EmbeddedMetadata",
+        "x-ferrule-targets-only": [
+          "go",
+          "java",
+          "ruby"
+        ]
       },
       "ExtensionConfig": {
         "module": "shared.ExtensionConfig",
@@ -233,6 +344,15 @@
         "module": "shared.SavedExtension",
         "name": "SavedExtension"
       },
+      "SelectedFieldsSchema": {
+        "module": "shared.SelectedFieldsSchema",
+        "name": "SelectedFieldsSchema",
+        "x-ferrule-targets-only": [
+          "go",
+          "java",
+          "ruby"
+        ]
+      },
       "SolidColorOverlay": {
         "module": "shared.SolidColorOverlay",
         "name": "SolidColorOverlay"
@@ -301,6 +421,15 @@
         "module": "accounts.UrlEndpointResponse",
         "name": "UrlEndpointResponse"
       },
+      "VersionInfo": {
+        "module": "shared.VersionInfo",
+        "name": "VersionInfo",
+        "x-ferrule-targets-only": [
+          "go",
+          "java",
+          "ruby"
+        ]
+      },
       "VideoOverlay": {
         "module": "shared.VideoOverlay",
         "name": "VideoOverlay"
@@ -338,6 +467,90 @@
         "path": [
           "files"
         ]
+      },
+      "x-ferrule-targets": {
+        "cli": {
+          "edition": "cli.2025-10-08",
+          "options": {
+            "binary_name": "imagekit"
+          }
+        },
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "imagekit",
+          "production_repo": "imagekit-developer/imagekit-go#master"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          },
+          "production_repo": "imagekit-developer/imagekit-java#master"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          }
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "imagekit/imagekit"
+          },
+          "package_name": "imagekit"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "imagekitio"
+          },
+          "package_name": "imagekitio",
+          "production_repo": "imagekit-developer/imagekit-python#master"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "imagekitio"
+          },
+          "production_repo": "imagekit-developer/imagekit-ruby#master"
+        },
+        "terraform": {
+          "edition": "terraform.2025-10-08",
+          "options": {
+            "options": {
+              "infer_all_services": false
+            },
+            "provider_name": "imagekit"
+          }
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "generate_cloudflare_worker": true,
+                "package_name": "@imagekit/api-mcp"
+              }
+            }
+          },
+          "package_name": "@imagekit/nodejs",
+          "production_repo": "imagekit-developer/imagekit-nodejs#master"
+        }
       }
     },
     "POST /api/v2/files/upload": {
@@ -360,6 +573,90 @@
           "v2",
           "files"
         ]
+      },
+      "x-ferrule-targets": {
+        "cli": {
+          "edition": "cli.2025-10-08",
+          "options": {
+            "binary_name": "imagekit"
+          }
+        },
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "imagekit",
+          "production_repo": "imagekit-developer/imagekit-go#master"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          },
+          "production_repo": "imagekit-developer/imagekit-java#master"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          }
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "imagekit/imagekit"
+          },
+          "package_name": "imagekit"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "imagekitio"
+          },
+          "package_name": "imagekitio",
+          "production_repo": "imagekit-developer/imagekit-python#master"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "imagekitio"
+          },
+          "production_repo": "imagekit-developer/imagekit-ruby#master"
+        },
+        "terraform": {
+          "edition": "terraform.2025-10-08",
+          "options": {
+            "options": {
+              "infer_all_services": false
+            },
+            "provider_name": "imagekit"
+          }
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "generate_cloudflare_worker": true,
+                "package_name": "@imagekit/api-mcp"
+              }
+            }
+          },
+          "package_name": "@imagekit/nodejs",
+          "production_repo": "imagekit-developer/imagekit-nodejs#master"
+        }
       }
     },
     "GET /v1/accounts/origins": {
@@ -379,6 +676,90 @@
           "accounts",
           "origins"
         ]
+      },
+      "x-ferrule-targets": {
+        "cli": {
+          "edition": "cli.2025-10-08",
+          "options": {
+            "binary_name": "imagekit"
+          }
+        },
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "imagekit",
+          "production_repo": "imagekit-developer/imagekit-go#master"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          },
+          "production_repo": "imagekit-developer/imagekit-java#master"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          }
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "imagekit/imagekit"
+          },
+          "package_name": "imagekit"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "imagekitio"
+          },
+          "package_name": "imagekitio",
+          "production_repo": "imagekit-developer/imagekit-python#master"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "imagekitio"
+          },
+          "production_repo": "imagekit-developer/imagekit-ruby#master"
+        },
+        "terraform": {
+          "edition": "terraform.2025-10-08",
+          "options": {
+            "options": {
+              "infer_all_services": false
+            },
+            "provider_name": "imagekit"
+          }
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "generate_cloudflare_worker": true,
+                "package_name": "@imagekit/api-mcp"
+              }
+            }
+          },
+          "package_name": "@imagekit/nodejs",
+          "production_repo": "imagekit-developer/imagekit-nodejs#master"
+        }
       }
     },
     "POST /v1/accounts/origins": {
@@ -398,6 +779,90 @@
           "accounts",
           "origins"
         ]
+      },
+      "x-ferrule-targets": {
+        "cli": {
+          "edition": "cli.2025-10-08",
+          "options": {
+            "binary_name": "imagekit"
+          }
+        },
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "imagekit",
+          "production_repo": "imagekit-developer/imagekit-go#master"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          },
+          "production_repo": "imagekit-developer/imagekit-java#master"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          }
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "imagekit/imagekit"
+          },
+          "package_name": "imagekit"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "imagekitio"
+          },
+          "package_name": "imagekitio",
+          "production_repo": "imagekit-developer/imagekit-python#master"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "imagekitio"
+          },
+          "production_repo": "imagekit-developer/imagekit-ruby#master"
+        },
+        "terraform": {
+          "edition": "terraform.2025-10-08",
+          "options": {
+            "options": {
+              "infer_all_services": false
+            },
+            "provider_name": "imagekit"
+          }
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "generate_cloudflare_worker": true,
+                "package_name": "@imagekit/api-mcp"
+              }
+            }
+          },
+          "package_name": "@imagekit/nodejs",
+          "production_repo": "imagekit-developer/imagekit-nodejs#master"
+        }
       }
     },
     "DELETE /v1/accounts/origins/{id}": {
@@ -417,6 +882,90 @@
           "accounts",
           "origins"
         ]
+      },
+      "x-ferrule-targets": {
+        "cli": {
+          "edition": "cli.2025-10-08",
+          "options": {
+            "binary_name": "imagekit"
+          }
+        },
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "imagekit",
+          "production_repo": "imagekit-developer/imagekit-go#master"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          },
+          "production_repo": "imagekit-developer/imagekit-java#master"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          }
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "imagekit/imagekit"
+          },
+          "package_name": "imagekit"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "imagekitio"
+          },
+          "package_name": "imagekitio",
+          "production_repo": "imagekit-developer/imagekit-python#master"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "imagekitio"
+          },
+          "production_repo": "imagekit-developer/imagekit-ruby#master"
+        },
+        "terraform": {
+          "edition": "terraform.2025-10-08",
+          "options": {
+            "options": {
+              "infer_all_services": false
+            },
+            "provider_name": "imagekit"
+          }
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "generate_cloudflare_worker": true,
+                "package_name": "@imagekit/api-mcp"
+              }
+            }
+          },
+          "package_name": "@imagekit/nodejs",
+          "production_repo": "imagekit-developer/imagekit-nodejs#master"
+        }
       }
     },
     "GET /v1/accounts/origins/{id}": {
@@ -436,6 +985,90 @@
           "accounts",
           "origins"
         ]
+      },
+      "x-ferrule-targets": {
+        "cli": {
+          "edition": "cli.2025-10-08",
+          "options": {
+            "binary_name": "imagekit"
+          }
+        },
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "imagekit",
+          "production_repo": "imagekit-developer/imagekit-go#master"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          },
+          "production_repo": "imagekit-developer/imagekit-java#master"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          }
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "imagekit/imagekit"
+          },
+          "package_name": "imagekit"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "imagekitio"
+          },
+          "package_name": "imagekitio",
+          "production_repo": "imagekit-developer/imagekit-python#master"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "imagekitio"
+          },
+          "production_repo": "imagekit-developer/imagekit-ruby#master"
+        },
+        "terraform": {
+          "edition": "terraform.2025-10-08",
+          "options": {
+            "options": {
+              "infer_all_services": false
+            },
+            "provider_name": "imagekit"
+          }
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "generate_cloudflare_worker": true,
+                "package_name": "@imagekit/api-mcp"
+              }
+            }
+          },
+          "package_name": "@imagekit/nodejs",
+          "production_repo": "imagekit-developer/imagekit-nodejs#master"
+        }
       }
     },
     "PUT /v1/accounts/origins/{id}": {
@@ -455,6 +1088,90 @@
           "accounts",
           "origins"
         ]
+      },
+      "x-ferrule-targets": {
+        "cli": {
+          "edition": "cli.2025-10-08",
+          "options": {
+            "binary_name": "imagekit"
+          }
+        },
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "imagekit",
+          "production_repo": "imagekit-developer/imagekit-go#master"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          },
+          "production_repo": "imagekit-developer/imagekit-java#master"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          }
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "imagekit/imagekit"
+          },
+          "package_name": "imagekit"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "imagekitio"
+          },
+          "package_name": "imagekitio",
+          "production_repo": "imagekit-developer/imagekit-python#master"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "imagekitio"
+          },
+          "production_repo": "imagekit-developer/imagekit-ruby#master"
+        },
+        "terraform": {
+          "edition": "terraform.2025-10-08",
+          "options": {
+            "options": {
+              "infer_all_services": false
+            },
+            "provider_name": "imagekit"
+          }
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "generate_cloudflare_worker": true,
+                "package_name": "@imagekit/api-mcp"
+              }
+            }
+          },
+          "package_name": "@imagekit/nodejs",
+          "production_repo": "imagekit-developer/imagekit-nodejs#master"
+        }
       }
     },
     "GET /v1/accounts/url-endpoints": {
@@ -474,6 +1191,90 @@
           "accounts",
           "urlEndpoints"
         ]
+      },
+      "x-ferrule-targets": {
+        "cli": {
+          "edition": "cli.2025-10-08",
+          "options": {
+            "binary_name": "imagekit"
+          }
+        },
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "imagekit",
+          "production_repo": "imagekit-developer/imagekit-go#master"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          },
+          "production_repo": "imagekit-developer/imagekit-java#master"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          }
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "imagekit/imagekit"
+          },
+          "package_name": "imagekit"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "imagekitio"
+          },
+          "package_name": "imagekitio",
+          "production_repo": "imagekit-developer/imagekit-python#master"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "imagekitio"
+          },
+          "production_repo": "imagekit-developer/imagekit-ruby#master"
+        },
+        "terraform": {
+          "edition": "terraform.2025-10-08",
+          "options": {
+            "options": {
+              "infer_all_services": false
+            },
+            "provider_name": "imagekit"
+          }
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "generate_cloudflare_worker": true,
+                "package_name": "@imagekit/api-mcp"
+              }
+            }
+          },
+          "package_name": "@imagekit/nodejs",
+          "production_repo": "imagekit-developer/imagekit-nodejs#master"
+        }
       }
     },
     "POST /v1/accounts/url-endpoints": {
@@ -493,6 +1294,90 @@
           "accounts",
           "urlEndpoints"
         ]
+      },
+      "x-ferrule-targets": {
+        "cli": {
+          "edition": "cli.2025-10-08",
+          "options": {
+            "binary_name": "imagekit"
+          }
+        },
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "imagekit",
+          "production_repo": "imagekit-developer/imagekit-go#master"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          },
+          "production_repo": "imagekit-developer/imagekit-java#master"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          }
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "imagekit/imagekit"
+          },
+          "package_name": "imagekit"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "imagekitio"
+          },
+          "package_name": "imagekitio",
+          "production_repo": "imagekit-developer/imagekit-python#master"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "imagekitio"
+          },
+          "production_repo": "imagekit-developer/imagekit-ruby#master"
+        },
+        "terraform": {
+          "edition": "terraform.2025-10-08",
+          "options": {
+            "options": {
+              "infer_all_services": false
+            },
+            "provider_name": "imagekit"
+          }
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "generate_cloudflare_worker": true,
+                "package_name": "@imagekit/api-mcp"
+              }
+            }
+          },
+          "package_name": "@imagekit/nodejs",
+          "production_repo": "imagekit-developer/imagekit-nodejs#master"
+        }
       }
     },
     "DELETE /v1/accounts/url-endpoints/{id}": {
@@ -512,6 +1397,90 @@
           "accounts",
           "urlEndpoints"
         ]
+      },
+      "x-ferrule-targets": {
+        "cli": {
+          "edition": "cli.2025-10-08",
+          "options": {
+            "binary_name": "imagekit"
+          }
+        },
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "imagekit",
+          "production_repo": "imagekit-developer/imagekit-go#master"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          },
+          "production_repo": "imagekit-developer/imagekit-java#master"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          }
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "imagekit/imagekit"
+          },
+          "package_name": "imagekit"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "imagekitio"
+          },
+          "package_name": "imagekitio",
+          "production_repo": "imagekit-developer/imagekit-python#master"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "imagekitio"
+          },
+          "production_repo": "imagekit-developer/imagekit-ruby#master"
+        },
+        "terraform": {
+          "edition": "terraform.2025-10-08",
+          "options": {
+            "options": {
+              "infer_all_services": false
+            },
+            "provider_name": "imagekit"
+          }
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "generate_cloudflare_worker": true,
+                "package_name": "@imagekit/api-mcp"
+              }
+            }
+          },
+          "package_name": "@imagekit/nodejs",
+          "production_repo": "imagekit-developer/imagekit-nodejs#master"
+        }
       }
     },
     "GET /v1/accounts/url-endpoints/{id}": {
@@ -531,6 +1500,90 @@
           "accounts",
           "urlEndpoints"
         ]
+      },
+      "x-ferrule-targets": {
+        "cli": {
+          "edition": "cli.2025-10-08",
+          "options": {
+            "binary_name": "imagekit"
+          }
+        },
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "imagekit",
+          "production_repo": "imagekit-developer/imagekit-go#master"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          },
+          "production_repo": "imagekit-developer/imagekit-java#master"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          }
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "imagekit/imagekit"
+          },
+          "package_name": "imagekit"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "imagekitio"
+          },
+          "package_name": "imagekitio",
+          "production_repo": "imagekit-developer/imagekit-python#master"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "imagekitio"
+          },
+          "production_repo": "imagekit-developer/imagekit-ruby#master"
+        },
+        "terraform": {
+          "edition": "terraform.2025-10-08",
+          "options": {
+            "options": {
+              "infer_all_services": false
+            },
+            "provider_name": "imagekit"
+          }
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "generate_cloudflare_worker": true,
+                "package_name": "@imagekit/api-mcp"
+              }
+            }
+          },
+          "package_name": "@imagekit/nodejs",
+          "production_repo": "imagekit-developer/imagekit-nodejs#master"
+        }
       }
     },
     "PUT /v1/accounts/url-endpoints/{id}": {
@@ -550,6 +1603,90 @@
           "accounts",
           "urlEndpoints"
         ]
+      },
+      "x-ferrule-targets": {
+        "cli": {
+          "edition": "cli.2025-10-08",
+          "options": {
+            "binary_name": "imagekit"
+          }
+        },
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "imagekit",
+          "production_repo": "imagekit-developer/imagekit-go#master"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          },
+          "production_repo": "imagekit-developer/imagekit-java#master"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          }
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "imagekit/imagekit"
+          },
+          "package_name": "imagekit"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "imagekitio"
+          },
+          "package_name": "imagekitio",
+          "production_repo": "imagekit-developer/imagekit-python#master"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "imagekitio"
+          },
+          "production_repo": "imagekit-developer/imagekit-ruby#master"
+        },
+        "terraform": {
+          "edition": "terraform.2025-10-08",
+          "options": {
+            "options": {
+              "infer_all_services": false
+            },
+            "provider_name": "imagekit"
+          }
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "generate_cloudflare_worker": true,
+                "package_name": "@imagekit/api-mcp"
+              }
+            }
+          },
+          "package_name": "@imagekit/nodejs",
+          "production_repo": "imagekit-developer/imagekit-nodejs#master"
+        }
       }
     },
     "GET /v1/accounts/usage": {
@@ -569,6 +1706,90 @@
           "accounts",
           "usage"
         ]
+      },
+      "x-ferrule-targets": {
+        "cli": {
+          "edition": "cli.2025-10-08",
+          "options": {
+            "binary_name": "imagekit"
+          }
+        },
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "imagekit",
+          "production_repo": "imagekit-developer/imagekit-go#master"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          },
+          "production_repo": "imagekit-developer/imagekit-java#master"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          }
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "imagekit/imagekit"
+          },
+          "package_name": "imagekit"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "imagekitio"
+          },
+          "package_name": "imagekitio",
+          "production_repo": "imagekit-developer/imagekit-python#master"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "imagekitio"
+          },
+          "production_repo": "imagekit-developer/imagekit-ruby#master"
+        },
+        "terraform": {
+          "edition": "terraform.2025-10-08",
+          "options": {
+            "options": {
+              "infer_all_services": false
+            },
+            "provider_name": "imagekit"
+          }
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "generate_cloudflare_worker": true,
+                "package_name": "@imagekit/api-mcp"
+              }
+            }
+          },
+          "package_name": "@imagekit/nodejs",
+          "production_repo": "imagekit-developer/imagekit-nodejs#master"
+        }
       }
     },
     "POST /v1/bulkJobs/copyFolder": {
@@ -585,6 +1806,90 @@
         "path": [
           "folders"
         ]
+      },
+      "x-ferrule-targets": {
+        "cli": {
+          "edition": "cli.2025-10-08",
+          "options": {
+            "binary_name": "imagekit"
+          }
+        },
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "imagekit",
+          "production_repo": "imagekit-developer/imagekit-go#master"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          },
+          "production_repo": "imagekit-developer/imagekit-java#master"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          }
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "imagekit/imagekit"
+          },
+          "package_name": "imagekit"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "imagekitio"
+          },
+          "package_name": "imagekitio",
+          "production_repo": "imagekit-developer/imagekit-python#master"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "imagekitio"
+          },
+          "production_repo": "imagekit-developer/imagekit-ruby#master"
+        },
+        "terraform": {
+          "edition": "terraform.2025-10-08",
+          "options": {
+            "options": {
+              "infer_all_services": false
+            },
+            "provider_name": "imagekit"
+          }
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "generate_cloudflare_worker": true,
+                "package_name": "@imagekit/api-mcp"
+              }
+            }
+          },
+          "package_name": "@imagekit/nodejs",
+          "production_repo": "imagekit-developer/imagekit-nodejs#master"
+        }
       }
     },
     "POST /v1/bulkJobs/moveFolder": {
@@ -601,6 +1906,90 @@
         "path": [
           "folders"
         ]
+      },
+      "x-ferrule-targets": {
+        "cli": {
+          "edition": "cli.2025-10-08",
+          "options": {
+            "binary_name": "imagekit"
+          }
+        },
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "imagekit",
+          "production_repo": "imagekit-developer/imagekit-go#master"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          },
+          "production_repo": "imagekit-developer/imagekit-java#master"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          }
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "imagekit/imagekit"
+          },
+          "package_name": "imagekit"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "imagekitio"
+          },
+          "package_name": "imagekitio",
+          "production_repo": "imagekit-developer/imagekit-python#master"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "imagekitio"
+          },
+          "production_repo": "imagekit-developer/imagekit-ruby#master"
+        },
+        "terraform": {
+          "edition": "terraform.2025-10-08",
+          "options": {
+            "options": {
+              "infer_all_services": false
+            },
+            "provider_name": "imagekit"
+          }
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "generate_cloudflare_worker": true,
+                "package_name": "@imagekit/api-mcp"
+              }
+            }
+          },
+          "package_name": "@imagekit/nodejs",
+          "production_repo": "imagekit-developer/imagekit-nodejs#master"
+        }
       }
     },
     "POST /v1/bulkJobs/renameFolder": {
@@ -617,6 +2006,90 @@
         "path": [
           "folders"
         ]
+      },
+      "x-ferrule-targets": {
+        "cli": {
+          "edition": "cli.2025-10-08",
+          "options": {
+            "binary_name": "imagekit"
+          }
+        },
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "imagekit",
+          "production_repo": "imagekit-developer/imagekit-go#master"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          },
+          "production_repo": "imagekit-developer/imagekit-java#master"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          }
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "imagekit/imagekit"
+          },
+          "package_name": "imagekit"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "imagekitio"
+          },
+          "package_name": "imagekitio",
+          "production_repo": "imagekit-developer/imagekit-python#master"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "imagekitio"
+          },
+          "production_repo": "imagekit-developer/imagekit-ruby#master"
+        },
+        "terraform": {
+          "edition": "terraform.2025-10-08",
+          "options": {
+            "options": {
+              "infer_all_services": false
+            },
+            "provider_name": "imagekit"
+          }
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "generate_cloudflare_worker": true,
+                "package_name": "@imagekit/api-mcp"
+              }
+            }
+          },
+          "package_name": "@imagekit/nodejs",
+          "production_repo": "imagekit-developer/imagekit-nodejs#master"
+        }
       }
     },
     "GET /v1/bulkJobs/{jobId}": {
@@ -636,6 +2109,90 @@
           "folders",
           "job"
         ]
+      },
+      "x-ferrule-targets": {
+        "cli": {
+          "edition": "cli.2025-10-08",
+          "options": {
+            "binary_name": "imagekit"
+          }
+        },
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "imagekit",
+          "production_repo": "imagekit-developer/imagekit-go#master"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          },
+          "production_repo": "imagekit-developer/imagekit-java#master"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          }
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "imagekit/imagekit"
+          },
+          "package_name": "imagekit"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "imagekitio"
+          },
+          "package_name": "imagekitio",
+          "production_repo": "imagekit-developer/imagekit-python#master"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "imagekitio"
+          },
+          "production_repo": "imagekit-developer/imagekit-ruby#master"
+        },
+        "terraform": {
+          "edition": "terraform.2025-10-08",
+          "options": {
+            "options": {
+              "infer_all_services": false
+            },
+            "provider_name": "imagekit"
+          }
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "generate_cloudflare_worker": true,
+                "package_name": "@imagekit/api-mcp"
+              }
+            }
+          },
+          "package_name": "@imagekit/nodejs",
+          "production_repo": "imagekit-developer/imagekit-nodejs#master"
+        }
       }
     },
     "GET /v1/customMetadataFields": {
@@ -652,6 +2209,90 @@
         "path": [
           "customMetadataFields"
         ]
+      },
+      "x-ferrule-targets": {
+        "cli": {
+          "edition": "cli.2025-10-08",
+          "options": {
+            "binary_name": "imagekit"
+          }
+        },
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "imagekit",
+          "production_repo": "imagekit-developer/imagekit-go#master"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          },
+          "production_repo": "imagekit-developer/imagekit-java#master"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          }
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "imagekit/imagekit"
+          },
+          "package_name": "imagekit"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "imagekitio"
+          },
+          "package_name": "imagekitio",
+          "production_repo": "imagekit-developer/imagekit-python#master"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "imagekitio"
+          },
+          "production_repo": "imagekit-developer/imagekit-ruby#master"
+        },
+        "terraform": {
+          "edition": "terraform.2025-10-08",
+          "options": {
+            "options": {
+              "infer_all_services": false
+            },
+            "provider_name": "imagekit"
+          }
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "generate_cloudflare_worker": true,
+                "package_name": "@imagekit/api-mcp"
+              }
+            }
+          },
+          "package_name": "@imagekit/nodejs",
+          "production_repo": "imagekit-developer/imagekit-nodejs#master"
+        }
       }
     },
     "POST /v1/customMetadataFields": {
@@ -668,6 +2309,90 @@
         "path": [
           "customMetadataFields"
         ]
+      },
+      "x-ferrule-targets": {
+        "cli": {
+          "edition": "cli.2025-10-08",
+          "options": {
+            "binary_name": "imagekit"
+          }
+        },
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "imagekit",
+          "production_repo": "imagekit-developer/imagekit-go#master"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          },
+          "production_repo": "imagekit-developer/imagekit-java#master"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          }
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "imagekit/imagekit"
+          },
+          "package_name": "imagekit"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "imagekitio"
+          },
+          "package_name": "imagekitio",
+          "production_repo": "imagekit-developer/imagekit-python#master"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "imagekitio"
+          },
+          "production_repo": "imagekit-developer/imagekit-ruby#master"
+        },
+        "terraform": {
+          "edition": "terraform.2025-10-08",
+          "options": {
+            "options": {
+              "infer_all_services": false
+            },
+            "provider_name": "imagekit"
+          }
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "generate_cloudflare_worker": true,
+                "package_name": "@imagekit/api-mcp"
+              }
+            }
+          },
+          "package_name": "@imagekit/nodejs",
+          "production_repo": "imagekit-developer/imagekit-nodejs#master"
+        }
       }
     },
     "DELETE /v1/customMetadataFields/{id}": {
@@ -684,6 +2409,90 @@
         "path": [
           "customMetadataFields"
         ]
+      },
+      "x-ferrule-targets": {
+        "cli": {
+          "edition": "cli.2025-10-08",
+          "options": {
+            "binary_name": "imagekit"
+          }
+        },
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "imagekit",
+          "production_repo": "imagekit-developer/imagekit-go#master"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          },
+          "production_repo": "imagekit-developer/imagekit-java#master"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          }
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "imagekit/imagekit"
+          },
+          "package_name": "imagekit"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "imagekitio"
+          },
+          "package_name": "imagekitio",
+          "production_repo": "imagekit-developer/imagekit-python#master"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "imagekitio"
+          },
+          "production_repo": "imagekit-developer/imagekit-ruby#master"
+        },
+        "terraform": {
+          "edition": "terraform.2025-10-08",
+          "options": {
+            "options": {
+              "infer_all_services": false
+            },
+            "provider_name": "imagekit"
+          }
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "generate_cloudflare_worker": true,
+                "package_name": "@imagekit/api-mcp"
+              }
+            }
+          },
+          "package_name": "@imagekit/nodejs",
+          "production_repo": "imagekit-developer/imagekit-nodejs#master"
+        }
       }
     },
     "PATCH /v1/customMetadataFields/{id}": {
@@ -700,6 +2509,90 @@
         "path": [
           "customMetadataFields"
         ]
+      },
+      "x-ferrule-targets": {
+        "cli": {
+          "edition": "cli.2025-10-08",
+          "options": {
+            "binary_name": "imagekit"
+          }
+        },
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "imagekit",
+          "production_repo": "imagekit-developer/imagekit-go#master"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          },
+          "production_repo": "imagekit-developer/imagekit-java#master"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          }
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "imagekit/imagekit"
+          },
+          "package_name": "imagekit"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "imagekitio"
+          },
+          "package_name": "imagekitio",
+          "production_repo": "imagekit-developer/imagekit-python#master"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "imagekitio"
+          },
+          "production_repo": "imagekit-developer/imagekit-ruby#master"
+        },
+        "terraform": {
+          "edition": "terraform.2025-10-08",
+          "options": {
+            "options": {
+              "infer_all_services": false
+            },
+            "provider_name": "imagekit"
+          }
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "generate_cloudflare_worker": true,
+                "package_name": "@imagekit/api-mcp"
+              }
+            }
+          },
+          "package_name": "@imagekit/nodejs",
+          "production_repo": "imagekit-developer/imagekit-nodejs#master"
+        }
       }
     },
     "POST /v1/dummy/test": {
@@ -716,7 +2609,95 @@
         "path": [
           "dummy"
         ]
-      }
+      },
+      "x-ferrule-targets": {
+        "cli": {
+          "edition": "cli.2025-10-08",
+          "options": {
+            "binary_name": "imagekit"
+          }
+        },
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "imagekit",
+          "production_repo": "imagekit-developer/imagekit-go#master"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          },
+          "production_repo": "imagekit-developer/imagekit-java#master"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          }
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "imagekit/imagekit"
+          },
+          "package_name": "imagekit"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "imagekitio"
+          },
+          "package_name": "imagekitio",
+          "production_repo": "imagekit-developer/imagekit-python#master"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "imagekitio"
+          },
+          "production_repo": "imagekit-developer/imagekit-ruby#master"
+        },
+        "terraform": {
+          "edition": "terraform.2025-10-08",
+          "options": {
+            "options": {
+              "infer_all_services": false
+            },
+            "provider_name": "imagekit"
+          }
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "generate_cloudflare_worker": true,
+                "package_name": "@imagekit/api-mcp"
+              }
+            }
+          },
+          "package_name": "@imagekit/nodejs",
+          "production_repo": "imagekit-developer/imagekit-nodejs#master"
+        }
+      },
+      "x-ferrule-targets-only": [
+        "python",
+        "go"
+      ]
     },
     "GET /v1/files": {
       "x-fern-sdk-group-name": [
@@ -732,6 +2713,90 @@
         "path": [
           "assets"
         ]
+      },
+      "x-ferrule-targets": {
+        "cli": {
+          "edition": "cli.2025-10-08",
+          "options": {
+            "binary_name": "imagekit"
+          }
+        },
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "imagekit",
+          "production_repo": "imagekit-developer/imagekit-go#master"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          },
+          "production_repo": "imagekit-developer/imagekit-java#master"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          }
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "imagekit/imagekit"
+          },
+          "package_name": "imagekit"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "imagekitio"
+          },
+          "package_name": "imagekitio",
+          "production_repo": "imagekit-developer/imagekit-python#master"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "imagekitio"
+          },
+          "production_repo": "imagekit-developer/imagekit-ruby#master"
+        },
+        "terraform": {
+          "edition": "terraform.2025-10-08",
+          "options": {
+            "options": {
+              "infer_all_services": false
+            },
+            "provider_name": "imagekit"
+          }
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "generate_cloudflare_worker": true,
+                "package_name": "@imagekit/api-mcp"
+              }
+            }
+          },
+          "package_name": "@imagekit/nodejs",
+          "production_repo": "imagekit-developer/imagekit-nodejs#master"
+        }
       }
     },
     "POST /v1/files/addTags": {
@@ -751,6 +2816,90 @@
           "files",
           "bulk"
         ]
+      },
+      "x-ferrule-targets": {
+        "cli": {
+          "edition": "cli.2025-10-08",
+          "options": {
+            "binary_name": "imagekit"
+          }
+        },
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "imagekit",
+          "production_repo": "imagekit-developer/imagekit-go#master"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          },
+          "production_repo": "imagekit-developer/imagekit-java#master"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          }
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "imagekit/imagekit"
+          },
+          "package_name": "imagekit"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "imagekitio"
+          },
+          "package_name": "imagekitio",
+          "production_repo": "imagekit-developer/imagekit-python#master"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "imagekitio"
+          },
+          "production_repo": "imagekit-developer/imagekit-ruby#master"
+        },
+        "terraform": {
+          "edition": "terraform.2025-10-08",
+          "options": {
+            "options": {
+              "infer_all_services": false
+            },
+            "provider_name": "imagekit"
+          }
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "generate_cloudflare_worker": true,
+                "package_name": "@imagekit/api-mcp"
+              }
+            }
+          },
+          "package_name": "@imagekit/nodejs",
+          "production_repo": "imagekit-developer/imagekit-nodejs#master"
+        }
       }
     },
     "POST /v1/files/batch/deleteByFileIds": {
@@ -770,6 +2919,90 @@
           "files",
           "bulk"
         ]
+      },
+      "x-ferrule-targets": {
+        "cli": {
+          "edition": "cli.2025-10-08",
+          "options": {
+            "binary_name": "imagekit"
+          }
+        },
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "imagekit",
+          "production_repo": "imagekit-developer/imagekit-go#master"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          },
+          "production_repo": "imagekit-developer/imagekit-java#master"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          }
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "imagekit/imagekit"
+          },
+          "package_name": "imagekit"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "imagekitio"
+          },
+          "package_name": "imagekitio",
+          "production_repo": "imagekit-developer/imagekit-python#master"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "imagekitio"
+          },
+          "production_repo": "imagekit-developer/imagekit-ruby#master"
+        },
+        "terraform": {
+          "edition": "terraform.2025-10-08",
+          "options": {
+            "options": {
+              "infer_all_services": false
+            },
+            "provider_name": "imagekit"
+          }
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "generate_cloudflare_worker": true,
+                "package_name": "@imagekit/api-mcp"
+              }
+            }
+          },
+          "package_name": "@imagekit/nodejs",
+          "production_repo": "imagekit-developer/imagekit-nodejs#master"
+        }
       }
     },
     "POST /v1/files/copy": {
@@ -786,6 +3019,90 @@
         "path": [
           "files"
         ]
+      },
+      "x-ferrule-targets": {
+        "cli": {
+          "edition": "cli.2025-10-08",
+          "options": {
+            "binary_name": "imagekit"
+          }
+        },
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "imagekit",
+          "production_repo": "imagekit-developer/imagekit-go#master"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          },
+          "production_repo": "imagekit-developer/imagekit-java#master"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          }
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "imagekit/imagekit"
+          },
+          "package_name": "imagekit"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "imagekitio"
+          },
+          "package_name": "imagekitio",
+          "production_repo": "imagekit-developer/imagekit-python#master"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "imagekitio"
+          },
+          "production_repo": "imagekit-developer/imagekit-ruby#master"
+        },
+        "terraform": {
+          "edition": "terraform.2025-10-08",
+          "options": {
+            "options": {
+              "infer_all_services": false
+            },
+            "provider_name": "imagekit"
+          }
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "generate_cloudflare_worker": true,
+                "package_name": "@imagekit/api-mcp"
+              }
+            }
+          },
+          "package_name": "@imagekit/nodejs",
+          "production_repo": "imagekit-developer/imagekit-nodejs#master"
+        }
       }
     },
     "POST /v1/files/move": {
@@ -802,6 +3119,90 @@
         "path": [
           "files"
         ]
+      },
+      "x-ferrule-targets": {
+        "cli": {
+          "edition": "cli.2025-10-08",
+          "options": {
+            "binary_name": "imagekit"
+          }
+        },
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "imagekit",
+          "production_repo": "imagekit-developer/imagekit-go#master"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          },
+          "production_repo": "imagekit-developer/imagekit-java#master"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          }
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "imagekit/imagekit"
+          },
+          "package_name": "imagekit"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "imagekitio"
+          },
+          "package_name": "imagekitio",
+          "production_repo": "imagekit-developer/imagekit-python#master"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "imagekitio"
+          },
+          "production_repo": "imagekit-developer/imagekit-ruby#master"
+        },
+        "terraform": {
+          "edition": "terraform.2025-10-08",
+          "options": {
+            "options": {
+              "infer_all_services": false
+            },
+            "provider_name": "imagekit"
+          }
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "generate_cloudflare_worker": true,
+                "package_name": "@imagekit/api-mcp"
+              }
+            }
+          },
+          "package_name": "@imagekit/nodejs",
+          "production_repo": "imagekit-developer/imagekit-nodejs#master"
+        }
       }
     },
     "POST /v1/files/purge": {
@@ -821,6 +3222,90 @@
           "cache",
           "invalidation"
         ]
+      },
+      "x-ferrule-targets": {
+        "cli": {
+          "edition": "cli.2025-10-08",
+          "options": {
+            "binary_name": "imagekit"
+          }
+        },
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "imagekit",
+          "production_repo": "imagekit-developer/imagekit-go#master"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          },
+          "production_repo": "imagekit-developer/imagekit-java#master"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          }
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "imagekit/imagekit"
+          },
+          "package_name": "imagekit"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "imagekitio"
+          },
+          "package_name": "imagekitio",
+          "production_repo": "imagekit-developer/imagekit-python#master"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "imagekitio"
+          },
+          "production_repo": "imagekit-developer/imagekit-ruby#master"
+        },
+        "terraform": {
+          "edition": "terraform.2025-10-08",
+          "options": {
+            "options": {
+              "infer_all_services": false
+            },
+            "provider_name": "imagekit"
+          }
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "generate_cloudflare_worker": true,
+                "package_name": "@imagekit/api-mcp"
+              }
+            }
+          },
+          "package_name": "@imagekit/nodejs",
+          "production_repo": "imagekit-developer/imagekit-nodejs#master"
+        }
       }
     },
     "GET /v1/files/purge/{requestId}": {
@@ -840,6 +3325,90 @@
           "cache",
           "invalidation"
         ]
+      },
+      "x-ferrule-targets": {
+        "cli": {
+          "edition": "cli.2025-10-08",
+          "options": {
+            "binary_name": "imagekit"
+          }
+        },
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "imagekit",
+          "production_repo": "imagekit-developer/imagekit-go#master"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          },
+          "production_repo": "imagekit-developer/imagekit-java#master"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          }
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "imagekit/imagekit"
+          },
+          "package_name": "imagekit"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "imagekitio"
+          },
+          "package_name": "imagekitio",
+          "production_repo": "imagekit-developer/imagekit-python#master"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "imagekitio"
+          },
+          "production_repo": "imagekit-developer/imagekit-ruby#master"
+        },
+        "terraform": {
+          "edition": "terraform.2025-10-08",
+          "options": {
+            "options": {
+              "infer_all_services": false
+            },
+            "provider_name": "imagekit"
+          }
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "generate_cloudflare_worker": true,
+                "package_name": "@imagekit/api-mcp"
+              }
+            }
+          },
+          "package_name": "@imagekit/nodejs",
+          "production_repo": "imagekit-developer/imagekit-nodejs#master"
+        }
       }
     },
     "POST /v1/files/removeAITags": {
@@ -859,6 +3428,90 @@
           "files",
           "bulk"
         ]
+      },
+      "x-ferrule-targets": {
+        "cli": {
+          "edition": "cli.2025-10-08",
+          "options": {
+            "binary_name": "imagekit"
+          }
+        },
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "imagekit",
+          "production_repo": "imagekit-developer/imagekit-go#master"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          },
+          "production_repo": "imagekit-developer/imagekit-java#master"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          }
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "imagekit/imagekit"
+          },
+          "package_name": "imagekit"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "imagekitio"
+          },
+          "package_name": "imagekitio",
+          "production_repo": "imagekit-developer/imagekit-python#master"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "imagekitio"
+          },
+          "production_repo": "imagekit-developer/imagekit-ruby#master"
+        },
+        "terraform": {
+          "edition": "terraform.2025-10-08",
+          "options": {
+            "options": {
+              "infer_all_services": false
+            },
+            "provider_name": "imagekit"
+          }
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "generate_cloudflare_worker": true,
+                "package_name": "@imagekit/api-mcp"
+              }
+            }
+          },
+          "package_name": "@imagekit/nodejs",
+          "production_repo": "imagekit-developer/imagekit-nodejs#master"
+        }
       }
     },
     "POST /v1/files/removeTags": {
@@ -878,6 +3531,90 @@
           "files",
           "bulk"
         ]
+      },
+      "x-ferrule-targets": {
+        "cli": {
+          "edition": "cli.2025-10-08",
+          "options": {
+            "binary_name": "imagekit"
+          }
+        },
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "imagekit",
+          "production_repo": "imagekit-developer/imagekit-go#master"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          },
+          "production_repo": "imagekit-developer/imagekit-java#master"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          }
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "imagekit/imagekit"
+          },
+          "package_name": "imagekit"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "imagekitio"
+          },
+          "package_name": "imagekitio",
+          "production_repo": "imagekit-developer/imagekit-python#master"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "imagekitio"
+          },
+          "production_repo": "imagekit-developer/imagekit-ruby#master"
+        },
+        "terraform": {
+          "edition": "terraform.2025-10-08",
+          "options": {
+            "options": {
+              "infer_all_services": false
+            },
+            "provider_name": "imagekit"
+          }
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "generate_cloudflare_worker": true,
+                "package_name": "@imagekit/api-mcp"
+              }
+            }
+          },
+          "package_name": "@imagekit/nodejs",
+          "production_repo": "imagekit-developer/imagekit-nodejs#master"
+        }
       }
     },
     "PUT /v1/files/rename": {
@@ -894,6 +3631,90 @@
         "path": [
           "files"
         ]
+      },
+      "x-ferrule-targets": {
+        "cli": {
+          "edition": "cli.2025-10-08",
+          "options": {
+            "binary_name": "imagekit"
+          }
+        },
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "imagekit",
+          "production_repo": "imagekit-developer/imagekit-go#master"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          },
+          "production_repo": "imagekit-developer/imagekit-java#master"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          }
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "imagekit/imagekit"
+          },
+          "package_name": "imagekit"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "imagekitio"
+          },
+          "package_name": "imagekitio",
+          "production_repo": "imagekit-developer/imagekit-python#master"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "imagekitio"
+          },
+          "production_repo": "imagekit-developer/imagekit-ruby#master"
+        },
+        "terraform": {
+          "edition": "terraform.2025-10-08",
+          "options": {
+            "options": {
+              "infer_all_services": false
+            },
+            "provider_name": "imagekit"
+          }
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "generate_cloudflare_worker": true,
+                "package_name": "@imagekit/api-mcp"
+              }
+            }
+          },
+          "package_name": "@imagekit/nodejs",
+          "production_repo": "imagekit-developer/imagekit-nodejs#master"
+        }
       }
     },
     "DELETE /v1/files/{fileId}": {
@@ -910,6 +3731,90 @@
         "path": [
           "files"
         ]
+      },
+      "x-ferrule-targets": {
+        "cli": {
+          "edition": "cli.2025-10-08",
+          "options": {
+            "binary_name": "imagekit"
+          }
+        },
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "imagekit",
+          "production_repo": "imagekit-developer/imagekit-go#master"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          },
+          "production_repo": "imagekit-developer/imagekit-java#master"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          }
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "imagekit/imagekit"
+          },
+          "package_name": "imagekit"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "imagekitio"
+          },
+          "package_name": "imagekitio",
+          "production_repo": "imagekit-developer/imagekit-python#master"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "imagekitio"
+          },
+          "production_repo": "imagekit-developer/imagekit-ruby#master"
+        },
+        "terraform": {
+          "edition": "terraform.2025-10-08",
+          "options": {
+            "options": {
+              "infer_all_services": false
+            },
+            "provider_name": "imagekit"
+          }
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "generate_cloudflare_worker": true,
+                "package_name": "@imagekit/api-mcp"
+              }
+            }
+          },
+          "package_name": "@imagekit/nodejs",
+          "production_repo": "imagekit-developer/imagekit-nodejs#master"
+        }
       }
     },
     "GET /v1/files/{fileId}/details": {
@@ -926,6 +3831,90 @@
         "path": [
           "files"
         ]
+      },
+      "x-ferrule-targets": {
+        "cli": {
+          "edition": "cli.2025-10-08",
+          "options": {
+            "binary_name": "imagekit"
+          }
+        },
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "imagekit",
+          "production_repo": "imagekit-developer/imagekit-go#master"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          },
+          "production_repo": "imagekit-developer/imagekit-java#master"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          }
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "imagekit/imagekit"
+          },
+          "package_name": "imagekit"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "imagekitio"
+          },
+          "package_name": "imagekitio",
+          "production_repo": "imagekit-developer/imagekit-python#master"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "imagekitio"
+          },
+          "production_repo": "imagekit-developer/imagekit-ruby#master"
+        },
+        "terraform": {
+          "edition": "terraform.2025-10-08",
+          "options": {
+            "options": {
+              "infer_all_services": false
+            },
+            "provider_name": "imagekit"
+          }
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "generate_cloudflare_worker": true,
+                "package_name": "@imagekit/api-mcp"
+              }
+            }
+          },
+          "package_name": "@imagekit/nodejs",
+          "production_repo": "imagekit-developer/imagekit-nodejs#master"
+        }
       }
     },
     "PATCH /v1/files/{fileId}/details": {
@@ -942,6 +3931,90 @@
         "path": [
           "files"
         ]
+      },
+      "x-ferrule-targets": {
+        "cli": {
+          "edition": "cli.2025-10-08",
+          "options": {
+            "binary_name": "imagekit"
+          }
+        },
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "imagekit",
+          "production_repo": "imagekit-developer/imagekit-go#master"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          },
+          "production_repo": "imagekit-developer/imagekit-java#master"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          }
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "imagekit/imagekit"
+          },
+          "package_name": "imagekit"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "imagekitio"
+          },
+          "package_name": "imagekitio",
+          "production_repo": "imagekit-developer/imagekit-python#master"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "imagekitio"
+          },
+          "production_repo": "imagekit-developer/imagekit-ruby#master"
+        },
+        "terraform": {
+          "edition": "terraform.2025-10-08",
+          "options": {
+            "options": {
+              "infer_all_services": false
+            },
+            "provider_name": "imagekit"
+          }
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "generate_cloudflare_worker": true,
+                "package_name": "@imagekit/api-mcp"
+              }
+            }
+          },
+          "package_name": "@imagekit/nodejs",
+          "production_repo": "imagekit-developer/imagekit-nodejs#master"
+        }
       }
     },
     "GET /v1/files/{fileId}/metadata": {
@@ -961,6 +4034,90 @@
           "files",
           "metadata"
         ]
+      },
+      "x-ferrule-targets": {
+        "cli": {
+          "edition": "cli.2025-10-08",
+          "options": {
+            "binary_name": "imagekit"
+          }
+        },
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "imagekit",
+          "production_repo": "imagekit-developer/imagekit-go#master"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          },
+          "production_repo": "imagekit-developer/imagekit-java#master"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          }
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "imagekit/imagekit"
+          },
+          "package_name": "imagekit"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "imagekitio"
+          },
+          "package_name": "imagekitio",
+          "production_repo": "imagekit-developer/imagekit-python#master"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "imagekitio"
+          },
+          "production_repo": "imagekit-developer/imagekit-ruby#master"
+        },
+        "terraform": {
+          "edition": "terraform.2025-10-08",
+          "options": {
+            "options": {
+              "infer_all_services": false
+            },
+            "provider_name": "imagekit"
+          }
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "generate_cloudflare_worker": true,
+                "package_name": "@imagekit/api-mcp"
+              }
+            }
+          },
+          "package_name": "@imagekit/nodejs",
+          "production_repo": "imagekit-developer/imagekit-nodejs#master"
+        }
       }
     },
     "GET /v1/files/{fileId}/versions": {
@@ -980,6 +4137,90 @@
           "files",
           "versions"
         ]
+      },
+      "x-ferrule-targets": {
+        "cli": {
+          "edition": "cli.2025-10-08",
+          "options": {
+            "binary_name": "imagekit"
+          }
+        },
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "imagekit",
+          "production_repo": "imagekit-developer/imagekit-go#master"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          },
+          "production_repo": "imagekit-developer/imagekit-java#master"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          }
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "imagekit/imagekit"
+          },
+          "package_name": "imagekit"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "imagekitio"
+          },
+          "package_name": "imagekitio",
+          "production_repo": "imagekit-developer/imagekit-python#master"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "imagekitio"
+          },
+          "production_repo": "imagekit-developer/imagekit-ruby#master"
+        },
+        "terraform": {
+          "edition": "terraform.2025-10-08",
+          "options": {
+            "options": {
+              "infer_all_services": false
+            },
+            "provider_name": "imagekit"
+          }
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "generate_cloudflare_worker": true,
+                "package_name": "@imagekit/api-mcp"
+              }
+            }
+          },
+          "package_name": "@imagekit/nodejs",
+          "production_repo": "imagekit-developer/imagekit-nodejs#master"
+        }
       }
     },
     "DELETE /v1/files/{fileId}/versions/{versionId}": {
@@ -999,6 +4240,90 @@
           "files",
           "versions"
         ]
+      },
+      "x-ferrule-targets": {
+        "cli": {
+          "edition": "cli.2025-10-08",
+          "options": {
+            "binary_name": "imagekit"
+          }
+        },
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "imagekit",
+          "production_repo": "imagekit-developer/imagekit-go#master"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          },
+          "production_repo": "imagekit-developer/imagekit-java#master"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          }
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "imagekit/imagekit"
+          },
+          "package_name": "imagekit"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "imagekitio"
+          },
+          "package_name": "imagekitio",
+          "production_repo": "imagekit-developer/imagekit-python#master"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "imagekitio"
+          },
+          "production_repo": "imagekit-developer/imagekit-ruby#master"
+        },
+        "terraform": {
+          "edition": "terraform.2025-10-08",
+          "options": {
+            "options": {
+              "infer_all_services": false
+            },
+            "provider_name": "imagekit"
+          }
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "generate_cloudflare_worker": true,
+                "package_name": "@imagekit/api-mcp"
+              }
+            }
+          },
+          "package_name": "@imagekit/nodejs",
+          "production_repo": "imagekit-developer/imagekit-nodejs#master"
+        }
       }
     },
     "GET /v1/files/{fileId}/versions/{versionId}": {
@@ -1018,6 +4343,90 @@
           "files",
           "versions"
         ]
+      },
+      "x-ferrule-targets": {
+        "cli": {
+          "edition": "cli.2025-10-08",
+          "options": {
+            "binary_name": "imagekit"
+          }
+        },
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "imagekit",
+          "production_repo": "imagekit-developer/imagekit-go#master"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          },
+          "production_repo": "imagekit-developer/imagekit-java#master"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          }
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "imagekit/imagekit"
+          },
+          "package_name": "imagekit"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "imagekitio"
+          },
+          "package_name": "imagekitio",
+          "production_repo": "imagekit-developer/imagekit-python#master"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "imagekitio"
+          },
+          "production_repo": "imagekit-developer/imagekit-ruby#master"
+        },
+        "terraform": {
+          "edition": "terraform.2025-10-08",
+          "options": {
+            "options": {
+              "infer_all_services": false
+            },
+            "provider_name": "imagekit"
+          }
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "generate_cloudflare_worker": true,
+                "package_name": "@imagekit/api-mcp"
+              }
+            }
+          },
+          "package_name": "@imagekit/nodejs",
+          "production_repo": "imagekit-developer/imagekit-nodejs#master"
+        }
       }
     },
     "PUT /v1/files/{fileId}/versions/{versionId}/restore": {
@@ -1037,6 +4446,90 @@
           "files",
           "versions"
         ]
+      },
+      "x-ferrule-targets": {
+        "cli": {
+          "edition": "cli.2025-10-08",
+          "options": {
+            "binary_name": "imagekit"
+          }
+        },
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "imagekit",
+          "production_repo": "imagekit-developer/imagekit-go#master"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          },
+          "production_repo": "imagekit-developer/imagekit-java#master"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          }
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "imagekit/imagekit"
+          },
+          "package_name": "imagekit"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "imagekitio"
+          },
+          "package_name": "imagekitio",
+          "production_repo": "imagekit-developer/imagekit-python#master"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "imagekitio"
+          },
+          "production_repo": "imagekit-developer/imagekit-ruby#master"
+        },
+        "terraform": {
+          "edition": "terraform.2025-10-08",
+          "options": {
+            "options": {
+              "infer_all_services": false
+            },
+            "provider_name": "imagekit"
+          }
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "generate_cloudflare_worker": true,
+                "package_name": "@imagekit/api-mcp"
+              }
+            }
+          },
+          "package_name": "@imagekit/nodejs",
+          "production_repo": "imagekit-developer/imagekit-nodejs#master"
+        }
       }
     },
     "DELETE /v1/folder": {
@@ -1053,6 +4546,90 @@
         "path": [
           "folders"
         ]
+      },
+      "x-ferrule-targets": {
+        "cli": {
+          "edition": "cli.2025-10-08",
+          "options": {
+            "binary_name": "imagekit"
+          }
+        },
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "imagekit",
+          "production_repo": "imagekit-developer/imagekit-go#master"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          },
+          "production_repo": "imagekit-developer/imagekit-java#master"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          }
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "imagekit/imagekit"
+          },
+          "package_name": "imagekit"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "imagekitio"
+          },
+          "package_name": "imagekitio",
+          "production_repo": "imagekit-developer/imagekit-python#master"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "imagekitio"
+          },
+          "production_repo": "imagekit-developer/imagekit-ruby#master"
+        },
+        "terraform": {
+          "edition": "terraform.2025-10-08",
+          "options": {
+            "options": {
+              "infer_all_services": false
+            },
+            "provider_name": "imagekit"
+          }
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "generate_cloudflare_worker": true,
+                "package_name": "@imagekit/api-mcp"
+              }
+            }
+          },
+          "package_name": "@imagekit/nodejs",
+          "production_repo": "imagekit-developer/imagekit-nodejs#master"
+        }
       }
     },
     "POST /v1/folder": {
@@ -1069,6 +4646,90 @@
         "path": [
           "folders"
         ]
+      },
+      "x-ferrule-targets": {
+        "cli": {
+          "edition": "cli.2025-10-08",
+          "options": {
+            "binary_name": "imagekit"
+          }
+        },
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "imagekit",
+          "production_repo": "imagekit-developer/imagekit-go#master"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          },
+          "production_repo": "imagekit-developer/imagekit-java#master"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          }
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "imagekit/imagekit"
+          },
+          "package_name": "imagekit"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "imagekitio"
+          },
+          "package_name": "imagekitio",
+          "production_repo": "imagekit-developer/imagekit-python#master"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "imagekitio"
+          },
+          "production_repo": "imagekit-developer/imagekit-ruby#master"
+        },
+        "terraform": {
+          "edition": "terraform.2025-10-08",
+          "options": {
+            "options": {
+              "infer_all_services": false
+            },
+            "provider_name": "imagekit"
+          }
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "generate_cloudflare_worker": true,
+                "package_name": "@imagekit/api-mcp"
+              }
+            }
+          },
+          "package_name": "@imagekit/nodejs",
+          "production_repo": "imagekit-developer/imagekit-nodejs#master"
+        }
       }
     },
     "GET /v1/metadata": {
@@ -1088,6 +4749,90 @@
           "files",
           "metadata"
         ]
+      },
+      "x-ferrule-targets": {
+        "cli": {
+          "edition": "cli.2025-10-08",
+          "options": {
+            "binary_name": "imagekit"
+          }
+        },
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "imagekit",
+          "production_repo": "imagekit-developer/imagekit-go#master"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          },
+          "production_repo": "imagekit-developer/imagekit-java#master"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          }
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "imagekit/imagekit"
+          },
+          "package_name": "imagekit"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "imagekitio"
+          },
+          "package_name": "imagekitio",
+          "production_repo": "imagekit-developer/imagekit-python#master"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "imagekitio"
+          },
+          "production_repo": "imagekit-developer/imagekit-ruby#master"
+        },
+        "terraform": {
+          "edition": "terraform.2025-10-08",
+          "options": {
+            "options": {
+              "infer_all_services": false
+            },
+            "provider_name": "imagekit"
+          }
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "generate_cloudflare_worker": true,
+                "package_name": "@imagekit/api-mcp"
+              }
+            }
+          },
+          "package_name": "@imagekit/nodejs",
+          "production_repo": "imagekit-developer/imagekit-nodejs#master"
+        }
       }
     },
     "GET /v1/saved-extensions": {
@@ -1104,6 +4849,90 @@
         "path": [
           "savedExtensions"
         ]
+      },
+      "x-ferrule-targets": {
+        "cli": {
+          "edition": "cli.2025-10-08",
+          "options": {
+            "binary_name": "imagekit"
+          }
+        },
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "imagekit",
+          "production_repo": "imagekit-developer/imagekit-go#master"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          },
+          "production_repo": "imagekit-developer/imagekit-java#master"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          }
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "imagekit/imagekit"
+          },
+          "package_name": "imagekit"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "imagekitio"
+          },
+          "package_name": "imagekitio",
+          "production_repo": "imagekit-developer/imagekit-python#master"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "imagekitio"
+          },
+          "production_repo": "imagekit-developer/imagekit-ruby#master"
+        },
+        "terraform": {
+          "edition": "terraform.2025-10-08",
+          "options": {
+            "options": {
+              "infer_all_services": false
+            },
+            "provider_name": "imagekit"
+          }
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "generate_cloudflare_worker": true,
+                "package_name": "@imagekit/api-mcp"
+              }
+            }
+          },
+          "package_name": "@imagekit/nodejs",
+          "production_repo": "imagekit-developer/imagekit-nodejs#master"
+        }
       }
     },
     "POST /v1/saved-extensions": {
@@ -1120,6 +4949,90 @@
         "path": [
           "savedExtensions"
         ]
+      },
+      "x-ferrule-targets": {
+        "cli": {
+          "edition": "cli.2025-10-08",
+          "options": {
+            "binary_name": "imagekit"
+          }
+        },
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "imagekit",
+          "production_repo": "imagekit-developer/imagekit-go#master"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          },
+          "production_repo": "imagekit-developer/imagekit-java#master"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          }
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "imagekit/imagekit"
+          },
+          "package_name": "imagekit"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "imagekitio"
+          },
+          "package_name": "imagekitio",
+          "production_repo": "imagekit-developer/imagekit-python#master"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "imagekitio"
+          },
+          "production_repo": "imagekit-developer/imagekit-ruby#master"
+        },
+        "terraform": {
+          "edition": "terraform.2025-10-08",
+          "options": {
+            "options": {
+              "infer_all_services": false
+            },
+            "provider_name": "imagekit"
+          }
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "generate_cloudflare_worker": true,
+                "package_name": "@imagekit/api-mcp"
+              }
+            }
+          },
+          "package_name": "@imagekit/nodejs",
+          "production_repo": "imagekit-developer/imagekit-nodejs#master"
+        }
       }
     },
     "DELETE /v1/saved-extensions/{id}": {
@@ -1136,6 +5049,90 @@
         "path": [
           "savedExtensions"
         ]
+      },
+      "x-ferrule-targets": {
+        "cli": {
+          "edition": "cli.2025-10-08",
+          "options": {
+            "binary_name": "imagekit"
+          }
+        },
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "imagekit",
+          "production_repo": "imagekit-developer/imagekit-go#master"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          },
+          "production_repo": "imagekit-developer/imagekit-java#master"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          }
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "imagekit/imagekit"
+          },
+          "package_name": "imagekit"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "imagekitio"
+          },
+          "package_name": "imagekitio",
+          "production_repo": "imagekit-developer/imagekit-python#master"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "imagekitio"
+          },
+          "production_repo": "imagekit-developer/imagekit-ruby#master"
+        },
+        "terraform": {
+          "edition": "terraform.2025-10-08",
+          "options": {
+            "options": {
+              "infer_all_services": false
+            },
+            "provider_name": "imagekit"
+          }
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "generate_cloudflare_worker": true,
+                "package_name": "@imagekit/api-mcp"
+              }
+            }
+          },
+          "package_name": "@imagekit/nodejs",
+          "production_repo": "imagekit-developer/imagekit-nodejs#master"
+        }
       }
     },
     "GET /v1/saved-extensions/{id}": {
@@ -1152,6 +5149,90 @@
         "path": [
           "savedExtensions"
         ]
+      },
+      "x-ferrule-targets": {
+        "cli": {
+          "edition": "cli.2025-10-08",
+          "options": {
+            "binary_name": "imagekit"
+          }
+        },
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "imagekit",
+          "production_repo": "imagekit-developer/imagekit-go#master"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          },
+          "production_repo": "imagekit-developer/imagekit-java#master"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          }
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "imagekit/imagekit"
+          },
+          "package_name": "imagekit"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "imagekitio"
+          },
+          "package_name": "imagekitio",
+          "production_repo": "imagekit-developer/imagekit-python#master"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "imagekitio"
+          },
+          "production_repo": "imagekit-developer/imagekit-ruby#master"
+        },
+        "terraform": {
+          "edition": "terraform.2025-10-08",
+          "options": {
+            "options": {
+              "infer_all_services": false
+            },
+            "provider_name": "imagekit"
+          }
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "generate_cloudflare_worker": true,
+                "package_name": "@imagekit/api-mcp"
+              }
+            }
+          },
+          "package_name": "@imagekit/nodejs",
+          "production_repo": "imagekit-developer/imagekit-nodejs#master"
+        }
       }
     },
     "PATCH /v1/saved-extensions/{id}": {
@@ -1168,6 +5249,90 @@
         "path": [
           "savedExtensions"
         ]
+      },
+      "x-ferrule-targets": {
+        "cli": {
+          "edition": "cli.2025-10-08",
+          "options": {
+            "binary_name": "imagekit"
+          }
+        },
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit"
+        },
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "enable_v2": true
+            }
+          },
+          "package_name": "imagekit",
+          "production_repo": "imagekit-developer/imagekit-go#master"
+        },
+        "java": {
+          "edition": "java.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          },
+          "production_repo": "imagekit-developer/imagekit-java#master"
+        },
+        "kotlin": {
+          "edition": "kotlin.2025-10-08",
+          "options": {
+            "reverse_domain": "io.imagekit"
+          }
+        },
+        "php": {
+          "edition": "php.2025-10-08",
+          "options": {
+            "composer_package_name": "imagekit/imagekit"
+          },
+          "package_name": "imagekit"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "imagekitio"
+          },
+          "package_name": "imagekitio",
+          "production_repo": "imagekit-developer/imagekit-python#master"
+        },
+        "ruby": {
+          "edition": "ruby.2025-10-08",
+          "options": {
+            "gem_name": "imagekitio"
+          },
+          "production_repo": "imagekit-developer/imagekit-ruby#master"
+        },
+        "terraform": {
+          "edition": "terraform.2025-10-08",
+          "options": {
+            "options": {
+              "infer_all_services": false
+            },
+            "provider_name": "imagekit"
+          }
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "generate_cloudflare_worker": true,
+                "package_name": "@imagekit/api-mcp"
+              }
+            }
+          },
+          "package_name": "@imagekit/nodejs",
+          "production_repo": "imagekit-developer/imagekit-nodejs#master"
+        }
       }
     }
   }

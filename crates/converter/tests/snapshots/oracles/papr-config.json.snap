@@ -1,5 +1,5 @@
 {
-  "sha256": "7fdebc3a8d9b28d4299a3f26c6200d20f6044b8d3d1b9ab56672998e7df3052b",
+  "sha256": "c45b8217da3a349aa8f3077d85e8f38b303f8e36baaf8c3bf96a699805599109",
   "root": {
     "x-ferrule-client": {
       "defaultEnvironment": "production",
@@ -105,6 +105,25 @@
       "projectName": "papr_memory",
       "pythonEdition": "python.2025-10-08",
       "version": 1
+    },
+    "x-ferrule-targets": {
+      "python": {
+        "edition": "python.2025-10-08",
+        "options": {
+          "options": {
+            "use_uv": false
+          },
+          "project_name": "papr_memory"
+        },
+        "package_name": "papr_memory",
+        "production_repo": "Papr-ai/papr-pythonSDK"
+      },
+      "typescript": {
+        "edition": "typescript.2025-10-08",
+        "options": {},
+        "package_name": "@papr/memory",
+        "production_repo": "Papr-ai/papr-TypescriptSDK"
+      }
     }
   },
   "mirrored": {
@@ -281,6 +300,25 @@
           "feedback"
         ]
       },
+      "x-ferrule-targets": {
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "papr_memory"
+          },
+          "package_name": "papr_memory",
+          "production_repo": "Papr-ai/papr-pythonSDK"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@papr/memory",
+          "production_repo": "Papr-ai/papr-TypescriptSDK"
+        }
+      },
       "x-openai-isConsequential": false
     },
     "POST /v1/feedback/batch": {
@@ -297,6 +335,25 @@
         "path": [
           "feedback"
         ]
+      },
+      "x-ferrule-targets": {
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "papr_memory"
+          },
+          "package_name": "papr_memory",
+          "production_repo": "Papr-ai/papr-pythonSDK"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@papr/memory",
+          "production_repo": "Papr-ai/papr-TypescriptSDK"
+        }
       },
       "x-openai-isConsequential": false
     },
@@ -315,6 +372,25 @@
           "feedback"
         ]
       },
+      "x-ferrule-targets": {
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "papr_memory"
+          },
+          "package_name": "papr_memory",
+          "production_repo": "Papr-ai/papr-pythonSDK"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@papr/memory",
+          "production_repo": "Papr-ai/papr-TypescriptSDK"
+        }
+      },
       "x-openai-isConsequential": false
     },
     "POST /v1/memory": {
@@ -331,6 +407,25 @@
         "path": [
           "memory"
         ]
+      },
+      "x-ferrule-targets": {
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "papr_memory"
+          },
+          "package_name": "papr_memory",
+          "production_repo": "Papr-ai/papr-pythonSDK"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@papr/memory",
+          "production_repo": "Papr-ai/papr-TypescriptSDK"
+        }
       },
       "x-openai-isConsequential": false
     },
@@ -352,6 +447,25 @@
           "memory"
         ]
       },
+      "x-ferrule-targets": {
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "papr_memory"
+          },
+          "package_name": "papr_memory",
+          "production_repo": "Papr-ai/papr-pythonSDK"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@papr/memory",
+          "production_repo": "Papr-ai/papr-TypescriptSDK"
+        }
+      },
       "x-openai-isConsequential": false
     },
     "POST /v1/memory/search": {
@@ -368,6 +482,25 @@
         "path": [
           "memory"
         ]
+      },
+      "x-ferrule-targets": {
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "papr_memory"
+          },
+          "package_name": "papr_memory",
+          "production_repo": "Papr-ai/papr-pythonSDK"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@papr/memory",
+          "production_repo": "Papr-ai/papr-TypescriptSDK"
+        }
       },
       "x-openai-isConsequential": false
     },
@@ -386,6 +519,25 @@
           "memory"
         ]
       },
+      "x-ferrule-targets": {
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "papr_memory"
+          },
+          "package_name": "papr_memory",
+          "production_repo": "Papr-ai/papr-pythonSDK"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@papr/memory",
+          "production_repo": "Papr-ai/papr-TypescriptSDK"
+        }
+      },
       "x-openai-isConsequential": true
     },
     "GET /v1/memory/{memory_id}": {
@@ -403,6 +555,25 @@
           "memory"
         ]
       },
+      "x-ferrule-targets": {
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "papr_memory"
+          },
+          "package_name": "papr_memory",
+          "production_repo": "Papr-ai/papr-pythonSDK"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@papr/memory",
+          "production_repo": "Papr-ai/papr-TypescriptSDK"
+        }
+      },
       "x-openai-isConsequential": false
     },
     "PUT /v1/memory/{memory_id}": {
@@ -419,6 +590,25 @@
         "path": [
           "memory"
         ]
+      },
+      "x-ferrule-targets": {
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "papr_memory"
+          },
+          "package_name": "papr_memory",
+          "production_repo": "Papr-ai/papr-pythonSDK"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@papr/memory",
+          "production_repo": "Papr-ai/papr-TypescriptSDK"
+        }
       },
       "x-openai-isConsequential": true
     },
@@ -455,6 +645,25 @@
           "user"
         ]
       },
+      "x-ferrule-targets": {
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "papr_memory"
+          },
+          "package_name": "papr_memory",
+          "production_repo": "Papr-ai/papr-pythonSDK"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@papr/memory",
+          "production_repo": "Papr-ai/papr-TypescriptSDK"
+        }
+      },
       "x-operation-description": "List users for a developer",
       "x-operation-name": "list_users",
       "x-operation-tags": [
@@ -475,6 +684,25 @@
         "path": [
           "user"
         ]
+      },
+      "x-ferrule-targets": {
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "papr_memory"
+          },
+          "package_name": "papr_memory",
+          "production_repo": "Papr-ai/papr-pythonSDK"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@papr/memory",
+          "production_repo": "Papr-ai/papr-TypescriptSDK"
+        }
       },
       "x-operation-description": "Create a new user or link existing user to developer",
       "x-operation-name": "create_user",
@@ -497,6 +725,25 @@
           "user"
         ]
       },
+      "x-ferrule-targets": {
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "papr_memory"
+          },
+          "package_name": "papr_memory",
+          "production_repo": "Papr-ai/papr-pythonSDK"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@papr/memory",
+          "production_repo": "Papr-ai/papr-TypescriptSDK"
+        }
+      },
       "x-operation-description": "Create multiple users or link existing users to developer, and add each to the developer's workspace (if one exists).",
       "x-operation-name": "create_user_batch",
       "x-operation-tags": [
@@ -517,6 +764,25 @@
         "path": [
           "user"
         ]
+      },
+      "x-ferrule-targets": {
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "papr_memory"
+          },
+          "package_name": "papr_memory",
+          "production_repo": "Papr-ai/papr-pythonSDK"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@papr/memory",
+          "production_repo": "Papr-ai/papr-TypescriptSDK"
+        }
       },
       "x-operation-description": "Delete user association with developer and the user itself by , assume external user_id is provided, and resolve to internal user_id (_User.objectId)",
       "x-operation-name": "delete_user",
@@ -539,6 +805,25 @@
           "user"
         ]
       },
+      "x-ferrule-targets": {
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "papr_memory"
+          },
+          "package_name": "papr_memory",
+          "production_repo": "Papr-ai/papr-pythonSDK"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@papr/memory",
+          "production_repo": "Papr-ai/papr-TypescriptSDK"
+        }
+      },
       "x-operation-description": "Get user details by user_id (_User.objectId) and developer association",
       "x-operation-name": "get_user",
       "x-operation-tags": [
@@ -559,6 +844,25 @@
         "path": [
           "user"
         ]
+      },
+      "x-ferrule-targets": {
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "papr_memory"
+          },
+          "package_name": "papr_memory",
+          "production_repo": "Papr-ai/papr-pythonSDK"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {},
+          "package_name": "@papr/memory",
+          "production_repo": "Papr-ai/papr-TypescriptSDK"
+        }
       },
       "x-operation-description": "Update user details by user_id (_User.objectId) and developer association",
       "x-operation-name": "update_user",

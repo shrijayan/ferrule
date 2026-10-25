@@ -1,5 +1,5 @@
 {
-  "sha256": "3d62e97d96f60deb0c6fac64316e234b2aff57fc5e3f9ce0eb1dfbd8a3e72217",
+  "sha256": "9ea575f4dc44a20fb77fdaebd601ad2078ec581d5b0ccc56a08513a855e6843c",
   "root": {
     "x-ferrule-casings": {
       "ilgs": {
@@ -97,7 +97,34 @@
           "v1"
         ]
       }
-    ]
+    ],
+    "x-ferrule-targets": {
+      "python": {
+        "edition": "python.2025-10-08",
+        "options": {
+          "options": {
+            "use_uv": false
+          },
+          "readme_title": "Isaacus Python"
+        },
+        "package_name": "isaacus",
+        "production_repo": "isaacus-dev/isaacus-python"
+      },
+      "typescript": {
+        "edition": "typescript.2025-10-08",
+        "options": {
+          "options": {
+            "mcp_server": {
+              "enable_all_resources": true,
+              "package_name": "isaacus-mcp"
+            }
+          },
+          "readme_title": "Isaacus TypeScript"
+        },
+        "package_name": "isaacus",
+        "production_repo": "isaacus-dev/isaacus-typescript"
+      }
+    }
   },
   "mirrored": {
     "x-ferrule-client": {
@@ -291,7 +318,34 @@
             "v1"
           ]
         }
-      ]
+      ],
+      "x-ferrule-targets": {
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "readme_title": "Isaacus Python"
+          },
+          "package_name": "isaacus",
+          "production_repo": "isaacus-dev/isaacus-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "package_name": "isaacus-mcp"
+              }
+            },
+            "readme_title": "Isaacus TypeScript"
+          },
+          "package_name": "isaacus",
+          "production_repo": "isaacus-dev/isaacus-typescript"
+        }
+      }
     },
     "POST /embeddings": {
       "x-fern-sdk-group-name": [
@@ -350,7 +404,34 @@
             "v1"
           ]
         }
-      ]
+      ],
+      "x-ferrule-targets": {
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "readme_title": "Isaacus Python"
+          },
+          "package_name": "isaacus",
+          "production_repo": "isaacus-dev/isaacus-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "package_name": "isaacus-mcp"
+              }
+            },
+            "readme_title": "Isaacus TypeScript"
+          },
+          "package_name": "isaacus",
+          "production_repo": "isaacus-dev/isaacus-typescript"
+        }
+      }
     },
     "POST /enrichments": {
       "x-fern-sdk-group-name": [
@@ -409,7 +490,34 @@
             "v1"
           ]
         }
-      ]
+      ],
+      "x-ferrule-targets": {
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "readme_title": "Isaacus Python"
+          },
+          "package_name": "isaacus",
+          "production_repo": "isaacus-dev/isaacus-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "package_name": "isaacus-mcp"
+              }
+            },
+            "readme_title": "Isaacus TypeScript"
+          },
+          "package_name": "isaacus",
+          "production_repo": "isaacus-dev/isaacus-typescript"
+        }
+      }
     },
     "POST /extractions/qa": {
       "x-fern-sdk-group-name": [
@@ -471,7 +579,34 @@
             "v1"
           ]
         }
-      ]
+      ],
+      "x-ferrule-targets": {
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "readme_title": "Isaacus Python"
+          },
+          "package_name": "isaacus",
+          "production_repo": "isaacus-dev/isaacus-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "package_name": "isaacus-mcp"
+              }
+            },
+            "readme_title": "Isaacus TypeScript"
+          },
+          "package_name": "isaacus",
+          "production_repo": "isaacus-dev/isaacus-typescript"
+        }
+      }
     },
     "POST /rerankings": {
       "x-fern-sdk-group-name": [
@@ -530,7 +665,34 @@
             "v1"
           ]
         }
-      ]
+      ],
+      "x-ferrule-targets": {
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "readme_title": "Isaacus Python"
+          },
+          "package_name": "isaacus",
+          "production_repo": "isaacus-dev/isaacus-python"
+        },
+        "typescript": {
+          "edition": "typescript.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "package_name": "isaacus-mcp"
+              }
+            },
+            "readme_title": "Isaacus TypeScript"
+          },
+          "package_name": "isaacus",
+          "production_repo": "isaacus-dev/isaacus-typescript"
+        }
+      }
     }
   }
 }
