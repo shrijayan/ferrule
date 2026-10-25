@@ -28,8 +28,26 @@ annotated spec --sdk-model adapter--> model::Client --for_target("ruby")--> name
 The plugin writes the generator's form; the gem's own formatters lay it out, as Stainless's
 `rake format` does. `ferrule-gen generate --target ruby` writes the files and
 `.ferrule/ruby-runtime.json`; `ferrule generate --target ruby` renders the runtime from it and runs
-the formatters (`$FERRULE_STREE`, `$FERRULE_RUBOCOP`, else `stree` and `rubocop` on the `PATH`;
-`tools/Gemfile.lock` pins the versions the oracles use).
+the formatters.
+
+## The formatters
+
+`tools/Gemfile.lock` pins the versions the oracles use (rubocop, syntax_tree and its RBS plugin, a
+git gem). Install them once, with the Ruby that `mise.toml` pins:
+
+```bash
+mise run ruby:tools        # bundle install into .cache/ruby-tools (gitignored); network once
+```
+
+`tools/bin/stree` and `tools/bin/rubocop` run them from that bundle with no environment set up;
+`ferrule generate --target ruby` and the tests use them by default. `$FERRULE_STREE` and
+`$FERRULE_RUBOCOP` override them (words split on spaces, such as `bundle exec stree`). Without
+either, the oracle comparisons and the golden test's formatting check skip with a note saying so.
+To start over, delete `.cache/ruby-tools` and run the task again.
+
+On macOS, building the native extensions (json, rbs, prism) can fail with `unknown architecture`
+when the Command Line Tools' SDK is newer than their linker; point `SDKROOT` at a matching SDK
+(such as Xcode's) for the install.
 
 ## Proof
 
