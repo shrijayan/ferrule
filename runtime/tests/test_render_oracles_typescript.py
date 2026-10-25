@@ -75,14 +75,14 @@ class Oracle:
 
 ORACLES = [
     Oracle("isaacus-typescript", TypeScriptOptions(client_name="Isaacus")),
-    Oracle("imagekit-nodejs", TypeScriptOptions(client_name="ImageKit")),
+    Oracle("imagekit-typescript", TypeScriptOptions(client_name="ImageKit")),
     Oracle(
-        "knock-mgmt-node",
+        "knock-mgmt-typescript",
         TypeScriptOptions(client_name="KnockMgmt", query_array_format="comma", pagination=True),
         generated=frozenset({"src/core/pagination.ts", "src/pagination.ts"}),
     ),
     Oracle(
-        "knock-node",
+        "knock-typescript",
         TypeScriptOptions(
             client_name="Knock",
             query_array_format="brackets",
