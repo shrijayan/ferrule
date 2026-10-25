@@ -283,12 +283,124 @@ fn wraps_a_long_assert_matches_type_call() {
             name: long.clone(),
             module: "types.x".to_owned(),
         }),
+        stream_switch: None,
     }];
     let tests = emit_api_tests(&input);
     let text = file(&tests, "tests/api_resources/test_cases.py");
     assert!(text.contains(&format!(
         "assert_matches_type(\n            {long}, case, path=[\"response\"]\n        )"
     )));
+}
+
+/// A param-switched streaming method (stagehand `sessions.act`, ogx `completions.create`): the
+/// tests come twice, `_overload_1` with the switch `False` in the all-params call and
+/// `_overload_2` with it `True` after the required arguments, closing the stream.
+#[test]
+fn tests_a_param_switched_streaming_method_per_overload() {
+    let mut json = acme_json();
+    json["resources"][0]["subresources"] = json!([]);
+    json["resources"][0]["methods"] = json!([{
+        "name": "act",
+        "httpMethod": "post",
+        "path": "/cases/{id}/act",
+        "params": [
+            { "pyName": "id", "wireName": "id", "required": true, "location": "path", "type": str_type() },
+            { "pyName": "input", "wireName": "input", "required": true, "location": "body", "type": str_type() },
+            { "pyName": "frame_id", "wireName": "frameId", "required": false, "location": "body",
+              "type": str_type() },
+            { "pyName": "stream_response", "wireName": "streamResponse", "required": false,
+              "location": "body", "type": { "kind": "primitive", "name": "boolean" } },
+        ],
+        "paramsModule": "types.case_act_params",
+        "response": { "name": "CaseActResponse", "module": "types.case_act_response" },
+        "streamSwitch": "stream_response",
+    }]);
+    let tests = emit_api_tests(&input(&json));
+    let text = file(&tests, "tests/api_resources/test_cases.py");
+    let sync = r#"    @parametrize
+    def test_method_act_overload_1(self, client: Acme) -> None:
+        case = client.cases.act(
+            id="id",
+            input="input",
+        )
+        assert_matches_type(CaseActResponse, case, path=["response"])
+
+    @parametrize
+    def test_method_act_with_all_params_overload_1(self, client: Acme) -> None:
+        case = client.cases.act(
+            id="id",
+            input="input",
+            frame_id="frameId",
+            stream_response=False,
+        )
+        assert_matches_type(CaseActResponse, case, path=["response"])
+"#;
+    assert!(text.contains(sync), "{text}");
+    let streamed = r#"    @parametrize
+    def test_method_act_overload_2(self, client: Acme) -> None:
+        case_stream = client.cases.act(
+            id="id",
+            input="input",
+            stream_response=True,
+        )
+        case_stream.response.close()
+
+    @parametrize
+    def test_method_act_with_all_params_overload_2(self, client: Acme) -> None:
+        case_stream = client.cases.act(
+            id="id",
+            input="input",
+            stream_response=True,
+            frame_id="frameId",
+        )
+        case_stream.response.close()
+
+    @parametrize
+    def test_raw_response_act_overload_2(self, client: Acme) -> None:
+        response = client.cases.with_raw_response.act(
+            id="id",
+            input="input",
+            stream_response=True,
+        )
+
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        stream = response.parse()
+        stream.close()
+
+    @parametrize
+    def test_streaming_response_act_overload_2(self, client: Acme) -> None:
+        with client.cases.with_streaming_response.act(
+            id="id",
+            input="input",
+            stream_response=True,
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            stream = response.parse()
+            stream.close()
+
+        assert cast(Any, response.is_closed) is True
+
+    @parametrize
+    def test_path_params_act_overload_2(self, client: Acme) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `id` but received ''"):
+            client.cases.with_raw_response.act(
+                id="",
+                input="input",
+                stream_response=True,
+            )
+"#;
+    assert!(text.contains(streamed), "{text}");
+    for line in [
+        "        case_stream = await async_client.cases.act(\n",
+        "        await case_stream.response.aclose()\n",
+        "        stream = await response.parse()\n        await stream.close()\n",
+        "            stream = await response.parse()\n            await stream.close()\n",
+    ] {
+        assert!(text.contains(line), "{line}");
+    }
+    assert!(text.contains("    def test_path_params_act_overload_1(self, client: Acme) -> None:\n"));
 }
 
 // example_value
