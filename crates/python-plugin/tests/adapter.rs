@@ -149,10 +149,9 @@ fn splits_path_and_query_parameters_and_carries_the_body() {
 }
 
 /// With a body that is not an object, Forge's request is one object with a `body` field rather
-/// than an intersection; the TypeScript adapter then reads no parameters, and so does the port
-/// (the resource emitter rejects such a body with FER201).
+/// than an intersection; its other fields are still the path and query parameters.
 #[test]
-fn reads_no_parameters_beside_a_body_that_is_not_an_object() {
+fn reads_the_parameters_beside_a_body_that_is_not_an_object() {
     let (_, method) = only(&doc(
         &json!({
             "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
@@ -160,9 +159,32 @@ fn reads_no_parameters_beside_a_body_that_is_not_an_object() {
         }),
         &json!({}),
     ));
-    assert_eq!(method.path_params, Vec::new());
+    let names: Vec<_> = method.path_params.iter().map(|p| p.py_name.as_str()).collect();
+    assert_eq!(names, ["id"]);
     assert_eq!(method.body, Some(prim(SdkPrimitive::String)));
     assert_eq!(method.body_params, Vec::new());
+}
+
+/// honcho `sessions.messages.upload`: a `multipart/form-data` body has no JSON content, so Forge
+/// types it unknown and the request is the parameters plus a `body` field. The path parameter
+/// was dropped and the SDK sent `/sessions/{session_id}/...` literally; Stainless emits
+/// `upload(self, session_id: str, *, file: FileTypes, ...)`.
+#[test]
+fn keeps_path_parameters_beside_a_multipart_body() {
+    let (_, method) = only(&doc(
+        &json!({
+            "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+            "requestBody": { "required": true, "content": { "multipart/form-data": { "schema": {
+                "type": "object",
+                "required": ["file"],
+                "properties": { "file": { "type": "string", "format": "binary" } },
+            } } } },
+        }),
+        &json!({}),
+    ));
+    let names: Vec<_> = method.path_params.iter().map(|p| p.py_name.as_str()).collect();
+    assert_eq!(names, ["id"]);
+    assert_eq!(method.query_params, Vec::new());
 }
 
 #[test]
