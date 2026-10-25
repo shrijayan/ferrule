@@ -9,6 +9,10 @@ gitleaks = "latest"
 rust = { version = "1.99.0", components = "rustfmt,clippy" }
 # gofmt checks the Go plugin's output; go build/vet/test run the generated Go SDKs.
 go = "1.27.1"
+# The JVM plugin's Kotlin output is formatted by ktfmt --kotlinlang-style at the version the
+# Stainless JVM SDKs' buildSrc pins; the JDK runs it and the generated SDKs' ./gradlew.
+java = "temurin-21.0.13+9.0.LTS"
+"github:facebook/ktfmt" = { version = "0.61", asset_pattern = "ktfmt-0.61-with-dependencies.jar" }
 
 [tasks."forge:setup"]
 description = "Check out the pinned Forge commit into .cache/forge (for the canary)"
