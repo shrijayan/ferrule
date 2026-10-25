@@ -64,6 +64,7 @@ pub fn generate(client: &Client, meta: &GoMeta) -> Result<GoOutput, FerruleError
         emit::runtime::version_file(&g),
     ];
     files.extend(emit::shared::shared_file(&g));
+    files.extend(emit::project::project_files(&g));
     for s in &g.services {
         files.push(emit::resource::resource_file(&g, s));
         files.extend(emit::tests::service_test_file(&g, s));

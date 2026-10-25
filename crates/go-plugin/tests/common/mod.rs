@@ -78,11 +78,20 @@ pub fn gofmt(text: &str) -> Option<String> {
     Some(String::from_utf8(out.stdout).expect("utf-8"))
 }
 
-/// Ferrule's branding of the oracle's header line (`crates/python-plugin/src/emit/files/BRANDING.md`).
+/// Ferrule's branding of the oracle's text (`crates/python-plugin/src/emit/files/BRANDING.md`):
+/// the header line and the `.keep` files.
 pub fn brand(text: &str) -> String {
     text.replace(
         "// File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.",
         ferrule_go_plugin::printer::HEADER,
+    )
+    .replace(
+        "File generated from our OpenAPI spec by Stainless.\n",
+        "File generated from our OpenAPI spec by Ferrule.\n",
+    )
+    .replace(
+        "It is ignored by Stainless code generation",
+        "It is ignored by Ferrule code generation",
     )
 }
 
