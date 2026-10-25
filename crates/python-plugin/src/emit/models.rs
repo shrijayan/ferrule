@@ -9,7 +9,7 @@ use super::params::{Decl, Named, name_params};
 use crate::js;
 use crate::model::{SdkField, SdkObject, SdkRef, SdkType};
 use crate::printer::{LINE_LENGTH, PythonPrinter};
-use crate::type_mapper::{AnnotationContext, alias_expr, is_nullable, to_annotation, union_alias_expr};
+use crate::type_mapper::{AnnotationContext, alias_expr, inline_union_alias_expr, is_nullable, to_annotation};
 
 /// Wrap width of docstring text (measured on the oracles).
 const DOC_WIDTH: usize = 80;
@@ -435,7 +435,7 @@ pub fn emit_alias_file(r: &SdkRef, ty: &SdkType) -> String {
 /// `Name: TypeAlias = Union[...]`, `Annotated` with its discriminator when the spec names one.
 fn alias_lines(p: &mut PythonPrinter, name: &str, u: &SdkType, ctx: &dyn AnnotationContext) -> Vec<String> {
     p.import_from("typing_extensions", "TypeAlias");
-    let expr = union_alias_expr(u, p, ctx, true);
+    let expr = inline_union_alias_expr(u, p, ctx, true);
     format_expr(&expr, "", &format!("{name}: TypeAlias = "), "")
 }
 

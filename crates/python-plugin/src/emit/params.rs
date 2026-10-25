@@ -12,7 +12,7 @@ use super::models::{all_list, docstring};
 use crate::model::{SdkLiteral, SdkMethod, SdkObject, SdkParam, SdkPrimitive, SdkRef, SdkResource, SdkType};
 use crate::naming::{class_segment, schema_segment, singular, split_words};
 use crate::printer::PythonPrinter;
-use crate::type_mapper::{AnnotationContext, WithoutUnionNames, to_annotation};
+use crate::type_mapper::{AnnotationContext, WithoutUnionNames, to_annotation, union_members};
 
 /// A declaration in a params or model file: a class, or a union alias of classes.
 #[derive(Debug, Clone, Copy)]
@@ -154,15 +154,19 @@ impl<'a> Named<'a> {
                         _ => None,
                     })
                     .collect();
-                // A union with a named model among two or more members is an alias too, as
-                // Stainless declares it (imagekit `AssetListResponseItem: TypeAlias = Union[File,
-                // Folder]`), unless it would have to make up a name for its one inline object.
+                // A union with a named model or a named object among two or more members is an
+                // alias too, as Stainless declares it (imagekit `AssetListResponseItem: TypeAlias =
+                // Union[File, Folder]`, knock-mgmt `Recipient: TypeAlias = Union[str,
+                // RecipientObjectRecipientReference]`), unless it would have to make up a name for
+                // its one inline object.
                 let members = variants
                     .iter()
                     .filter(|v| !matches!(v, SdkType::Primitive(SdkPrimitive::Null)))
                     .count();
                 let with_model = members >= 2
-                    && variants.iter().any(|v| matches!(v, SdkType::Ref(_)))
+                    && variants
+                        .iter()
+                        .any(|v| matches!(v, SdkType::Ref(_) | SdkType::Object(_)))
                     && objects
                         .iter()
                         .all(|o| variant_segment(o, discriminator.as_deref()).is_some());
@@ -452,10 +456,13 @@ fn print_decl(p: &mut PythonPrinter, decl: Decl<'_>, ctx: &ParamsContext<'_, '_>
             p.import_from("typing_extensions", "TypeAlias");
             p.import_from("typing", "Union");
             let plain = WithoutUnionNames(ctx);
+            // The alias leaves `None` out; a nullable field is `Optional[<alias>]`.
             let variants = match union {
-                SdkType::Union { variants, .. } => {
-                    variants.iter().map(|v| to_annotation(v, p, &plain).into()).collect()
-                }
+                SdkType::Union { variants, .. } => union_members(variants)
+                    .0
+                    .into_iter()
+                    .map(|v| to_annotation(v, p, &plain).into())
+                    .collect(),
                 _ => Vec::new(),
             };
             print_expr(
