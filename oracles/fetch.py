@@ -2,10 +2,13 @@
 # SPDX-License-Identifier: Apache-2.0
 """Clone Tier 0 oracle repos into oracles/cache/<name>, pinned to their last Stainless commit.
 
-Usage: python oracles/fetch.py [--kind sdk|config] [name-or-group ...]
+Usage: python oracles/fetch.py [--kind sdk|config] [--language LANG|all] [--group G ...]
+                               [name-or-group ...]
 
-`config` oracles also get their OpenAPI spec: from the checkout when the manifest gives a `path`,
-or downloaded into oracles/cache/specs/ when it gives a `url`. Both are checked by md5.
+Groups (and "everything") are narrowed to one SDK language, python by default, plus the configs
+those SDKs pair with; an oracle named exactly is always fetched. `config` oracles also get their
+OpenAPI spec: from the checkout when the manifest gives a `path`, or downloaded into
+oracles/cache/specs/ when it gives a `url`. Both are checked by md5.
 
 Oracle checkouts are data. This script never runs code from them: git hooks, LFS filters and
 submodules are disabled, and nothing inside the checkout is installed or imported.
@@ -27,7 +30,7 @@ from pathlib import Path, PurePosixPath
 from typing import TYPE_CHECKING, cast
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Sequence
 
 ROOT = Path(__file__).resolve().parent
 MANIFEST = ROOT / "manifest.yaml"
@@ -39,6 +42,12 @@ NAME_RE = re.compile(r"^[a-z0-9][a-z0-9-]*$")
 STATS_KEYS = ("configured_endpoints", "openapi_spec_url", "openapi_spec_hash", "config_hash")
 KINDS = ("sdk", "config")
 PAIRED = ("proven", "nearest")
+# Stainless SDK targets we keep oracles for. A `kind: sdk` entry without `language` is python.
+LANGUAGES = ("python", "typescript", "go", "java", "kotlin", "ruby", "php", "csharp")
+DEFAULT_LANGUAGE = "python"
+ALL_LANGUAGES = "all"
+# Targets whose generated shape depends on the config key or an option (oracles/README.md).
+LAYOUTS: dict[str, tuple[str, ...]] = {"typescript": ("node", "typescript"), "go": ("v1", "v2")}
 LICENSES = ("Apache-2.0", "MIT")
 SPEC_EXTS = (".yml", ".yaml", ".json")
 MAX_SPEC_BYTES = 64 * 1024 * 1024
@@ -97,6 +106,8 @@ class Oracle:
     config_path: str | None = None
     spec: Spec | None = None
     paired: str | None = None
+    language: str | None = None
+    layout: str | None = None
 
 
 def strip_comments(text: str) -> str:
@@ -213,6 +224,49 @@ def _parse_links(name: str, entry: dict[str, object]) -> tuple[str | None, str |
     return pairs_with, license_
 
 
+def _parse_language(
+    name: str, kind: str, entry: dict[str, object]
+) -> tuple[str | None, str | None]:
+    """Return (language, layout). An sdk oracle defaults to python; a config has neither."""
+    if kind == "config":
+        if "language" in entry or "layout" in entry:
+            msg = f"{name}: language and layout are only for sdk oracles"
+            raise ManifestError(msg)
+        return None, None
+    language = entry.get("language", DEFAULT_LANGUAGE)
+    if not isinstance(language, str) or language not in LANGUAGES:
+        msg = f"{name}: language must be one of {', '.join(LANGUAGES)}"
+        raise ManifestError(msg)
+    layouts = LAYOUTS.get(language)
+    layout = entry.get("layout")
+    if layouts is None:
+        if layout is not None:
+            msg = f"{name}: layout is only for {' and '.join(LAYOUTS)} sdk oracles"
+            raise ManifestError(msg)
+        return language, None
+    if not isinstance(layout, str) or layout not in layouts:
+        msg = f"{name}: a {language} sdk oracle needs layout, one of {', '.join(layouts)}"
+        raise ManifestError(msg)
+    return language, layout
+
+
+def _parse_sdk_paired(name: str, language: str | None, entry: dict[str, object]) -> str | None:
+    """`paired` on an sdk oracle: only non-Python SDKs carry their own pairing."""
+    if "paired" not in entry:
+        return None
+    paired = entry["paired"]
+    if language == DEFAULT_LANGUAGE:
+        msg = f"{name}: a python sdk's pairing is recorded on its config oracle"
+        raise ManifestError(msg)
+    if not isinstance(paired, str) or paired not in PAIRED:
+        msg = f"{name}: paired must be one of {', '.join(PAIRED)}"
+        raise ManifestError(msg)
+    if entry.get("pairs_with") is None:
+        msg = f"{name}: paired needs pairs_with to name a config oracle"
+        raise ManifestError(msg)
+    return paired
+
+
 def parse_entry(raw: object) -> Oracle:
     """Validate one manifest entry."""
     if not isinstance(raw, dict):
@@ -242,14 +296,17 @@ def parse_entry(raw: object) -> Oracle:
         raise ManifestError(msg)
     pairs_with, license_ = _parse_links(name, entry)
     verify_md5 = _parse_md5_map(name, entry.get("verify_md5", {}))
+    language, layout = _parse_language(name, kind, entry)
     config_path: str | None = None
     spec: Spec | None = None
     paired: str | None = None
     if kind == "config":
         config_path, spec, paired = _parse_config_fields(name, entry, verify_md5)
-    elif any(key in entry for key in ("config_path", "spec", "paired")):
-        msg = f"{name}: config_path, spec and paired are only for config oracles"
+    elif any(key in entry for key in ("config_path", "spec")):
+        msg = f"{name}: config_path and spec are only for config oracles"
         raise ManifestError(msg)
+    else:
+        paired = _parse_sdk_paired(name, language, entry)
     return Oracle(
         name=name,
         group=_str(entry, "group"),
@@ -265,15 +322,21 @@ def parse_entry(raw: object) -> Oracle:
         config_path=config_path,
         spec=spec,
         paired=paired,
+        language=language,
+        layout=layout,
     )
 
 
-def check_pair(config: Oracle, sdk: Oracle) -> None:
-    """Check a config oracle against the sdk oracle it pairs with (ADR 0009).
+def check_pair(config: Oracle, sdk: Oracle, paired: str | None = None) -> None:
+    """Check a config oracle against an sdk oracle generated from it (ADR 0009).
 
     `proven` means md5(config) is the SDK's `config_hash` and md5(spec) its `openapi_spec_hash`.
     `nearest` means the two are only close in time, so their hashes must not both match.
+    `paired` defaults to the config's own, which is about its Python SDK; another language's
+    SDK passes its own.
     """
+    paired = paired or config.paired
+    subject = sdk.name if sdk.paired else config.name
     if sdk.kind != "sdk" or sdk.stats is None:
         msg = f"{config.name}: pairs_with {sdk.name!r} must be an sdk oracle"
         raise ManifestError(msg)
@@ -288,15 +351,15 @@ def check_pair(config: Oracle, sdk: Oracle) -> None:
         config_md5 == sdk.stats["config_hash"],
         config.spec.md5 == sdk.stats["openapi_spec_hash"],
     )
-    if config.paired == "proven" and not all(matches):
+    if paired == "proven" and not all(matches):
         msg = (
-            f"{config.name}: paired is 'proven' but md5(config), md5(spec) = "
+            f"{subject}: paired is 'proven' but md5(config), md5(spec) = "
             f"{config_md5}, {config.spec.md5}; {sdk.name} has config_hash, openapi_spec_hash = "
             f"{sdk.stats['config_hash']}, {sdk.stats['openapi_spec_hash']}"
         )
         raise ManifestError(msg)
-    if config.paired == "nearest" and all(matches):
-        msg = f"{config.name}: hashes match {sdk.name}, so paired should be 'proven'"
+    if paired == "nearest" and all(matches):
+        msg = f"{subject}: hashes match {config.name} and {sdk.name}, so paired should be 'proven'"
         raise ManifestError(msg)
 
 
@@ -323,6 +386,12 @@ def parse_manifest(text: str) -> list[Oracle]:
     if len(set(names)) != len(names):
         msg = "oracle names must be unique"
         raise ManifestError(msg)
+    _check_pairs(oracles)
+    return oracles
+
+
+def _check_pairs(oracles: list[Oracle]) -> None:
+    """Check every pairs_with link and the md5 pairing behind it."""
     by_name = {o.name: o for o in oracles}
     for o in oracles:
         if o.pairs_with is not None and o.pairs_with not in by_name:
@@ -330,16 +399,86 @@ def parse_manifest(text: str) -> list[Oracle]:
             raise ManifestError(msg)
         if o.kind == "config" and o.pairs_with is not None:
             check_pair(o, by_name[o.pairs_with])
-    return oracles
+    for o in oracles:
+        if o.kind == "sdk" and o.language != DEFAULT_LANGUAGE and o.pairs_with is not None:
+            _check_language_pair(o, by_name[o.pairs_with])
+    _check_one_sdk_per_language(oracles)
 
 
-def select(oracles: list[Oracle], wanted: list[str], kind: str | None = None) -> list[Oracle]:
-    """Pick oracles by name or group (no names selects all), optionally only one kind."""
+def _check_language_pair(sdk: Oracle, config: Oracle) -> None:
+    """Check a non-Python sdk against the config it names, using its own `paired`."""
+    if config.kind != "config":
+        msg = f"{sdk.name}: pairs_with {config.name!r} must be a config oracle"
+        raise ManifestError(msg)
+    if sdk.paired is None:
+        msg = f"{sdk.name}: a {sdk.language} sdk paired with a config needs 'paired'"
+        raise ManifestError(msg)
+    if sdk.group != config.group:
+        msg = f"{sdk.name}: group must be {config.group!r}, the group of {config.name}"
+        raise ManifestError(msg)
+    check_pair(config, sdk, sdk.paired)
+
+
+def _check_one_sdk_per_language(oracles: list[Oracle]) -> None:
+    """At most one sdk per config and language, so a language fixes the pair."""
+    seen: dict[tuple[str, str], str] = {}
+    for config in (o for o in oracles if o.kind == "config"):
+        for sdk in paired_sdks(oracles, config):
+            key = (config.name, sdk_language(sdk))
+            if key in seen:
+                msg = f"{config.name}: {seen[key]} and {sdk.name} are both {key[1]} sdks"
+                raise ManifestError(msg)
+            seen[key] = sdk.name
+
+
+def sdk_language(oracle: Oracle) -> str:
+    """Return an sdk oracle's language (python when the entry has none)."""
+    return oracle.language or DEFAULT_LANGUAGE
+
+
+def paired_sdks(oracles: Sequence[Oracle], config: Oracle) -> list[Oracle]:
+    """Return the sdk oracles generated from a config: the one it names, those naming it."""
+    return [
+        o
+        for o in oracles
+        if o.kind == "sdk" and (o.name == config.pairs_with or o.pairs_with == config.name)
+    ]
+
+
+def _in_language(oracles: list[Oracle], picked: list[Oracle], language: str) -> set[str]:
+    """Names in `picked` that belong to `language`: its sdks and the configs they pair with."""
+    keep = {o.name for o in picked if o.kind == "sdk" and sdk_language(o) == language}
+    for config in (o for o in picked if o.kind == "config"):
+        if any(sdk.name in keep for sdk in paired_sdks(oracles, config)):
+            keep.add(config.name)
+    return keep
+
+
+def select(
+    oracles: list[Oracle],
+    wanted: list[str],
+    kind: str | None = None,
+    language: str = DEFAULT_LANGUAGE,
+) -> list[Oracle]:
+    """Pick oracles by name or group (no names selects all), optionally only one kind.
+
+    Groups and "all" keep only the sdks in `language` and the configs they pair with
+    (`ALL_LANGUAGES` keeps every one). An oracle named exactly is kept whatever its language.
+    """
+    if language != ALL_LANGUAGES and language not in LANGUAGES:
+        msg = f"unknown language {language!r}: use one of {', '.join(LANGUAGES)} or all"
+        raise ManifestError(msg)
     unknown = [w for w in wanted if not any(w in {o.name, o.group} for o in oracles)]
     if unknown:
         msg = f"unknown oracle(s): {', '.join(unknown)}"
         raise ManifestError(msg)
-    picked = [o for o in oracles if not wanted or o.name in wanted or o.group in wanted]
+    grouped = [o for o in oracles if not wanted or o.group in wanted]
+    keep = (
+        {o.name for o in grouped}
+        if language == ALL_LANGUAGES
+        else _in_language(oracles, grouped, language)
+    )
+    picked = [o for o in oracles if o.name in wanted or o.name in keep]
     return [o for o in picked if kind is None or o.kind == kind]
 
 
@@ -368,6 +507,9 @@ def _git(*args: str, cwd: Path | None = None) -> str:
 
 def checkout(oracle: Oracle, cache: Path = CACHE) -> Path:
     """Clone (blobless) or reuse cache/<name> and detach at the pinned SHA."""
+    if urllib.parse.urlsplit(oracle.url).scheme != "https":
+        msg = f"{oracle.name}: refusing non-https clone URL {oracle.url}"
+        raise VerifyError(msg)
     dest = cache / oracle.name
     if not (dest / ".git").is_dir():
         cache.mkdir(parents=True, exist_ok=True)
@@ -463,20 +605,52 @@ def fetch_spec(
     return target
 
 
-def parse_args(argv: list[str]) -> tuple[list[str], str | None]:
-    """Parse the command line into (names or groups, kind)."""
+@dataclass(frozen=True, slots=True)
+class Args:
+    """What to fetch: names or groups, narrowed by kind and language."""
+
+    names: list[str]
+    kind: str | None = None
+    language: str = DEFAULT_LANGUAGE
+    groups: tuple[str, ...] = ()
+
+    def wanted(self, oracles: list[Oracle]) -> list[str]:
+        """Names and groups for `select`; each `--group` must be a group."""
+        known = {o.group for o in oracles}
+        bad = [g for g in self.groups if g not in known]
+        if bad:
+            msg = f"unknown group(s): {', '.join(bad)}"
+            raise ManifestError(msg)
+        return [*self.groups, *self.names]
+
+
+def parse_args(argv: list[str]) -> Args:
+    """Parse the command line."""
     parser = argparse.ArgumentParser(description="Fetch and verify pinned oracle repos.")
     parser.add_argument("--kind", choices=KINDS, help="only oracles of this kind")
+    parser.add_argument(
+        "--language",
+        choices=(*LANGUAGES, ALL_LANGUAGES),
+        default=DEFAULT_LANGUAGE,
+        help=f"sdk language that groups and 'all' are narrowed to (default {DEFAULT_LANGUAGE})",
+    )
+    parser.add_argument("--group", action="append", default=[], help="an oracle group")
     parser.add_argument("names", nargs="*", help="oracle names or groups (default: all)")
     args = parser.parse_args(argv)
-    return cast("list[str]", args.names), cast("str | None", args.kind)
+    return Args(
+        cast("list[str]", args.names),
+        cast("str | None", args.kind),
+        cast("str", args.language),
+        tuple(cast("list[str]", args.group)),
+    )
 
 
 def main(argv: list[str]) -> int:
     """Entry point."""
-    names, kind = parse_args(argv)
+    args = parse_args(argv)
     try:
-        oracles = select(parse_manifest(MANIFEST.read_text(encoding="utf-8")), names, kind)
+        manifest = parse_manifest(MANIFEST.read_text(encoding="utf-8"))
+        oracles = select(manifest, args.wanted(manifest), args.kind, args.language)
     except ManifestError as exc:
         sys.stderr.write(f"error: {exc}\n")
         return 2
@@ -489,6 +663,9 @@ def main(argv: list[str]) -> int:
             if oracle.kind == "config":
                 spec = fetch_spec(oracle, dest)
                 extra = f" ({oracle.paired}; config {oracle.config_path}; spec {spec})"
+            elif sdk_language(oracle) != DEFAULT_LANGUAGE:
+                layout = f", {oracle.layout} layout" if oracle.layout else ""
+                extra = f" ({oracle.language}{layout}; {oracle.paired} with {oracle.pairs_with})"
         except (VerifyError, OSError, subprocess.CalledProcessError) as exc:
             detail = exc.stderr if isinstance(exc, subprocess.CalledProcessError) else exc
             sys.stderr.write(f"FAIL {oracle.name}: {detail}\n")
