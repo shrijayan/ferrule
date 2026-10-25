@@ -132,6 +132,60 @@ def test_go_requestoption_imports_follow_gofmt_order() -> None:
     )
 
 
+V2 = GoOptions(
+    module_path="github.com/acme/acme-go/v3", package_name="acme", client_name="Acme", layout="v2"
+)
+
+
+def test_go_v2_template_root_exists() -> None:
+    assert template_root("go-v2").joinpath("packages", "param", "option.go").is_file()
+
+
+def test_go_v2_defaults() -> None:
+    files = render_go_files(V2)
+    assert "packages/respjson/respjson.go" in files
+    assert "internal/param/field.go" not in files
+    assert files["field.go"].startswith("package acme\n")
+    assert "\nfunc File(rdr io.Reader" in files["field.go"]
+    option = files["option/requestoption.go"]
+    assert '"encoding/base64"' not in option
+    assert option.endswith("\t})\n}\n")
+    # pkg.go.dev's README link names the module without its major-version suffix.
+    assert "https://pkg.go.dev/github.com/acme/acme-go#readme-requestoptions" in option
+    assert '\t"github.com/acme/acme-go/v3/internal/requestconfig"\n' in option
+    assert not any("ferrule" in text.lower() for text in files.values())
+
+
+def test_go_v2_options() -> None:
+    files = render_go_files(
+        GoOptions(
+            module_path="zeta.dev/sdk",
+            package_name="acme",
+            client_name="Acme",
+            layout="v2",
+            new_file=True,
+            config_fields="\tToken          string\n",
+            config_clone="\t\tToken:          cfg.Token,\n",
+            client_options="\nvar token = base64.StdEncoding.EncodeToString(nil)\n",
+        )
+    )
+    assert "\nfunc NewFile(rdr io.Reader" in files["field.go"]
+    assert 'import (\n\t"io"\n\t"time"\n\t"zeta.dev/sdk/packages/param"\n)' in files["field.go"]
+    option = files["option/requestoption.go"]
+    assert '\t"bytes"\n\t"encoding/base64"\n\t"fmt"\n' in option
+    assert (
+        "\tMiddlewares    []middleware\n\tToken          string\n"
+        in (files["internal/requestconfig/requestconfig.go"])
+    )
+
+
+def test_go_rejects_new_file_in_v1() -> None:
+    with pytest.raises(RenderError, match="new_file"):
+        render_go_files(
+            GoOptions(module_path="a.dev/b", package_name="b", client_name="B", new_file=True)
+        )
+
+
 @pytest.mark.parametrize(
     ("kwargs", "match"),
     [
@@ -143,6 +197,7 @@ def test_go_requestoption_imports_follow_gofmt_order() -> None:
         ({"max_retries": -1}, "max_retries"),
         ({"config_fields": "\tToken *string"}, "config_fields must be empty or end with"),
         ({"redacted_headers": ("x key",)}, "lower-case header names"),
+        ({"layout": "v3"}, "layout"),
     ],
 )
 def test_go_rejects_bad_options(kwargs: dict[str, Any], match: str) -> None:
