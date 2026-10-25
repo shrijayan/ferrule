@@ -389,8 +389,13 @@ fn to_python(client: &n::Client) -> py::SdkClient {
 /// `Ok(false)` when the Python adapter rejects it.
 fn cross_check(name: &str, json: &str) -> bool {
     let forge = common::forge(json);
-    let Ok(expected) = ferrule_python_plugin::adapter::forge_to_model(&forge) else {
-        return false;
+    let expected = match ferrule_python_plugin::adapter::forge_to_model(&forge) {
+        Ok(expected) => expected,
+        Err(e) => {
+            let neutral = ferrule_sdk_model::forge_to_model(&forge).map_or_else(|e| e.to_string(), |_| "ok".into());
+            eprintln!("{name}: the Python adapter rejects it ({e}); the neutral adapter: {neutral}");
+            return false;
+        }
     };
     let neutral = ferrule_sdk_model::forge_to_model(&forge).unwrap_or_else(|e| panic!("{name}: {e}"));
     let derived = neutral.as_ref().map(to_python);
@@ -424,8 +429,6 @@ fn derives_the_python_model_of_every_cached_config_oracle() {
             eprintln!("skipped {}: oracle files not cached", pair.name);
             continue;
         };
-        if !cross_check(&pair.name, &json) {
-            eprintln!("skipped {}: the Python adapter rejects it", pair.name);
-        }
+        cross_check(&pair.name, &json);
     }
 }
