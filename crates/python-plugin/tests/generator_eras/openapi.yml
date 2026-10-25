@@ -1,0 +1,27 @@
+openapi: 3.1.0
+info: {title: fx, version: '1'}
+servers: [{url: 'https://api.example.com'}]
+
+paths:
+  /workspaces/{workspace_id}:
+    get:
+      operationId: getWorkspace
+      parameters:
+        - {name: workspace_id, in: path, required: true, schema: {type: string}}
+        - {name: verbose, in: query, schema: {type: boolean}}
+      responses:
+        '200': {description: ok, content: {application/json: {schema: {type: object, properties: {id: {type: string}}}}}}
+  /workspaces/{workspace_id}/peers:
+    get:
+      operationId: listPeers
+      parameters:
+        - {name: workspace_id, in: path, required: true, schema: {type: string}}
+      responses:
+        '200': {description: ok, content: {application/json: {schema: {type: object, properties: {id: {type: string}}}}}}
+  /keys:
+    post:
+      operationId: createKey
+      requestBody:
+        content: {application/json: {schema: {type: object, properties: {name: {type: string}}}}}
+      responses:
+        '200': {description: ok, content: {application/json: {schema: {type: object, properties: {key: {type: string}}}}}}
