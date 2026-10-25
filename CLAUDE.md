@@ -63,10 +63,10 @@ mise run install                # pnpm install --frozen-lockfile (site) + uv syn
 mise run check                  # everything ci.yml runs (lint, types, tests: Rust, Python, site TS)
 mise run lint:rs                # cargo fmt --check + clippy, warnings denied (lint:py: ruff, lint:ts: biome)
 mise run test:rs                # cargo test (test:py: pytest)
-mise run typecheck:py           # pyright + mypy (typecheck:ts: tsc for the site)
+mise run typecheck:py           # pyright + mypy
 mise run golden                 # the Rust golden tests (crates/python-plugin/tests/golden/)
 cargo build --release -p ferrule-gen  # target/release/ferrule-gen, used by `ferrule generate|adopt`
-mise run forge:setup            # build the Forge CLI into .cache/forge (telemetry check, canary only)
+mise run forge:setup            # check out the pinned Forge commit into .cache/forge (canary only)
 mise run docs:build             # build the docs site
 mise run parity -- onebusaway   # one oracle
 mise run corpus -- --tier 1
