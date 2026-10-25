@@ -1,0 +1,183 @@
+{
+  "components": {
+    "schemas": {
+      "RequestTemplate": {
+        "description": "A request template for a fetch function step.",
+        "properties": {
+          "headers": {
+            "description": "The headers of the request. Can be a template string or a list of key-value pairs.",
+            "oneOf": [
+              {
+                "description": "A template string that should resolve to a JSON object representing the headers.",
+                "title": "RequestTemplateHeadersString",
+                "type": "string"
+              },
+              {
+                "$ref": "#/components/schemas/RequestTemplateHeadersArray",
+                "x-ferrule-normalized": [
+                  "title-hoisted"
+                ]
+              }
+            ],
+            "title": "RequestTemplateHeaders",
+            "type": "object"
+          },
+          "url": {
+            "description": "The URL of the request.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "type": "object",
+        "x-fern-type-name": "RequestTemplate"
+      },
+      "RequestTemplateHeadersArray": {
+        "description": "A list of key-value pairs for the request headers.",
+        "items": {
+          "properties": {
+            "key": {
+              "description": "The key of the header.",
+              "type": "string"
+            },
+            "value": {
+              "description": "The value of the header.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "key",
+            "value"
+          ],
+          "type": "object"
+        },
+        "title": "RequestTemplateHeadersArray",
+        "type": "array"
+      }
+    }
+  },
+  "info": {
+    "title": "fx",
+    "version": "1"
+  },
+  "openapi": "3.0.0",
+  "paths": {
+    "/templates/{key}": {
+      "get": {
+        "operationId": "getTemplate",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequestTemplate"
+                }
+              }
+            },
+            "description": "ok"
+          }
+        },
+        "summary": "Gets a template.",
+        "x-fern-sdk-group-name": [
+          "templates"
+        ],
+        "x-fern-sdk-method-name": "retrieve",
+        "x-ferrule-client": {
+          "defaultEnvironment": "production",
+          "defaultHeaders": {},
+          "envPrefix": "FX",
+          "environments": [
+            {
+              "name": "production",
+              "url": "https://api.example.com"
+            }
+          ],
+          "name": "fx",
+          "omitPlatformHeaders": false,
+          "opts": [],
+          "query": {
+            "arrayFormat": "comma",
+            "nestedFormat": "brackets"
+          },
+          "retries": {
+            "initialDelaySeconds": 0.5,
+            "maxDelaySeconds": 8,
+            "maxRetries": 2
+          },
+          "security": [],
+          "securitySchemes": {},
+          "timeoutSeconds": 60
+        },
+        "x-ferrule-method-name": "retrieve",
+        "x-ferrule-method-order": 0,
+        "x-ferrule-models": {
+          "RequestTemplate": {
+            "module": "request_template",
+            "name": "RequestTemplate"
+          }
+        },
+        "x-ferrule-package": {
+          "name": "fx",
+          "repo": "fx/fx-python"
+        },
+        "x-ferrule-resource": {
+          "order": [
+            0
+          ],
+          "path": [
+            "templates"
+          ]
+        }
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.example.com"
+    }
+  ],
+  "x-ferrule-client": {
+    "defaultEnvironment": "production",
+    "defaultHeaders": {},
+    "envPrefix": "FX",
+    "environments": [
+      {
+        "name": "production",
+        "url": "https://api.example.com"
+      }
+    ],
+    "name": "fx",
+    "omitPlatformHeaders": false,
+    "opts": [],
+    "query": {
+      "arrayFormat": "comma",
+      "nestedFormat": "brackets"
+    },
+    "retries": {
+      "initialDelaySeconds": 0.5,
+      "maxDelaySeconds": 8,
+      "maxRetries": 2
+    },
+    "security": [],
+    "securitySchemes": {},
+    "timeoutSeconds": 60
+  },
+  "x-ferrule-config": {
+    "edition": "2025-10-08",
+    "packageName": "fx",
+    "projectName": "fx",
+    "pythonEdition": "python.2025-10-08",
+    "version": 1
+  }
+}

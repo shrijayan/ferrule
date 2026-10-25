@@ -14,3 +14,9 @@ oracle file named below (knock-mgmt-python 0.1.0-alpha.2), not generated.
   upper-case run that is not an initialism is spelled as a word (ogx-client-python
   `ToolChoiceOpenAIResponseInputToolChoiceMcpTool` from the schema
   `OpenAIResponseInputToolChoiceMCPTool`).
+- `titled_array_variant`: `RequestTemplate.headers`, a `oneOf` of a string and an array of
+  objects titled `RequestTemplateHeadersArray` (knock-mgmt-python `types/request_template.py`).
+  The converter points the member at the equal `RequestTemplateHeadersArray` schema
+  (`title-hoisted`); the items are `HeadersRequestTemplateHeadersArray`, the field's class name
+  followed by the array's title, without a docstring, and the field is
+  `Union[str, List[HeadersRequestTemplateHeadersArray], None]`.

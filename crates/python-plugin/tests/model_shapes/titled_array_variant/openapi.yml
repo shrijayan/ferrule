@@ -1,0 +1,48 @@
+openapi: 3.0.0
+info: {title: fx, version: '1'}
+servers: [{url: 'https://api.example.com'}]
+
+paths:
+  /templates/{key}:
+    get:
+      operationId: getTemplate
+      summary: Gets a template.
+      parameters:
+        - {name: key, in: path, required: true, schema: {type: string}}
+      responses:
+        '200': {description: ok, content: {application/json: {schema: {$ref: '#/components/schemas/RequestTemplate'}}}}
+components:
+  schemas:
+    RequestTemplate:
+      description: A request template for a fetch function step.
+      type: object
+      required: [url]
+      properties:
+        headers:
+          description: The headers of the request. Can be a template string or a list of key-value pairs.
+          oneOf:
+            - description: A template string that should resolve to a JSON object representing the headers.
+              title: RequestTemplateHeadersString
+              type: string
+            - description: A list of key-value pairs for the request headers.
+              items:
+                properties:
+                  key: {description: The key of the header., type: string}
+                  value: {description: The value of the header., type: string}
+                required: [key, value]
+                type: object
+              title: RequestTemplateHeadersArray
+              type: array
+          title: RequestTemplateHeaders
+          type: object
+        url: {description: The URL of the request., type: string}
+    RequestTemplateHeadersArray:
+      description: A list of key-value pairs for the request headers.
+      items:
+        properties:
+          key: {description: The key of the header., type: string}
+          value: {description: The value of the header., type: string}
+        required: [key, value]
+        type: object
+      title: RequestTemplateHeadersArray
+      type: array
