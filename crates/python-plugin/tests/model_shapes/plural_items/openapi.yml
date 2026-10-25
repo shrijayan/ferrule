@@ -1,0 +1,37 @@
+openapi: 3.0.0
+info: {title: fx, version: '1'}
+servers: [{url: 'https://api.example.com'}]
+
+paths:
+  /steps/{key}:
+    get:
+      operationId: getStep
+      summary: Gets a step.
+      parameters:
+        - {name: key, in: path, required: true, schema: {type: string}}
+      responses:
+        '200': {description: ok, content: {application/json: {schema: {$ref: '#/components/schemas/WorkflowBranchStep'}}}}
+components:
+  schemas:
+    WorkflowBranchStep:
+      description: A branch function step.
+      type: object
+      required: [branches]
+      properties:
+        branches:
+          description: A list of workflow branches to be evaluated.
+          type: array
+          items:
+            type: object
+            properties:
+              name: {description: The name of the branch., type: string}
+        example_payloads:
+          description: Example payloads keyed by event type.
+          nullable: true
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: object
+              properties:
+                body: {additionalProperties: true, description: Example payload body., nullable: true, type: object}
