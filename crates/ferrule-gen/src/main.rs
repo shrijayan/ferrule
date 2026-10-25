@@ -24,6 +24,15 @@ Commands:
   convert   Turn an OpenAPI spec and a stainless.yml into the annotated spec
   generate  Generate the Python SDK from an annotated spec (a JSON document, or - for stdin)";
 
+/// `ferrule-gen <crate version> forge <40-hex rev>`: the rev is the Forge commit pinned in the
+/// workspace `Cargo.lock` (read by `build.rs`). `ferrule.lock` records both parts.
+const VERSION: &str = concat!(
+    "ferrule-gen ",
+    env!("CARGO_PKG_VERSION"),
+    " forge ",
+    env!("FERRULE_FORGE_REV")
+);
+
 fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().skip(1).collect();
     let code = run(&args, &mut io::stdout().lock(), &mut io::stderr().lock());
@@ -40,7 +49,7 @@ fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i32 {
             0
         }
         Some("-V" | "--version") => {
-            let _ = writeln!(stdout, "ferrule-gen {}", env!("CARGO_PKG_VERSION"));
+            let _ = writeln!(stdout, "{VERSION}");
             0
         }
         Some(other) => usage(stderr, &format!("unrecognized subcommand '{other}'")),
@@ -158,6 +167,20 @@ mod tests {
         }
         let parsed = parse_generate(&strings(&["-", "--out=sdk"])).expect("valid");
         assert_eq!(parsed.spec, PathBuf::from("-"));
+    }
+
+    #[test]
+    fn version_names_the_pinned_forge_rev() {
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        assert_eq!(run(&strings(&["--version"]), &mut out, &mut err), 0);
+        let line = String::from_utf8(out).expect("utf-8");
+        let words: Vec<&str> = line.trim_end().split(' ').collect();
+        assert_eq!(words[..3], ["ferrule-gen", env!("CARGO_PKG_VERSION"), "forge"]);
+        assert_eq!(words.len(), 4);
+        // The rev from Cargo.lock is the one the workspace manifest pins.
+        let manifest = include_str!("../../../Cargo.toml");
+        assert!(manifest.contains(&format!("rev = \"{}\"", words[3])), "{line}");
     }
 
     #[test]
