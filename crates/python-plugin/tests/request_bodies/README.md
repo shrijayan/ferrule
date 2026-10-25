@@ -37,3 +37,10 @@ and `stainless.yml` reduced from an oracle (phase 4 triage), and `annotated.json
   Stainless names inline variants after their `title` (imagekit `GoogleCloudStorageGcs` for
   discriminator `GCS`, `UpdateFileDetails`); Forge does not expose titles, so the fixture's
   titles spell what the discriminator values give.
+- `multipart`: a `multipart/form-data` body with a binary field, from honcho
+  `sessions.messages.upload` (honcho-python-core `resources/workspaces/sessions/messages.py`;
+  current-era text from ogx-client-python `resources/files.py`): the body dict goes through
+  `deepcopy_with_paths(..., [["file"]])`, `extract_files(..., paths=[["file"]])` takes the files
+  out, `Content-Type: multipart/form-data` is set, and `files=files` is passed beside the body.
+  Only the request is pinned (in `../request_bodies.rs`, no golden files): Stainless types the
+  binary field `FileTypes`, which needs a type the project-file emitters know too.
