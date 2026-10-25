@@ -102,3 +102,10 @@ fn a_model_field_named_schema_is_schema_underscore() {
 fn list_items_are_named_in_the_singular() {
     check("plural_items");
 }
+
+/// An object with properties that also takes other keys types them as `__pydantic_extra__` and
+/// a `__getattr__` stub (knock-mgmt `SourceEnvironmentSettings.settings`).
+#[test]
+fn an_object_with_extra_properties_declares_pydantic_extra() {
+    check("extra_properties");
+}

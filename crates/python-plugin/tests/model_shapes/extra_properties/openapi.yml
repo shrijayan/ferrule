@@ -1,0 +1,26 @@
+openapi: 3.0.0
+info: {title: fx, version: '1'}
+servers: [{url: 'https://api.example.com'}]
+
+paths:
+  /sources/{key}/settings:
+    get:
+      operationId: getSourceSettings
+      summary: Gets the settings of a source.
+      parameters:
+        - {name: key, in: path, required: true, schema: {type: string}}
+      responses:
+        '200': {description: ok, content: {application/json: {schema: {$ref: '#/components/schemas/SourceEnvironmentSettings'}}}}
+components:
+  schemas:
+    SourceEnvironmentSettings:
+      description: Environment-specific settings for a source.
+      type: object
+      properties:
+        settings:
+          additionalProperties: true
+          description: Source settings for this environment.
+          type: object
+          properties:
+            endpoint: {description: The public endpoint that receives source events for this environment., type: string}
+            event_type_path: {nullable: true, type: string}
