@@ -5,7 +5,7 @@ use std::collections::{HashMap, HashSet};
 use std::ops::Range;
 
 use super::common::{
-    FieldLike, HEADER, keyword_path_params, method_params, method_ref, py_string, rel_import, sort_fields,
+    FieldLike, HEADER, keyword_path_params, method_params, method_ref, py_string, rel_import, sort_fields, typed_extra,
 };
 use super::format::{bracket, print_expr};
 use super::models::{all_list, docstring};
@@ -478,8 +478,20 @@ fn print_decl(p: &mut PythonPrinter, decl: Decl<'_>, ctx: &ParamsContext<'_, '_>
             );
         }
         Decl::Class { name, obj } => {
-            p.block(&format!("class {name}(TypedDict, total=False):"), |p| {
-                let doc = docstring(obj.description.as_deref().unwrap_or(""), "");
+            // An object that takes other keys too is its fields' `<name>Typed`, without a
+            // docstring, or a dict (knock `ObjectTyped`, papr `MemoryMetadataParamTyped`).
+            let extra = typed_extra(obj);
+            let class = if extra.is_some() {
+                format!("{name}Typed")
+            } else {
+                name.to_owned()
+            };
+            p.block(&format!("class {class}(TypedDict, total=False):"), |p| {
+                let doc = if extra.is_some() {
+                    Vec::new()
+                } else {
+                    docstring(obj.description.as_deref().unwrap_or(""), "")
+                };
                 for l in &doc {
                     p.line(l);
                 }
@@ -489,6 +501,14 @@ fn print_decl(p: &mut PythonPrinter, decl: Decl<'_>, ctx: &ParamsContext<'_, '_>
                 let fields: Vec<_> = obj.fields.iter().collect();
                 fields_of(p, &fields, ctx);
             });
+            if let Some(extra) = extra {
+                p.import_from("typing_extensions", "TypeAlias");
+                p.import_from("typing", "Union");
+                p.import_from("typing", "Dict");
+                let values = to_annotation(extra, p, ctx);
+                p.blank().blank();
+                p.line(&format!("{name}: TypeAlias = Union[{class}, Dict[str, {values}]]"));
+            }
         }
     }
 }

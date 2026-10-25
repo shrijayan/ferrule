@@ -2,7 +2,7 @@
 
 use std::cell::RefCell;
 
-use super::common::{HEADER, escape_docstring, py_string, rel_import, sort_fields, wrap};
+use super::common::{HEADER, escape_docstring, py_string, rel_import, sort_fields, typed_extra, wrap};
 use super::cycles::Cycles;
 use super::format::{call, format_expr};
 use super::params::{Decl, Named, name_params};
@@ -363,23 +363,13 @@ fn decl_blocks(p: &mut PythonPrinter, named: &Named<'_>, ctx: &ModelContext<'_, 
         .collect()
 }
 
-/// Whether `t` holds an inline object, which would need a class name of its own.
-fn has_inline_object(t: &SdkType) -> bool {
-    match t {
-        SdkType::Object(_) => true,
-        SdkType::Array(inner) | SdkType::Map(inner) => has_inline_object(inner),
-        SdkType::Union { variants, .. } => variants.iter().any(has_inline_object),
-        _ => false,
-    }
-}
-
 /// The typed extra keys of an object with fields that takes other keys too, as knock-mgmt-python
 /// `types/source_environment_settings.py` declares them: `__pydantic_extra__` (assigned only for
 /// type checkers, for Pydantic before 2.8) and a `__getattr__` stub. `builtins.object` where a
 /// field named `object` shadows the builtin (ogx-client-python `batch_cancel_response.py`).
 /// Extra values that are inline objects are left out: they would need names Stainless gives them.
 fn extra_lines(p: &mut PythonPrinter, obj: &SdkObject, ctx: &ModelContext<'_, '_>) -> Option<Vec<String>> {
-    let extra = obj.extra.as_deref().filter(|t| !has_inline_object(t))?;
+    let extra = typed_extra(obj)?;
     let ann = to_annotation(extra, p, ctx);
     let ann = if ann == "object" && obj.fields.iter().any(|f| f.py_name == "object") {
         p.import_module("builtins");
