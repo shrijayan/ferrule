@@ -96,7 +96,16 @@ pub fn plan_methods<'a>(ctx: &Ctx<'a>, r: &TsResource<'a>, mapper: &mut Mapper<'
                         .and_then(serde_json::Value::as_str)
                         .unwrap_or_default();
                     let d = mapper.model(&response_name, t, description, false, None);
-                    (response_name, Some(d))
+                    // The `node` layout declares a response without a schema
+                    // (`type KeyCreateResponse = unknown`) but returns `unknown`.
+                    let unknown = ctx.node()
+                        && matches!(
+                            t,
+                            Type::Scalar {
+                                scalar: ferrule_sdk_model::model::Scalar::Unknown
+                            }
+                        );
+                    (if unknown { "unknown".to_owned() } else { response_name }, Some(d))
                 }
             };
             let body_fields = m.body.as_ref().and_then(|b| ctx.client.object_of(&b.ty));
@@ -105,6 +114,9 @@ pub fn plan_methods<'a>(ctx: &Ctx<'a>, r: &TsResource<'a>, mapper: &mut Mapper<'
             let has_path = !path_in_params(ctx, m).is_empty();
             let params_arg = match (has_query, has_body) {
                 _ if has_path => ParamsArg::Mixed,
+                // The `node` layout destructures the query of a method that sends no body, other
+                // than a GET: `const { a, b } = params; ... { query: { a, b }, ...options }`.
+                (true, false) if ctx.node() && m.http_method != HttpMethod::Get => ParamsArg::Mixed,
                 (false, false) => ParamsArg::None,
                 (true, false) => ParamsArg::Query,
                 (false, true) => ParamsArg::Body,
@@ -362,14 +374,23 @@ fn node_method_lines(ctx: &Ctx<'_>, chain: &[&TsResource<'_>], plan: &MethodPlan
         ParamsArg::Body => props.push(shorthand("body")),
         ParamsArg::Mixed => {
             let query: Vec<String> = query_params(ctx, m).iter().map(|p| p.field.wire_name.clone()).collect();
+            let has_body = m
+                .body
+                .as_ref()
+                .and_then(|b| ctx.client.object_of(&b.ty))
+                .is_some_and(|o| !o.fields.is_empty());
             let mut names = query.clone();
-            names.push("...body".to_owned());
+            if has_body {
+                names.push("...body".to_owned());
+            }
             out.push(render(&specifiers("const ", &names, " = params;"), 4, WIDTH));
             props.push((
                 "query".to_owned(),
                 literal(query.iter().map(|q| shorthand(q)).collect()),
             ));
-            props.push(shorthand("body"));
+            if has_body {
+                props.push(shorthand("body"));
+            }
         }
     }
     let void = plan.response == "void";
