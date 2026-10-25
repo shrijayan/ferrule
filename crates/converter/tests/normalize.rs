@@ -53,6 +53,57 @@ fn rewrites_a_null_literal_in_a_type_array_to_null_imagekit() {
     );
 }
 
+/// knock-mgmt writes an optional `$ref` as `anyOf: [$ref, {nullable: true}]`. Without a `type`,
+/// `nullable` constrains nothing, so Forge reads that member as any value and the whole field as
+/// `object`; Stainless reads it as null (knock-mgmt-python `workflow.py`
+/// `conditions: Optional[ConditionGroup]`, `email_template.py` `Optional[List[VisualBlock]]`).
+#[test]
+fn reads_a_member_that_is_only_nullable_as_null_knock_mgmt() {
+    let member = json!({"nullable": true, "x-struct": null, "x-validate": null});
+    let spec = v(json!({
+        "openapi": "3.0.0",
+        "components": {
+            "schemas": {
+                "C": {"type": "object", "properties": {"a": {"type": "string"}}},
+                "W": {"properties": {
+                    "conditions": {
+                        "anyOf": [{"$ref": "#/components/schemas/C"}, member],
+                        "description": "Conditions.",
+                        "type": "object"
+                    },
+                    "settings": {"oneOf": [{"type": "object", "properties": {}}, member]},
+                    "kept": {"anyOf": [{"type": "string"}, {"nullable": true, "type": "integer"}]}
+                }}
+            }
+        }
+    }));
+    let (out, diagnostics) = normalize(&spec);
+    let props = at(&out, &["components", "schemas", "W", "properties"]).expect("properties");
+    let null = v(json!({
+        "type": "null",
+        "x-struct": null,
+        "x-validate": null,
+        "x-ferrule-normalized": ["nullable-only-member"]
+    }));
+    assert_eq!(at(props, &["conditions", "anyOf", "1"]), Some(&null));
+    assert_eq!(at(props, &["settings", "oneOf", "1"]), Some(&null));
+    assert_eq!(
+        at(props, &["conditions", "anyOf", "0"]),
+        Some(&v(json!({"$ref": "#/components/schemas/C"})))
+    );
+    assert_eq!(
+        at(props, &["kept"]),
+        at(&spec, &["components", "schemas", "W", "properties", "kept"])
+    );
+    assert_eq!(
+        csp(&diagnostics),
+        [
+            ["FER1608", "info", "/components/schemas/W/properties/conditions/anyOf/1"],
+            ["FER1608", "info", "/components/schemas/W/properties/settings/oneOf/1"],
+        ]
+    );
+}
+
 #[test]
 fn rewrites_a_string_discriminator_to_a_discriminator_object_knock() {
     let spec = v(json!({"components": {"schemas": {"R": {"oneOf": [], "discriminator": "__typename"}}}}));
