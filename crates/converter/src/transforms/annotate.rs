@@ -17,8 +17,9 @@ struct Ctx<'c> {
     diagnostics: Vec<Diagnostic>,
     /// Schema name -> `{ name, module }`.
     models: Map,
-    /// Paths of the annotated operations, in annotation order.
-    operations: Vec<Vec<Seg>>,
+    /// Each annotated operation, in annotation order, with the extensions of every method bound
+    /// to it (more than one becomes `x-forge-aliases`).
+    bindings: Vec<(Vec<Seg>, Vec<Map>)>,
     schemes: Vec<Scheme>,
     on_event: Vec<Value>,
 }
@@ -150,30 +151,34 @@ impl Ctx<'_> {
             }
             _ => None,
         };
-        let Some(Value::Object(op)) = get_at_mut(spec, &op_path) else {
+        if !matches!(get_at(spec, &op_path), Some(Value::Object(_))) {
             return;
-        };
+        }
         let strings = |v: Vec<String>| Value::Array(v.into_iter().map(Value::String).collect());
         #[expect(clippy::cast_precision_loss, reason = "orders are small indices")]
         let numbers = |v: &[usize]| Value::Array(v.iter().map(|n| Value::Number(*n as f64)).collect());
-        op.insert("x-fern-sdk-group-name", strings(forge_group_path(path)));
-        op.insert("x-fern-sdk-method-name", Value::from(name));
+        let mut def = Map::new();
+        def.insert("x-fern-sdk-group-name", strings(forge_group_path(path)));
+        def.insert("x-fern-sdk-method-name", Value::from(name));
         let mut resource = Map::new();
         resource.insert("path", strings(path.to_vec()));
         resource.insert("order", numbers(resource_order));
-        op.insert("x-ferrule-resource", Value::Object(resource));
-        op.insert("x-ferrule-method-name", Value::from(name));
+        def.insert("x-ferrule-resource", Value::Object(resource));
+        def.insert("x-ferrule-method-name", Value::from(name));
         #[expect(clippy::cast_precision_loss, reason = "orders are small indices")]
-        op.insert("x-ferrule-method-order", Value::Number(method_order as f64));
-        self.operations.push(op_path);
+        def.insert("x-ferrule-method-order", Value::Number(method_order as f64));
         if let Some(p) = pagination {
-            op.insert("x-ferrule-pagination", p);
+            def.insert("x-ferrule-pagination", p);
         }
         if let Some((s, ds)) = streaming {
             self.diagnostics.extend(ds);
             if let Some(s) = s {
-                op.insert("x-ferrule-streaming", s);
+                def.insert("x-ferrule-streaming", s);
             }
+        }
+        match self.bindings.iter_mut().find(|(p, _)| *p == op_path) {
+            Some((_, defs)) => defs.push(def),
+            None => self.bindings.push((op_path, vec![def])),
         }
     }
 
@@ -373,7 +378,7 @@ pub fn annotate(spec: &Value, config: &Value) -> (Value, Vec<Diagnostic>) {
         config,
         diagnostics,
         models: Map::new(),
-        operations: Vec::new(),
+        bindings: Vec::new(),
         schemes,
         on_event: read_on_event(config),
     };
@@ -451,18 +456,45 @@ pub fn annotate(spec: &Value, config: &Value) -> (Value, Vec<Diagnostic>) {
         }
         client = Some(built);
     }
-    // Forge drops root and schema extensions (gaps G2, G3), so mirror them onto every operation.
-    let models = Value::Object(ctx.models.clone());
-    for op_path in &ctx.operations {
-        if let Some(Value::Object(op)) = get_at_mut(&mut out, op_path) {
-            op.insert("x-ferrule-models", models.clone());
-            if let Some(pkg) = &pkg {
-                op.insert("x-ferrule-package", Value::Object(pkg.clone()));
+    // Forge drops root and schema extensions (gaps G2, G3), so mirror them onto every method.
+    let mut mirrored = Map::new();
+    mirrored.insert("x-ferrule-models", Value::Object(ctx.models.clone()));
+    if let Some(pkg) = pkg {
+        mirrored.insert("x-ferrule-package", Value::Object(pkg));
+    }
+    if let Some(c) = client {
+        mirrored.insert("x-ferrule-client", c);
+    }
+    write_bindings(&mut out, ctx.bindings, &mirrored);
+    (out, ctx.diagnostics)
+}
+
+/// Writes each method's extensions, and `mirrored`, on its operation. An operation bound to
+/// several methods gets `x-forge-aliases`, one alias per method in config order: Forge then
+/// makes a method of each alias, with only the alias's extensions (gap G19).
+fn write_bindings(out: &mut Value, bindings: Vec<(Vec<Seg>, Vec<Map>)>, mirrored: &Map) {
+    for (op_path, defs) in bindings {
+        let Some(Value::Object(op)) = get_at_mut(out, &op_path) else {
+            continue;
+        };
+        let mut defs: Vec<Map> = defs
+            .into_iter()
+            .map(|mut def| {
+                for (key, value) in mirrored {
+                    def.insert(key.clone(), value.clone());
+                }
+                def
+            })
+            .collect();
+        if defs.len() == 1 {
+            for (key, value) in defs.remove(0) {
+                op.insert(key, value);
             }
-            if let Some(c) = &client {
-                op.insert("x-ferrule-client", c.clone());
-            }
+        } else {
+            op.insert(
+                "x-forge-aliases",
+                Value::Array(defs.into_iter().map(Value::Object).collect()),
+            );
         }
     }
-    (out, ctx.diagnostics)
 }

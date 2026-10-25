@@ -135,8 +135,23 @@ mod resources_and_methods {
                 "x-ferrule-method-order": 0
             }))
         ));
+        // `users.retrieve` and `$client.ping` share `get /users/{id}`: one alias each.
+        let aliases = op(&r.spec, "/users/{id}", "get")
+            .get("x-forge-aliases")
+            .and_then(Value::as_array)
+            .expect("x-forge-aliases");
+        assert_eq!(aliases.len(), 2);
         assert!(matches_object(
-            op(&r.spec, "/users/{id}", "get"),
+            &aliases[0],
+            &v(&json!({
+                "x-fern-sdk-group-name": ["users"],
+                "x-ferrule-resource": {"path": ["users"], "order": [0]},
+                "x-ferrule-method-name": "retrieve",
+                "x-ferrule-method-order": 0
+            }))
+        ));
+        assert!(matches_object(
+            &aliases[1],
             &v(&json!({
                 "x-fern-sdk-group-name": ["$ferrule_client"],
                 "x-ferrule-resource": {"path": ["$client"], "order": [1]},
