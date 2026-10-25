@@ -1,5 +1,5 @@
 {
-  "sha256": "cb7e8b110fd96395339e4f26b70b92e06f064ecacd0e4aa7558e59c15afe2a68",
+  "sha256": "c4b65388d93b4468da23dc0fb2464d5b5c694d26bb9d5fd71fb807517dc7f2ea",
   "root": {
     "x-ferrule-client": {
       "defaultEnvironment": "production",
@@ -859,7 +859,7 @@
           "page_size": "page_size"
         },
         "response": {
-          "entries": "entries",
+          "entries": "items",
           "page_info.after": "next_cursor_field"
         },
         "scheme": "cursor"
@@ -1035,7 +1035,7 @@
           "page_size": "page_size"
         },
         "response": {
-          "entries": "entries",
+          "entries": "items",
           "page_info.after": "next_cursor_field"
         },
         "scheme": "cursor"
@@ -1204,7 +1204,7 @@
           "page_size": "page_size"
         },
         "response": {
-          "entries": "entries",
+          "entries": "items",
           "page_info.after": "next_cursor_field"
         },
         "scheme": "cursor"
@@ -1314,7 +1314,7 @@
         },
         "response": {
           "skip_token": "next_cursor_field",
-          "ms_teams_teams": "ms_teams_teams"
+          "ms_teams_teams": "items"
         },
         "scheme": "cursor"
       },
@@ -1368,7 +1368,7 @@
         },
         "response": {
           "next_cursor": "next_cursor_field",
-          "slack_channels": "slack_channels"
+          "slack_channels": "items"
         },
         "scheme": "cursor"
       },
@@ -1438,7 +1438,7 @@
           "page_size": "page_size"
         },
         "response": {
-          "entries": "entries",
+          "entries": "items",
           "page_info.after": "next_cursor_field"
         },
         "scheme": "cursor"
@@ -1524,7 +1524,7 @@
           "page_size": "page_size"
         },
         "response": {
-          "entries": "entries",
+          "entries": "items",
           "page_info.after": "next_cursor_field"
         },
         "scheme": "cursor"
@@ -1647,7 +1647,7 @@
           "page_size": "page_size"
         },
         "response": {
-          "entries": "entries",
+          "entries": "items",
           "page_info.after": "next_cursor_field"
         },
         "scheme": "cursor"
@@ -1842,7 +1842,7 @@
           "page_size": "page_size"
         },
         "response": {
-          "entries": "entries",
+          "entries": "items",
           "page_info.after": "next_cursor_field"
         },
         "scheme": "cursor"
@@ -2098,7 +2098,7 @@
           "page_size": "page_size"
         },
         "response": {
-          "entries": "entries",
+          "entries": "items",
           "page_info.after": "next_cursor_field"
         },
         "scheme": "cursor"
@@ -2130,7 +2130,7 @@
           "page_size": "page_size"
         },
         "response": {
-          "entries": "entries",
+          "entries": "items",
           "page_info.after": "next_cursor_field"
         },
         "scheme": "cursor"
