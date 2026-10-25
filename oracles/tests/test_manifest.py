@@ -450,6 +450,33 @@ def test_select_by_language() -> None:
         fetch.select(oracles, [], None, "cobol")
 
 
+def test_real_manifest_languages() -> None:
+    oracles = fetch.parse_manifest(fetch.MANIFEST.read_text(encoding="utf-8"))
+    by_name = {o.name: o for o in oracles}
+    others = [o for o in oracles if o.kind == "sdk" and o.language != "python"]
+    assert len(others) == 23
+    for sdk in others:
+        assert sdk.name == f"{sdk.group}-{sdk.language}"
+        assert sdk.license in fetch.LICENSES
+        config = by_name[str(sdk.pairs_with)]
+        assert config.kind == "config"
+        assert sdk.paired == config.paired  # nearest exactly where the Python pair is
+    assert fetch.select(oracles, ["onebusaway"]) == [
+        by_name["onebusaway-config"],
+        by_name["onebusaway-python"],
+    ]
+    assert [o.name for o in fetch.select(oracles, ["onebusaway"], "sdk", "all")] == [
+        "onebusaway-python",
+        "onebusaway-typescript",
+        "onebusaway-go",
+        "onebusaway-java",
+        "onebusaway-kotlin",
+        "onebusaway-ruby",
+    ]
+    python = [o.name for o in oracles if o.language in {None, "python"}]
+    assert [o.name for o in fetch.select(oracles, [])] == python
+
+
 def test_checkout_refuses_non_https(tmp_path: Path) -> None:
     (oracle,) = fetch.parse_manifest(doc(entry()))
     plain = dataclasses.replace(oracle, url="http://github.com/acme/demo-python.git")
