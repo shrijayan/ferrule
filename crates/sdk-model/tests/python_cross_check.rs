@@ -576,7 +576,8 @@ fn cross_check(name: &str, json: &str) -> bool {
         }
     };
     let neutral = ferrule_sdk_model::forge_to_model(&forge).unwrap_or_else(|e| panic!("{name}: {e}"));
-    let derived = neutral.as_ref().map(to_python);
+    // Python generates the models stainless.yml keeps for it; the rest it inlines.
+    let derived = neutral.map(|c| to_python(&c.for_target("python")));
     assert!(
         derived == expected,
         "{name}: the Python model derived from the neutral one differs: {}",

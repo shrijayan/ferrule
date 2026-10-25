@@ -231,6 +231,11 @@ pub struct ModelDecl {
     pub deprecated: bool,
     /// The schema's type: an object for a class, anything else for an alias.
     pub ty: Type,
+    /// The targets it is generated for, in config order, when stainless.yml restricts it
+    /// (`skip:`/`only:` on the model or its resources); `None` for every target. Printed only
+    /// when set, so models of configs without lists print as before.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub only: Option<Vec<String>>,
 }
 
 /// A path, query or header parameter.
@@ -378,6 +383,31 @@ pub struct Method {
     pub response: Option<Response>,
     pub pagination: Option<Pagination>,
     pub streaming: Option<Streaming>,
+    /// The targets it is generated for, in config order, when stainless.yml restricts it
+    /// (`skip:`/`only:` on the method or its resources); `None` for every target. Printed only
+    /// when set.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub only: Option<Vec<String>>,
+}
+
+impl Method {
+    /// Whether the method is generated for `target`.
+    #[must_use]
+    pub fn is_for(&self, target: &str) -> bool {
+        is_for(self.only.as_deref(), target)
+    }
+}
+
+impl ModelDecl {
+    /// Whether the model is generated for `target`.
+    #[must_use]
+    pub fn is_for(&self, target: &str) -> bool {
+        is_for(self.only.as_deref(), target)
+    }
+}
+
+fn is_for(only: Option<&[String]>, target: &str) -> bool {
+    only.is_none_or(|o| o.iter().any(|t| t == target))
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -583,10 +613,26 @@ pub struct StyleSwitch {
     pub value: String,
 }
 
+/// One stainless.yml target from `x-ferrule-targets` (ADR 0003, per-target amendment).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct TargetSettings {
+    pub package_name: Option<String>,
+    /// The edition whose defaults apply: the one written, else the target's first.
+    pub edition: Option<String>,
+    /// As written; it may end in `#<branch>`.
+    pub production_repo: Option<String>,
+    /// The target's other keys as written (its own `options:` among them), minus `publish`.
+    pub options: Value,
+}
+
 /// The whole SDK.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Client {
     pub package: Package,
+    /// Every stainless.yml target with its settings, in the order the annotated spec lists them
+    /// (the converter writes sorted keys); empty without `x-ferrule-targets`, and then not printed.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub targets: Vec<(String, TargetSettings)>,
     /// `info.version`; empty where Forge does not expose it (one group).
     pub version: String,
     /// `info.title`, `summary` and `description`; empty where Forge does not expose it.

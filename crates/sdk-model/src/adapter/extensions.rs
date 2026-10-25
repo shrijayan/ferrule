@@ -20,7 +20,7 @@ use crate::js;
 use crate::model::{
     ApiKeyLocation, ArrayFormat, Auth, AuthRole, Casing, ClientOpt, CustomCasing, Environment, Header, HttpAuthScheme,
     Name, NamedSecurityScheme, NestedFormat, OptType, Package, PaginationScheme, ParamLocation, Purpose,
-    SecurityScheme, Send, SendLocation, StreamFormat, StyleSwitch, TypeRef,
+    SecurityScheme, Send, SendLocation, StreamFormat, StyleSwitch, TargetSettings, TypeRef,
 };
 
 /// An extension value of the wrong shape; the caller builds the FER101 diagnostic.
@@ -84,6 +84,8 @@ pub struct MethodExtensions {
     pub client: Option<RawClient>,
     /// Schema name -> named model (Forge gap G3).
     pub models: HashMap<String, TypeRef>,
+    /// Schema name -> the targets the model is generated for, when the config restricts it.
+    pub model_only: HashMap<String, Vec<String>>,
     pub pagination: Option<RawPagination>,
     pub streaming: Option<RawStreaming>,
     /// Mirrored from the root (Forge gap G2): `custom_casings`; empty without.
@@ -93,10 +95,14 @@ pub struct MethodExtensions {
     pub standalone: Vec<ResourcePosition>,
     /// Mirrored from the root (Forge gap G2): `x-ferrule-style`; empty for today's runtime.
     pub style: Vec<StyleSwitch>,
+    /// Mirrored from the root (Forge gap G2): every stainless.yml target; empty without.
+    pub targets: Vec<(String, TargetSettings)>,
+    /// The targets the method is generated for, when the config restricts it.
+    pub only: Option<Vec<String>>,
 }
 
 /// Operation-level extensions the adapter reads. Root and schema ones never reach it.
-const KNOWN: [&str; 11] = [
+const KNOWN: [&str; 13] = [
     "x-ferrule-resource",
     "x-ferrule-method-name",
     "x-ferrule-method-order",
@@ -108,6 +114,8 @@ const KNOWN: [&str; 11] = [
     "x-ferrule-casings",
     "x-ferrule-standalone",
     "x-ferrule-style",
+    "x-ferrule-targets",
+    "x-ferrule-targets-only",
 ];
 
 /// The member `key` of `v` if `v` is an object, else `None` (`undefined`).
@@ -269,6 +277,10 @@ fn param_names(map: &[Purpose]) -> bool {
 /// # Errors
 ///
 /// FER102 for an unknown extension, FER103 for a missing one, FER101 for a malformed one.
+#[expect(
+    clippy::too_many_lines,
+    reason = "one reader per extension in ADR 0003 order, each with the shape its FER101 names"
+)]
 pub fn read_method_extensions(extensions: &[(&str, &Json)], pointer: &str) -> Result<MethodExtensions, FerruleError> {
     let mut found: Vec<(&str, &Json)> = Vec::new();
     for &(key, value) in extensions {
@@ -329,8 +341,12 @@ pub fn read_method_extensions(extensions: &[(&str, &Json)], pointer: &str) -> Re
         }
     };
 
-    let models = read_models(or_null(get("x-ferrule-models")))
-        .map_err(|Malformed| bad("x-ferrule-models", "Record<schema, { name, module? }>"))?;
+    let (models, model_only) = read_models(or_null(get("x-ferrule-models"))).map_err(|Malformed| {
+        bad(
+            "x-ferrule-models",
+            "Record<schema, { name, module?, x-ferrule-targets-only?: string[] }>",
+        )
+    })?;
 
     let pagination = get("x-ferrule-pagination")
         .map(|raw| read_pagination(raw).ok_or_else(|| bad("x-ferrule-pagination", PAGINATION_SHAPE)))
@@ -354,6 +370,18 @@ pub fn read_method_extensions(extensions: &[(&str, &Json)], pointer: &str) -> Re
     let standalone = read_standalone(get("x-ferrule-standalone"))
         .map_err(|Malformed| bad("x-ferrule-standalone", "{ path: string[], order: number[] }[]"))?;
     let style = read_style(get("x-ferrule-style")).map_err(|Malformed| bad("x-ferrule-style", STYLE_SHAPE))?;
+    let targets = read_targets(get("x-ferrule-targets")).map_err(|Malformed| {
+        bad(
+            "x-ferrule-targets",
+            "Record<target, { package_name?: string, edition?: string, production_repo?: string, options: object }>",
+        )
+    })?;
+    let only = match get("x-ferrule-targets-only") {
+        None => None,
+        Some(raw) => {
+            Some(read_target_list(raw).ok_or_else(|| bad("x-ferrule-targets-only", "string[] of target keys"))?)
+        }
+    };
 
     Ok(MethodExtensions {
         resource,
@@ -363,11 +391,14 @@ pub fn read_method_extensions(extensions: &[(&str, &Json)], pointer: &str) -> Re
         package,
         client,
         models,
+        model_only,
         pagination,
         streaming,
         casings,
         standalone,
         style,
+        targets,
+        only,
     })
 }
 
@@ -408,6 +439,54 @@ fn read_style(raw: Option<&Json>) -> Result<Vec<StyleSwitch>, Malformed> {
                 }),
                 _ => Err(Malformed),
             }
+        })
+        .collect()
+}
+
+/// A target key as stainless.yml spells one: `typescript`, `cli`.
+fn target_key(s: &str) -> bool {
+    !s.is_empty()
+        && s.chars()
+            .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '_')
+}
+
+/// `x-ferrule-targets-only`: target keys.
+fn read_target_list(raw: &Json) -> Option<Vec<String>> {
+    match raw {
+        Json::Array(items) => items
+            .iter()
+            .map(|t| t.as_str().filter(|t| target_key(t)).map(str::to_owned))
+            .collect(),
+        _ => None,
+    }
+}
+
+/// `x-ferrule-targets` (absent for none).
+fn read_targets(raw: Option<&Json>) -> Result<Vec<(String, TargetSettings)>, Malformed> {
+    let Some(raw) = raw else { return Ok(Vec::new()) };
+    let Json::Object(members) = raw else {
+        return Err(Malformed);
+    };
+    js::entries(members)
+        .into_iter()
+        .map(|(key, v)| {
+            if !target_key(key) || !matches!(v, Json::Object(_)) {
+                return Err(Malformed);
+            }
+            let options = match member(Some(v), "options") {
+                None => serde_json::Value::Object(serde_json::Map::new()),
+                Some(o @ Json::Object(_)) => to_value(o),
+                Some(_) => return Err(Malformed),
+            };
+            Ok((
+                key.to_owned(),
+                TargetSettings {
+                    package_name: opt_string(or_null(member(Some(v), "package_name")))?,
+                    edition: opt_string(or_null(member(Some(v), "edition")))?,
+                    production_repo: opt_string(or_null(member(Some(v), "production_repo")))?,
+                    options,
+                },
+            ))
         })
         .collect()
 }
@@ -475,15 +554,22 @@ fn read_resource(raw: Option<&Json>) -> Result<ResourcePosition, &'static str> {
     Ok((path, order))
 }
 
+/// Schema name -> named model, and schema name -> the targets a restricted model is generated for.
+type Models = (HashMap<String, TypeRef>, HashMap<String, Vec<String>>);
+
 /// `x-ferrule-models` (`undefined` or `null` for none). The `module` is the stainless.yml position
 /// (resource keys, then the `models` key); without one, the model sits at the top level under
 /// its name.
-fn read_models(raw: Option<&Json>) -> Result<HashMap<String, TypeRef>, Malformed> {
+fn read_models(raw: Option<&Json>) -> Result<Models, Malformed> {
     let mut models = HashMap::new();
+    let mut only = HashMap::new();
     match raw {
         None => {}
         Some(Json::Object(members)) => {
             for (schema, value) in js::entries(members) {
+                if let Some(list) = member(Some(value), "x-ferrule-targets-only") {
+                    only.insert(schema.to_owned(), read_target_list(list).ok_or(Malformed)?);
+                }
                 let written = as_str(member(Some(value), "name"))
                     .filter(|n| identifier(n))
                     .ok_or(Malformed)?;
@@ -508,7 +594,7 @@ fn read_models(raw: Option<&Json>) -> Result<HashMap<String, TypeRef>, Malformed
         }
         Some(_) => return Err(Malformed),
     }
-    Ok(models)
+    Ok((models, only))
 }
 
 fn read_pagination(raw: &Json) -> Option<RawPagination> {
