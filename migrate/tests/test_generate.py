@@ -99,7 +99,12 @@ def test_plan_steps(inputs: tuple[GenerateRequest, Path]) -> None:
         str(request.config),
         "-o",
         annotated,
+        # The adopted SDK's runtime decides older generator styles (ADR 0018).
+        "--runtime-from",
+        str(request.runtime_from),
     )
+    fresh, _ = plan_steps(replace(request, runtime_from=None), tmp / "work")
+    assert fresh.argv == convert.argv[:-2]
     assert gen.name == "generate"
     assert gen.argv == (str(request.tools.gen), "generate", annotated, "--out", str(request.out))
     assert is_generate_step(gen.argv, request.tools)
