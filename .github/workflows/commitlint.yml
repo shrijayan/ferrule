@@ -22,7 +22,6 @@ jobs:
           fetch-depth: 0
       - uses: ./.github/actions/setup
         with:
-          forge: "false"
           install: "false"
       - run: pnpm install --frozen-lockfile
       - name: Lint PR commit messages

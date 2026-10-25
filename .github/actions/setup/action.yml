@@ -1,10 +1,10 @@
 name: Setup toolchain
-description: Install the mise toolchain and, optionally, build the pinned Forge commit (cached on scripts/forge-setup.sh).
+description: Install the mise toolchain and, optionally, build ferrule-gen (cargo cache keyed on Cargo.lock).
 inputs:
-  forge:
-    description: Build the pinned Forge commit into .cache/forge
+  gen:
+    description: Build target/release/ferrule-gen, for jobs that generate SDKs
     required: false
-    default: "true"
+    default: "false"
   install:
     description: Run `mise run install` (pnpm + uv workspace deps)
     required: false
@@ -15,16 +15,19 @@ runs:
     - uses: jdx/mise-action@8418fedb1110381a0d3ba51a7a415d7c1b884550 # v5.2.2
       with:
         cache: true
-    - name: Cache Forge build
-      if: inputs.forge == 'true' && hashFiles('scripts/forge-setup.sh') != ''
+    - name: Cache cargo release build
+      if: inputs.gen == 'true'
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
-        path: .cache/forge
-        key: forge-${{ runner.os }}-${{ hashFiles('scripts/forge-setup.sh') }}
-    - name: Build Forge
-      if: inputs.forge == 'true' && hashFiles('scripts/forge-setup.sh') != ''
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: cargo-release-${{ runner.os }}-${{ hashFiles('Cargo.lock', 'rust-toolchain.toml') }}
+    - name: Build ferrule-gen
+      if: inputs.gen == 'true'
       shell: bash
-      run: mise run forge:setup
+      run: cargo build --release --locked -p ferrule-gen
     - name: Install workspace dependencies
       if: inputs.install == 'true'
       shell: bash

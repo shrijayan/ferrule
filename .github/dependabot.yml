@@ -4,10 +4,16 @@ updates:
   - package-ecosystem: npm
     directory: /
     schedule: { interval: daily }
-    # Forge is pinned by git commit (ADR 0005); forge-canary.yml covers upgrades.
-    ignore: [{ dependency-name: "@cloudflare/forge" }]
     groups:
       npm-minor-patch: { update-types: [minor, patch] }
+    commit-message: { prefix: chore, include: scope }
+  - package-ecosystem: cargo
+    directory: /
+    schedule: { interval: daily }
+    # Forge is pinned by git rev (ADR 0005, ADR 0014); forge-canary.yml covers upgrades.
+    ignore: [{ dependency-name: "forge" }]
+    groups:
+      cargo-minor-patch: { update-types: [minor, patch] }
     commit-message: { prefix: chore, include: scope }
   - package-ecosystem: uv
     directory: /

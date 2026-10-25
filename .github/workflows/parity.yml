@@ -25,6 +25,8 @@ jobs:
         with:
           persist-credentials: false
       - uses: ./.github/actions/setup
+        with:
+          gen: "true"
       - name: Fetch oracles
         run: bash scripts/ci/run-if-present.sh oracles:fetch
       - name: Run parity
