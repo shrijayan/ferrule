@@ -9,6 +9,8 @@ import xml.etree.ElementTree as ET  # parses our own pytest junit output
 from dataclasses import asdict, dataclass
 from typing import TYPE_CHECKING
 
+from oracles.fetch import DEFAULT_LANGUAGE, paired_sdks, sdk_language
+
 if TYPE_CHECKING:
     from collections.abc import Sequence
     from pathlib import Path
@@ -42,16 +44,36 @@ class Pair:
     config: Oracle
     sdk: Oracle
 
+    @property
+    def language(self) -> str:
+        """The SDK's language."""
+        return sdk_language(self.sdk)
 
-def resolve_pair(oracles: Sequence[Oracle], wanted: str) -> Pair:
-    """Find the config/sdk pair named by a group, a config name or an sdk name."""
+    @property
+    def paired(self) -> str | None:
+        """`proven` or `nearest`: the SDK's own, else the config's (its Python pair)."""
+        return self.sdk.paired or self.config.paired
+
+
+def resolve_pair(oracles: Sequence[Oracle], wanted: str, language: str | None = None) -> Pair:
+    """Find the config/sdk pair named by a group, a config name or an sdk name.
+
+    A config has one SDK per language. `language` picks it; when omitted it is the named
+    SDK's language, or python for a group or config name.
+    """
     by_name = {o.name: o for o in oracles}
+    named = by_name.get(wanted)
+    if language is None:
+        language = sdk_language(named) if named and named.kind == "sdk" else DEFAULT_LANGUAGE
     for config in oracles:
         if config.kind != "config" or config.pairs_with is None:
             continue
-        if wanted in {config.name, config.group, config.pairs_with}:
-            return Pair(config, by_name[config.pairs_with])
-    msg = f"FER4020 {wanted}: no config oracle with a paired sdk in oracles/manifest.yaml"
+        sdks = [o for o in paired_sdks(oracles, config) if sdk_language(o) == language]
+        if sdks and wanted in {config.name, config.group, *(o.name for o in sdks)}:
+            return Pair(config, sdks[0])
+    msg = (
+        f"FER4020 {wanted}: no config oracle with a paired {language} sdk in oracles/manifest.yaml"
+    )
     raise HarnessError(msg)
 
 
