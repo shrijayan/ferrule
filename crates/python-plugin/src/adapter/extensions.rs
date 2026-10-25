@@ -258,6 +258,15 @@ fn field_paths(map: &[(String, String)]) -> bool {
         .all(|(path, _)| path.split('.').all(|seg| seg == "[]" || py_ident(seg)))
 }
 
+/// Pagination request fields: [`field_paths`] whose segments may also start with `$`, since they
+/// are param names sent as written (knock's `query_options.$skiptoken`).
+fn param_names(map: &[(String, String)]) -> bool {
+    map.iter().all(|(name, _)| {
+        name.split('.')
+            .all(|seg| seg == "[]" || py_ident(seg.strip_prefix('$').unwrap_or(seg)))
+    })
+}
+
 /// Reads the `x-ferrule-*` extensions of one operation.
 ///
 /// # Errors
@@ -480,7 +489,7 @@ fn read_pagination(raw: &Json) -> Option<RawPagination> {
     let page = as_str(member(v, "page")).filter(|p| py_ident(p))?.to_owned();
     let request = string_record(member(v, "request"))?;
     let response = string_record(member(v, "response"))?;
-    if !field_paths(&request) || !field_paths(&response) {
+    if !param_names(&request) || !field_paths(&response) {
         return None;
     }
     let headers = match member(v, "headers") {
