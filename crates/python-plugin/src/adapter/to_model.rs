@@ -109,8 +109,13 @@ impl Context<'_> {
             });
         }
         let fields = obj.fields().map(|f| self.read_field(f)).collect::<Result<_, _>>()?;
+        let extra = match obj.extra() {
+            Some(extra) => Some(Box::new(self.read_type(extra)?)),
+            None => None,
+        };
         Ok(SdkType::Object(SdkObject {
             fields,
+            extra,
             ..SdkObject::default()
         }))
     }

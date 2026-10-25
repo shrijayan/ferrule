@@ -116,6 +116,7 @@ pub(crate) fn sdk_type(v: &Value) -> SdkType {
                 .collect(),
             description: opt_string(v, "description"),
             hint: opt_string(v, "hint"),
+            extra: None,
         }),
         other => panic!("unknown type kind {other}"),
     }

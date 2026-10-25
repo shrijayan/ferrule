@@ -78,6 +78,9 @@ pub struct SdkObject {
     pub description: Option<String>,
     /// The components.schemas name it was inlined from, which names union variants.
     pub hint: Option<String>,
+    /// The type of the values under other keys, for an object with fields that takes them too
+    /// (`additionalProperties` beside `properties`); `None` when it takes no other keys.
+    pub extra: Option<Box<SdkType>>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
