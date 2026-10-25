@@ -199,16 +199,23 @@ impl Context<'_> {
         let mut path = Vec::new();
         let mut query = Vec::new();
         let request = method.request();
-        let params = match (request, method.body()) {
-            (Some(Type::Intersection(i)), Some(_)) => i.members().next(),
-            (request, None) => request,
-            _ => None,
+        // Forge's request: parameters & body, the parameters alone, or (for a body that is not an
+        // object, such as multipart content, which has no JSON type) the parameters and a `body`
+        // field, or a body alone. Beside a body, only fields with a location are parameters.
+        let (params, beside_body) = match (request, method.body()) {
+            (Some(Type::Intersection(i)), Some(_)) => (i.members().next(), false),
+            (Some(r @ Type::Object(_)), Some(_)) => (Some(r), true),
+            (request, None) => (request, false),
+            _ => (None, false),
         };
         let Some(params) = params else { return Ok((path, query)) };
         let Type::Object(obj) = params else {
             return Err(self.unsupported(&format!("parameters of kind {}", forge_kind(params))));
         };
         for field in obj.fields() {
+            if beside_body && method.location(field).is_none() {
+                continue;
+            }
             let p = self.read_param(field)?;
             if method.location(field) == Some(forge::Location::Path) {
                 path.push(p);
