@@ -16,6 +16,7 @@ pub struct RuntimeOptions {
     /// `comma` or `repeat`.
     pub array_format: String,
     pub empty_responses: bool,
+    pub mock_tests: bool,
 }
 
 impl RuntimeOptions {
@@ -30,6 +31,7 @@ impl RuntimeOptions {
             "target": self.target,
             "array_format": self.array_format,
             "empty_responses": self.empty_responses,
+            "mock_tests": self.mock_tests,
         });
         let mut text = serde_json::to_string_pretty(&value).unwrap_or_default();
         text.push('\n');
@@ -59,5 +61,6 @@ pub fn runtime_options(g: &Gen<'_>) -> RuntimeOptions {
         target: g.target.flavor.key().to_owned(),
         array_format: if repeat { "repeat" } else { "comma" }.to_owned(),
         empty_responses: any_method(&g.client.resources, &|m| m.response.is_none()),
+        mock_tests: g.target.mock_tests,
     }
 }

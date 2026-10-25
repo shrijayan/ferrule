@@ -164,6 +164,7 @@ pub fn project_files(g: &Gen<'_>) -> Vec<(String, String)> {
     let values = [
         ("ARTIFACT", g.target.artifact.as_str()),
         ("REPO", g.target.repo.as_str()),
+        ("BRANCH", g.target.branch.as_str()),
         ("PKG", g.root()),
         ("CLIENT", g.client_name()),
         ("ENV_PREFIX", env_prefix.as_str()),

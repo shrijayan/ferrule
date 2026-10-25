@@ -11,7 +11,7 @@ pub mod service;
 pub mod tests;
 pub mod tmpl;
 
-use ferrule_sdk_model::model::{Client, Method, Resource};
+use ferrule_sdk_model::model::{Client, Method, Resource, Type};
 
 use crate::meta::{Flavor, JvmTarget};
 use crate::naming::{Casings, camel, package, pascal, singular, words};
@@ -53,7 +53,76 @@ impl Service<'_> {
     }
 }
 
-/// Standard methods come first in this order; the rest keep their stainless.yml order.
+/// The schemas `ty` names, through inline types but not into named models.
+fn refs(ty: &Type, out: &mut Vec<String>) {
+    match ty {
+        Type::Ref(r) => out.push(r.schema.clone()),
+        Type::Array { items: t } | Type::Map { values: t } | Type::Nullable { inner: t } => refs(t, out),
+        Type::Object(o) => {
+            out.extend(o.bases.iter().map(|b| b.schema.clone()));
+            for f in &o.fields {
+                refs(&f.ty, out);
+            }
+        }
+        Type::Union(u) => {
+            for v in &u.variants {
+                refs(&v.ty, out);
+            }
+        }
+        Type::Scalar { .. } | Type::Enum { .. } => {}
+    }
+}
+
+fn method_refs(m: &Method) -> Vec<String> {
+    let mut out = Vec::new();
+    for p in m.path_params.iter().chain(&m.query_params).chain(&m.header_params) {
+        refs(&p.field.ty, &mut out);
+    }
+    for ty in [m.body.as_ref().map(|b| &b.ty), m.response.as_ref().map(|r| &r.ty)]
+        .into_iter()
+        .flatten()
+    {
+        refs(ty, &mut out);
+    }
+    out
+}
+
+/// Where each resource model is declared: the package of the first service (stainless.yml order)
+/// whose methods use it, preferring one under the resources its path names. Shared models stay in
+/// `models`.
+///
+/// `x-ferrule-models` writes Python's module for a resource model (`File` for `files.models.File`,
+/// `accounts` for `accounts.origins.models.OriginRequest`), not its resource path, so the uses
+/// place the model (Phase 1 gap list: model positions for non-Python targets).
+fn place(client: &Client, services: &[Service<'_>]) -> Vec<(String, Vec<String>)> {
+    let mut out = Vec::new();
+    for d in &client.models {
+        let path: Vec<&str> = d.r#ref.path.iter().map(|n| n.written.as_str()).collect();
+        if path.first() == Some(&"shared") {
+            continue;
+        }
+        let declared = &path[..path.len().saturating_sub(1)];
+        let users: Vec<&Service<'_>> = services
+            .iter()
+            .filter(|s| {
+                s.resource
+                    .methods
+                    .iter()
+                    .any(|m| method_refs(m).contains(&d.r#ref.schema))
+            })
+            .collect();
+        let under = |s: &&&Service<'_>| {
+            let keys: Vec<&str> = s.resource.path.iter().map(|n| n.written.as_str()).collect();
+            keys.len() >= declared.len() && keys[..declared.len()] == *declared
+        };
+        if let Some(s) = users.iter().find(under).or_else(|| users.first()) {
+            out.push((d.r#ref.schema.clone(), s.model_pkg.clone()));
+        }
+    }
+    out
+}
+
+/// Standard methods come first in this order; the rest follow by name (as the oracles order).
 const STANDARD: [&str; 5] = ["create", "retrieve", "update", "list", "delete"];
 
 /// A resource's methods in Stainless's order.
@@ -66,7 +135,12 @@ pub fn method_order(methods: &[Method]) -> Vec<&Method> {
             .unwrap_or(STANDARD.len())
     };
     let mut out: Vec<&Method> = methods.iter().collect();
-    out.sort_by(|a, b| rank(a).cmp(&rank(b)).then(a.order.cmp(&b.order)));
+    out.sort_by(|a, b| {
+        rank(a)
+            .cmp(&rank(b))
+            .then_with(|| a.name.written.cmp(&b.name.written))
+            .then(a.order.cmp(&b.order))
+    });
     out
 }
 
@@ -83,15 +157,14 @@ impl<'a> Gen<'a> {
                 casings,
                 root: &target.package,
                 flavor: target.flavor,
+                placement: Vec::new(),
             },
             services: Vec::new(),
         };
-        let mut top = Vec::new();
         for r in &client.resources {
-            if let Some(i) = g.add_service(r, &[], &[]) {
-                top.push(i);
-            }
+            g.add_service(r, &[], &[]);
         }
+        g.mapper.placement = place(client, &g.services);
         g
     }
 
