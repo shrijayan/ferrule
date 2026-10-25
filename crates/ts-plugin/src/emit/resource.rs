@@ -136,7 +136,8 @@ pub fn plan_methods<'a>(ctx: &Ctx<'a>, r: &TsResource<'a>, mapper: &mut Mapper<'
                 _ if has_path => ParamsArg::Mixed,
                 // The `node` layout destructures the query of a method that sends no body, other
                 // than a GET: `const { a, b } = params; ... { query: { a, b }, ...options }`.
-                (true, false) if ctx.node() && m.http_method != HttpMethod::Get => ParamsArg::Mixed,
+                // So does the current layout (knock-mgmt-node's `branches.create`).
+                (true, false) if m.http_method != HttpMethod::Get => ParamsArg::Mixed,
                 (false, false) => ParamsArg::None,
                 (true, false) => ParamsArg::Query,
                 (false, true) => ParamsArg::Body,
@@ -559,12 +560,35 @@ fn method_lines(ctx: &Ctx<'_>, chain: &[&TsResource<'_>], plan: &MethodPlan<'_>)
         out.push("  }".to_owned());
         return out;
     }
-    let path = path_expr(m, ctx);
-    let verb = http_verb(m.http_method);
-    let call = match plan.params_arg {
-        ParamsArg::None => format!("return this._client.{verb}({path}, options);"),
-        ParamsArg::Query => format!("return this._client.{verb}({path}, {{ query, ...options }});"),
-        ParamsArg::Body => format!("return this._client.{verb}({path}, {{ body, ...options }});"),
+    let (destructure, mut props) = call_props(ctx, plan);
+    out.extend(destructure);
+    if !props.is_empty() {
+        props.push(("...options".to_owned(), Expr::raw("")));
+    }
+    let last = if props.is_empty() {
+        Expr::raw("options")
+    } else {
+        literal(props)
+    };
+    let call = Expr::Call(
+        format!("this._client.{}", http_verb(m.http_method)),
+        vec![Expr::Raw(path_expr(m, ctx)), last],
+    );
+    out.push(render(&concat(vec![text("return "), expr(&call), text(";")]), 4, WIDTH));
+    out.push("  }".to_owned());
+    out
+}
+
+/// How a current-layout method passes its params: the `const { ... } = params;` line when it
+/// destructures them, and the request options' properties (`query`, `body`).
+fn call_props(ctx: &Ctx<'_>, plan: &MethodPlan<'_>) -> (Option<String>, Vec<(String, Expr)>) {
+    let m = plan.m;
+    let shorthand = |k: &str| (k.to_owned(), Expr::raw(""));
+    let mut props: Vec<(String, Expr)> = Vec::new();
+    match plan.params_arg {
+        ParamsArg::None => (None, props),
+        ParamsArg::Query => (None, vec![shorthand("query")]),
+        ParamsArg::Body => (None, vec![shorthand("body")]),
         ParamsArg::Mixed => {
             // `const { fileId, environment, ...body } = params;`
             let mut names: Vec<String> = path_in_params(ctx, m)
@@ -577,71 +601,35 @@ fn method_lines(ctx: &Ctx<'_>, chain: &[&TsResource<'_>], plan: &MethodPlan<'_>)
                 .and_then(|b| ctx.client.object_of(&b.ty))
                 .is_some_and(|o| !o.fields.is_empty());
             let query: Vec<String> = query_params(ctx, m).iter().map(|p| p.field.wire_name.clone()).collect();
-            let mut parts = Vec::new();
+            let listed = || literal(query.iter().map(|q| shorthand(q)).collect());
             if has_body {
                 names.extend(query.iter().cloned());
                 names.push("...body".to_owned());
                 if !query.is_empty() {
-                    parts.push(format!("query: {{ {} }}", query.join(", ")));
+                    props.push(("query".to_owned(), listed()));
                 }
-                parts.push("body".to_owned());
+                props.push(shorthand("body"));
+            } else if !query.is_empty() && m.http_method != HttpMethod::Get {
+                // A query sent without a body other than by a GET is listed (knock-mgmt-node's
+                // `branches.create`, `commits.commitAll`).
+                names.extend(query.iter().cloned());
+                props.push(("query".to_owned(), listed()));
             } else if !query.is_empty() {
                 names.push("...query".to_owned());
-                parts.push("query".to_owned());
+                props.push(shorthand("query"));
             }
-            out.push(format!("    const {{ {} }} = params;", names.join(", ")));
-            if parts.is_empty() {
-                format!("return this._client.{verb}({path}, options);")
-            } else {
-                parts.push("...options".to_owned());
-                format!("return this._client.{verb}({path}, {{ {} }});", parts.join(", "))
-            }
+            let line = render(&specifiers("const ", &names, " = params;"), 4, WIDTH);
+            (Some(line), props)
         }
-    };
-    out.push(format!("    {call}"));
-    out.push("  }".to_owned());
-    out
+    }
 }
 
 /// The body of a current-layout list method, at four spaces: the params destructured as other
 /// methods do, then `getAPIList` with the page class over the items.
 fn page_call(ctx: &Ctx<'_>, plan: &MethodPlan<'_>, page: &PagePlan) -> Vec<String> {
     let m = plan.m;
-    let shorthand = |k: &str| (k.to_owned(), Expr::raw(""));
-    let mut out = Vec::new();
-    let mut props: Vec<(String, Expr)> = Vec::new();
-    match plan.params_arg {
-        ParamsArg::None => {}
-        ParamsArg::Query => props.push(shorthand("query")),
-        ParamsArg::Body => props.push(shorthand("body")),
-        ParamsArg::Mixed => {
-            let mut names: Vec<String> = path_in_params(ctx, m)
-                .iter()
-                .map(|p| p.field.wire_name.clone())
-                .collect();
-            let has_body = m
-                .body
-                .as_ref()
-                .and_then(|b| ctx.client.object_of(&b.ty))
-                .is_some_and(|o| !o.fields.is_empty());
-            let query: Vec<String> = query_params(ctx, m).iter().map(|p| p.field.wire_name.clone()).collect();
-            if has_body {
-                names.extend(query.iter().cloned());
-                names.push("...body".to_owned());
-                if !query.is_empty() {
-                    props.push((
-                        "query".to_owned(),
-                        literal(query.iter().map(|q| shorthand(q)).collect()),
-                    ));
-                }
-                props.push(shorthand("body"));
-            } else if !query.is_empty() {
-                names.push("...query".to_owned());
-                props.push(shorthand("query"));
-            }
-            out.push(render(&specifiers("const ", &names, " = params;"), 4, WIDTH));
-        }
-    }
+    let (destructure, props) = call_props(ctx, plan);
+    let mut out: Vec<String> = destructure.into_iter().collect();
     let class = Expr::Raw(format!("{}<{}>", page.class, page.item));
     out.push(page_return(m, Expr::Raw(path_expr(m, ctx)), class, props));
     out
