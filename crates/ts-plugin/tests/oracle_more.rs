@@ -45,7 +45,7 @@ fn knock_mgmt_report() {
     ) else {
         return;
     };
-    report("knock-mgmt", &o, 0);
+    report("knock-mgmt", &o, 53);
 }
 
 #[test]
@@ -58,5 +58,5 @@ fn knock_report() {
     ) else {
         return;
     };
-    report("knock", &o, 0);
+    report("knock", &o, 41);
 }

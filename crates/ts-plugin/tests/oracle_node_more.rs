@@ -1,8 +1,8 @@
 //! lumaai-typescript (lumaai-node 1.21.0, `4dbfae0f`, 2026-04) and honcho-typescript
 //! (honcho-node-core `91d25806`, 2025-10), both the `node` layout, against their config oracles.
-//! Neither is regenerated whole yet (older generations; honcho has pagination and an MCP server
-//! package): each test reports identical/total and fails when fewer files match than before (the
-//! floor). Skipped when the oracles are not cached.
+//! Neither is regenerated whole yet (older generations; honcho has non-object bodies and an MCP
+//! server package): each test reports identical/total and fails when fewer files match than
+//! before (the floor). Skipped when the oracles are not cached.
 
 mod support;
 
@@ -44,5 +44,5 @@ fn honcho_report() {
     ) else {
         return;
     };
-    report("honcho", &o, 35);
+    report("honcho", &o, 39);
 }
