@@ -241,6 +241,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "ferrule-ts-plugin"
+version = "0.0.0"
+dependencies = [
+ "ferrule-converter",
+ "ferrule-sdk-model",
+ "forge",
+ "serde_json",
+]
+
+[[package]]
 name = "fnv"
 version = "1.0.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
