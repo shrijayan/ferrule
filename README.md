@@ -74,20 +74,19 @@ your config, writing Stainless-shaped Python, and proving the result.
 
 ```mermaid
 flowchart LR
-  IN["openapi.yml<br/>stainless.yml<br/>your hand edits"] --> C["01 · Convert<br/><sub>validate config,<br/>annotate the spec</sub>"]
-  C --> F["02 · Forge<br/><sub>pinned engine,<br/>never forked</sub>"]
-  F --> E["03 · Emit<br/><sub>Stainless-shaped<br/>Python</sub>"]
-  E --> FI["04 · Finish<br/><sub>your runtime,<br/>ruff, your patches</sub>"]
-  FI --> V["05 · Verify<br/><sub>public API diff,<br/>semver verdict</sub>"]
-  V --> OUT["The SDK your<br/>users already import"]
+  C["<b>01 Convert</b><br/>read stainless.yml"] --> F["<b>02 Forge</b><br/>parse the spec"]
+  F --> E["<b>03 Emit</b><br/>write the Python"]
+  E --> FI["<b>04 Finish</b><br/>runtime, ruff, patches"]
+  FI --> V["<b>05 Verify</b><br/>public API diff"]
 
-  classDef io fill:#0b0b0d,stroke:#6d6a64,color:#eeece7
   classDef step fill:#17171b,stroke:#d6a660,color:#f6e2b4
   classDef forge fill:#2a1f12,stroke:#f6e2b4,color:#f6e2b4
-  class IN,OUT io
   class C,E,FI,V step
   class F forge
 ```
+
+**In:** `openapi.yml`, `stainless.yml`, your hand edits, your last release.
+**Out:** the SDK your users already import, plus `ferrule.lock` and a verify report.
 
 ## Quickstart
 
