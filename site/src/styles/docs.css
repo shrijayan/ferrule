@@ -1,15 +1,333 @@
-/* Brass accents for the docs, matching the landing page (src/pages/index.astro). */
+/* Docs theme: graphite and brass in dark mode, ivory and brass in light mode, matching the
+   landing page (src/pages/index.astro). Starlight's own styles live in a cascade layer, so these
+   unlayered rules win without !important. */
+
+/* ---------- palette ---------- */
 :root {
+  --ferrule-brass-hi: #f6e2b4;
+  --ferrule-brass: #d6a660;
+  --ferrule-brass-lo: #8a5c2c;
+  --ferrule-glow: rgba(214, 166, 96, 0.1);
+  --ferrule-panel: rgba(255, 255, 255, 0.025);
+  --ferrule-line: rgba(255, 255, 255, 0.07);
+  --ferrule-line-2: rgba(255, 255, 255, 0.12);
+  --ferrule-current: rgba(214, 166, 96, 0.1);
+
+  --sl-color-white: #f3f1ec;
+  --sl-color-gray-1: #e4e1da;
+  --sl-color-gray-2: #c9c5bd;
+  --sl-color-gray-3: #a19d95;
+  --sl-color-gray-4: #6d6a64;
+  --sl-color-gray-5: #2b2b30;
+  --sl-color-gray-6: #141417;
+  --sl-color-black: #0b0b0d;
+
   --sl-color-accent-low: #2a1f12;
-  --sl-color-accent: #b98445;
-  --sl-color-accent-high: #f6e2b4;
-  --sl-color-black: #09090a;
-  --sl-color-gray-6: #121215;
-  --sl-color-gray-5: #232327;
+  --sl-color-accent: #d6a660;
+  --sl-color-accent-high: #f1d9a6;
+
+  --sl-color-text-accent: var(--ferrule-brass-hi);
+  --sl-color-bg-nav: rgba(11, 11, 13, 0.78);
+  --sl-color-bg-sidebar: #0b0b0d;
+  --sl-color-bg-inline-code: rgba(255, 255, 255, 0.05);
+  --sl-color-hairline: var(--ferrule-line);
+  --sl-color-hairline-light: var(--ferrule-line-2);
+  --sl-color-hairline-shade: #000;
+
+  --sl-font: "Geist", ui-sans-serif, system-ui, sans-serif;
+  --sl-font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --ferrule-serif: "Instrument Serif", "Times New Roman", serif;
+
+  --sl-text-h1: 3.25rem;
+  --sl-text-h2: 2.25rem;
+  --sl-text-h3: 1.375rem;
+  --sl-line-height-headings: 1.05;
+  --sl-content-width: 48rem;
 }
 
 :root[data-theme="light"] {
+  --ferrule-brass-hi: #6b4518;
+  --ferrule-brass: #9a6a33;
+  --ferrule-glow: rgba(214, 166, 96, 0.16);
+  --ferrule-panel: rgba(60, 40, 10, 0.03);
+  --ferrule-line: rgba(40, 30, 15, 0.09);
+  --ferrule-line-2: rgba(40, 30, 15, 0.16);
+  --ferrule-current: rgba(154, 106, 51, 0.1);
+
+  --sl-color-white: #1a1814;
+  --sl-color-gray-1: #29261f;
+  --sl-color-gray-2: #3f3b33;
+  --sl-color-gray-3: #6a655b;
+  --sl-color-gray-4: #9a9487;
+  --sl-color-gray-5: #dcd5c6;
+  --sl-color-gray-6: #f1ebdf;
+  --sl-color-gray-7: #f7f3ea;
+  --sl-color-black: #fbf8f2;
+
   --sl-color-accent-low: #f3e3c4;
-  --sl-color-accent: #8a5c2c;
-  --sl-color-accent-high: #4a2f12;
+  --sl-color-accent: #9a6a33;
+  --sl-color-accent-high: #5e3c14;
+
+  --sl-color-bg-nav: rgba(251, 248, 242, 0.82);
+  --sl-color-bg-sidebar: #fbf8f2;
+  --sl-color-bg-inline-code: rgba(60, 40, 10, 0.06);
+  --sl-color-hairline-shade: var(--sl-color-gray-5);
+}
+
+/* ---------- page ---------- */
+body {
+  background:
+    radial-gradient(70rem 32rem at 50% -12rem, var(--ferrule-glow), transparent 70%) no-repeat,
+    var(--sl-color-black);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--ferrule-brass);
+  color: #2a1c0d;
+}
+
+.header {
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border-bottom: 1px solid var(--ferrule-line);
+}
+
+.site-title {
+  gap: 0.6rem;
+  color: var(--sl-color-white);
+  font-size: 1.0625rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.site-title img {
+  height: 1.6rem;
+  width: auto;
+}
+
+/* ---------- search ---------- */
+site-search button[data-open-modal] {
+  border: 1px solid var(--ferrule-line-2);
+  border-radius: 10px;
+  background: var(--ferrule-panel);
+  color: var(--sl-color-gray-3);
+  transition: border-color 0.2s;
+}
+
+site-search button[data-open-modal]:hover {
+  border-color: var(--ferrule-brass);
+  color: var(--sl-color-gray-2);
+}
+
+site-search kbd {
+  font-family: var(--sl-font-mono);
+  border-radius: 6px;
+  background: var(--ferrule-line);
+}
+
+/* ---------- table of contents ---------- */
+starlight-toc h2,
+mobile-starlight-toc h2 {
+  font-family: var(--sl-font-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--sl-color-gray-4);
+}
+
+starlight-toc a {
+  color: var(--sl-color-gray-3);
+}
+
+starlight-toc a:hover {
+  color: var(--sl-color-white);
+}
+
+starlight-toc a[aria-current="true"] {
+  color: var(--ferrule-brass-hi);
+}
+
+/* ---------- sidebar ---------- */
+.sidebar-pane {
+  border-inline-end: 1px solid var(--ferrule-line);
+}
+
+.sidebar-content .group-label .large {
+  font-family: var(--sl-font-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--sl-color-gray-4);
+}
+
+/* No guide lines: Starlight draws one on each nested li; the mono group labels carry the structure. */
+.sidebar-content ul ul li {
+  border-inline-start: 0;
+  margin-inline-start: 0;
+  padding-inline-start: 0;
+}
+
+.sidebar-content summary {
+  padding-inline: 0.75rem;
+}
+
+.sidebar-content ul ul {
+  margin-top: 0.25rem;
+}
+
+.sidebar-content a {
+  position: relative;
+  padding-block: 0.4rem;
+  padding-inline: 0.75rem;
+  border-radius: 8px;
+  color: var(--sl-color-gray-2);
+  transition:
+    color 0.2s,
+    background 0.2s;
+}
+
+.sidebar-content a:hover {
+  color: var(--sl-color-white);
+  background: var(--ferrule-panel);
+}
+
+.sidebar-content a[aria-current="page"],
+.sidebar-content a[aria-current="page"]:hover {
+  color: var(--ferrule-brass-hi);
+  background: var(--ferrule-current);
+  font-weight: 500;
+}
+
+/* A short straight marker inside the highlight, so it never bends with the rounded corner. */
+.sidebar-content a[aria-current="page"]::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  top: 28%;
+  bottom: 28%;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--ferrule-brass);
+  box-shadow: 0 0 8px var(--ferrule-brass);
+}
+
+/* ---------- headings ---------- */
+.content-panel {
+  border-top-color: var(--ferrule-line);
+}
+
+h1#_top,
+.sl-markdown-content h2 {
+  font-family: var(--ferrule-serif);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  color: var(--sl-color-white);
+}
+
+h1#_top {
+  margin-top: 0.5rem;
+}
+
+.sl-markdown-content h2 {
+  margin-top: 3rem;
+}
+
+.sl-markdown-content h3 {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* ---------- body copy ---------- */
+.sl-markdown-content a:not(:where(.not-content *)) {
+  color: var(--ferrule-brass-hi);
+  text-decoration-color: color-mix(in srgb, var(--ferrule-brass) 45%, transparent);
+  text-underline-offset: 3px;
+  transition: text-decoration-color 0.2s;
+}
+
+.sl-markdown-content a:not(:where(.not-content *)):hover {
+  text-decoration-color: var(--ferrule-brass);
+}
+
+.sl-markdown-content :not(pre) > code {
+  border: 1px solid var(--ferrule-line);
+  border-radius: 6px;
+  padding: 0.1em 0.4em;
+  color: var(--sl-color-white);
+  font-size: 0.85em;
+}
+
+/* ---------- tables ---------- */
+.sl-markdown-content table {
+  border: 1px solid var(--ferrule-line);
+  border-radius: 14px;
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+  font-size: var(--sl-text-sm);
+}
+
+.sl-markdown-content th {
+  font-family: var(--sl-font-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--sl-color-gray-4);
+  background: var(--ferrule-panel);
+}
+
+.sl-markdown-content th,
+.sl-markdown-content td {
+  border-bottom: 1px solid var(--ferrule-line);
+  padding: 0.75rem 1rem;
+}
+
+.sl-markdown-content tr:last-child td {
+  border-bottom: 0;
+}
+
+/* ---------- asides ---------- */
+.starlight-aside {
+  border: 1px solid var(--ferrule-line);
+  border-inline-start: 2px solid var(--sl-color-asides-border);
+  border-radius: 12px;
+  background: var(--ferrule-panel);
+}
+
+.starlight-aside--caution,
+.starlight-aside--note {
+  --sl-color-asides-border: var(--ferrule-brass);
+  --sl-color-asides-text-accent: var(--ferrule-brass-hi);
+  background: linear-gradient(90deg, var(--ferrule-current), var(--ferrule-panel) 60%);
+}
+
+.starlight-aside__title {
+  font-family: var(--sl-font-mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* ---------- pagination ---------- */
+.pagination-links a {
+  border: 1px solid var(--ferrule-line);
+  border-radius: 14px;
+  background: var(--ferrule-panel);
+  box-shadow: none;
+  transition: border-color 0.2s;
+}
+
+.pagination-links a:hover {
+  border-color: var(--ferrule-brass);
+}
+
+.pagination-links .link-title {
+  font-family: var(--ferrule-serif);
+  font-size: 1.5rem;
+  color: var(--sl-color-white);
 }
