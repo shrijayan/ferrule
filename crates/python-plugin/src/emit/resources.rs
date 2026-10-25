@@ -4,7 +4,7 @@
 use std::collections::HashSet;
 
 use super::common::{
-    HEADER, args_docstring, keyword_path_params, leaf, method_params, method_ref, py_string, rel_import,
+    HEADER, args_docstring, keyword_path_params, leaf, method_params, method_ref, py_fstring, py_string, rel_import,
     resource_class_base, resource_module, return_model, stainless_method_order,
 };
 use super::format::{Bracket, Expr, bracket, call, flat, print_expr};
@@ -90,9 +90,10 @@ fn arg_line(s: &FileState<'_>, p: &mut PythonPrinter, a: &Arg) -> String {
     if a.required {
         return format!("{}: {},", a.name, a.ann);
     }
-    imp(s, p, "_types", "Omit");
-    imp(s, p, "_types", "omit");
-    format!("{}: {} | Omit = omit,", a.name, a.ann)
+    let (ty, default) = s.client.style.optional();
+    imp(s, p, "_types", ty);
+    imp(s, p, "_types", default);
+    format!("{}: {} | {ty} = {default},", a.name, a.ann)
 }
 
 /// `def name(self, <path params>, *, <args>, <extras>) -> returns:`.
@@ -126,7 +127,10 @@ fn print_signature(
     p.line("extra_headers: Headers | None = None,");
     p.line("extra_query: Query | None = None,");
     p.line("extra_body: Body | None = None,");
-    p.line("timeout: float | httpx.Timeout | None | NotGiven = not_given,");
+    p.line(&format!(
+        "timeout: float | httpx.Timeout | None | NotGiven = {},",
+        s.client.style.not_given()
+    ));
     p.close(opened);
     p.line(&format!(") -> {returns}:"));
 }
@@ -207,10 +211,19 @@ fn print_overloads(
     merged
 }
 
-/// `path_template("/a/{b_id}", b_id=b_id)` or the plain path string.
+/// `path_template("/a/{b_id}", b_id=b_id)`, `f"/a/{b_id}"` for a runtime without
+/// `path_template`, or the plain path string.
 fn path_expr(s: &FileState<'_>, p: &mut PythonPrinter, method: &SdkMethod) -> Expr {
     if method.path_params.is_empty() {
         return py_string(&method.path).into();
+    }
+    if !s.client.style.path_template {
+        // Literal braces doubled, then each parameter interpolated by its Python name.
+        let mut fstring = py_fstring(&method.path);
+        for q in &method.path_params {
+            fstring = fstring.replacen(&format!("{{{{{}}}}}", q.wire_name), &format!("{{{}}}", q.py_name), 1);
+        }
+        return fstring.into();
     }
     imp(s, p, "_utils", "path_template");
     let mut template = method.path.clone();
@@ -648,7 +661,7 @@ pub fn emit_resource_file(client: &SdkClient, resource: &SdkResource) -> Result<
     let s = FileState { here: &here, client };
     p.import_from("__future__", "annotations");
     p.import_module("httpx");
-    for name in ["Body", "Query", "Headers", "NotGiven", "not_given"] {
+    for name in ["Body", "Query", "Headers", "NotGiven", client.style.not_given()] {
         imp(&s, &mut p, "_types", name);
     }
     // Imports render above the body whatever order they are registered in.

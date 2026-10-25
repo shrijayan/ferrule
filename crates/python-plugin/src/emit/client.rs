@@ -95,6 +95,7 @@ fn emit_init(s: &ClientState<'_>, p: &mut PythonPrinter, mode: Mode) {
     let settings = s.settings;
     let is_async = mode == Mode::Async;
     let environments = s.environments_literal();
+    let not_given = s.client.style.not_given();
     p.block("def __init__(", |p| {
         p.line("self,");
         p.line("*,");
@@ -102,15 +103,21 @@ fn emit_init(s: &ClientState<'_>, p: &mut PythonPrinter, mode: Mode) {
             p.line(&format!("{}: {} | None = None,", o.name, py_type(o.ty)));
         }
         if let Some(lit) = &environments {
-            p.line(&format!("environment: {lit} | NotGiven = not_given,"));
-            p.line("base_url: str | httpx.URL | None | NotGiven = not_given,");
+            p.line(&format!("environment: {lit} | NotGiven = {not_given},"));
+            p.line(&format!("base_url: str | httpx.URL | None | NotGiven = {not_given},"));
         } else {
             p.line("base_url: str | httpx.URL | None = None,");
+        }
+        if s.client.style.omit {
+            p.line("timeout: float | Timeout | None | NotGiven = not_given,");
+        } else {
+            // The generators before `not_given` spelled this one annotation as a `Union` (knock).
+            p.import_from("typing", "Union");
+            p.line("timeout: Union[float, Timeout, None, NotGiven] = NOT_GIVEN,");
         }
         lines(
             p,
             &[
-                "timeout: float | Timeout | None | NotGiven = not_given,",
                 "max_retries: int = DEFAULT_MAX_RETRIES,",
                 "default_headers: Mapping[str, str] | None = None,",
                 "default_query: Mapping[str, object] | None = None,",
@@ -142,7 +149,12 @@ fn emit_init(s: &ClientState<'_>, p: &mut PythonPrinter, mode: Mode) {
         );
     });
     p.line(") -> None:");
-    p.indented(|p| emit_init_body(s, p, mode));
+    p.indented(|p| {
+        emit_init_body(s, p, mode);
+        if !s.client.style.lazy_resources {
+            emit_resource_assignments(s, p, mode);
+        }
+    });
 }
 
 /// The body of `__init__`: docstring, options from the environment, base URL and headers.
@@ -311,6 +323,52 @@ fn emit_init_headers(settings: &SdkClientSettings, p: &mut PythonPrinter) {
     }
 }
 
+/// The module a resource class is reached through when resources are eager, and its import:
+/// `keys` (`from .resources import keys`), `workspaces` (`from .resources.workspaces import
+/// workspaces`), as honcho's `_client.py` imports them.
+fn eager_module(p: &mut PythonPrinter, r: &SdkResource) -> String {
+    let module = resource_module(r);
+    let (parent, name) = module.rsplit_once('.').unwrap_or(("", module.as_str()));
+    p.import_from(&format!(".{parent}"), name);
+    name.to_owned()
+}
+
+/// Eager resources: the class annotations of the resources and the response wrappers.
+fn emit_resource_annotations(s: &ClientState<'_>, p: &mut PythonPrinter, mode: Mode) {
+    for r in &s.client.resources {
+        let module = eager_module(p, r);
+        p.line(&format!("{}: {module}.{}", leaf(r), class_name(r, mode, "")));
+    }
+    p.line(&format!(
+        "with_raw_response: {}",
+        s.client_name(mode, "WithRawResponse")
+    ));
+    p.line(&format!(
+        "with_streaming_response: {}",
+        s.client_name(mode, "WithStreamedResponse")
+    ));
+    p.blank();
+}
+
+/// Eager resources: the end of `__init__`, which creates them and the response wrappers.
+fn emit_resource_assignments(s: &ClientState<'_>, p: &mut PythonPrinter, mode: Mode) {
+    p.blank();
+    for r in &s.client.resources {
+        let module = eager_module(p, r);
+        p.line(&format!(
+            "self.{} = {module}.{}(self)",
+            leaf(r),
+            class_name(r, mode, "")
+        ));
+    }
+    for (prop, suffix) in [
+        ("with_raw_response", "WithRawResponse"),
+        ("with_streaming_response", "WithStreamedResponse"),
+    ] {
+        p.line(&format!("self.{prop} = {}(self)", s.client_name(mode, suffix)));
+    }
+}
+
 fn emit_resource_properties(s: &ClientState<'_>, p: &mut PythonPrinter, mode: Mode) {
     for r in &s.client.resources {
         let cls = class_name(r, mode, "");
@@ -371,6 +429,10 @@ fn emit_client_class(s: &ClientState<'_>, p: &mut PythonPrinter, mode: Mode) -> 
         if is_async { "Async" } else { "Sync" }
     ));
     let opened = p.open();
+    let lazy = s.client.style.lazy_resources;
+    if !lazy {
+        emit_resource_annotations(s, p, mode);
+    }
     if !settings.opts.is_empty() {
         p.line("# client options");
         for o in &settings.opts {
@@ -383,17 +445,19 @@ fn emit_client_class(s: &ClientState<'_>, p: &mut PythonPrinter, mode: Mode) -> 
         p.blank();
     }
     emit_init(s, p, mode);
-    emit_resource_properties(s, p, mode);
-    for (prop, suffix) in [
-        ("with_raw_response", "WithRawResponse"),
-        ("with_streaming_response", "WithStreamedResponse"),
-    ] {
-        p.blank();
-        p.line("@cached_property");
-        let name = s.client_name(mode, suffix);
-        p.block(&format!("def {prop}(self) -> {name}:"), |p| {
-            p.line(&format!("return {name}(self)"));
-        });
+    if lazy {
+        emit_resource_properties(s, p, mode);
+        for (prop, suffix) in [
+            ("with_raw_response", "WithRawResponse"),
+            ("with_streaming_response", "WithStreamedResponse"),
+        ] {
+            p.blank();
+            p.line("@cached_property");
+            let name = s.client_name(mode, suffix);
+            p.block(&format!("def {prop}(self) -> {name}:"), |p| {
+                p.line(&format!("return {name}(self)"));
+            });
+        }
     }
     emit_request_properties(s, p, mode);
     p.blank();
@@ -527,16 +591,17 @@ fn emit_copy(s: &ClientState<'_>, p: &mut PythonPrinter, mode: Mode) {
         if let Some(lit) = s.environments_literal() {
             p.line(&format!("environment: {lit} | None = None,"));
         }
+        let not_given = s.client.style.not_given();
         p.line("base_url: str | httpx.URL | None = None,");
-        p.line("timeout: float | Timeout | None | NotGiven = not_given,");
+        p.line(&format!("timeout: float | Timeout | None | NotGiven = {not_given},"));
         p.line(&format!(
             "http_client: httpx.{} | None = None,",
             if mode == Mode::Async { "AsyncClient" } else { "Client" }
         ));
+        p.line(&format!("max_retries: int | NotGiven = {not_given},"));
         lines(
             p,
             &[
-                "max_retries: int | NotGiven = not_given,",
                 "default_headers: Mapping[str, str] | None = None,",
                 "set_default_headers: Mapping[str, str] | None = None,",
                 "default_query: Mapping[str, object] | None = None,",
@@ -610,6 +675,25 @@ fn emit_wrapper_class(s: &ClientState<'_>, p: &mut PythonPrinter, mode: Mode, ra
     } else {
         "WithStreamingResponse"
     };
+    if !s.client.style.lazy_resources {
+        p.block(&format!("class {}:", s.client_name(mode, suffix)), |p| {
+            p.block(
+                &format!("def __init__(self, client: {}) -> None:", s.client_name(mode, "")),
+                |p| {
+                    for r in &s.client.resources {
+                        let module = eager_module(p, r);
+                        let wrapper = call(
+                            &format!("{module}.{}(", class_name(r, mode, res_suffix)),
+                            vec![format!("client.{}", leaf(r)).into()],
+                            false,
+                        );
+                        print_expr(p, &wrapper.into(), &format!("self.{} = ", leaf(r)), "");
+                    }
+                },
+            );
+        });
+        return;
+    }
     p.block(&format!("class {}:", s.client_name(mode, suffix)), |p| {
         p.line(&format!("_client: {}", s.client_name(mode, "")));
         p.blank();
@@ -671,6 +755,51 @@ fn import_line(p: &mut PythonPrinter, module: &str, name: &str) {
     p.line(")");
 }
 
+/// The module-level imports of `_client.py` every client has.
+fn import_client_modules(p: &mut PythonPrinter, client: &SdkClient) {
+    let lazy = client.style.lazy_resources;
+    p.import_from("__future__", "annotations");
+    p.import_module("os");
+    for n in ["TYPE_CHECKING", "Any", "Mapping"] {
+        if n != "TYPE_CHECKING" || lazy {
+            p.import_from("typing", n);
+        }
+    }
+    for n in ["Self", "override"] {
+        p.import_from("typing_extensions", n);
+    }
+    p.import_module("httpx");
+    p.import_from(".", "_exceptions");
+    p.import_from("._qs", "Querystring");
+    for n in [
+        "Omit",
+        "Timeout",
+        "NotGiven",
+        "Transport",
+        "ProxiesTypes",
+        "RequestOptions",
+        client.style.not_given(),
+    ] {
+        p.import_from("._types", n);
+    }
+    for n in ["is_given", "get_async_library"] {
+        p.import_from("._utils", n);
+    }
+    for m in ["._types", "._utils", "._base_client"] {
+        p.explode(m);
+    }
+    if lazy {
+        p.import_from("._compat", "cached_property");
+    }
+    p.import_from("._version", "__version__");
+    p.import_from("._streaming", "Stream as Stream");
+    p.import_from("._streaming", "AsyncStream as AsyncStream");
+    p.import_from("._exceptions", "APIStatusError");
+    for n in ["DEFAULT_MAX_RETRIES", "SyncAPIClient", "AsyncAPIClient"] {
+        p.import_from("._base_client", n);
+    }
+}
+
 /// Renders `_client.py`.
 ///
 /// # Errors
@@ -687,44 +816,10 @@ pub fn emit_client_file(client: &SdkClient) -> Result<String, FerruleError> {
     };
     let mut p = PythonPrinter::new(&[HEADER]);
     let s = ClientState { client, settings };
-    p.import_from("__future__", "annotations");
-    p.import_module("os");
-    for n in ["TYPE_CHECKING", "Any", "Mapping"] {
-        p.import_from("typing", n);
-    }
-    for n in ["Self", "override"] {
-        p.import_from("typing_extensions", n);
-    }
-    p.import_module("httpx");
-    p.import_from(".", "_exceptions");
-    p.import_from("._qs", "Querystring");
-    for n in [
-        "Omit",
-        "Timeout",
-        "NotGiven",
-        "Transport",
-        "ProxiesTypes",
-        "RequestOptions",
-        "not_given",
-    ] {
-        p.import_from("._types", n);
-    }
-    for n in ["is_given", "get_async_library"] {
-        p.import_from("._utils", n);
-    }
-    for m in ["._types", "._utils", "._base_client"] {
-        p.explode(m);
-    }
-    p.import_from("._compat", "cached_property");
-    p.import_from("._version", "__version__");
-    p.import_from("._streaming", "Stream as Stream");
-    p.import_from("._streaming", "AsyncStream as AsyncStream");
-    p.import_from("._exceptions", "APIStatusError");
-    for n in ["DEFAULT_MAX_RETRIES", "SyncAPIClient", "AsyncAPIClient"] {
-        p.import_from("._base_client", n);
-    }
+    let lazy = client.style.lazy_resources;
+    import_client_modules(&mut p, client);
 
-    if !client.resources.is_empty() {
+    if lazy && !client.resources.is_empty() {
         p.block("if TYPE_CHECKING:", |p| {
             for l in type_checking_imports(client, &p.indentation()) {
                 p.raw(&l);

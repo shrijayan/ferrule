@@ -10,7 +10,7 @@ use crate::diagnostics::{FerCode, FerruleError, operation_pointer};
 use crate::js;
 use crate::model::{
     HttpVerb, SdkBodyVariant, SdkClient, SdkClientSettings, SdkField, SdkLiteral, SdkMethod, SdkModelDecl, SdkObject,
-    SdkPackage, SdkPagination, SdkParam, SdkPrimitive, SdkRef, SdkResource, SdkStreaming, SdkType,
+    SdkPackage, SdkPagination, SdkParam, SdkPrimitive, SdkRef, SdkResource, SdkStreaming, SdkStyle, SdkType,
 };
 use crate::naming::{Casing, class_segment_with, pascal_case, singular, snake_case, split_words};
 
@@ -641,6 +641,7 @@ fn to_client<'f>(methods: impl Iterator<Item = Method<'f>>, base_url: &str) -> R
     let mut decls: Vec<(String, SdkModelDecl)> = Vec::new();
     let mut pkg: Option<SdkPackage> = None;
     let mut settings: Option<SdkClientSettings> = None;
+    let mut style: Option<SdkStyle> = None;
     for method in methods {
         let pointer = operation_pointer(method.path(), method.http_method().as_str());
         let extensions: Vec<(&str, &forge::Json)> = method.extensions().collect();
@@ -656,6 +657,7 @@ fn to_client<'f>(methods: impl Iterator<Item = Method<'f>>, base_url: &str) -> R
         pkg = Some(ext.package.clone());
         // Mirrored from the root, so the first operation's copy stands for all.
         let casings = casings.get_or_insert_with(|| ext.casings.clone());
+        style.get_or_insert(ext.style);
         if standalone.is_empty() {
             standalone.clone_from(&ext.standalone);
         }
@@ -696,6 +698,7 @@ fn to_client<'f>(methods: impl Iterator<Item = Method<'f>>, base_url: &str) -> R
         env_prefix,
         models,
         resource_tree,
+        style: style.unwrap_or_default(),
     }))
 }
 

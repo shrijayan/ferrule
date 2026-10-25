@@ -384,7 +384,12 @@ pub fn emit_code_files(client: &SdkClient, meta: Option<&ProjectMeta>) -> Result
             .set_value(&module_path(&pkg, "_client"), emit_client_file(client)?);
         out.files.set_value(
             &module_path(&pkg, "__init__"),
-            emit_package_init_with(&pkg, &settings.class_name, settings.environments.len() > 1),
+            emit_package_init_with(
+                &pkg,
+                &settings.class_name,
+                settings.environments.len() > 1,
+                client.style.omit,
+            ),
         );
         out.files.set_value(
             &module_path(&pkg, "_version"),
