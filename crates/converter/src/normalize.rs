@@ -23,6 +23,8 @@ pub const EQUAL_NAMES_NUMBERED: &str = "FER1605";
 pub const DANGLING_REF: &str = "FER1606";
 /// `items` is a list (a tuple, draft 4); rewritten to `prefixItems`.
 pub const ITEMS_TUPLE: &str = "FER1607";
+/// An `anyOf`/`oneOf` member that is only `nullable: true`; rewritten to `type: "null"`.
+pub const NULLABLE_ONLY_MEMBER: &str = "FER1608";
 
 pub const NORMALIZED_KEY: &str = "x-ferrule-normalized";
 
@@ -110,6 +112,28 @@ fn spelled(wire: &str) -> Vec<String> {
         }
     }
     forge_words(&text)
+}
+
+/// Keys that say nothing about which values a schema takes.
+const ANNOTATION_KEYS: [&str; 8] = [
+    "description",
+    "title",
+    "example",
+    "examples",
+    "default",
+    "deprecated",
+    "readOnly",
+    "writeOnly",
+];
+
+/// A schema that is `nullable: true` and nothing else but annotations and extensions: without a
+/// `type`, OpenAPI 3.0 gives `nullable` no effect, so Forge reads it as any value. Stainless
+/// reads such an `anyOf`/`oneOf` member as null (knock-mgmt `anyOf: [$ref, {nullable: true}]`).
+fn is_nullable_only(node: &Map) -> bool {
+    node.get("nullable").and_then(Value::as_bool) == Some(true)
+        && node
+            .keys()
+            .all(|k| k == "nullable" || k.starts_with("x-") || ANNOTATION_KEYS.contains(&k.as_str()))
 }
 
 fn note(node: &mut Map, rule: &str) {
@@ -241,6 +265,28 @@ impl Walker<'_> {
                 "`type` array contains a null literal; rewritten to the string \"null\"",
                 "quote it in the spec: `type: [array, \"null\"]`",
             ));
+        }
+        for key in ["anyOf", "oneOf"] {
+            let Some(Value::Array(members)) = out.get_mut(key) else {
+                continue;
+            };
+            for (i, member) in members.iter_mut().enumerate() {
+                let Value::Object(m) = member else { continue };
+                if !is_nullable_only(m) {
+                    continue;
+                }
+                m.remove("nullable");
+                m.insert("type", Value::from("null"));
+                note(m, "nullable-only-member");
+                let mut p = path.clone();
+                p.extend([Seg::from(key), Seg::Index(i)]);
+                self.diagnostics.push(Diagnostic::info(
+                    NULLABLE_ONLY_MEMBER,
+                    to_json_pointer(&p),
+                    format!("`{key}` member is only `nullable: true`, which Forge reads as any value; rewritten to `type: \"null\"`, as Stainless reads it"),
+                    "nothing to do; write `type: \"null\"` (OpenAPI 3.1) or `nullable: true` on the `$ref`'s schema to say it in the spec",
+                ));
+            }
         }
         if let Some(Value::String(d)) = &discriminator {
             let mut obj = Map::new();
