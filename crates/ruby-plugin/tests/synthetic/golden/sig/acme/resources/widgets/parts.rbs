@@ -1,0 +1,11 @@
+module Acme
+  module Resources
+    class Widgets
+      class Parts
+        def retrieve: (Integer part_number, widget_id: String, ?request_options: Acme::request_opts) -> Acme::Models::Widgets::PartRetrieveResponse
+
+        def initialize: (client: Acme::Client) -> void
+      end
+    end
+  end
+end

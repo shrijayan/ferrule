@@ -1,7 +1,10 @@
-//! A small synthetic API (`tests/synthetic/{openapi,stainless}.yml`): what OneBusAway does not
-//! cover, such as a JSON body with a nested object, an enum and an array, a method without a
-//! response, an integer path param, a subresource, shared models (one a map of objects) and a
-//! custom casing.
+//! A small synthetic API (`tests/synthetic/{openapi,stainless}.yml`) against its committed golden
+//! tree (`tests/synthetic/golden`, as `ferrule-gen generate --target ruby` writes it before the
+//! formatters run, the runtime options included), byte for byte. It covers what OneBusAway does
+//! not: a JSON body with a nested object, an enum and an array, a method without a response, an
+//! integer path param, a subresource, shared models (one a map of objects) and a custom casing.
+//!
+//! Golden changes are reviewed by a human: never rewrite the tree to make this pass.
 
 mod common;
 
@@ -19,7 +22,33 @@ fn generated() -> Vec<(String, String)> {
     let mut files = out.files;
     files.push((".ferrule/ruby-runtime.json".to_owned(), out.runtime.to_json()));
     files.sort();
+    common::dump("FERRULE_RUBY_DUMP_RAW", &files);
     files
+}
+
+#[test]
+fn synthetic_matches_the_golden_tree() {
+    let golden = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/synthetic/golden");
+    let files = generated();
+    let paths: Vec<&str> = files.iter().map(|(p, _)| p.as_str()).collect();
+    assert_eq!(common::walk(&golden), paths, "the golden tree has other files");
+    for (path, text) in &files {
+        let expected = std::fs::read_to_string(golden.join(path)).expect("golden file");
+        assert!(*text == expected, "{path} differs from the golden tree");
+    }
+}
+
+/// The output is the same on every run, and the gem's formatters accept it and are settled after
+/// one pass (`rake format` on the formatted gem changes nothing).
+#[test]
+fn synthetic_is_deterministic_and_formats() {
+    let files = generated();
+    assert_eq!(files, generated());
+    let Some(formatted) = common::format(&files) else {
+        eprintln!("skipped formatting: stree or rubocop is not installed");
+        return;
+    };
+    assert_eq!(common::format(&formatted), Some(formatted));
 }
 
 fn file<'f>(files: &'f [(String, String)], path: &str) -> &'f str {

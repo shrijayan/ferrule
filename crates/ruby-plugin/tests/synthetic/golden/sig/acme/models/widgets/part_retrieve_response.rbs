@@ -1,0 +1,21 @@
+module Acme
+  module Models
+    module Widgets
+      type part_retrieve_response = { id: String, sku: String, error: Acme::ErrorInfo }
+
+      class PartRetrieveResponse < Acme::Internal::Type::BaseModel
+        attr_accessor id: String
+
+        attr_accessor sku: String
+
+        attr_reader error: Acme::ErrorInfo?
+
+        def error=: (Acme::ErrorInfo) -> Acme::ErrorInfo
+
+        def initialize: (id: String, sku: String, ?error: Acme::ErrorInfo) -> void
+
+        def to_hash: -> { id: String, sku: String, error: Acme::ErrorInfo }
+      end
+    end
+  end
+end

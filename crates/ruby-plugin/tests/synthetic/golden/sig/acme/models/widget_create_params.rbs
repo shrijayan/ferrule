@@ -1,0 +1,54 @@
+module Acme
+  module Models
+    type widget_create_params = { name: String, color: Acme::Models::WidgetCreateParams::color, dimensions: Acme::WidgetCreateParams::Dimensions, tags: ::Array[String] } & Acme::Internal::Type::request_parameters
+
+    class WidgetCreateParams < Acme::Internal::Type::BaseModel
+      extend Acme::Internal::Type::RequestParameters::Converter
+      include Acme::Internal::Type::RequestParameters
+
+      attr_accessor name: String
+
+      attr_reader color: Acme::Models::WidgetCreateParams::color?
+
+      def color=: (Acme::Models::WidgetCreateParams::color) -> Acme::Models::WidgetCreateParams::color
+
+      attr_reader dimensions: Acme::WidgetCreateParams::Dimensions?
+
+      def dimensions=: (Acme::WidgetCreateParams::Dimensions) -> Acme::WidgetCreateParams::Dimensions
+
+      attr_reader tags: ::Array[String]?
+
+      def tags=: (::Array[String]) -> ::Array[String]
+
+      def initialize: (name: String, ?color: Acme::Models::WidgetCreateParams::color, ?dimensions: Acme::WidgetCreateParams::Dimensions, ?tags: ::Array[String], ?request_options: Acme::request_opts) -> void
+
+      def to_hash: -> { name: String, color: Acme::Models::WidgetCreateParams::color, dimensions: Acme::WidgetCreateParams::Dimensions, tags: ::Array[String], request_options: Acme::RequestOptions }
+
+      type color = :red | :green | :blue
+
+      module Color
+        extend Acme::Internal::Type::Enum
+
+        RED: :red
+        GREEN: :green
+        BLUE: :blue
+
+        def self?.values: -> ::Array[Acme::Models::WidgetCreateParams::color]
+      end
+
+      type dimensions = { width: Float, height: Float }
+
+      class Dimensions < Acme::Internal::Type::BaseModel
+        attr_accessor width: Float
+
+        attr_reader height: Float?
+
+        def height=: (Float) -> Float
+
+        def initialize: (width: Float, ?height: Float) -> void
+
+        def to_hash: -> { width: Float, height: Float }
+      end
+    end
+  end
+end

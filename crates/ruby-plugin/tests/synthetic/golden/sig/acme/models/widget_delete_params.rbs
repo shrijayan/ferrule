@@ -1,0 +1,16 @@
+module Acme
+  module Models
+    type widget_delete_params = { widget_id: String } & Acme::Internal::Type::request_parameters
+
+    class WidgetDeleteParams < Acme::Internal::Type::BaseModel
+      extend Acme::Internal::Type::RequestParameters::Converter
+      include Acme::Internal::Type::RequestParameters
+
+      attr_accessor widget_id: String
+
+      def initialize: (widget_id: String, ?request_options: Acme::request_opts) -> void
+
+      def to_hash: -> { widget_id: String, request_options: Acme::RequestOptions }
+    end
+  end
+end
