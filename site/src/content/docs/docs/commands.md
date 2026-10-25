@@ -6,15 +6,16 @@ description: Every ferrule command, its flags and its exit codes.
 `ferrule` is a Python CLI. Until the 0.1 release, run it from a Ferrule checkout with
 `uv run ferrule …` (see the [quickstart](/ferrule/docs/quickstart/)).
 
-`adopt` and `generate` need Forge and the Ferrule plugin. Pass them as `--forge` and `--plugin`,
-or set `FERRULE_FORGE` and `FERRULE_PLUGIN`.
+`adopt` and `generate` run the `ferrule-gen` binary, which holds the converter, Forge and the
+Ferrule plugin. Build it with `cargo build --release -p ferrule-gen`. Pass it as `--gen PATH`,
+or set `FERRULE_GEN`; the default is `target/release/ferrule-gen` in the Ferrule checkout.
 
 ## adopt
 
 Switch an existing Stainless-generated SDK repository to Ferrule.
 
 ```bash
-ferrule adopt [REPO] [--config STAINLESS_YML] [--spec SPEC] [--dry-run] [--forge PATH] [--plugin PATH]
+ferrule adopt [REPO] [--config STAINLESS_YML] [--spec SPEC] [--dry-run] [--gen PATH]
 ```
 
 | Flag | Default | Meaning |
@@ -23,6 +24,7 @@ ferrule adopt [REPO] [--config STAINLESS_YML] [--spec SPEC] [--dry-run] [--forge
 | `--config` | `REPO/stainless.yml` | Your Stainless config. |
 | `--spec` | rescued | Use this OpenAPI spec instead of rescuing the one `.stats.yml` names. |
 | `--dry-run` | off | Rescue, generate and find hand edits in a temporary worktree, then stop. |
+| `--gen` | `$FERRULE_GEN` | The `ferrule-gen` binary. |
 
 Rescues the spec, regenerates in a temporary worktree, records hand edits since the last
 Stainless commit as `.ferrule/patches/`, writes `ferrule.lock` and `.github/workflows/sdk.yml`,
@@ -45,7 +47,7 @@ The default output is `openapi.<ext>` in the repository.
 Generate an SDK from a spec and a config into a new directory.
 
 ```bash
-ferrule generate --spec SPEC --config STAINLESS_YML --out DIR [--runtime-from SDK_CHECKOUT]
+ferrule generate --spec SPEC --config STAINLESS_YML --out DIR [--runtime-from SDK_CHECKOUT] [--gen PATH]
 ```
 
 `--out` must be new or empty. `--runtime-from` copies the runtime (`_base_client.py` and
@@ -103,5 +105,5 @@ or config and a suggested fix.
 | --- | --- |
 | `FER11xx` to `FER15xx` | `stainless.yml`: schema, transforms, client, streaming, pagination |
 | `FER201` | A spec or config feature Ferrule can't generate yet |
-| `FER40xx` | Inputs and tools: missing files, Forge or plugin not found, unsafe paths |
+| `FER40xx` | Inputs and tools: missing files, `ferrule-gen` not found, unsafe paths |
 | `FER41xx` | Rescue and adopt: hash mismatch, bad `.stats.yml`, patch conflicts, git failures |
