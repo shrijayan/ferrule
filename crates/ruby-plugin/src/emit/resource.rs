@@ -224,12 +224,19 @@ fn rbi_method(g: &Gen<'_>, out: &mut String, indent: usize, m: &Meth<'_>) {
         })
         .collect();
     types.push(format!("request_options: {}::RequestOptions::OrHash", g.m));
-    let _ = writeln!(
-        out,
-        "{pad}sig {{ params({}).returns({}) }}",
-        types.join(", "),
-        rbi_returns(g, m)
-    );
+    match &m.response {
+        Some(_) => {
+            let _ = writeln!(
+                out,
+                "{pad}sig {{ params({}).returns({}) }}",
+                types.join(", "),
+                rbi_returns(g, m)
+            );
+        }
+        None => {
+            let _ = writeln!(out, "{pad}sig {{ params({}).void }}", types.join(", "));
+        }
+    }
     let mut defs: Vec<(String, &str)> = args.positional.iter().map(|(f, d)| (f.name.clone(), *d)).collect();
     defs.extend(keywords.iter().map(|(f, d)| (keyword(f), *d)));
     defs.push(("request_options: {}".to_owned(), ""));
