@@ -4,9 +4,9 @@
 use std::collections::HashSet;
 
 use super::common::{
-    HEADER, args_docstring, is_param_switched, keyword_path_params, leaf, method_params, method_ref, py_fstring,
-    py_string, rel_import, resource_class_base, resource_module, return_model, stainless_method_order,
-    stream_event_model, stream_switch, with_bool_literal,
+    HEADER, args_docstring, header_params, is_header, is_param_switched, keyword_path_params, leaf, method_args,
+    method_ref, py_fstring, py_string, rel_import, resource_class_base, resource_module, return_model,
+    stainless_method_order, stream_event_model, stream_switch, with_bool_literal,
 };
 use super::format::{Bracket, Cond, Expr, bracket, call, flat, print_expr};
 use super::models::all_list;
@@ -415,6 +415,49 @@ fn transform_expr(
     )
 }
 
+/// How a header parameter is sent (perplexity, ogx, stagehand): a string as is; anything else
+/// as text, and an array joined with commas, when it is given.
+fn header_value(s: &FileState<'_>, p: &mut PythonPrinter, q: &SdkParam) -> String {
+    let name = &q.py_name;
+    let text = match q.ty {
+        SdkType::Primitive(SdkPrimitive::String) => return name.clone(),
+        SdkType::Array(_) => format!("\",\".join(str(e) for e in {name})"),
+        _ => format!("str({name})"),
+    };
+    if q.required {
+        return text;
+    }
+    let not_given = s.client.style.not_given();
+    imp(s, p, "_utils", "is_given");
+    imp(s, p, "_types", not_given);
+    format!("{text} if is_given({name}) else {not_given}")
+}
+
+/// `extra_headers = {**strip_not_given({<header>: <value>, ...}), **(extra_headers or {})}` for
+/// a method with header parameters, by wire name.
+fn print_header_merge(s: &FileState<'_>, p: &mut PythonPrinter, method: &SdkMethod) {
+    let headers = header_params(method);
+    if headers.is_empty() {
+        return;
+    }
+    imp(s, p, "_utils", "strip_not_given");
+    let items: Vec<Expr> = headers
+        .iter()
+        .map(|q| format!("{}: {}", py_string(&q.wire_name), header_value(s, p, q)).into())
+        .collect();
+    let dict = bracket("{", items, false, "}");
+    let merged = bracket(
+        "{",
+        vec![
+            call("**strip_not_given(", vec![dict.into()], false).into(),
+            "**(extra_headers or {})".into(),
+        ],
+        false,
+        "}",
+    );
+    print_expr(p, &merged.into(), "extra_headers = ", "");
+}
+
 /// FER201 for a method shape [`emit_method`] does not generate yet.
 fn check_supported(method: &SdkMethod) -> Result<(), FerruleError> {
     let switch = stream_switch(method);
@@ -464,8 +507,9 @@ fn emit_method(
     let switch = stream_switch(method);
     let ret = return_model(holder, method);
     let union = name_union_body(method);
-    let params = union.as_ref().map_or_else(|| method_params(method), |u| u.args.clone());
-    let params_ref = if params.is_empty() {
+    let params = union.as_ref().map_or_else(|| method_args(method), |u| u.args.clone());
+    // Header parameters alone make no params file (ogx `models.retrieve`).
+    let params_ref = if params.iter().all(|q| is_header(method, q)) {
         None
     } else {
         Some(method_ref(holder, method, "Params"))
@@ -560,6 +604,7 @@ fn emit_method(
     if ret.is_none() && stream.is_none() {
         p.line("extra_headers = {\"Accept\": \"*/*\", **(extra_headers or {})}");
     }
+    print_header_merge(s, p, method);
     let params_name = params_ref.as_ref().map_or_else(String::new, |r| {
         format!("{}.{}", r.module.rsplit('.').next().unwrap_or(""), r.name)
     });
@@ -584,6 +629,7 @@ fn emit_method(
         .copied()
         .filter(|q| !query.iter().any(|x| std::ptr::eq(*x, *q)))
         .filter(|q| !method.path_params.iter().any(|x| std::ptr::eq(x, *q)))
+        .filter(|q| !is_header(method, q))
         .collect();
     let in_body =
         page.is_some_and(|pg| pg.param_location == ParamLocation::Body) || method.http_method != HttpVerb::Get;

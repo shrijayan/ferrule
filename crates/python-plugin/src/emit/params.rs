@@ -5,7 +5,7 @@ use std::collections::{HashMap, HashSet};
 use std::ops::Range;
 
 use super::common::{
-    FieldLike, HEADER, keyword_path_params, method_params, method_ref, py_string, rel_import, sort_fields,
+    FieldLike, HEADER, header_params, keyword_path_params, method_args, method_ref, py_string, rel_import, sort_fields,
     stream_switch, typed_extra, with_bool_literal,
 };
 use super::format::{bracket, print_expr};
@@ -332,6 +332,7 @@ pub fn name_union_body(method: &SdkMethod) -> Option<UnionBody<'_>> {
             variant_segment(&v.object, method.body_discriminator.as_deref()).unwrap_or_else(|| format!("Variant{i}"));
         let mut own: Vec<&SdkParam> = keyword_path_params(method).iter().collect();
         own.extend(sort_fields(method.query_params.iter().chain(&v.params)));
+        own.extend(header_params(method));
         let (pre, post) = named.counts();
         named.add_fields(&own, &name);
         let (pre_end, post_end) = named.counts();
@@ -437,7 +438,7 @@ pub fn emit_params_file(resource: Option<&SdkResource>, method: &SdkMethod) -> S
         emit_union_params(&mut p, &r.name, &body, here);
         return p.render();
     }
-    let params = method_params(method);
+    let params = method_args(method);
     let named = name_params(&params, "");
     // The path parameters before the last lead the fields, in path order.
     let mut fields: Vec<&SdkParam> = keyword_path_params(method).iter().collect();

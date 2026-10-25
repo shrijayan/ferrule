@@ -5,8 +5,8 @@
 use serde_json::{Map, Value};
 
 use super::common::{
-    leaf, method_params, method_ref, resource_class_base, resource_module, resource_tree, return_model, sort_fields,
-    stainless_method_order, stream_switch, types_dir,
+    header_params, leaf, method_params, method_ref, resource_class_base, resource_module, resource_tree, return_model,
+    sort_fields, stainless_method_order, stream_switch, types_dir,
 };
 use super::files::input::{
     Auth, AuthOpt, AuthScheme, ExampleRequest, FilesMethod, FilesParam, FilesResource, Organization, ParamLocation,
@@ -175,6 +175,11 @@ fn files_method(resource: &SdkResource, m: &SdkMethod) -> FilesMethod {
                     },
                 )
             }),
+    );
+    params.extend(
+        header_params(m)
+            .into_iter()
+            .map(|p| files_param(p, ParamLocation::Header)),
     );
     let ret = return_model(Some(resource), m);
     FilesMethod {

@@ -131,7 +131,10 @@ fn call_order<'a>(params: &[&'a FilesParam]) -> Vec<&'a FilesParam> {
         .filter(|p| p.location == ParamLocation::Path)
         .collect();
     let by_name = |a: &&FilesParam, b: &&FilesParam| js::cmp(&a.py_name, &b.py_name);
-    let rest = params.iter().copied().filter(|p| p.location != ParamLocation::Path);
+    let rest = params
+        .iter()
+        .copied()
+        .filter(|p| !matches!(p.location, ParamLocation::Path | ParamLocation::Header));
     let mut required: Vec<&FilesParam> = rest.clone().filter(|p| p.required).collect();
     let mut optional: Vec<&FilesParam> = rest.filter(|p| !p.required).collect();
     required.sort_by(by_name);
@@ -143,6 +146,8 @@ fn call_order<'a>(params: &[&'a FilesParam]) -> Vec<&'a FilesParam> {
     }
     ordered.extend(required);
     ordered.extend(optional);
+    // Header parameters come last, in their own order (ogx `models.list`).
+    ordered.extend(params.iter().copied().filter(|p| p.location == ParamLocation::Header));
     ordered
 }
 
