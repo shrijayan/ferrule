@@ -1,0 +1,45 @@
+organization:
+  name: acme-qa
+  docs: https://docs.acme.test
+  contact: support@acme.test
+targets:
+  python:
+    package_name: acme
+    production_repo: acme/acme-python
+    publish: { pypi: false }
+environments:
+  production: https://api.acme.test/v1
+readme:
+  example_requests:
+    default: { type: request, endpoint: post /enrichments, params: { text: hello } }
+    headline: { type: request, endpoint: post /enrichments, params: { text: hello } }
+client_settings:
+  opts:
+    api_key:
+      type: string
+      auth: { security_scheme: ApiKeyAuth }
+      read_env: ACME_API_KEY
+      send_as_query_param: key
+resources:
+  extractions:
+    subresources:
+      qa:
+        standalone_api: true
+        models:
+          answer_extraction_response: AnswerExtractionResponse
+        methods:
+          create: post /extractions/qa
+  enrichments:
+    methods:
+      create: post /enrichments
+  ilgs:
+    subresources:
+      v1:
+        standalone_api: true
+        models:
+          document: ILGSv1Document
+          id_number: ILGSv1 ID Number
+custom_casings:
+  qa: { initialism: true }
+  ilgs: { initialism: true }
+  v1: { pascal: v1, camel: v1, capital: V1, snake: v1 }
