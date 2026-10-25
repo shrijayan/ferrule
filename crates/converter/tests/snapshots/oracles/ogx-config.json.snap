@@ -1,5 +1,5 @@
 {
-  "sha256": "d6ab2e2f6cf7d087ad529f3b555eb90c9299a6a1b0e60a6a469e510ad79b9326",
+  "sha256": "48404d97a62749ee6c9c25055d35f3019b4210f890d0b17783a0d1b437843f44",
   "root": {
     "x-ferrule-client": {
       "defaultEnvironment": "production",
@@ -275,7 +275,7 @@
           "after": "next_cursor_param"
         },
         "response": {
-          "data": "data",
+          "data": "items",
           "has_more": "has_more",
           "last_id": "next_cursor_field"
         },
@@ -481,7 +481,7 @@
           "after": "next_cursor_param"
         },
         "response": {
-          "data": "data",
+          "data": "items",
           "has_more": "has_more",
           "last_id": "next_cursor_field"
         },
@@ -621,7 +621,7 @@
           "after": "next_cursor_param"
         },
         "response": {
-          "data": "data",
+          "data": "items",
           "has_more": "has_more",
           "last_id": "next_cursor_field"
         },
@@ -741,7 +741,7 @@
           "after": "next_cursor_param"
         },
         "response": {
-          "data": "data",
+          "data": "items",
           "has_more": "has_more",
           "last_id": "next_cursor_field"
         },
@@ -1535,7 +1535,7 @@
           "after": "next_cursor_param"
         },
         "response": {
-          "data": "data",
+          "data": "items",
           "has_more": "has_more",
           "last_id": "next_cursor_field"
         },
@@ -1744,7 +1744,7 @@
           "after": "next_cursor_param"
         },
         "response": {
-          "data": "data",
+          "data": "items",
           "has_more": "has_more",
           "last_id": "next_cursor_field"
         },
@@ -1953,7 +1953,7 @@
           "after": "next_cursor_param"
         },
         "response": {
-          "data": "data",
+          "data": "items",
           "has_more": "has_more",
           "last_id": "next_cursor_field"
         },
@@ -1994,7 +1994,7 @@
           "after": "next_cursor_param"
         },
         "response": {
-          "data": "data",
+          "data": "items",
           "has_more": "has_more",
           "last_id": "next_cursor_field"
         },

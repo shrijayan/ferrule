@@ -1,5 +1,5 @@
 {
-  "sha256": "47bf8c6d5206b5d1dfb5fecdb4410d50e2b42b6c5b833baec8b90ca9e097e151",
+  "sha256": "258ddd35c04591f0ea023052a283e5ce596ed6c34c643f969344011e246dda06",
   "root": {
     "x-ferrule-client": {
       "defaultEnvironment": "production",
@@ -496,7 +496,7 @@
           "limit": "limit"
         },
         "response": {
-          "entries": "entries",
+          "entries": "items",
           "page_info.after": "next_cursor_field"
         },
         "scheme": "cursor"
@@ -616,7 +616,7 @@
           "limit": "limit"
         },
         "response": {
-          "entries": "entries",
+          "entries": "items",
           "page_info.after": "next_cursor_field"
         },
         "scheme": "cursor"
@@ -715,7 +715,7 @@
           "limit": "limit"
         },
         "response": {
-          "entries": "entries",
+          "entries": "items",
           "page_info.after": "next_cursor_field"
         },
         "scheme": "cursor"
@@ -856,7 +856,7 @@
           "limit": "limit"
         },
         "response": {
-          "entries": "entries",
+          "entries": "items",
           "page_info.after": "next_cursor_field"
         },
         "scheme": "cursor"
@@ -955,7 +955,7 @@
           "limit": "limit"
         },
         "response": {
-          "entries": "entries",
+          "entries": "items",
           "page_info.after": "next_cursor_field"
         },
         "scheme": "cursor"
@@ -1012,7 +1012,7 @@
           "limit": "limit"
         },
         "response": {
-          "entries": "entries",
+          "entries": "items",
           "page_info.after": "next_cursor_field"
         },
         "scheme": "cursor"
@@ -1132,7 +1132,7 @@
           "limit": "limit"
         },
         "response": {
-          "entries": "entries",
+          "entries": "items",
           "page_info.after": "next_cursor_field"
         },
         "scheme": "cursor"
@@ -1231,7 +1231,7 @@
           "limit": "limit"
         },
         "response": {
-          "entries": "entries",
+          "entries": "items",
           "page_info.after": "next_cursor_field"
         },
         "scheme": "cursor"
@@ -1288,7 +1288,7 @@
           "limit": "limit"
         },
         "response": {
-          "entries": "entries",
+          "entries": "items",
           "page_info.after": "next_cursor_field"
         },
         "scheme": "cursor"
@@ -1429,7 +1429,7 @@
           "limit": "limit"
         },
         "response": {
-          "entries": "entries",
+          "entries": "items",
           "page_info.after": "next_cursor_field"
         },
         "scheme": "cursor"
@@ -1507,7 +1507,7 @@
           "limit": "limit"
         },
         "response": {
-          "entries": "entries",
+          "entries": "items",
           "page_info.after": "next_cursor_field"
         },
         "scheme": "cursor"
@@ -1606,7 +1606,7 @@
           "limit": "limit"
         },
         "response": {
-          "entries": "entries",
+          "entries": "items",
           "page_info.after": "next_cursor_field"
         },
         "scheme": "cursor"
@@ -1831,7 +1831,7 @@
           "limit": "limit"
         },
         "response": {
-          "entries": "entries",
+          "entries": "items",
           "page_info.after": "next_cursor_field"
         },
         "scheme": "cursor"
@@ -1909,7 +1909,7 @@
           "limit": "limit"
         },
         "response": {
-          "entries": "entries",
+          "entries": "items",
           "page_info.after": "next_cursor_field"
         },
         "scheme": "cursor"
@@ -2008,7 +2008,7 @@
           "limit": "limit"
         },
         "response": {
-          "entries": "entries",
+          "entries": "items",
           "page_info.after": "next_cursor_field"
         },
         "scheme": "cursor"
@@ -2086,7 +2086,7 @@
           "limit": "limit"
         },
         "response": {
-          "entries": "entries",
+          "entries": "items",
           "page_info.after": "next_cursor_field"
         },
         "scheme": "cursor"
