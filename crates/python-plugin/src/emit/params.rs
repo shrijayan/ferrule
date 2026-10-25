@@ -168,7 +168,17 @@ impl<'a> Named<'a> {
                         .all(|o| variant_segment(o, discriminator.as_deref()).is_some());
                 if objects.len() <= 1 && !with_model {
                     for v in variants {
-                        self.visit_type(v, base);
+                        // An array beside other members, named after a schema or title, names its
+                        // items after it (knock-mgmt `HeadersRequestTemplateHeadersArray`).
+                        if members >= 2
+                            && let SdkType::Array(items) = v
+                            && let SdkType::Object(o) = &**items
+                            && let Some(h) = &o.hint
+                        {
+                            self.visit_object(o, &format!("{base}{}", schema_segment(h)));
+                        } else {
+                            self.visit_type(v, base);
+                        }
                     }
                     return;
                 }

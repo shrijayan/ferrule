@@ -191,6 +191,17 @@ impl Context<'_> {
                         },
                         ..o
                     }),
+                    // The items of an array schema take its name where Stainless names them after
+                    // it: as a union member (knock-mgmt `HeadersRequestTemplateHeadersArray`).
+                    SdkType::Array(items) => match *items {
+                        SdkType::Object(o) if o.hint.is_none() => {
+                            SdkType::Array(Box::new(SdkType::Object(SdkObject {
+                                hint: Some(schema.to_owned()),
+                                ..o
+                            })))
+                        }
+                        other => SdkType::Array(Box::new(other)),
+                    },
                     other => other,
                 }
             }
