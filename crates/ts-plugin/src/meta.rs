@@ -73,6 +73,48 @@ pub struct McpServer {
     pub package_name: String,
 }
 
+/// One entry of stainless.yml `pagination:`, as written: the page classes declare its request
+/// and response fields with their types, which `x-ferrule-pagination` does not carry (it maps
+/// field paths to purposes only).
+#[derive(Debug, Clone, PartialEq)]
+pub struct PageScheme {
+    /// `name`, such as `entries_cursor`; `page` for the single-object form.
+    pub name: String,
+    /// `type`: `cursor`, `cursor_id`, `cursor_url`, `offset`, `page_number` or `fake_page`.
+    pub kind: String,
+    /// `param_location: body`: the request fields are body params.
+    pub in_body: bool,
+    /// `request` fields and their schemas, in config order.
+    pub request: Vec<(String, Value)>,
+    /// `response` fields and their schemas, in config order.
+    pub response: Vec<(String, Value)>,
+}
+
+fn page_schemes(config: &Value) -> Vec<PageScheme> {
+    let entries: Vec<&Value> = match config.get("pagination") {
+        Some(Value::Array(a)) => a.iter().collect(),
+        Some(v @ Value::Object(_)) => vec![v],
+        _ => Vec::new(),
+    };
+    let fields = |v: Option<&Value>| -> Vec<(String, Value)> {
+        v.and_then(Value::as_object)
+            .map(|m| m.iter().map(|(k, v)| (k.clone(), v.clone())).collect())
+            .unwrap_or_default()
+    };
+    entries
+        .into_iter()
+        .filter_map(|e| {
+            Some(PageScheme {
+                name: e.get("name").and_then(Value::as_str).unwrap_or("page").to_owned(),
+                kind: e.get("type").and_then(Value::as_str)?.to_owned(),
+                in_body: e.get("param_location").and_then(Value::as_str) == Some("body"),
+                request: fields(e.get("request")),
+                response: fields(e.get("response")),
+            })
+        })
+        .collect()
+}
+
 /// What the TypeScript project needs that the annotated spec does not carry yet.
 #[derive(Debug, Clone, PartialEq)]
 pub struct TsMeta {
@@ -105,6 +147,8 @@ pub struct TsMeta {
     /// `TypeRef.path` is the Python module path, which loses the resource of a model declared by
     /// a non-standalone resource.
     pub model_homes: Vec<(String, Vec<String>)>,
+    /// `pagination:`, in config order.
+    pub pagination: Vec<PageScheme>,
 }
 
 impl TsMeta {
@@ -126,6 +170,7 @@ impl TsMeta {
             readme_attribution: true,
             sort_schema_properties: true,
             model_homes: Vec::new(),
+            pagination: Vec::new(),
         }
     }
 
@@ -166,6 +211,7 @@ impl TsMeta {
             .and_then(|v| v.get("sort_schema_properties"))
             .and_then(Value::as_bool)
             .unwrap_or(true);
+        meta.pagination = page_schemes(config);
         if let Some(resources) = config.get("resources").and_then(Value::as_object) {
             for (key, r) in resources {
                 model_homes(r, &mut vec![key.clone()], &mut meta.model_homes);
@@ -252,6 +298,7 @@ pub struct TsSettings {
     pub readme_attribution: bool,
     pub sort_schema_properties: bool,
     pub model_homes: Vec<(String, Vec<String>)>,
+    pub pagination: Vec<PageScheme>,
 }
 
 /// `knock mgmt` -> `Knock Mgmt`, `onebusaway sdk` -> `Onebusaway SDK`: each word spelled as in a
@@ -316,5 +363,6 @@ pub fn ts_settings(client: &Client, meta: &TsMeta, layout: Layout) -> TsSettings
         readme_attribution: meta.readme_attribution,
         sort_schema_properties: meta.sort_schema_properties,
         model_homes: meta.model_homes.clone(),
+        pagination: meta.pagination.clone(),
     }
 }

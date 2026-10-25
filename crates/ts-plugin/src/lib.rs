@@ -15,6 +15,7 @@ pub mod extras;
 pub mod js;
 pub mod meta;
 pub mod naming;
+pub mod pages;
 pub mod pretty;
 pub mod types;
 
