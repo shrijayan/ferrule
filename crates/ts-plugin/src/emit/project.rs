@@ -260,10 +260,24 @@ fn readme_example(ctx: &Ctx<'_>) -> Option<Example> {
         })
         .collect();
     if let Some(Value::Object(map)) = params {
-        let props: Vec<(String, Expr)> = map
+        let mut props: Vec<(String, &Value)> = map
             .iter()
             .filter(|(k, _)| !m.path_params.iter().any(|p| &p.field.wire_name == *k))
-            .map(|(k, v)| (js::property_key(k), json_expr(v)))
+            .map(|(k, v)| (k.clone(), v))
+            .collect();
+        // The `node` layout writes the params in the body's field order and leaves out `false`
+        // (lumaai-typescript's README drops `loop: false` from its `example_requests`).
+        if ctx.node()
+            && let Some(o) = m.body.as_ref().and_then(|b| ctx.client.object_of(&b.ty))
+        {
+            let mapper = crate::types::Mapper::new(ctx, "");
+            let order: Vec<&str> = mapper.ordered(&o.fields).iter().map(|f| f.wire_name.as_str()).collect();
+            props.retain(|(_, v)| **v != Value::Bool(false));
+            props.sort_by_key(|(k, _)| order.iter().position(|n| n == k).unwrap_or(usize::MAX));
+        }
+        let props: Vec<(String, Expr)> = props
+            .into_iter()
+            .map(|(k, v)| (js::property_key(&k), json_expr(v)))
             .collect();
         if !props.is_empty() {
             args.push(Expr::object(props));
@@ -522,6 +536,8 @@ pub fn project_files(ctx: &Ctx<'_>) -> Vec<File> {
             js::string_literal(&format!("another {placeholder}")),
         ),
         ("QUERY_KEY", query_key.clone().unwrap_or_default()),
+        ("QUERY_ARRAY_FORMAT", query_formats(ctx).0.to_owned()),
+        ("QUERY_NESTED_FORMAT", query_formats(ctx).1.to_owned()),
         ("BASE_URL", ctx.client.base_url.clone()),
         ("ENV", s.env_prefix.clone()),
         ("CONTACT", contact),
@@ -557,7 +573,16 @@ pub fn project_files(ctx: &Ctx<'_>) -> Vec<File> {
         .map(|(p, t)| (p.to_owned(), render(t, &vars, &flags)))
         .collect();
     if let Some(stats) = &s.stats {
-        let endpoints: usize = ctx.all().iter().map(|r| r.res.methods.len()).sum();
+        // Endpoints, not methods: two methods bound to one endpoint count once (lumaai's
+        // `generations.create` and `generations.video.create`).
+        let mut endpoints: Vec<(&str, &str)> = ctx
+            .all()
+            .iter()
+            .flat_map(|r| r.res.methods.iter().map(|m| (m.http_method.as_str(), m.path.as_str())))
+            .collect();
+        endpoints.sort_unstable();
+        endpoints.dedup();
+        let endpoints = endpoints.len();
         out.push((
             ".stats.yml".to_owned(),
             format!(

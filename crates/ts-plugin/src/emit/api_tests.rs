@@ -108,17 +108,26 @@ fn node_tests(ctx: &Ctx<'_>, r: &TsResource<'_>, accessor: &str) -> Vec<Vec<Stri
         let required = ex.args(plan.m, Fill::Required);
         let all = ex.args(plan.m, Fill::All);
         let bare = plan.params_arg == ParamsArg::None || !plan.params_required;
-        let head = if bare {
+        // A required body without required fields: one test, with an empty body.
+        let empty = !bare && required.props.is_empty() && required.positional.len() == plan.m.path_params.len();
+        let head = if bare || empty {
             plan.name.clone()
         } else {
             format!("{}: only required params", plan.name)
         };
         let mut t = test_head(ctx, &head);
-        let call = Expr::Call(callee.clone(), required.exprs());
+        let mut args = required.exprs();
+        if empty {
+            args.push(Expr::object(Vec::new()));
+        }
+        let call = Expr::Call(callee.clone(), args);
         t.push(render(&const_decl("responsePromise", &call), 4, WIDTH));
         t.extend(PROMISE_CHECKS.iter().map(|l| format!("    {l}")));
         t.push("  });".to_owned());
         tests.push(t);
+        if empty {
+            continue;
+        }
         if !bare {
             let mut t = test_head(ctx, &format!("{}: required and optional params", plan.name));
             let call = Expr::Await(Box::new(Expr::Call(callee, all.exprs())));

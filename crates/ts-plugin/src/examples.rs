@@ -13,6 +13,9 @@ use crate::pretty::Expr;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Fill {
     Required,
+    /// The required ones and every body property the request's own example gives (an
+    /// `@example`: lumaai-typescript's `generations.create`).
+    Example,
     All,
 }
 
@@ -62,7 +65,11 @@ impl Examples<'_, '_> {
     pub fn value(&self, ty: &Type, schema: Option<&Value>, wire: &str, fill: Fill) -> Expr {
         let extras = self.ctx.extras;
         if let Some(ex) = schema.and_then(|s| extras.example(s)) {
-            return json_expr(&ex);
+            return if self.ctx.node() {
+                self.typed(ty, &ex)
+            } else {
+                json_expr(&ex)
+            };
         }
         let format = schema
             .map(|s| extras.resolve(s))
@@ -103,9 +110,12 @@ impl Examples<'_, '_> {
             }
             Type::Map { values } => Expr::object(vec![("foo".to_owned(), self.value(values, None, "bar", fill))]),
             Type::Nullable { inner } => self.value(inner, schema, wire, fill),
+            // An open enum (`'5s' | '9s' | (string & {})`) is its first member.
             Type::Union(u) => u
                 .variants
-                .first()
+                .iter()
+                .find(|v| self.ctx.node() && matches!(v.ty, Type::Enum { .. }))
+                .or_else(|| u.variants.first())
                 .map_or(Expr::Null, |v| self.value(&v.ty, schema, wire, fill)),
             Type::Ref(r) => match self.ctx.client.model(r) {
                 Some(decl) => self.value(&decl.ty, schema, wire, fill),
@@ -124,6 +134,53 @@ impl Examples<'_, '_> {
                     .collect();
                 Expr::object(props)
             }
+        }
+    }
+
+    /// A spec example as a value of `ty`: an object's keys in the order its type lists them (the
+    /// `node` layout's tests: `{ id: '...', type: 'generation' }` from `{type, id}`), others as
+    /// written.
+    fn typed(&self, ty: &Type, v: &Value) -> Expr {
+        match (ty, v) {
+            (Type::Nullable { inner }, _) => self.typed(inner, v),
+            (Type::Ref(r), _) => self
+                .ctx
+                .client
+                .model(r)
+                .map_or_else(|| json_expr(v), |d| self.typed(&d.ty, v)),
+            (Type::Array { items }, Value::Array(a)) => Expr::Array(a.iter().map(|x| self.typed(items, x)).collect()),
+            // The variant whose properties include every key of the value.
+            (Type::Union(u), Value::Object(map)) => u
+                .variants
+                .iter()
+                .find(|v| {
+                    self.ctx
+                        .client
+                        .object_of(&v.ty)
+                        .is_some_and(|o| map.keys().all(|k| o.fields.iter().any(|f| &f.wire_name == k)))
+                })
+                .map_or_else(|| json_expr(v), |variant| self.typed(&variant.ty, v)),
+            (_, Value::Object(map)) if self.ctx.client.object_of(ty).is_some() => {
+                let Some(o) = self.ctx.client.object_of(ty) else {
+                    return json_expr(v);
+                };
+                let mapper = crate::types::Mapper::new(self.ctx, "");
+                let mut props: Vec<(String, Expr)> = mapper
+                    .ordered(&o.fields)
+                    .into_iter()
+                    .filter_map(|f| {
+                        map.get(&f.wire_name)
+                            .map(|x| (js::property_key(&f.wire_name), self.typed(&f.ty, x)))
+                    })
+                    .collect();
+                for (k, x) in map {
+                    if !o.fields.iter().any(|f| &f.wire_name == k) {
+                        props.push((js::property_key(k), json_expr(x)));
+                    }
+                }
+                Expr::object(props)
+            }
+            _ => json_expr(v),
         }
     }
 
@@ -157,7 +214,7 @@ impl Examples<'_, '_> {
             props.push((js::property_key(&p.field.wire_name), value));
         }
         for p in crate::emit::resource::query_params(self.ctx, m) {
-            if fill == Fill::Required && !p.field.required {
+            if fill != Fill::All && !p.field.required {
                 continue;
             }
             let schema = extras.parameter(&m.pointer, "query", &p.field.wire_name);
@@ -182,13 +239,29 @@ impl Examples<'_, '_> {
             let body_example = extras.body_example(&m.pointer);
             let mapper = crate::types::Mapper::new(self.ctx, "");
             for f in mapper.ordered(&o.fields) {
-                if fill == Fill::Required && !f.required {
+                let given = body_example.as_ref().and_then(|e| e.get(&f.wire_name));
+                let wanted = match fill {
+                    Fill::Required => f.required,
+                    Fill::Example => f.required || given.is_some(),
+                    Fill::All => true,
+                };
+                if !wanted {
                     continue;
                 }
-                let given = body_example.as_ref().and_then(|e| e.get(&f.wire_name));
                 let s = body_schema.and_then(|b| extras.property(b, &f.wire_name));
                 from_spec |= given.is_some() || s.and_then(|s| extras.example(s)).is_some();
-                let value = given.map_or_else(|| self.value(&f.ty, s, &f.wire_name, fill), json_expr);
+                // The `node` layout's tests key the request's example by its type; its
+                // `@example` writes it as the spec does.
+                let value = given.map_or_else(
+                    || self.value(&f.ty, s, &f.wire_name, fill),
+                    |g| {
+                        if self.ctx.node() && fill != Fill::Example {
+                            self.typed(&f.ty, g)
+                        } else {
+                            json_expr(g)
+                        }
+                    },
+                );
                 props.push((js::property_key(&f.wire_name), value));
             }
         }
