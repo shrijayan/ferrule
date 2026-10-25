@@ -414,4 +414,51 @@ pub struct SdkClient {
     /// stainless.yml order: what api.md, the test packages and the empty resource packages list.
     /// Empty in a hand-built model, where `resources` stands in.
     pub resource_tree: Vec<SdkResource>,
+    /// What the generator that made the SDK's runtime spelled differently; today's by default.
+    pub style: SdkStyle,
+}
+
+/// `x-ferrule-style`: the spellings of the Stainless generator an adopted SDK's runtime comes
+/// from, where they differ from today's (proposed ADR "older generator styles"). Each field is true for
+/// today's spelling.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct SdkStyle {
+    /// Optional arguments default to `omit` and options to `not_given` (`sentinel: omit`), or
+    /// both to `NOT_GIVEN` (`sentinel: NOT_GIVEN`, a `_types.py` without `omit`).
+    pub omit: bool,
+    /// Client resources are `cached_property`s (`resources: lazy`), or attributes set in
+    /// `__init__` (`resources: eager`, a `_client.py` without `cached_property`).
+    pub lazy_resources: bool,
+    /// Paths go through `path_template` (`paths: path_template`), or are f-strings
+    /// (`paths: fstring`, a runtime without `_utils/_path.py`).
+    pub path_template: bool,
+}
+
+impl Default for SdkStyle {
+    fn default() -> Self {
+        Self {
+            omit: true,
+            lazy_resources: true,
+            path_template: true,
+        }
+    }
+}
+
+impl SdkStyle {
+    /// The default of an option such as `timeout`: `not_given` or `NOT_GIVEN`.
+    #[must_use]
+    pub fn not_given(self) -> &'static str {
+        if self.omit { "not_given" } else { "NOT_GIVEN" }
+    }
+
+    /// The sentinel type and default of an optional argument: `("Omit", "omit")` or
+    /// `("NotGiven", "NOT_GIVEN")`.
+    #[must_use]
+    pub fn optional(self) -> (&'static str, &'static str) {
+        if self.omit {
+            ("Omit", "omit")
+        } else {
+            ("NotGiven", "NOT_GIVEN")
+        }
+    }
 }

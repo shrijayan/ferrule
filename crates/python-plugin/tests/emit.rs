@@ -12,7 +12,7 @@ use ferrule_python_plugin::model::{
     ApiKeyLocation, ArrayFormat, AuthRole, HttpAuthScheme, HttpVerb, NestedFormat, OptType, PaginationScheme,
     ParamLocation, SdkAuth, SdkClient, SdkClientOpt, SdkClientSettings, SdkEnvironment, SdkField, SdkLiteral,
     SdkMethod, SdkObject, SdkPackage, SdkPagination, SdkParam, SdkPrimitive, SdkRef, SdkResource, SdkSecurityScheme,
-    SdkSend, SdkStreaming, SdkType, SendLocation, StreamFormat,
+    SdkSend, SdkStreaming, SdkStyle, SdkType, SendLocation, StreamFormat,
 };
 
 fn str_t() -> SdkType {
@@ -151,6 +151,7 @@ fn client(resources: Vec<SdkResource>, settings: Option<SdkClientSettings>, repo
         env_prefix: None,
         models: Vec::new(),
         resource_tree: Vec::new(),
+        style: SdkStyle::default(),
     }
 }
 

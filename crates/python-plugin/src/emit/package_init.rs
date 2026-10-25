@@ -118,10 +118,17 @@ pub fn emit_package_init(pkg: &str, client: &str) -> String {
 }
 
 /// [`emit_package_init`] that also re-exports `ENVIRONMENTS` when the client has several
-/// environments, as lithic's and honcho's `__init__.py` do.
+/// environments, as lithic's and honcho's `__init__.py` do, and leaves out `omit` and
+/// `not_given` for a runtime without them (`omit` false: knock's `__init__.py`).
 #[must_use]
-pub fn emit_package_init_with(pkg: &str, client: &str, environments: bool) -> String {
-    let text = emit_package_init(pkg, client);
+pub fn emit_package_init_with(pkg: &str, client: &str, environments: bool, omit: bool) -> String {
+    let mut text = emit_package_init(pkg, client);
+    if !omit {
+        text = text
+            .replacen(", ProxiesTypes, omit, not_given\n", ", ProxiesTypes\n", 1)
+            .replacen("    \"not_given\",\n", "", 1)
+            .replacen("    \"omit\",\n", "", 1);
+    }
     if !environments {
         return text;
     }
