@@ -4,7 +4,9 @@
 use std::collections::{HashMap, HashSet};
 use std::ops::Range;
 
-use super::common::{FieldLike, HEADER, method_params, method_ref, py_string, rel_import, sort_fields};
+use super::common::{
+    FieldLike, HEADER, keyword_path_params, method_params, method_ref, py_string, rel_import, sort_fields,
+};
 use super::format::{bracket, print_expr};
 use super::models::{all_list, docstring};
 use crate::model::{SdkLiteral, SdkMethod, SdkObject, SdkParam, SdkPrimitive, SdkRef, SdkResource, SdkType};
@@ -299,7 +301,8 @@ pub fn name_union_body(method: &SdkMethod) -> Option<UnionBody<'_>> {
     for (i, v) in method.body_variants.iter().enumerate() {
         let name =
             variant_segment(&v.object, method.body_discriminator.as_deref()).unwrap_or_else(|| format!("Variant{i}"));
-        let own = sort_fields(method.query_params.iter().chain(&v.params));
+        let mut own: Vec<&SdkParam> = keyword_path_params(method).iter().collect();
+        own.extend(sort_fields(method.query_params.iter().chain(&v.params)));
         let (pre, post) = named.counts();
         named.add_fields(&own, &name);
         let (pre_end, post_end) = named.counts();
@@ -377,7 +380,12 @@ fn field_annotation<F: FieldLike>(p: &mut PythonPrinter, f: &F, ctx: &dyn Annota
 }
 
 fn fields_of<F: FieldLike>(p: &mut PythonPrinter, fields: &[&F], ctx: &dyn AnnotationContext) {
-    for (i, f) in sort_fields(fields.iter().copied()).into_iter().enumerate() {
+    fields_in_order(p, &sort_fields(fields.iter().copied()), ctx);
+}
+
+/// [`fields_of`] in the order given.
+fn fields_in_order<F: FieldLike>(p: &mut PythonPrinter, fields: &[&F], ctx: &dyn AnnotationContext) {
+    for (i, &f) in fields.iter().enumerate() {
         if i > 0 {
             p.blank();
         }
@@ -402,11 +410,14 @@ pub fn emit_params_file(resource: Option<&SdkResource>, method: &SdkMethod) -> S
     }
     let params = method_params(method);
     let named = name_params(&params, "");
+    // The path parameters before the last lead the fields, in path order.
+    let mut fields: Vec<&SdkParam> = keyword_path_params(method).iter().collect();
+    fields.extend(&params);
     let ctx = ParamsContext {
         named: &named,
         qualify: String::new(),
         here,
-        shadowed: params.iter().map(|q| q.py_name.clone()).collect(),
+        shadowed: fields.iter().map(|q| q.py_name.clone()).collect(),
     };
     let mut exported = vec![r.name.clone()];
     exported.extend(named.preorder().iter().map(|d| d.name().to_owned()));
@@ -415,7 +426,7 @@ pub fn emit_params_file(resource: Option<&SdkResource>, method: &SdkMethod) -> S
     }
     p.blank().blank();
     p.block(&format!("class {}(TypedDict, total=False):", r.name), |p| {
-        fields_of(p, &params, &ctx);
+        fields_in_order(p, &fields, &ctx);
     });
     for decl in named.postorder() {
         print_decl(&mut p, decl, &ctx);
@@ -480,7 +491,7 @@ fn emit_union_params(p: &mut PythonPrinter, name: &str, body: &UnionBody<'_>, he
     for (i, v) in body.variants.iter().enumerate() {
         p.blank().blank();
         p.block(&format!("class {}(TypedDict, total=False):", v.name), |p| {
-            fields_of(p, &v.args, &ctx);
+            fields_in_order(p, &v.args, &ctx);
         });
         for decl in body.postorder(i) {
             print_decl(p, decl, &ctx);

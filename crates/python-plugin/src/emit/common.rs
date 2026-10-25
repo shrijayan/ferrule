@@ -278,6 +278,15 @@ pub fn return_model<'a>(resource: Option<&SdkResource>, method: &'a SdkMethod) -
     })
 }
 
+/// The path parameters before the last, in path order: Stainless makes only the last one
+/// positional and these required keyword arguments, first in the params `TypedDict` too
+/// (honcho `messages.update(message_id, *, workspace_id, session_id)`, imagekit
+/// `versions.delete(version_id, *, file_id)`, knock-mgmt `StepPreviewTemplateParams`).
+#[must_use]
+pub fn keyword_path_params(method: &SdkMethod) -> &[SdkParam] {
+    &method.path_params[..method.path_params.len().saturating_sub(1)]
+}
+
 /// The keyword arguments of a method (query and body), in the oracle order.
 #[must_use]
 pub fn method_params(method: &SdkMethod) -> Vec<&SdkParam> {

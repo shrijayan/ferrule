@@ -4,8 +4,8 @@
 use std::collections::HashSet;
 
 use super::common::{
-    HEADER, args_docstring, leaf, method_params, method_ref, py_string, rel_import, resource_class_base,
-    resource_module, return_model, stainless_method_order,
+    HEADER, args_docstring, keyword_path_params, leaf, method_params, method_ref, py_string, rel_import,
+    resource_class_base, resource_module, return_model, stainless_method_order,
 };
 use super::format::{Bracket, Expr, bracket, call, print_expr};
 use super::models::all_list;
@@ -151,7 +151,14 @@ fn print_overloads(
         p.import_from("typing_extensions", "overload");
         print_signature(s, p, &method.name, awaits, path, &args, returns);
         let opened = p.open();
-        for l in args_docstring(method, Some(&v.args)) {
+        // Path parameters are not listed, as in the method docstrings without overloads.
+        let documented: Vec<&SdkParam> = v
+            .args
+            .iter()
+            .copied()
+            .filter(|q| !method.path_params.iter().any(|x| std::ptr::eq(x, *q)))
+            .collect();
+        for l in args_docstring(method, Some(&documented)) {
             p.line(&l);
         }
         p.line("...");
@@ -314,10 +321,20 @@ fn emit_method(
     // A paginated async method is a plain def returning an AsyncPaginator.
     let awaits = is_async && page.is_none();
 
-    let path: Vec<Arg> = method.path_params.iter().map(|q| arg_of(p, q, &ctx)).collect();
+    // Only the last path parameter is positional; the others lead the keyword arguments.
+    let path: Vec<Arg> = method
+        .path_params
+        .last()
+        .map(|q| arg_of(p, q, &ctx))
+        .into_iter()
+        .collect();
     let args = match &union {
         Some(u) => print_overloads(s, p, method, u, (awaits, &path, &returns), &ctx),
-        None => params.iter().map(|q| arg_of(p, q, &ctx)).collect(),
+        None => keyword_path_params(method)
+            .iter()
+            .chain(params.iter().copied())
+            .map(|q| arg_of(p, q, &ctx))
+            .collect(),
     };
     print_signature(s, p, &method.name, awaits, &path, &args, &returns);
 
@@ -366,6 +383,7 @@ fn emit_method(
         .iter()
         .copied()
         .filter(|q| !query.iter().any(|x| std::ptr::eq(*x, *q)))
+        .filter(|q| !method.path_params.iter().any(|x| std::ptr::eq(x, *q)))
         .collect();
     let in_body =
         page.is_some_and(|pg| pg.param_location == ParamLocation::Body) || method.http_method != HttpVerb::Get;
