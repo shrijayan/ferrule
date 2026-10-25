@@ -4,7 +4,7 @@
 //! `examples/agent/` and a test that runs them against a mock. Pure: [`SdkClient`] in, path -> text
 //! out. Not part of the Stainless output.
 
-use super::common::{method_params, py_string, sort_fields, stainless_method_order};
+use super::common::{method_params, py_string, sort_fields, stainless_method_order, stream_switch};
 use super::files::api_tests::{Uses, example_value};
 use super::files_input::ProjectMeta;
 use crate::model::{SdkClient, SdkClientOpt, SdkMethod, SdkResource};
@@ -192,11 +192,15 @@ pub fn agent_context(client: &SdkClient, meta: Option<&ProjectMeta>) -> Option<A
         }
     });
     let streaming = streamed.map(|&(r, m)| {
+        // The switch of a param-switched method, by its Python name (`stream_response`).
         let extra: Vec<String> = m
             .streaming
             .as_ref()
             .and_then(|st| st.param_discriminator.as_ref())
-            .map(|d| vec![format!("{d}=True")])
+            .map(|d| {
+                let name = stream_switch(m).map_or(d.as_str(), |q| q.py_name.as_str());
+                vec![format!("{name}=True")]
+            })
             .unwrap_or_default();
         let (imports, body) = program(
             &ctx,
