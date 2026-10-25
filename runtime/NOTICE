@@ -40,5 +40,19 @@ src/internal/qs/ is the vendored copy of neoqs (https://github.com/PuruVJ/neoqs)
 rewrite of qs (https://github.com/ljharb/qs), BSD-3-Clause, Copyright (c) 2014 Nathan
 LaFreniere and other contributors, as its LICENSE.md and README.md note.
 
+runtime/go/template/ is derived from the Stainless-generated OneBusAway Go SDK:
+  Repository: https://github.com/OneBusAway/go-sdk
+  Commit:     d115209ec6337f8d7ee52ad0cc8866a0005d6e65 (release 1.15.0)
+  Licence:    Apache License, Version 2.0
+  Copyright:  Copyright 2026 Onebusaway SDK
+  Files:      internal/** except internal/version.go, option/*, field.go,
+              default_http_client.go
+  Changes:    Modified by The Ferrule Authors: module path, package, client and organisation
+              names, max retries and the redacted-header list replaced by tokens; //ferrule:
+              import-order lines added to field.go and option/requestoption.go; the
+              config-dependent lines of internal/requestconfig/requestconfig.go and
+              option/requestoption.go replaced by slots. Marks are recorded here and in
+              runtime/README.md instead of in the files (ADR 0004 amendment).
+
 src/ferrule_runtime/pagination.py reproduces the pagination class text of Stainless-generated
 SDKs (Apache-2.0): lithic-python, honcho-python-core, knock-python, knock-mgmt-python.

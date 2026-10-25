@@ -25,6 +25,7 @@ packages = ["src/ferrule_runtime"]
 [tool.hatch.build.targets.wheel.force-include]
 "template" = "ferrule_runtime/template"
 "typescript/template" = "ferrule_runtime/typescript/template"
+"go/template" = "ferrule_runtime/go/template"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

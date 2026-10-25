@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Runtime support code copied into Ferrule-generated SDKs."""
 
+from ferrule_runtime._go import GoOptions, render_go_files
 from ferrule_runtime._render import (
     Language,
     RenderError,
@@ -29,6 +30,7 @@ from ferrule_runtime.pagination import (
 )
 
 __all__ = [
+    "GoOptions",
     "Language",
     "PageField",
     "PageKind",
@@ -42,6 +44,7 @@ __all__ = [
     "default_client_name",
     "render",
     "render_files",
+    "render_go_files",
     "render_options",
     "render_pagination",
     "render_tree",

@@ -32,10 +32,15 @@ Sources:
     copied to runtime/typescript/template/. Modified by The Ferrule Authors (names replaced by
     tokens, //ferrule: directives and slots); marks kept in runtime/README.md and
     runtime/NOTICE. src/internal/qs/ embeds neoqs/qs (BSD-3-Clause), as its LICENSE.md notes.
+  - OneBusAway/go-sdk @ d115209ec6337f8d7ee52ad0cc8866a0005d6e65 (Apache-2.0, Copyright
+    2026 Onebusaway SDK): the Go v1 runtime (internal/, option/, field.go,
+    default_http_client.go), copied to runtime/go/template/. Modified by The Ferrule Authors
+    (names replaced by tokens, //ferrule: directives and slots); marks kept in
+    runtime/README.md and runtime/NOTICE.
   - Pagination class text from lithic-python, honcho-python-core, knock-python and
     knock-mgmt-python (Apache-2.0), reproduced by runtime/src/ferrule_runtime/pagination.py.
-  - MIT-licensed Stainless-generated SDKs (opencode-sdk-js) are compared by the runtime
-    tests, never copied.
+  - MIT-licensed Stainless-generated SDKs (opencode-sdk-js, opencode-sdk-go) are compared by
+    the runtime tests, never copied.
   - Embedded upstream: httpx-sse (MIT) in _streaming.py, pydantic (MIT) in
     _utils/_datetime_parse.py, as their headers note.
 
