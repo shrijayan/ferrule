@@ -1,4 +1,5 @@
 import { type Diagnostic, toJsonPointer } from '../diagnostic.ts';
+import { setOwn } from '../serialize.ts';
 import type { OpenApiSpec } from '../transforms/pipeline.ts';
 
 /**
@@ -43,7 +44,7 @@ export function normalize(spec: OpenApiSpec): NormalizeResult {
     if (!isObject(value)) return value;
     const out: Record<string, Json> = {};
     for (const [k, v] of Object.entries(value)) {
-      out[k] = DATA_KEYS.has(k) || k.startsWith('x-') ? v : walk(v, [...path, k]);
+      setOwn(out, k, DATA_KEYS.has(k) || k.startsWith('x-') ? v : walk(v, [...path, k]));
     }
     const { type, discriminator } = out;
     if (Array.isArray(type) && type.includes(null)) {
