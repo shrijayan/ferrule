@@ -1,2 +1,2 @@
 # Words the docs use that are not code identifiers (clippy::doc_markdown).
-doc-valid-idents = ["OpenAPI", "JSONPath", "TypeScript", "JavaScript", "GitHub", "PyPI", "WebAssembly", ".."]
+doc-valid-idents = ["OpenAPI", "JSONPath", "TypeScript", "JavaScript", "GitHub", "PyPI", "WebAssembly", "OneBusAway", ".."]
