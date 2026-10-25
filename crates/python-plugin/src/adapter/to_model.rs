@@ -348,6 +348,23 @@ impl Context<'_> {
                     .collect()
             })
             .unwrap_or_default();
+        // A map or array body is one `body` argument, described by the body schema (Stainless).
+        let whole = match (&body, content) {
+            (Some(ty @ (SdkType::Map(_) | SdkType::Array(_))), Some(c)) => Some(SdkParam {
+                wire_name: "body".to_owned(),
+                py_name: "body".to_owned(),
+                required: method.body().is_some_and(forge::Body::is_required),
+                description: c.description().to_owned(),
+                ty: ty.clone(),
+                deprecated: false,
+                example: None,
+                minimum: None,
+                maximum: None,
+            }),
+            _ => None,
+        };
+        let body_whole = whole.is_some();
+        let body_params = whole.map_or(body_params, |p| vec![p]);
         let pagination = self.to_pagination(response.as_ref())?;
         let streaming = self.to_streaming(response.as_ref());
         Ok(SdkMethod {
@@ -365,6 +382,7 @@ impl Context<'_> {
             body,
             body_params,
             body_media_type: content.map(|c| c.media_type().to_owned()),
+            body_whole,
             response,
             pagination,
             streaming,

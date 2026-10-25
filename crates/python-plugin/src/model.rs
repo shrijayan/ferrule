@@ -214,6 +214,9 @@ pub struct SdkMethod {
     pub body_params: Vec<SdkParam>,
     /// The request body's media type, such as `application/json`.
     pub body_media_type: Option<String>,
+    /// A map or array body (honcho `sessions.peers.add/remove`): `body_params` is then the one
+    /// keyword argument `body`, sent as the whole request body.
+    pub body_whole: bool,
     /// The decoded `2XX` JSON response, or `None` for none.
     pub response: Option<SdkType>,
     pub pagination: Option<SdkPagination>,
