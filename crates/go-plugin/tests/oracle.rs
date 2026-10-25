@@ -133,6 +133,73 @@ fn onebusaway_fills_the_runtime_slots_as_the_oracle_has_them() {
     );
 }
 
+/// Page types of knock-go's `pagination.go` that differ, with the reason.
+const KNOCK_PAGINATION_KNOWN: &[(&str, &str)] = &[(
+    "MsTeamsPagination",
+    "converter gap: x-ferrule-pagination's response keys are sorted, so `ms_teams_teams` comes \
+     before `skip_token`; stainless.yml lists them the other way round",
+)];
+
+/// The top-level declarations of a Go file by exported type, each up to the next exported
+/// `type` line (its JSON metadata and methods with it); the text before the first is keyed `""`.
+fn type_blocks(text: &str) -> Vec<(String, String)> {
+    let mut out: Vec<(String, String)> = vec![(String::new(), String::new())];
+    for line in text.split_inclusive('\n') {
+        if let Some(rest) = line
+            .strip_prefix("type ")
+            .filter(|r| r.starts_with(|c: char| c.is_ascii_uppercase()))
+        {
+            let name: String = rest
+                .chars()
+                .take_while(|c| c.is_ascii_alphanumeric() || *c == '_')
+                .collect();
+            out.push((name, String::new()));
+        }
+        out.last_mut().expect("one block").1.push_str(line);
+    }
+    out
+}
+
+/// knock-go (Apache-2.0, `4b86a0d6`) is a 2025 generation (`json:"x,required"` tags), so only
+/// its `packages/pagination/pagination.go` is compared: page types are tagged without options
+/// in every generation.
+#[test]
+fn knock_pagination_matches_the_oracle() {
+    let Some(oracle) = common::oracle("knock-go") else {
+        return;
+    };
+    let Some(annotated) = common::annotated(
+        "knock-config",
+        "../specs/knock-config.yml",
+        "data/specs/api/stainless.yml",
+    ) else {
+        return;
+    };
+    let Some(model) = common::paginated_model(&annotated, "knock-config") else {
+        return;
+    };
+    let out = generate(&model, &GoMeta::default()).expect("generates");
+    let path = "packages/pagination/pagination.go";
+    let text = &out
+        .files
+        .iter()
+        .find(|(p, _)| p == path)
+        .expect("emits pagination.go")
+        .1;
+    let expected = common::brand(&std::fs::read_to_string(oracle.join(path)).expect("oracle file"));
+    let (got, want) = (type_blocks(text), type_blocks(&expected));
+    let names = |b: &[(String, String)]| b.iter().map(|(n, _)| n.clone()).collect::<Vec<_>>();
+    assert_eq!(names(&got), names(&want), "page types");
+    for ((name, g), (_, w)) in got.iter().zip(&want) {
+        let known = KNOCK_PAGINATION_KNOWN.iter().any(|(k, _)| k == name);
+        assert!(
+            (g == w) != known,
+            "{name}: {}",
+            if known { "now matches" } else { "differs" }
+        );
+    }
+}
+
 #[test]
 fn generated_files_are_gofmt_clean() {
     let Some((_, out)) = onebusaway() else { return };
