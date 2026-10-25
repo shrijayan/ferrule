@@ -168,6 +168,20 @@ unchanged.
 **Diagnostic ranges.** FER10xx annotate, FER11xx config validation and editions, FER12xx
 `openapi.transforms`, FER13xx client settings, FER14xx streaming, FER15xx pagination.
 
+### Amendment 2026-10-25 (Phase 4): config spelling in `repo` and `module`
+
+No shape changes; this pins how the plugin reads two values the converter copies from
+stainless.yml as written (as it already does for `x-ferrule-resource.path`):
+
+- `x-ferrule-package.repo` is `targets.python.production_repo` verbatim, which may end in
+  `#<branch>` (imagekit `imagekit-developer/imagekit-python#master`). The plugin links
+  `owner/name`, as Stainless does; the raw value stays in the spec for files that print it.
+- `x-ferrule-models[*].module` segments are the stainless.yml resource keys and model key as
+  written (opencode `assistantMessage`, imagekit `accounts.UrlEndpointResponse`). The plugin
+  `snake_cases` every segment that is not already a Python module name, with the function it
+  uses for resource keys, giving Stainless's `types/assistant_message.py` and
+  `types/accounts/url_endpoint_response.py`. Snake-case segments are kept byte for byte.
+
 ### Consequences
 
 - Good: one place defines the contract between converter and plugin; both sides test against it.
