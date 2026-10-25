@@ -182,6 +182,26 @@ stainless.yml as written (as it already does for `x-ferrule-resource.path`):
   uses for resource keys, giving Stainless's `types/assistant_message.py` and
   `types/accounts/url_endpoint_response.py`. Snake-case segments are kept byte for byte.
 
+### Amendment 2026-10-25 (Phase 4): one endpoint, several methods
+
+stainless.yml may bind one endpoint to several methods (lumaai `generations.create` and
+`generations.video.create` are both `post /generations/video`; ogx `models.list` and
+`models.openai.list` are both `get /v1/models`), and Stainless emits each. Forge makes one
+method per operation unless the operation has `x-forge-aliases` (documented on
+`forge::Method` at the pinned commit): one object per method, each with its own group, name
+and extensions; the HTTP method, path, parameters, body and responses stay the operation's.
+
+So an operation bound to more than one method gets, in place of the per-method keys on the
+operation itself:
+
+| Extension         | Where     | Value                                                                                         |
+| ----------------- | --------- | --------------------------------------------------------------------------------------------- |
+| `x-forge-aliases` | operation | one object per method, in config order, holding every key that method would have had on the operation: `x-fern-sdk-group-name`, `x-fern-sdk-method-name`, `x-ferrule-resource`, `x-ferrule-method-name`, `x-ferrule-method-order`, `x-ferrule-pagination`, `x-ferrule-streaming` and the mirrored `x-ferrule-models`, `x-ferrule-package`, `x-ferrule-client` |
+
+An alias does not inherit the operation's extensions, so each carries all of its own. An
+operation bound once is written exactly as before. The plugin needs no change: Forge hands it
+one method per alias, with that alias's extensions.
+
 ### Consequences
 
 - Good: one place defines the contract between converter and plugin; both sides test against it.
