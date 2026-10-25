@@ -112,6 +112,37 @@ On timeout, an `APIConnectionTimeoutError` is thrown.
 
 Note that requests which time out will be [retried twice by default](#retries).
 
+%%if pagination%%
+## Auto-pagination
+
+List methods in the %%CLIENT%% API are paginated.
+You can use the `for await … of` syntax to iterate through items across all pages:
+
+```ts
+async function fetchAll%%PAGE_ITEMS%%(params) {
+  const all%%PAGE_ITEMS%% = [];
+  // Automatically fetches more pages as needed.
+%%PAGE_LOOP%%
+  return all%%PAGE_ITEMS%%;
+}
+```
+
+Alternatively, you can request a single page at a time:
+
+```ts
+%%PAGE_FIRST%%
+for (const %%PAGE_ITEM%% of page.%%PAGE_FIELD%%) {
+  console.log(%%PAGE_ITEM%%);
+}
+
+// Convenience methods are provided for manually paginating:
+while (page.hasNextPage()) {
+  page = await page.getNextPage();
+  // ...
+}
+```
+
+%%endif%%
 ## Advanced Usage
 
 ### Accessing raw Response data (e.g., headers)

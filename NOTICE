@@ -100,7 +100,8 @@ Sources:
   - knocklabs/knock-mgmt-node @ ca88fdba703717f355ad3e18e850a0bb23e548f6 (Apache-2.0,
     Copyright 2026 Knock Mgmt): the getAPIList/requestAPIList methods of src/client.ts, in
     client_tail.ts.tmpl, and the project-file lines of an SDK without an MCP server and with
-    npm publishing by OIDC (the %%if mcp%% / %%if oidc%% branches in project/); and
+    npm publishing by OIDC (the %%if mcp%% / %%if oidc%% branches in project/), the README's
+    Auto-pagination section (the %%if pagination%% branches in project/ and node/project/); and
     src/core/pagination.ts: its head (AbstractPage, PagePromise) copied to
     pagination_head.ts.tmpl, and the text of its page classes, reproduced by
     crates/ts-plugin/src/emit/pagination.rs.

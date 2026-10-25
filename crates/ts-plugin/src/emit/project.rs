@@ -10,7 +10,8 @@
 //! from knock-mgmt-node@ca88fdba), `%%if mock%%` (resource tests against the mock server:
 //! `scripts/mock` and its lines in `scripts/test` and `CONTRIBUTING.md`, from
 //! OneBusAway/js-sdk@f3ca3f47), `%%if qs%%`, `%%if attribution%%` (`readme.
-//! include_stainless_attribution`) and `%%if query_auth%%` (an API key sent in the query);
+//! include_stainless_attribution`), `%%if query_auth%%` (an API key sent in the query) and
+//! `%%if pagination%%` (the README's Auto-pagination section, from knock-mgmt-node@ca88fdba);
 //! Stainless branding replaced as `BRANDING.md` lists.
 
 use std::fmt::Write as _;
@@ -308,6 +309,80 @@ fn readme_example(ctx: &Ctx<'_>) -> Option<Example> {
     })
 }
 
+/// The README's "Auto-pagination" section: `readme.example_requests.pagination`, else the
+/// first list method, as tokens (`PAGE_ITEMS`, `PAGE_ITEM`, `PAGE_FIELD`, `PAGE_LOOP`,
+/// `PAGE_FIRST`); `None` without a paginated method.
+fn pagination_snippets(ctx: &Ctx<'_>) -> Option<Vec<(&'static str, String)>> {
+    let wanted = ctx
+        .settings
+        .readme_examples
+        .iter()
+        .find(|(k, _)| k == "pagination")
+        .map(|(_, e)| e);
+    let mut found = None;
+    for r in ctx.all() {
+        let mut mapper = crate::types::Mapper::new(ctx, &r.module());
+        for plan in super::resource::plan_methods(ctx, r, &mut mapper) {
+            let endpoint = format!("{} {}", plan.m.http_method.as_str(), plan.m.path);
+            if found.is_none() && plan.page.is_some() && wanted.is_none_or(|w| w.endpoint == endpoint) {
+                found = Some((r, plan));
+            }
+        }
+    }
+    let (r, plan) = found?;
+    let page = plan.page.as_ref()?;
+    let scheme = crate::pages::page_of(ctx, plan.m)?;
+    let chain = ctx.chain(r);
+    let accessor = format!("{}.{}", r.accessor(&chain), plan.name);
+    let args = example_args(plan.m, wanted.map(|w| &w.params));
+    let item_type = page.item.rsplit('.').next().unwrap_or(&page.item);
+    let item = camel_case(&crate::naming::split_words(item_type), &[]);
+    let items = crate::pages::plural_type(item_type);
+    let call = Expr::Call(accessor, args);
+    let push = format!("all{items}.push({item});");
+    let lp = layout(
+        &crate::pretty::for_await(&item, &call, &[push.as_str()]),
+        2,
+        README_WIDTH,
+    );
+    let first = lines(&concat(vec![
+        crate::pretty::assignment(text("let page"), " =", &Expr::Await(Box::new(call)), false),
+        text(";"),
+    ]));
+    Some(vec![
+        ("PAGE_ITEMS", items),
+        ("PAGE_ITEM", item),
+        ("PAGE_FIELD", scheme.items().unwrap_or("data").to_owned()),
+        ("PAGE_LOOP", lp),
+        ("PAGE_FIRST", first),
+    ])
+}
+
+/// The arguments of a README call: the path params from `params` (else their names), then the
+/// other params as an object.
+fn example_args(m: &ferrule_sdk_model::model::Method, params: Option<&Value>) -> Vec<Expr> {
+    let mut args: Vec<Expr> = m
+        .path_params
+        .iter()
+        .map(|p| {
+            params
+                .and_then(|v| v.get(&p.field.wire_name))
+                .map_or_else(|| Expr::str(&p.field.wire_name), json_expr)
+        })
+        .collect();
+    if let Some(Value::Object(map)) = params {
+        let props: Vec<(String, Expr)> = map
+            .iter()
+            .filter(|(k, _)| !m.path_params.iter().any(|p| &p.field.wire_name == *k))
+            .map(|(k, v)| (js::property_key(k), json_expr(v)))
+            .collect();
+        if !props.is_empty() {
+            args.push(Expr::object(props));
+        }
+    }
+    args
+}
+
 /// The README's request with an `httpAgent` per request (the `node` layout's README).
 fn http_agent(ex: &Example) -> String {
     let mut args = ex.args.clone();
@@ -508,6 +583,7 @@ pub fn project_files(ctx: &Ctx<'_>) -> Vec<File> {
         .and_then(|o| o.send.as_ref())
         .filter(|send| send.location == ferrule_sdk_model::model::SendLocation::Query)
         .map(|send| send.name.clone());
+    let paging = pagination_snippets(ctx);
     let flags = [
         ("mcp", mcp.is_some()),
         ("oidc", s.npm_oidc),
@@ -515,6 +591,7 @@ pub fn project_files(ctx: &Ctx<'_>) -> Vec<File> {
         ("mock", mock),
         ("attribution", s.readme_attribution),
         ("query_auth", query_key.is_some()),
+        ("pagination", paging.is_some()),
     ];
     let (array_format, object_format) = query_formats(ctx);
     let eslint_globs = if mcp.is_some() {
@@ -557,6 +634,12 @@ pub fn project_files(ctx: &Ctx<'_>) -> Vec<File> {
         ("MCP_VSCODE_CONFIG", uri_component(&json(&vscode))),
     ];
     owned.extend(readme_snippets(ctx));
+    owned.extend(paging.unwrap_or_else(|| {
+        ["PAGE_ITEMS", "PAGE_ITEM", "PAGE_FIELD", "PAGE_LOOP", "PAGE_FIRST"]
+            .into_iter()
+            .map(|k| (k, String::new()))
+            .collect()
+    }));
     let base = owned;
     let borrowed: Vec<(&str, &str)> = base.iter().map(|(k, v)| (*k, v.as_str())).collect();
     let mcp_section = if mcp.is_some() {

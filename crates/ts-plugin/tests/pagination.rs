@@ -387,3 +387,37 @@ Acme.WidgetsPage = WidgetsPage;
     );
     has(index, "    WidgetsEntriesCursor as WidgetsEntriesCursor,\n");
 }
+
+#[test]
+fn the_readme_shows_auto_pagination() {
+    for layout in [Layout::Typescript, Layout::Node] {
+        let f = files(layout);
+        has(
+            file(&f, "README.md"),
+            "## Auto-pagination
+
+List methods in the Acme API are paginated.
+You can use the `for await … of` syntax to iterate through items across all pages:
+
+```ts
+async function fetchAllWidgets(params) {
+  const allWidgets = [];
+  // Automatically fetches more pages as needed.
+  for await (const widget of client.widgets.list({ environment: 'development' })) {
+    allWidgets.push(widget);
+  }
+  return allWidgets;
+}
+```
+
+Alternatively, you can request a single page at a time:
+
+```ts
+let page = await client.widgets.list({ environment: 'development' });
+for (const widget of page.entries) {
+  console.log(widget);
+}
+",
+        );
+    }
+}
