@@ -27,10 +27,12 @@ fn read_runtime_style(root: &str) -> Result<Map, String> {
     };
     let read = |rel: &str| std::fs::read_to_string(pkg.join(rel)).ok();
     let (types, utils, client) = (read("_types.py"), read("_utils/__init__.py"), read("_client.py"));
+    let files = read("_files.py");
     Ok(runtime_style(&RuntimeFiles {
         types: types.as_deref(),
         utils: utils.as_deref(),
         client: client.as_deref(),
+        files: files.as_deref(),
     }))
 }
 
