@@ -51,9 +51,24 @@ fn method_type(prefix: &str, m: &Method, suffix: &str, ctx: &Ctx<'_>) -> String 
     format!("{prefix}{}{suffix}", type_name(&words_of(&m.name), &ctx.client.casings))
 }
 
-fn sorted_methods<'a>(r: &TsResource<'a>) -> Vec<&'a Method> {
+/// Standard methods come first in this order; the rest follow by name (as the oracles order).
+const STANDARD: [&str; 5] = ["create", "retrieve", "update", "list", "delete"];
+
+/// A resource's methods in the order Stainless writes them.
+#[must_use]
+pub fn sorted_methods<'a>(r: &TsResource<'a>) -> Vec<&'a Method> {
+    let rank = |m: &Method| {
+        STANDARD
+            .iter()
+            .position(|&s| s == m.name.written)
+            .unwrap_or(STANDARD.len())
+    };
     let mut ms: Vec<&Method> = r.res.methods.iter().collect();
-    ms.sort_by_key(|m| m.order);
+    ms.sort_by(|a, b| {
+        rank(a)
+            .cmp(&rank(b))
+            .then_with(|| ferrule_sdk_model::js::cmp(&a.name.written, &b.name.written))
+    });
     ms
 }
 
@@ -70,20 +85,29 @@ pub fn plan_methods<'a>(ctx: &Ctx<'a>, r: &TsResource<'a>, mapper: &mut Mapper<'
                 None => ("void".to_owned(), None),
                 Some(Type::Ref(t)) => (mapper.model_name(t), None),
                 Some(t) => {
-                    let d = mapper.model(&response_name, t, "", false, None);
+                    let description = ctx
+                        .extras
+                        .response_schema(&m.pointer)
+                        .and_then(|s| s.get("description"))
+                        .and_then(serde_json::Value::as_str)
+                        .unwrap_or_default();
+                    let d = mapper.model(&response_name, t, description, false, None);
                     (response_name, Some(d))
                 }
             };
             let body_fields = m.body.as_ref().and_then(|b| ctx.client.object_of(&b.ty));
             let has_query = !m.query_params.is_empty();
             let has_body = body_fields.is_some_and(|o| !o.fields.is_empty());
+            let has_path = !path_in_params(m).is_empty();
             let params_arg = match (has_query, has_body) {
+                _ if has_path => ParamsArg::Mixed,
                 (false, false) => ParamsArg::None,
                 (true, false) => ParamsArg::Query,
                 (false, true) => ParamsArg::Body,
                 (true, true) => ParamsArg::Mixed,
             };
-            let params_required = m.query_params.iter().any(|p| p.field.required)
+            let params_required = has_path
+                || m.query_params.iter().any(|p| p.field.required)
                 || body_fields.is_some_and(|o| o.fields.iter().any(|f| f.required));
             let (params_type, params_decl) = if params_arg == ParamsArg::None {
                 (None, None)
@@ -91,7 +115,10 @@ pub fn plan_methods<'a>(ctx: &Ctx<'a>, r: &TsResource<'a>, mapper: &mut Mapper<'
                 let params_name = method_type(&prefix, m, "Params", ctx);
                 let mut nested = Vec::new();
                 let mut fields = Vec::new();
-                for p in &m.query_params {
+                for p in path_in_params(m) {
+                    fields.push(mapper.field(&p.field, &params_name, &mut nested));
+                }
+                for p in query_params(ctx, m) {
                     fields.push(mapper.field(&p.field, &params_name, &mut nested));
                 }
                 if let Some(o) = body_fields {
@@ -126,10 +153,67 @@ pub fn plan_methods<'a>(ctx: &Ctx<'a>, r: &TsResource<'a>, mapper: &mut Mapper<'
         .collect()
 }
 
+/// The path parameters a method takes positionally: all of them, or only the last when there
+/// are several (the others go in its params object).
+#[must_use]
+pub fn positional(m: &Method) -> &[ferrule_sdk_model::model::Param] {
+    if m.path_params.len() > 1 {
+        &m.path_params[m.path_params.len() - 1..]
+    } else {
+        &m.path_params
+    }
+}
+
+/// The path parameters a method takes in its params object.
+#[must_use]
+pub fn path_in_params(m: &Method) -> &[ferrule_sdk_model::model::Param] {
+    if m.path_params.len() > 1 {
+        &m.path_params[..m.path_params.len() - 1]
+    } else {
+        &[]
+    }
+}
+
+/// A method's query parameters, sorted by name unless the config keeps the spec's order.
+#[must_use]
+pub fn query_params<'m>(ctx: &Ctx<'_>, m: &'m Method) -> Vec<&'m ferrule_sdk_model::model::Param> {
+    let fields: Vec<ferrule_sdk_model::model::Field> = m.query_params.iter().map(|p| p.field.clone()).collect();
+    let mapper = Mapper::new(ctx, "");
+    mapper
+        .ordered(&fields)
+        .into_iter()
+        .filter_map(|f| m.query_params.iter().find(|p| p.field.wire_name == f.wire_name))
+        .collect()
+}
+
 /// The variable an example assigns the response to: `embeddingResponse` for `EmbeddingResponse`.
 fn result_var(response: &str) -> String {
     let base = response.rsplit('.').next().unwrap_or(response);
     camel_case(&crate::naming::split_words(base), &[])
+}
+
+/// The variable an example assigns a method's result to: the response model's name, or the
+/// resource's singular for a response declared with the method (`const job = ...`).
+#[must_use]
+pub fn example_var(ctx: &Ctx<'_>, r: &TsResource<'_>, plan: &MethodPlan<'_>) -> String {
+    const STANDARD: [&str; 6] = ["create", "retrieve", "get", "update", "list", "delete"];
+    match &plan.response_decl {
+        // `Array<Model>`: the model's plural.
+        Some(Decl {
+            kind: DeclKind::Alias(crate::pretty::Ty::Generic(g, args)),
+            ..
+        }) if g == "Array" && matches!(args.as_slice(), [crate::pretty::Ty::Name(_)]) => {
+            let crate::pretty::Ty::Name(item) = &args[0] else {
+                unreachable!()
+            };
+            format!("{}s", result_var(item))
+        }
+        Some(_) if STANDARD.contains(&plan.m.name.written.as_str()) => {
+            camel_case(&crate::naming::singular(&words_of(&r.res.name)), &ctx.client.casings)
+        }
+        Some(_) => "response".to_owned(),
+        None => result_var(&plan.response),
+    }
 }
 
 /// The `@example` code of a method.
@@ -141,7 +225,7 @@ fn example_code(ctx: &Ctx<'_>, chain: &[&TsResource<'_>], plan: &MethodPlan<'_>)
     let doc: Doc = if plan.response == "void" {
         concat(vec![expr(&call), text(";")])
     } else {
-        const_decl(&result_var(&plan.response), &call)
+        const_decl(&example_var(ctx, chain[chain.len() - 1], plan), &call)
     };
     render(&doc, 0, EXAMPLE_WIDTH).split('\n').map(str::to_owned).collect()
 }
@@ -157,7 +241,11 @@ fn path_expr(m: &Method, ctx: &Ctx<'_>) -> String {
     }
     let mut out = m.path.clone();
     for p in &m.path_params {
-        let name = camel_case(&words_of(&p.field.name), &ctx.client.casings);
+        let name = if path_in_params(m).iter().any(|q| q.field.wire_name == p.field.wire_name) {
+            p.field.wire_name.clone()
+        } else {
+            camel_case(&words_of(&p.field.name), &ctx.client.casings)
+        };
         out = out.replace(&format!("{{{}}}", p.field.wire_name), &format!("${{{name}}}"));
     }
     format!("path`{out}`")
@@ -180,8 +268,7 @@ fn method_lines(ctx: &Ctx<'_>, chain: &[&TsResource<'_>], plan: &MethodPlan<'_>)
         &m.description
     };
     let mut out = jsdoc(description, &sections, 2);
-    let mut params: Vec<Doc> = m
-        .path_params
+    let mut params: Vec<Doc> = positional(m)
         .iter()
         .map(|p| {
             text(format!(
@@ -208,9 +295,39 @@ fn method_lines(ctx: &Ctx<'_>, chain: &[&TsResource<'_>], plan: &MethodPlan<'_>)
     out.push(render(&signature(&plan.name, &params, &ret, " {"), 2, WIDTH));
     let path = path_expr(m, ctx);
     let verb = http_verb(m.http_method);
-    let call = match arg {
-        None => format!("return this._client.{verb}({path}, options);"),
-        Some(a) => format!("return this._client.{verb}({path}, {{ {a}, ...options }});"),
+    let call = match plan.params_arg {
+        ParamsArg::None => format!("return this._client.{verb}({path}, options);"),
+        ParamsArg::Query => format!("return this._client.{verb}({path}, {{ query, ...options }});"),
+        ParamsArg::Body => format!("return this._client.{verb}({path}, {{ body, ...options }});"),
+        ParamsArg::Mixed => {
+            // `const { fileId, environment, ...body } = params;`
+            let mut names: Vec<String> = path_in_params(m).iter().map(|p| p.field.wire_name.clone()).collect();
+            let has_body = m
+                .body
+                .as_ref()
+                .and_then(|b| ctx.client.object_of(&b.ty))
+                .is_some_and(|o| !o.fields.is_empty());
+            let query: Vec<String> = query_params(ctx, m).iter().map(|p| p.field.wire_name.clone()).collect();
+            let mut parts = Vec::new();
+            if has_body {
+                names.extend(query.iter().cloned());
+                names.push("...body".to_owned());
+                if !query.is_empty() {
+                    parts.push(format!("query: {{ {} }}", query.join(", ")));
+                }
+                parts.push("body".to_owned());
+            } else if !query.is_empty() {
+                names.push("...query".to_owned());
+                parts.push("query".to_owned());
+            }
+            out.push(format!("    const {{ {} }} = params;", names.join(", ")));
+            if parts.is_empty() {
+                format!("return this._client.{verb}({path}, options);")
+            } else {
+                parts.push("...options".to_owned());
+                format!("return this._client.{verb}({path}, {{ {} }});", parts.join(", "))
+            }
+        }
     };
     out.push(format!("    {call}"));
     out.push("  }".to_owned());
@@ -222,11 +339,7 @@ fn method_lines(ctx: &Ctx<'_>, chain: &[&TsResource<'_>], plan: &MethodPlan<'_>)
 pub fn exports_of(ctx: &Ctx<'_>, r: &TsResource<'_>) -> Vec<String> {
     let mut mapper = Mapper::new(ctx, &r.module());
     let plans = plan_methods(ctx, r, &mut mapper);
-    let mut out: Vec<String> = ctx
-        .models_of(&r.keys)
-        .iter()
-        .map(|d| d.r#ref.name.written.clone())
-        .collect();
+    let mut out: Vec<String> = ctx.models_of(&r.keys).iter().map(|d| ctx.type_of(&d.r#ref)).collect();
     out.extend(
         plans
             .iter()
@@ -382,7 +495,7 @@ pub fn emit_resource(ctx: &Ctx<'_>, r: &TsResource<'_>) -> String {
         .iter()
         .map(|d| {
             mapper.model(
-                &d.r#ref.name.written,
+                &ctx.type_of(&d.r#ref),
                 &d.ty,
                 &d.description,
                 d.deprecated,

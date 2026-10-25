@@ -62,8 +62,14 @@ impl Examples<'_, '_> {
         if let Some(ex) = schema.and_then(|s| extras.example(s)) {
             return json_expr(&ex);
         }
+        let format = schema
+            .map(|s| extras.resolve(s))
+            .and_then(|s| s.get("format"))
+            .and_then(Value::as_str);
         match ty {
             Type::Scalar { scalar } => match scalar {
+                Scalar::String if matches!(format, Some("uri" | "url")) => Expr::str("https://example.com"),
+                Scalar::String if format == Some("email") => Expr::str("dev@stainless.com"),
                 Scalar::String | Scalar::Bytes => Expr::str(wire),
                 Scalar::Uuid => Expr::str("182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e"),
                 Scalar::DateTime => Expr::str("2019-12-27T18:11:19.117Z"),
@@ -116,8 +122,7 @@ impl Examples<'_, '_> {
     #[must_use]
     pub fn args(&self, m: &Method, fill: Fill) -> Args {
         let extras = self.ctx.extras;
-        let positional = m
-            .path_params
+        let positional = crate::emit::resource::positional(m)
             .iter()
             .map(|p| {
                 let schema = extras.parameter(&m.pointer, "path", &p.field.wire_name);
@@ -129,7 +134,16 @@ impl Examples<'_, '_> {
             })
             .collect();
         let mut props = Vec::new();
-        for p in &m.query_params {
+        for p in crate::emit::resource::path_in_params(m) {
+            let schema = extras.parameter(&m.pointer, "path", &p.field.wire_name);
+            let ex = schema.and_then(|s| extras.parameter_example(s));
+            let value = ex.map_or_else(
+                || self.value(&p.field.ty, None, &p.field.wire_name, fill),
+                |v| json_expr(&v),
+            );
+            props.push((js::property_key(&p.field.wire_name), value));
+        }
+        for p in crate::emit::resource::query_params(self.ctx, m) {
             if fill == Fill::Required && !p.field.required {
                 continue;
             }
@@ -146,7 +160,7 @@ impl Examples<'_, '_> {
         {
             let body_schema = extras.body_schema(&m.pointer);
             // The request schema's own example wins over its properties' examples.
-            let body_example = body_schema.and_then(|b| extras.example(b));
+            let body_example = extras.body_example(&m.pointer);
             let mapper = crate::types::Mapper::new(self.ctx, "");
             for f in mapper.ordered(&o.fields) {
                 if fill == Fill::Required && !f.required {

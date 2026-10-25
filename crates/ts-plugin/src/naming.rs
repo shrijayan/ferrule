@@ -5,8 +5,8 @@
 use ferrule_sdk_model::model::{Casing, CustomCasing, Name};
 
 /// Words Stainless spells upper-case inside type names, such as `URLEndpoints`, `APIKeys`.
-const ACRONYMS: [&str; 11] = [
-    "id", "ids", "url", "uri", "api", "http", "https", "ip", "json", "uuid", "sdk",
+const ACRONYMS: [&str; 12] = [
+    "id", "ids", "url", "uri", "api", "http", "https", "ip", "json", "uuid", "sdk", "ai",
 ];
 
 /// Reserved words a TypeScript identifier cannot be.

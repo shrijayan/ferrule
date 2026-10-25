@@ -40,11 +40,10 @@ fn section(ctx: &Ctx<'_>, r: &TsResource<'_>, level: usize, out: &mut Vec<String
         let chain = ctx.chain(r);
         let accessor = r.accessor(&chain);
         for p in &plans {
-            let mut args: Vec<String> =
-                p.m.path_params
-                    .iter()
-                    .map(|q| camel_case(&words_of(&q.field.name), &ctx.client.casings))
-                    .collect();
+            let mut args: Vec<String> = super::resource::positional(p.m)
+                .iter()
+                .map(|q| camel_case(&words_of(&q.field.name), &ctx.client.casings))
+                .collect();
             if p.params_type.is_some() {
                 args.push("{ ...params }".to_owned());
             }
@@ -86,7 +85,7 @@ pub fn emit_api_md(ctx: &Ctx<'_>) -> Vec<File> {
         for d in shared {
             out.push(format!(
                 "- <code><a href=\"./src/resources/shared.ts\">{}</a></code>",
-                d.r#ref.name.written
+                ctx.type_of(&d.r#ref)
             ));
         }
     }

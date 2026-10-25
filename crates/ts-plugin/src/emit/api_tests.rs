@@ -74,8 +74,7 @@ pub fn emit_tests(ctx: &Ctx<'_>, r: &TsResource<'_>) -> String {
     let chain = ctx.chain(r);
     let accessor = r.accessor(&chain);
     let ex = Examples { ctx };
-    let mut methods: Vec<_> = r.res.methods.iter().collect();
-    methods.sort_by_key(|m| m.order);
+    let methods = super::resource::sorted_methods(r);
     let mut tests: Vec<Vec<String>> = Vec::new();
     for m in methods {
         let name = camel_case(&words_of(&m.name), &ctx.client.casings);
