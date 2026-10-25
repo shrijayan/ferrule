@@ -23,6 +23,19 @@ use ferrule_sdk_model::Client;
 pub use extras::SpecExtras;
 pub use meta::{TsMeta, TsSettings, ts_settings};
 
+/// Whether a generated file is executable in the oracles: the `scripts/` entry points and the
+/// shell helpers in `scripts/utils/` (`bin/` scripts are run with `bash`).
+#[must_use]
+pub fn is_executable(path: &str) -> bool {
+    match path.strip_prefix("scripts/") {
+        Some(rest) if !rest.contains('/') => !rest.contains('.'),
+        Some(rest) => rest
+            .strip_prefix("utils/")
+            .is_some_and(|f| std::path::Path::new(f).extension().is_some_and(|e| e == "sh")),
+        None => false,
+    }
+}
+
 /// Every file the plugin writes for `client`, sorted by path.
 #[must_use]
 pub fn generate(client: &Client, meta: &TsMeta, extras: &SpecExtras) -> Vec<emit::File> {
