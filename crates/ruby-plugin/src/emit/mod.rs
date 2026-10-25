@@ -114,6 +114,7 @@ impl<'a> Gen<'a> {
         }
         g.resources = resources;
         g.models = g.model_files();
+        mark_inputs(&mut g.models);
         g
     }
 
@@ -172,7 +173,11 @@ impl<'a> Gen<'a> {
     fn model_files(&self) -> Vec<ModelFile> {
         let mut out = Vec::new();
         for d in &self.client.models {
-            if let Some(decl) = self.builder.model_decl(d) {
+            if let Some(mut decl) = self.builder.model_decl(d) {
+                let shared = d.r#ref.path.first().is_some_and(|n| n.written == "shared");
+                if !shared {
+                    self.set_see(&mut decl, &d.r#ref);
+                }
                 let path = decl
                     .r()
                     .segs
@@ -215,10 +220,133 @@ impl<'a> Gen<'a> {
         out
     }
 
+    /// `@see` the first method (resources and methods in Stainless's order) that returns the model.
+    fn set_see(&self, decl: &mut Decl, r: &ferrule_sdk_model::model::TypeRef) {
+        let see = self.resources.iter().find_map(|res| {
+            res.methods.iter().find_map(|m| {
+                let returns = m
+                    .method
+                    .response
+                    .as_ref()
+                    .is_some_and(|resp| matches!(&resp.ty, Type::Ref(t) if t == r));
+                returns.then(|| See::Method {
+                    resource: res.class.clone(),
+                    method: m.name.clone(),
+                })
+            })
+        });
+        match decl {
+            Decl::Class(c) => c.see = see,
+            Decl::Enum(e) => e.see = see,
+            Decl::Union(u) => u.see = see,
+            Decl::Alias(_) => {}
+        }
+    }
+
     /// `lib/onebusaway_sdk`.
     #[must_use]
     pub fn lib(&self, view: View) -> String {
         format!("{}/{}", view.dir(), self.target.lib)
+    }
+}
+
+/// The classes a type names.
+fn type_refs(t: &RType, out: &mut Vec<ClassRef>) {
+    match t {
+        RType::Model(c) | RType::Enum(c) => out.push(c.clone()),
+        RType::Union(c, variants) => {
+            out.push(c.clone());
+            for v in variants {
+                type_refs(v, out);
+            }
+        }
+        RType::Alias(c, inner) => {
+            out.push(c.clone());
+            type_refs(inner, out);
+        }
+        RType::Array(inner) | RType::Map(inner) | RType::Nullable(inner) => type_refs(inner, out),
+        _ => {}
+    }
+}
+
+fn find_decl<'d>(decls: impl Iterator<Item = &'d Decl>, r: &ClassRef) -> Option<&'d Decl> {
+    for d in decls {
+        if d.r() == r {
+            return Some(d);
+        }
+        let inner: Box<dyn Iterator<Item = &Decl>> = match d {
+            Decl::Class(c) => Box::new(c.nested.iter()),
+            Decl::Union(u) => Box::new(u.nested.iter()),
+            Decl::Alias(a) => Box::new(a.before.iter()),
+            Decl::Enum(_) => Box::new(std::iter::empty()),
+        };
+        if let Some(found) = find_decl(inner, r) {
+            return Some(found);
+        }
+    }
+    None
+}
+
+/// Sets `input` on the classes of `input` and those nested in them.
+fn mark(d: &mut Decl, input: &[ClassRef]) {
+    match d {
+        Decl::Class(c) => {
+            c.input = c.input || input.contains(&c.r);
+            for n in &mut c.nested {
+                mark(n, input);
+            }
+        }
+        Decl::Union(u) => {
+            for n in &mut u.nested {
+                mark(n, input);
+            }
+        }
+        Decl::Alias(a) => {
+            for n in &mut a.before {
+                mark(n, input);
+            }
+        }
+        Decl::Enum(_) => {}
+    }
+}
+
+/// Marks every class requests carry: the params classes, their bases, and every class their
+/// fields reach, transitively.
+fn mark_inputs(models: &mut [ModelFile]) {
+    let mut pending: Vec<ClassRef> = models
+        .iter()
+        .filter_map(|f| match &f.decl {
+            Decl::Class(c) if c.params => Some(c.r.clone()),
+            _ => None,
+        })
+        .collect();
+    let mut input: Vec<ClassRef> = Vec::new();
+    while let Some(r) = pending.pop() {
+        if input.contains(&r) {
+            continue;
+        }
+        let Some(d) = find_decl(models.iter().map(|f| &f.decl), &r) else {
+            continue;
+        };
+        input.push(r);
+        match d {
+            Decl::Class(c) => {
+                pending.extend(c.base.iter().cloned());
+                for f in &c.fields {
+                    type_refs(&f.ty, &mut pending);
+                }
+            }
+            Decl::Union(u) => {
+                for v in &u.variants {
+                    type_refs(&v.ty, &mut pending);
+                }
+            }
+            Decl::Alias(a) => type_refs(&a.ty, &mut pending),
+            Decl::Enum(_) => {}
+        }
+    }
+    for f in models {
+        mark(&mut f.decl, &input);
     }
 }
 

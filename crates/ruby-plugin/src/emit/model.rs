@@ -7,7 +7,7 @@ use std::fmt::Write as _;
 use super::{Gen, View};
 
 use crate::printer::{COMMENT_WIDTH, RB_WIDTH, comment, len, literal, wrap};
-use crate::tree::{Class, Decl, EnumDecl, ModelFile, RField, UnionDecl};
+use crate::tree::{Class, Decl, EnumDecl, ModelFile, RField, Role, UnionDecl};
 use crate::types::RType;
 
 /// The comment block of a declaration: its description, then `@see` (`.rb` only).
@@ -175,7 +175,7 @@ pub fn param_tags(out: &mut String, pad: &str, prefix: &str, params: &[(String, 
 }
 
 /// One `required`/`optional` declaration with its `@!attribute` block.
-fn rb_attribute(g: &Gen<'_>, out: &mut String, indent: usize, c: &Class, f: &RField) {
+fn rb_attribute(g: &Gen<'_>, out: &mut String, indent: usize, f: &RField) {
     let pad = " ".repeat(indent);
     let _ = writeln!(out, "{pad}# @!attribute {}", f.name);
     for l in wrap(&f.description, COMMENT_WIDTH) {
@@ -188,7 +188,7 @@ fn rb_attribute(g: &Gen<'_>, out: &mut String, indent: usize, c: &Class, f: &RFi
     let _ = writeln!(out, "{pad}#");
     let _ = writeln!(out, "{pad}#   @return [{}]", yard_return(g, f));
     let mut args = vec![format!(":{}", f.name), f.ty.rb_field(&g.m)];
-    if let Some(api) = f.api_name().filter(|_| !c.params) {
+    if let Some(api) = f.api_name().filter(|_| f.role != Role::Url) {
         args.push(format!("api_name: {}", crate::printer::symbol(api)));
     }
     if f.nullable {
@@ -202,8 +202,8 @@ fn rb_attribute(g: &Gen<'_>, out: &mut String, indent: usize, c: &Class, f: &RFi
 fn declared(c: &Class) -> impl Iterator<Item = &RField> {
     c.fields
         .iter()
-        .filter(|f| !f.read_only)
-        .chain(c.fields.iter().filter(|f| f.read_only))
+        .filter(|f| f.role != Role::ResponseOnly)
+        .chain(c.fields.iter().filter(|f| f.role == Role::ResponseOnly))
 }
 
 fn rb_class(g: &Gen<'_>, out: &mut String, indent: usize, c: &Class) {
@@ -222,18 +222,18 @@ fn rb_class(g: &Gen<'_>, out: &mut String, indent: usize, c: &Class) {
         sep(out);
         request_parameters(g, out, &inner);
     }
-    for f in c.fields.iter().filter(|f| !f.read_only) {
+    for f in c.fields.iter().filter(|f| f.role != Role::ResponseOnly) {
         sep(out);
-        rb_attribute(g, out, indent + 2, c, f);
+        rb_attribute(g, out, indent + 2, f);
     }
-    if c.fields.iter().any(|f| f.read_only) {
+    if c.fields.iter().any(|f| f.role == Role::ResponseOnly) {
         sep(out);
         let _ = writeln!(out, "{inner}response_only do");
-        for (i, f) in c.fields.iter().filter(|f| f.read_only).enumerate() {
+        for (i, f) in c.fields.iter().filter(|f| f.role == Role::ResponseOnly).enumerate() {
             if i > 0 {
                 out.push('\n');
             }
-            rb_attribute(g, out, indent + 4, c, f);
+            rb_attribute(g, out, indent + 4, f);
         }
         let _ = writeln!(out, "{inner}end");
     }
@@ -252,7 +252,11 @@ fn rb_class(g: &Gen<'_>, out: &mut String, indent: usize, c: &Class) {
             String::new(),
         ));
     }
-    let _ = writeln!(out, "{inner}# @!method initialize({})", sig.join(", "));
+    if sig.is_empty() {
+        let _ = writeln!(out, "{inner}# @!method initialize");
+    } else {
+        let _ = writeln!(out, "{inner}# @!method initialize({})", sig.join(", "));
+    }
     let mut intro = Vec::new();
     if c.fields.iter().any(|f| truncated(&f.description)) {
         intro.extend(wrap(
@@ -298,7 +302,11 @@ fn rbi_reader(g: &Gen<'_>, c: &Class, f: &RField) -> String {
 
 /// The type a field holds: enums of params as `OrSymbol`, else as returned.
 fn rbi_read(g: &Gen<'_>, c: &Class, t: &RType) -> String {
-    if c.params { t.rbi_params(&g.m) } else { t.rbi(&g.m) }
+    if c.input {
+        t.rbi_params(&g.m)
+    } else {
+        t.rbi_returned(&g.m)
+    }
 }
 
 /// Sorbet's writer type: a model also as a hash; for an optional field, every model inside it.
@@ -369,11 +377,15 @@ fn rbi_class(g: &Gen<'_>, out: &mut String, indent: usize, c: &Class) {
         args.push(("request_options: {}".to_owned(), ""));
     }
     comment(out, indent + 2, &wrap(&c.description, COMMENT_WIDTH));
-    let _ = writeln!(
-        out,
-        "{inner}sig {{ params({}).returns(T.attached_class) }}",
-        params.join(", ")
-    );
+    if params.is_empty() {
+        let _ = writeln!(out, "{inner}sig {{ returns(T.attached_class) }}");
+    } else {
+        let _ = writeln!(
+            out,
+            "{inner}sig {{ params({}).returns(T.attached_class) }}",
+            params.join(", ")
+        );
+    }
     def_new(out, indent + 2, "self.new", &args);
     out.push('\n');
     let _ = writeln!(out, "{inner}sig {{ override.returns({{ {} }}) }}", hash.join(", "));

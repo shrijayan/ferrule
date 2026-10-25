@@ -7,6 +7,18 @@ use ferrule_sdk_model::model::{Client, Field, Literal, Method, ModelDecl, Object
 use crate::naming::{Casings, class_name, constant, singular, snake, split_words, words};
 use crate::types::{ClassRef, RType};
 
+/// Where a field is declared and sent.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Role {
+    /// A field of a model or a body.
+    Plain,
+    /// Sent by the server only (`readOnly`): declared in a `response_only` block.
+    ResponseOnly,
+    /// A path or query parameter of a params class: the resource renames it on the wire, so its
+    /// declaration has no `api_name:`.
+    Url,
+}
+
 /// A field of a model or a parameter of a method.
 #[derive(Debug, Clone, PartialEq)]
 pub struct RField {
@@ -19,8 +31,7 @@ pub struct RField {
     pub nullable: bool,
     pub ty: RType,
     pub description: String,
-    /// Sent by the server only (`readOnly`): declared in a `response_only` block.
-    pub read_only: bool,
+    pub role: Role,
 }
 
 impl RField {
@@ -110,6 +121,9 @@ pub struct Class {
     pub nested: Vec<Decl>,
     /// A method's parameters (`RequestParameters`).
     pub params: bool,
+    /// Whether requests carry it (a params class, or a model reached from one): Sorbet types its
+    /// enums as `OrSymbol` and its unions as `T.any(...)` (see `emit::mark_inputs`).
+    pub input: bool,
 }
 
 impl Class {
@@ -423,6 +437,12 @@ impl<'a> Builder<'a> {
     #[must_use]
     pub fn class(&self, r: ClassRef, o: &Object, see: Option<See>, params: bool) -> Class {
         let base = o.bases.first().map(|b| self.model_ref(b));
+        let base_doc = o
+            .bases
+            .first()
+            .and_then(|b| self.client.model(b))
+            .map(|d| d.description.clone())
+            .unwrap_or_default();
         let see_parent = (!params && base.is_none()).then(|| r.clone());
         let site = Site { parent: &r, see_parent };
         let mut nested = Vec::new();
@@ -432,11 +452,12 @@ impl<'a> Builder<'a> {
             .collect();
         Class {
             base,
-            description: o.description.clone().unwrap_or_default(),
+            description: o.description.clone().filter(|d| !d.is_empty()).unwrap_or(base_doc),
             see,
             fields,
             nested,
             params,
+            input: params,
             r,
         }
     }
@@ -467,7 +488,7 @@ impl<'a> Builder<'a> {
             ty,
             description: f.description.clone(),
 
-            read_only: f.read_only,
+            role: if f.read_only { Role::ResponseOnly } else { Role::Plain },
         }
     }
 
@@ -480,14 +501,30 @@ impl<'a> Builder<'a> {
         let mut consts = Vec::new();
         let mut variants = Vec::new();
         for (i, v) in u.variants.iter().enumerate() {
+            // A discriminator value is the variant's key when the mapping gives it one (the
+            // adapter writes the schema name when it does not); an inline variant with a key is
+            // named after it.
+            let schema = match &v.ty {
+                Type::Object(o) => o.origin.clone(),
+                Type::Ref(r) => Some(r.schema.clone()),
+                _ => None,
+            };
+            let key = u
+                .discriminator
+                .as_ref()
+                .and(v.discriminator_value.clone())
+                .filter(|k| Some(k) != schema.as_ref());
             // Stainless names an unnamed variant by position (`x-stainless-variantName` and the
             // schema title are not in the model).
-            let name = v
-                .name
-                .as_ref()
-                .map(words)
-                .filter(|w| !w.is_empty())
-                .unwrap_or_else(|| split_words(&format!("UnionMember{i}")));
+            let name = match (&key, &v.ty) {
+                (Some(k), Type::Object(_)) => split_words(k),
+                _ => v
+                    .name
+                    .as_ref()
+                    .map(words)
+                    .filter(|w| !w.is_empty())
+                    .unwrap_or_else(|| split_words(&format!("UnionMember{i}"))),
+            };
             let (inner, nullable) = match &v.ty {
                 Type::Nullable { inner } => (&**inner, true),
                 t => (t, false),
@@ -525,10 +562,12 @@ impl<'a> Builder<'a> {
                 ty,
                 nullable,
                 description,
-                key: u.discriminator.as_ref().and(v.discriminator_value.clone()),
+                key,
                 constant,
             });
         }
+        // Keyed variants first, as Stainless lists the discriminator's mapping.
+        variants.sort_by_key(|v| v.key.is_none());
         UnionDecl {
             r,
             description,
@@ -618,7 +657,10 @@ impl<'a> Builder<'a> {
         let path: Vec<RField> = m
             .path_params
             .iter()
-            .map(|p| self.field(&site, &p.field, &mut nested))
+            .map(|p| RField {
+                role: Role::Url,
+                ..self.field(&site, &p.field, &mut nested)
+            })
             .collect();
         let mut own: Vec<Field> = m.query_params.iter().map(|p| p.field.clone()).collect();
         let mut base = None;
@@ -665,9 +707,13 @@ impl<'a> Builder<'a> {
                 }
             }
         }
+        let in_query = |f: &Field| m.query_params.iter().any(|q| q.field.wire_name == f.wire_name);
         let own: Vec<RField> = sort_fields(&own)
             .into_iter()
-            .map(|f| self.field(&site, f, &mut nested))
+            .map(|f| RField {
+                role: if in_query(f) { Role::Url } else { Role::Plain },
+                ..self.field(&site, f, &mut nested)
+            })
             .collect();
         let mut fields: Vec<RField> = path
             .iter()
@@ -687,6 +733,7 @@ impl<'a> Builder<'a> {
             fields,
             nested,
             params: true,
+            input: true,
             r,
         };
         (Args { path, rest, body }, class)

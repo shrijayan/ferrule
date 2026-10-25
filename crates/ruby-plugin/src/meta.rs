@@ -18,6 +18,8 @@ pub struct RubyMeta {
     /// `readme.example_requests.default`: the resource path (stainless.yml keys) and method name
     /// `client_test.rb` calls. Defaults to the first method without required parameters.
     pub example: Option<(Vec<String>, String)>,
+    /// `settings.disable_mock_tests`: the generated resource tests skip themselves.
+    pub disable_mock_tests: bool,
 }
 
 /// The Ruby settings of one SDK.
@@ -33,6 +35,7 @@ pub struct RubyTarget {
     pub repo: String,
     pub version: String,
     pub example: Option<(Vec<String>, String)>,
+    pub disable_mock_tests: bool,
 }
 
 fn is_gem_name(s: &str) -> bool {
@@ -79,5 +82,6 @@ pub fn ruby_target(client: &Client, meta: &RubyMeta) -> Result<RubyTarget, Ferru
         repo,
         version: meta.version.clone().unwrap_or_else(|| "0.0.1".to_owned()),
         example: meta.example.clone(),
+        disable_mock_tests: meta.disable_mock_tests,
     })
 }

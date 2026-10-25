@@ -317,9 +317,6 @@ fn rb(g: &Gen<'_>, s: &ClientSettings) -> String {
             4,
             &wrap(o.description.as_deref().unwrap_or(""), COMMENT_WIDTH),
         );
-        if o.description.as_deref().is_some_and(|d| !d.trim().is_empty()) {
-            out.push_str("    #\n");
-        }
         let nil = if o.nullable { ", nil" } else { "" };
         let _ = writeln!(out, "    # @return [{}{nil}]", yard_type(o));
         let _ = writeln!(out, "    attr_reader :{}", opt_name(o));
