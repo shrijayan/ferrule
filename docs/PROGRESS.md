@@ -133,8 +133,9 @@ and #21, #26, #30 new goldens that need the maintainer's approval.
 
 Remaining gaps (not needed for the gate): knock 138 breaking (`positional_params`, object query
 params), imagekit 81 (union variant names from schema `title`, webhooks, camelCase method names),
-ogx and stagehand (param-switched streaming), opencode 15, papr (its public config doesn't pair
-with its SDK).
+opencode 15, papr (its public config doesn't pair with its SDK). Param-switched streaming (#33) and
+header params (#36) now let stagehand generate (109 breaking, a third of it hand-written client
+code); ogx next needs array-of-union names Forge doesn't expose (gap G30).
 
 ## Rust move (ADR 0014): done (2026-10-25)
 
@@ -174,11 +175,12 @@ pins). Open PRs, with what is proven:
 | oracles | #20 | | TypeScript, Go, Java, Kotlin, Ruby, PHP pinned |
 | TypeScript, current layout | #19, #27 | isaacus, imagekit, knock-mgmt byte-identical | isaacus-typescript 84/84 files; its lint and 216 jest tests pass |
 | TypeScript, node layout | #29 | onebusaway 36/36 | onebusaway-typescript 108/109 |
+| TypeScript pagination | #34 | | every oracle pagination file byte-identical, both layouts |
 | Go v1 | #19, #23 | onebusaway-go 25/25 | onebusaway-go 65/69 (4 need spec examples, gap G18); builds, tests pass |
-| Java, Kotlin | #25 | onebusaway-kotlin 61/61, imagekit-java 67/67 | plugin in progress |
-| Ruby | #25 | onebusaway-ruby 58/58 | plugin in progress |
+| Java, Kotlin | #25, #32 | onebusaway-kotlin 61/61, imagekit-java 67/67 | onebusaway-java 328/343, onebusaway-kotlin 282/338, imagekit-java 186/291 |
+| Ruby | #25, #35 | onebusaway-ruby 58/58 | onebusaway-ruby 326/329, imagekit-ruby 348/432; both gems' own tests pass |
 
-Next: the JVM and Ruby plugins, pagination and streaming in TypeScript and Go, Go v2 (imagekit,
-ogx), then PHP and C#, CLI and Terraform. Python moves onto `sdk-model` once the Phase 4 PRs
+In progress: Go pagination and the v2 layout (imagekit, ogx, knock-mgmt), PHP (imagekit-php). C#
+has no oracle that pairs with our configs yet; a search is under way. Then CLI and Terraform. Python moves onto `sdk-model` once the Phase 4 PRs
 land (`crates/sdk-model/MIGRATION.md`).
 
