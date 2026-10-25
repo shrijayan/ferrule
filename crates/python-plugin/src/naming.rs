@@ -122,23 +122,8 @@ pub fn class_segment_with<S: AsRef<str>>(words: &[S], casings: &[(String, Casing
 /// is `OpenAIResponseInputToolChoiceMcpTool`). A plural initialism keeps its `s` (`APIs`).
 #[must_use]
 pub fn schema_segment(name: &str) -> String {
-    guard(
-        clean(&split_words(name))
-            .iter()
-            .map(|w| {
-                let lower = w.to_ascii_lowercase();
-                if DEFAULT_INITIALISMS.contains(&lower.as_str()) {
-                    return lower.to_ascii_uppercase();
-                }
-                if let Some(stem) = lower.strip_suffix('s')
-                    && DEFAULT_INITIALISMS.contains(&stem)
-                {
-                    return format!("{}s", stem.to_ascii_uppercase());
-                }
-                capitalize(&lower)
-            })
-            .collect(),
-    )
+    let lower: Vec<String> = split_words(name).iter().map(|w| w.to_ascii_lowercase()).collect();
+    guard(class_segment(&lower))
 }
 
 fn ends_with_ignore_case(s: &str, suffix: &str) -> bool {
