@@ -128,7 +128,8 @@ Source: https://github.com/OneBusAway/go-sdk @ d115209ec6337f8d7ee52ad0cc8866a00
 Used in: crates/go-plugin/src/emit/client_methods.go.txt (the generic request methods of
          client.go, unchanged) and crates/go-plugin/src/emit/client_test.go.tmpl (client_test.go
          after its imports). Modified by The Ferrule Authors: names replaced by template
-         tokens; each file's first line says so and is not emitted.
+         tokens; each file's first line says so and is not emitted. go.sum is copied
+         unchanged to crates/go-plugin/src/emit/go.sum.txt.
 
 ------------------------------------------------------------------------
 Fern (Apache-2.0 / MIT), https://github.com/fern-api/fern

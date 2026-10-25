@@ -5,6 +5,7 @@
 pub mod api_md;
 pub mod client;
 pub mod decls;
+pub mod project;
 pub mod resource;
 pub mod runtime;
 pub mod shared;

@@ -50,10 +50,10 @@ fn onebusaway() -> Option<(std::path::PathBuf, GoOutput)> {
     let oracle = common::oracle("onebusaway-go")?;
     let annotated = common::annotated("onebusaway-config", "openapi.yml", "stainless-config.yml")?;
     let meta = GoMeta {
-        module_path: Some("github.com/OneBusAway/go-sdk".into()),
-        package_name: Some("onebusaway".into()),
         version: Some("1.15.0".into()),
         example: Some((vec!["current_time".into()], "retrieve".into())),
+        // The module path and package come from `targets.go`.
+        ..GoMeta::default()
     };
     let out = generate(&common::model(&annotated), &meta).expect("generates");
     // Debugging aid: FERRULE_GO_DUMP=<dir> writes the generated tree there.
