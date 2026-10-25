@@ -65,7 +65,7 @@ fn example(g: &Gen<'_>, ty: &RType, wire: &str) -> Doc {
             let entries = class.map_or_else(Vec::new, |c| {
                 c.fields
                     .iter()
-                    .filter(|f| f.required)
+                    .filter(|f| f.must_pass())
                     .map(|f| concat(vec![text(format!("{}: ", f.name)), example(g, &f.ty, &f.wire)]))
                     .collect()
             });
@@ -100,7 +100,7 @@ fn required_args(g: &Gen<'_>, m: &Meth<'_>) -> Vec<Doc> {
     let mut args: Vec<Doc> = positional.iter().map(|f| example(g, &f.ty, &f.wire)).collect();
     args.extend(
         path.iter()
-            .chain(m.args.rest.iter().filter(|f| f.required))
+            .chain(m.args.rest.iter().filter(|f| f.must_pass()))
             .map(|f| concat(vec![text(format!("{}: ", f.name)), example(g, &f.ty, &f.wire)])),
     );
     args
@@ -130,7 +130,7 @@ fn shape(g: &Gen<'_>, f: &RField) -> String {
 }
 
 fn method_test(g: &Gen<'_>, out: &mut String, accessor: &str, m: &Meth<'_>) {
-    let required = m.args.path.len() > 1 || m.args.rest.iter().any(|f| f.required);
+    let required = m.args.path.len() > 1 || m.args.rest.iter().any(RField::must_pass);
     let name = if required {
         format!("test_{}_required_params", m.name)
     } else {
