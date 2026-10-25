@@ -141,9 +141,18 @@ def plan_steps(request: GenerateRequest, work: Path) -> tuple[Step, Step]:
     """Plan ``ferrule-gen convert`` and ``generate``, the annotated spec written into ``work``."""
     annotated = work / "annotated.json"
     t = request.tools
+    runtime = () if request.runtime_from is None else ("--runtime-from", str(request.runtime_from))
     convert = Step(
         "convert",
-        (str(t.gen), "convert", str(request.spec), str(request.config), "-o", str(annotated)),
+        (
+            str(t.gen),
+            "convert",
+            str(request.spec),
+            str(request.config),
+            "-o",
+            str(annotated),
+            *runtime,
+        ),
     )
     gen = Step("generate", (str(t.gen), "generate", str(annotated), "--out", str(request.out)))
     return convert, gen
