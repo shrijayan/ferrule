@@ -435,19 +435,19 @@ const testsLabel = (r: BoardRow): string => {
               <div class="dot">01</div>
               <h4>Convert</h4>
               <p>Validate stainless.yml against the public schema, apply editions and transforms, annotate the spec.</p>
-              <div class="own">converter · TypeScript</div>
+              <div class="own">converter · Rust</div>
             </div>
             <div class="st forge">
               <div class="dot">02</div>
               <h4>Forge</h4>
-              <p>A pinned Forge commit parses the annotated spec and runs our WebAssembly plugin.</p>
+              <p>A pinned Forge commit parses the annotated spec and runs our native plugin in the same process.</p>
               <div class="own">dependency · never forked</div>
             </div>
             <div class="st">
               <div class="dot">03</div>
               <h4>Emit</h4>
               <p>An adapter maps Forge data into our own model; pure emitters write every SDK file.</p>
-              <div class="own">python-plugin · TS → WASM</div>
+              <div class="own">python-plugin · Rust</div>
             </div>
             <div class="st">
               <div class="dot">04</div>
