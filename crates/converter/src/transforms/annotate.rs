@@ -4,6 +4,7 @@ use super::targets::{get_at, get_at_mut};
 use crate::Diagnostic;
 use crate::diagnostic::{Seg, to_json_pointer};
 use crate::editions::apply_edition;
+use crate::extensions::casings::{Casings, read_casings};
 use crate::extensions::client::build_client;
 use crate::extensions::groups::{CLIENT_GROUP, collides_with_client_group, forge_group_path};
 use crate::extensions::json::{empty, obj, obj_of};
@@ -22,6 +23,9 @@ struct Ctx<'c> {
     bindings: Vec<(Vec<Seg>, Vec<Map>)>,
     schemes: Vec<Scheme>,
     on_event: Vec<Value>,
+    casings: Casings,
+    /// `{ path, order }` of every `standalone_api: true` resource, in config order.
+    standalone: Vec<Value>,
 }
 
 fn resource_pointer(path: &[String]) -> Vec<Seg> {
@@ -103,6 +107,24 @@ fn endpoint_of(method: &Value) -> Option<&str> {
         Value::String(s) => Some(s),
         Value::Object(m) => m.get("endpoint").and_then(Value::as_str),
         _ => None,
+    }
+}
+
+impl<'c> Ctx<'c> {
+    fn new(config: &'c Value) -> Self {
+        let (schemes, mut diagnostics) = read_schemes(config);
+        let (casings, ds) = read_casings(config);
+        diagnostics.extend(ds);
+        Ctx {
+            config,
+            diagnostics,
+            models: Map::new(),
+            bindings: Vec::new(),
+            schemes,
+            on_event: read_on_event(config),
+            casings,
+            standalone: Vec::new(),
+        }
     }
 }
 
@@ -278,15 +300,18 @@ impl Ctx<'_> {
                 ));
                 continue;
             }
-            // types/<parent dirs>/<key>.py: a resource's models sit in its parent's directory.
+            // types/<parent dirs>/<key>.py: a resource's models sit in its parent's directory, a
+            // standalone API's in its own.
             let mut dirs: Vec<String> = if path.first().is_some_and(|p| p == "$shared") {
                 vec!["shared".to_owned()]
+            } else if is_standalone(resource) {
+                path.to_vec()
             } else {
                 path[..path.len() - 1].to_vec()
             };
             dirs.push(key.clone());
             let mut entry = Map::new();
-            entry.insert("name", Value::String(pascal(key)));
+            entry.insert("name", Value::String(self.casings.class_name(key)));
             entry.insert("module", Value::String(dirs.join(".")));
             self.models.insert(schema.to_owned(), Value::Object(entry));
         }
@@ -299,6 +324,15 @@ impl Ctx<'_> {
 
     fn walk(&mut self, spec: &mut Value, path: &[String], order: &[usize], resource: &Value) {
         let resource = obj_of(Some(resource));
+        if is_standalone(resource) && !path.iter().any(|p| p.starts_with('$')) {
+            let strings = Value::Array(path.iter().map(|p| Value::from(p.as_str())).collect());
+            #[expect(clippy::cast_precision_loss, reason = "orders are small indices")]
+            let numbers = Value::Array(order.iter().map(|n| Value::Number(*n as f64)).collect());
+            let mut entry = Map::new();
+            entry.insert("path", strings);
+            entry.insert("order", numbers);
+            self.standalone.push(Value::Object(entry));
+        }
         for (i, (name, method)) in obj(resource, "methods").iter().enumerate() {
             self.annotate_method(spec, path, name, method, order, i);
         }
@@ -356,32 +390,30 @@ fn model_uri(model: &Value) -> ModelUri<'_> {
     }
 }
 
-fn pascal(snake: &str) -> String {
-    snake
-        .split('_')
-        .filter(|w| !w.is_empty())
-        .map(|w| {
-            let mut chars = w.chars();
-            chars
-                .next()
-                .map_or_else(String::new, |c| c.to_uppercase().collect::<String>() + chars.as_str())
-        })
-        .collect()
+/// `standalone_api: true`: the resource is its own package, with its types in its own directory.
+fn is_standalone(resource: &Map) -> bool {
+    resource.get("standalone_api") == Some(&Value::Bool(true))
+}
+
+/// `x-ferrule-casings` and `x-ferrule-standalone`, each only when the config has some, so specs
+/// without them are annotated as before. Written next to `x-ferrule-client` (root and mirrored,
+/// Forge gap G2).
+fn naming_extensions(ctx: &Ctx<'_>) -> Vec<(&'static str, Value)> {
+    let mut out = Vec::new();
+    if !ctx.casings.is_empty() {
+        out.push(("x-ferrule-casings", ctx.casings.extension()));
+    }
+    if !ctx.standalone.is_empty() {
+        out.push(("x-ferrule-standalone", Value::Array(ctx.standalone.clone())));
+    }
+    out
 }
 
 /// Annotate a copy of `spec` from `config`. Pure.
 #[must_use]
 pub fn annotate(spec: &Value, config: &Value) -> (Value, Vec<Diagnostic>) {
     let mut out = spec.clone();
-    let (schemes, diagnostics) = read_schemes(config);
-    let mut ctx = Ctx {
-        config,
-        diagnostics,
-        models: Map::new(),
-        bindings: Vec::new(),
-        schemes,
-        on_event: read_on_event(config),
-    };
+    let mut ctx = Ctx::new(config);
     let resources = config.get("resources").map_or(empty(), |r| obj_of(Some(r)));
     for name in resources.keys() {
         if !collides_with_client_group(name) {
@@ -453,6 +485,9 @@ pub fn annotate(spec: &Value, config: &Value) -> (Value, Vec<Diagnostic>) {
         if let Some(root) = out.as_object_mut() {
             root.insert("x-ferrule-config", Value::Object(cfg));
             root.insert("x-ferrule-client", built.clone());
+            for (key, value) in naming_extensions(&ctx) {
+                root.insert(key, value);
+            }
         }
         client = Some(built);
     }
@@ -464,6 +499,9 @@ pub fn annotate(spec: &Value, config: &Value) -> (Value, Vec<Diagnostic>) {
     }
     if let Some(c) = client {
         mirrored.insert("x-ferrule-client", c);
+        for (key, value) in naming_extensions(&ctx) {
+            mirrored.insert(key, value);
+        }
     }
     write_bindings(&mut out, ctx.bindings, &mirrored);
     (out, ctx.diagnostics)
