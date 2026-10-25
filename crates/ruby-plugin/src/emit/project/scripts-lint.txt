@@ -1,0 +1,10 @@
+# Modified by The Ferrule Authors: OneBusAway ruby-sdk's scripts/lint, names replaced by tokens (this line is not emitted).
+#!/usr/bin/env bash
+
+set -e
+
+cd -- "$(dirname -- "$0")/.."
+
+echo "==> Running linters"
+
+exec -- bundle exec rake lint "$@"

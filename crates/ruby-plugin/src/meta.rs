@@ -20,6 +20,8 @@ pub struct RubyMeta {
     pub example: Option<(Vec<String>, String)>,
     /// `settings.disable_mock_tests`: the generated resource tests skip themselves.
     pub disable_mock_tests: bool,
+    /// `organization.contact`: the gemspec's email.
+    pub email: Option<String>,
 }
 
 /// The Ruby settings of one SDK.
@@ -36,6 +38,7 @@ pub struct RubyTarget {
     pub version: String,
     pub example: Option<(Vec<String>, String)>,
     pub disable_mock_tests: bool,
+    pub email: String,
 }
 
 fn is_gem_name(s: &str) -> bool {
@@ -83,5 +86,6 @@ pub fn ruby_target(client: &Client, meta: &RubyMeta) -> Result<RubyTarget, Ferru
         version: meta.version.clone().unwrap_or_else(|| "0.0.1".to_owned()),
         example: meta.example.clone(),
         disable_mock_tests: meta.disable_mock_tests,
+        email: meta.email.clone().unwrap_or_default(),
     })
 }

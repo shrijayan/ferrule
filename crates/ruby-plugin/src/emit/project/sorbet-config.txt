@@ -1,0 +1,3 @@
+# Modified by The Ferrule Authors: OneBusAway ruby-sdk's sorbet/config, names replaced by tokens (this line is not emitted).
+--dir=rbi/
+--ignore=test/

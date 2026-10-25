@@ -1,0 +1,18 @@
+# Modified by The Ferrule Authors: OneBusAway ruby-sdk's manifest.yaml, names replaced by tokens (this line is not emitted).
+dependencies:
+  - English
+  - base64
+  - cgi
+  - date
+  - erb
+  - etc
+  - json
+  - net/http
+  - openssl
+  - pathname
+  - rbconfig
+  - securerandom
+  - set
+  - stringio
+  - time
+  - uri

@@ -1,0 +1,30 @@
+# Modified by The Ferrule Authors: OneBusAway ruby-sdk's onebusaway_sdk.gemspec, names replaced by tokens (this line is not emitted).
+# frozen_string_literal: true
+
+require_relative "lib/__gem__/version"
+
+Gem::Specification.new do |s|
+  s.name = "__gem_name__"
+  s.version = __M__::VERSION
+  s.summary = "Ruby library to access the __TITLE__ API"
+  s.authors = ["__TITLE__"]
+  s.email = "__EMAIL__"
+  s.homepage = "https://gemdocs.org/gems/__gem_name__"
+  s.metadata["homepage_uri"] = s.homepage
+  s.metadata["source_code_uri"] = "https://github.com/__REPO__"
+  s.metadata["rubygems_mfa_required"] = false.to_s
+  s.required_ruby_version = ">= 3.2.0"
+
+  s.files = Dir[
+    "lib/**/*.rb",
+    "rbi/**/*.rbi",
+    "sig/**/*.rbs",
+    "manifest.yaml",
+    "SECURITY.md",
+    "CHANGELOG.md",
+    ".ignore"
+  ]
+  s.extra_rdoc_files = ["README.md"]
+  s.add_dependency "cgi"
+  s.add_dependency "connection_pool"
+end
