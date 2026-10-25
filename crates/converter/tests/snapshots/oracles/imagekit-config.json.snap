@@ -1,5 +1,5 @@
 {
-  "sha256": "ced83af67894b1d3cd2c919eaade3dd19d92efd68ec18740e2c5559c71e46bf2",
+  "sha256": "756ac9ae41986544c40877fe89d1cf5b8e67b04e24d05c5d590c8278010dfdb5",
   "root": {
     "x-ferrule-client": {
       "defaultEnvironment": "production",
@@ -145,6 +145,10 @@
       "timeoutSeconds": 60
     },
     "x-ferrule-models": {
+      "BaseOverlay": {
+        "module": "shared.BaseOverlay",
+        "name": "BaseOverlay"
+      },
       "BaseWebhookEvent": {
         "module": "BaseWebhookEvent",
         "name": "BaseWebhookEvent"
@@ -152,6 +156,14 @@
       "CustomMetadataField": {
         "module": "CustomMetadataField",
         "name": "CustomMetadataField"
+      },
+      "ExtensionConfig": {
+        "module": "shared.ExtensionConfig",
+        "name": "ExtensionConfig"
+      },
+      "Extensions": {
+        "module": "shared.Extensions",
+        "name": "Extensions"
       },
       "FileCreateEvent": {
         "module": "FileCreateEvent",
@@ -181,6 +193,14 @@
         "module": "Folder",
         "name": "Folder"
       },
+      "GetImageAttributesOptions": {
+        "module": "shared.GetImageAttributesOptions",
+        "name": "GetImageAttributesOptions"
+      },
+      "ImageOverlay": {
+        "module": "shared.ImageOverlay",
+        "name": "ImageOverlay"
+      },
       "Metadata": {
         "module": "Metadata",
         "name": "Metadata"
@@ -192,6 +212,66 @@
       "OriginResponse": {
         "module": "accounts.OriginResponse",
         "name": "OriginResponse"
+      },
+      "Overlay": {
+        "module": "shared.Overlay",
+        "name": "Overlay"
+      },
+      "OverlayPosition": {
+        "module": "shared.OverlayPosition",
+        "name": "OverlayPosition"
+      },
+      "OverlayTiming": {
+        "module": "shared.OverlayTiming",
+        "name": "OverlayTiming"
+      },
+      "ResponsiveImageAttributes": {
+        "module": "shared.ResponsiveImageAttributes",
+        "name": "ResponsiveImageAttributes"
+      },
+      "SavedExtension": {
+        "module": "shared.SavedExtension",
+        "name": "SavedExtension"
+      },
+      "SolidColorOverlay": {
+        "module": "shared.SolidColorOverlay",
+        "name": "SolidColorOverlay"
+      },
+      "SolidColorOverlayTransformation": {
+        "module": "shared.SolidColorOverlayTransformation",
+        "name": "SolidColorOverlayTransformation"
+      },
+      "SrcOptions": {
+        "module": "shared.SrcOptions",
+        "name": "SrcOptions"
+      },
+      "StreamingResolution": {
+        "module": "shared.StreamingResolution",
+        "name": "StreamingResolution"
+      },
+      "SubtitleOverlay": {
+        "module": "shared.SubtitleOverlay",
+        "name": "SubtitleOverlay"
+      },
+      "SubtitleOverlayTransformation": {
+        "module": "shared.SubtitleOverlayTransformation",
+        "name": "SubtitleOverlayTransformation"
+      },
+      "TextOverlay": {
+        "module": "shared.TextOverlay",
+        "name": "TextOverlay"
+      },
+      "TextOverlayTransformation": {
+        "module": "shared.TextOverlayTransformation",
+        "name": "TextOverlayTransformation"
+      },
+      "Transformation": {
+        "module": "shared.Transformation",
+        "name": "Transformation"
+      },
+      "TransformationPosition": {
+        "module": "shared.TransformationPosition",
+        "name": "TransformationPosition"
       },
       "UpdateFileRequest": {
         "module": "UpdateFileRequest",
@@ -220,6 +300,10 @@
       "UrlEndpointResponse": {
         "module": "accounts.UrlEndpointResponse",
         "name": "UrlEndpointResponse"
+      },
+      "VideoOverlay": {
+        "module": "shared.VideoOverlay",
+        "name": "VideoOverlay"
       },
       "VideoTransformationAcceptedEvent": {
         "module": "VideoTransformationAcceptedEvent",

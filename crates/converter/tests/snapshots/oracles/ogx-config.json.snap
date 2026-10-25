@@ -1,5 +1,5 @@
 {
-  "sha256": "42e093dcd72f029fb1e22262a5b76463861d38399aefeb343d4628d4cb58f0f2",
+  "sha256": "1c6fe93867e181c9cdd11378a32ebc303a19de730cfbd69477f5f0e9059984ab",
   "root": {
     "x-ferrule-client": {
       "defaultEnvironment": "production",
@@ -908,23 +908,429 @@
           "source": "from google import genai\nfrom google.genai import types\n\nclient = genai.Client(\n    api_key=\"fake\",\n    http_options=types.HttpOptions(\n        base_url=\"http://localhost:8321\",\n        api_version=\"v1\",\n    ),\n)\nfor model in client.models.list():\n    print(model.name)"
         }
       ],
-      "x-fern-sdk-group-name": [
-        "models",
-        "openai"
-      ],
-      "x-fern-sdk-method-name": "list",
-      "x-ferrule-method-name": "list",
-      "x-ferrule-method-order": 0,
-      "x-ferrule-resource": {
-        "order": [
-          10,
-          0
-        ],
-        "path": [
-          "models",
-          "openai"
-        ]
-      }
+      "x-forge-aliases": [
+        {
+          "x-fern-sdk-group-name": [
+            "models"
+          ],
+          "x-fern-sdk-method-name": "list",
+          "x-ferrule-client": {
+            "defaultEnvironment": "production",
+            "defaultHeaders": {},
+            "envPrefix": "OGX_CLIENT",
+            "environments": [
+              {
+                "name": "production",
+                "url": "http://any-hosted-ogx.com"
+              }
+            ],
+            "name": "ogx-client",
+            "omitPlatformHeaders": false,
+            "opts": [
+              {
+                "auth": {
+                  "role": "value",
+                  "securityScheme": "BearerAuth"
+                },
+                "name": "api_key",
+                "nullable": true,
+                "readEnv": "OGX_CLIENT_API_KEY",
+                "type": "string"
+              }
+            ],
+            "query": {
+              "arrayFormat": "comma",
+              "nestedFormat": "brackets"
+            },
+            "retries": {
+              "initialDelaySeconds": 0.5,
+              "maxDelaySeconds": 8,
+              "maxRetries": 2
+            },
+            "security": [
+              {},
+              {
+                "BearerAuth": []
+              }
+            ],
+            "securitySchemes": {
+              "BearerAuth": {
+                "scheme": "bearer",
+                "type": "http"
+              }
+            },
+            "timeoutSeconds": 60
+          },
+          "x-ferrule-method-name": "list",
+          "x-ferrule-method-order": 0,
+          "x-ferrule-models": {
+            "Conversation": {
+              "module": "conversation_object",
+              "name": "ConversationObject"
+            },
+            "HealthInfo": {
+              "module": "shared.health_info",
+              "name": "HealthInfo"
+            },
+            "InterleavedContent": {
+              "module": "shared.interleaved_content",
+              "name": "InterleavedContent"
+            },
+            "InterleavedContentItem": {
+              "module": "shared.interleaved_content_item",
+              "name": "InterleavedContentItem"
+            },
+            "ListOpenAIFileResponse": {
+              "module": "list_files_response",
+              "name": "ListFilesResponse"
+            },
+            "ListPromptsResponse": {
+              "module": "list_prompts_response",
+              "name": "ListPromptsResponse"
+            },
+            "ListProvidersResponse": {
+              "module": "shared.list_providers_response",
+              "name": "ListProvidersResponse"
+            },
+            "ListRoutesResponse": {
+              "module": "shared.list_routes_response",
+              "name": "ListRoutesResponse"
+            },
+            "OpenAIChatCompletionChunk": {
+              "module": "chat_completion_chunk",
+              "name": "ChatCompletionChunk"
+            },
+            "OpenAICompactedResponse": {
+              "module": "compacted_response",
+              "name": "CompactedResponse"
+            },
+            "OpenAIEmbeddingsResponse": {
+              "module": "create_embeddings_response",
+              "name": "CreateEmbeddingsResponse"
+            },
+            "OpenAIFileDeleteResponse": {
+              "module": "delete_file_response",
+              "name": "DeleteFileResponse"
+            },
+            "OpenAIFileObject": {
+              "module": "file",
+              "name": "File"
+            },
+            "OpenAIListModelsResponse": {
+              "module": "list_models_response",
+              "name": "ListModelsResponse"
+            },
+            "OpenAIModel": {
+              "module": "model",
+              "name": "Model"
+            },
+            "OpenAIResponseInput": {
+              "module": "response_input",
+              "name": "ResponseInput"
+            },
+            "OpenAIResponseMessage": {
+              "module": "response_message",
+              "name": "ResponseMessage"
+            },
+            "OpenAIResponseObject": {
+              "module": "response_object",
+              "name": "ResponseObject"
+            },
+            "OpenAIResponseObjectStream": {
+              "module": "response_object_stream",
+              "name": "ResponseObjectStream"
+            },
+            "OpenAIResponseOutput": {
+              "module": "response_output",
+              "name": "ResponseOutput"
+            },
+            "ParamType": {
+              "module": "shared.param_type",
+              "name": "ParamType"
+            },
+            "Prompt": {
+              "module": "prompt",
+              "name": "Prompt"
+            },
+            "ProviderInfo": {
+              "module": "shared.provider_info",
+              "name": "ProviderInfo"
+            },
+            "QueryChunksResponse": {
+              "module": "queryChunksResponse",
+              "name": "QueryChunksResponse"
+            },
+            "RouteInfo": {
+              "module": "shared.route_info",
+              "name": "RouteInfo"
+            },
+            "SamplingParams": {
+              "module": "shared.sampling_params",
+              "name": "SamplingParams"
+            },
+            "SystemMessage": {
+              "module": "shared.system_message",
+              "name": "SystemMessage"
+            },
+            "VectorStoreDeleteResponse": {
+              "module": "vector_store_delete_response",
+              "name": "VectorStoreDeleteResponse"
+            },
+            "VectorStoreFileBatchObject": {
+              "module": "vector_stores.vector_store_file_batches",
+              "name": "VectorStoreFileBatches"
+            },
+            "VectorStoreFileObject": {
+              "module": "vector_stores.vector_store_file",
+              "name": "VectorStoreFile"
+            },
+            "VectorStoreFilesListInBatchResponse": {
+              "module": "vector_stores.list_vector_store_files_in_batch_response",
+              "name": "ListVectorStoreFilesInBatchResponse"
+            },
+            "VectorStoreListResponse": {
+              "module": "list_vector_stores_response",
+              "name": "ListVectorStoresResponse"
+            },
+            "VectorStoreObject": {
+              "module": "vector_store",
+              "name": "VectorStore"
+            },
+            "VectorStoreSearchResponsePage": {
+              "module": "vector_store_search_response",
+              "name": "VectorStoreSearchResponse"
+            },
+            "VersionInfo": {
+              "module": "shared.version_info",
+              "name": "VersionInfo"
+            }
+          },
+          "x-ferrule-package": {
+            "name": "ogx_client",
+            "repo": "ogx-ai/ogx-client-python"
+          },
+          "x-ferrule-resource": {
+            "order": [
+              10
+            ],
+            "path": [
+              "models"
+            ]
+          }
+        },
+        {
+          "x-fern-sdk-group-name": [
+            "models",
+            "openai"
+          ],
+          "x-fern-sdk-method-name": "list",
+          "x-ferrule-client": {
+            "defaultEnvironment": "production",
+            "defaultHeaders": {},
+            "envPrefix": "OGX_CLIENT",
+            "environments": [
+              {
+                "name": "production",
+                "url": "http://any-hosted-ogx.com"
+              }
+            ],
+            "name": "ogx-client",
+            "omitPlatformHeaders": false,
+            "opts": [
+              {
+                "auth": {
+                  "role": "value",
+                  "securityScheme": "BearerAuth"
+                },
+                "name": "api_key",
+                "nullable": true,
+                "readEnv": "OGX_CLIENT_API_KEY",
+                "type": "string"
+              }
+            ],
+            "query": {
+              "arrayFormat": "comma",
+              "nestedFormat": "brackets"
+            },
+            "retries": {
+              "initialDelaySeconds": 0.5,
+              "maxDelaySeconds": 8,
+              "maxRetries": 2
+            },
+            "security": [
+              {},
+              {
+                "BearerAuth": []
+              }
+            ],
+            "securitySchemes": {
+              "BearerAuth": {
+                "scheme": "bearer",
+                "type": "http"
+              }
+            },
+            "timeoutSeconds": 60
+          },
+          "x-ferrule-method-name": "list",
+          "x-ferrule-method-order": 0,
+          "x-ferrule-models": {
+            "Conversation": {
+              "module": "conversation_object",
+              "name": "ConversationObject"
+            },
+            "HealthInfo": {
+              "module": "shared.health_info",
+              "name": "HealthInfo"
+            },
+            "InterleavedContent": {
+              "module": "shared.interleaved_content",
+              "name": "InterleavedContent"
+            },
+            "InterleavedContentItem": {
+              "module": "shared.interleaved_content_item",
+              "name": "InterleavedContentItem"
+            },
+            "ListOpenAIFileResponse": {
+              "module": "list_files_response",
+              "name": "ListFilesResponse"
+            },
+            "ListPromptsResponse": {
+              "module": "list_prompts_response",
+              "name": "ListPromptsResponse"
+            },
+            "ListProvidersResponse": {
+              "module": "shared.list_providers_response",
+              "name": "ListProvidersResponse"
+            },
+            "ListRoutesResponse": {
+              "module": "shared.list_routes_response",
+              "name": "ListRoutesResponse"
+            },
+            "OpenAIChatCompletionChunk": {
+              "module": "chat_completion_chunk",
+              "name": "ChatCompletionChunk"
+            },
+            "OpenAICompactedResponse": {
+              "module": "compacted_response",
+              "name": "CompactedResponse"
+            },
+            "OpenAIEmbeddingsResponse": {
+              "module": "create_embeddings_response",
+              "name": "CreateEmbeddingsResponse"
+            },
+            "OpenAIFileDeleteResponse": {
+              "module": "delete_file_response",
+              "name": "DeleteFileResponse"
+            },
+            "OpenAIFileObject": {
+              "module": "file",
+              "name": "File"
+            },
+            "OpenAIListModelsResponse": {
+              "module": "list_models_response",
+              "name": "ListModelsResponse"
+            },
+            "OpenAIModel": {
+              "module": "model",
+              "name": "Model"
+            },
+            "OpenAIResponseInput": {
+              "module": "response_input",
+              "name": "ResponseInput"
+            },
+            "OpenAIResponseMessage": {
+              "module": "response_message",
+              "name": "ResponseMessage"
+            },
+            "OpenAIResponseObject": {
+              "module": "response_object",
+              "name": "ResponseObject"
+            },
+            "OpenAIResponseObjectStream": {
+              "module": "response_object_stream",
+              "name": "ResponseObjectStream"
+            },
+            "OpenAIResponseOutput": {
+              "module": "response_output",
+              "name": "ResponseOutput"
+            },
+            "ParamType": {
+              "module": "shared.param_type",
+              "name": "ParamType"
+            },
+            "Prompt": {
+              "module": "prompt",
+              "name": "Prompt"
+            },
+            "ProviderInfo": {
+              "module": "shared.provider_info",
+              "name": "ProviderInfo"
+            },
+            "QueryChunksResponse": {
+              "module": "queryChunksResponse",
+              "name": "QueryChunksResponse"
+            },
+            "RouteInfo": {
+              "module": "shared.route_info",
+              "name": "RouteInfo"
+            },
+            "SamplingParams": {
+              "module": "shared.sampling_params",
+              "name": "SamplingParams"
+            },
+            "SystemMessage": {
+              "module": "shared.system_message",
+              "name": "SystemMessage"
+            },
+            "VectorStoreDeleteResponse": {
+              "module": "vector_store_delete_response",
+              "name": "VectorStoreDeleteResponse"
+            },
+            "VectorStoreFileBatchObject": {
+              "module": "vector_stores.vector_store_file_batches",
+              "name": "VectorStoreFileBatches"
+            },
+            "VectorStoreFileObject": {
+              "module": "vector_stores.vector_store_file",
+              "name": "VectorStoreFile"
+            },
+            "VectorStoreFilesListInBatchResponse": {
+              "module": "vector_stores.list_vector_store_files_in_batch_response",
+              "name": "ListVectorStoreFilesInBatchResponse"
+            },
+            "VectorStoreListResponse": {
+              "module": "list_vector_stores_response",
+              "name": "ListVectorStoresResponse"
+            },
+            "VectorStoreObject": {
+              "module": "vector_store",
+              "name": "VectorStore"
+            },
+            "VectorStoreSearchResponsePage": {
+              "module": "vector_store_search_response",
+              "name": "VectorStoreSearchResponse"
+            },
+            "VersionInfo": {
+              "module": "shared.version_info",
+              "name": "VersionInfo"
+            }
+          },
+          "x-ferrule-package": {
+            "name": "ogx_client",
+            "repo": "ogx-ai/ogx-client-python"
+          },
+          "x-ferrule-resource": {
+            "order": [
+              10,
+              0
+            ],
+            "path": [
+              "models",
+              "openai"
+            ]
+          }
+        }
+      ]
     },
     "GET /v1/models/{model_id}": {
       "x-codeSamples": [
