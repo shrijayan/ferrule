@@ -25,7 +25,7 @@ HEADER = """\
 # stainless.yml for shrijayan/opencode-python-sdk v0.2.3, written as an adopter would.
 # The resource tree is drafted from the SDK's api.md by scripts/opencode/api_md_to_config.py;
 # client settings follow src/opencode/_client.py. The spec comes from
-# scripts/opencode/contract_to_openapi.py (ADR 0013).
+# scripts/opencode/contract_to_openapi.py (ADR 0015).
 organization:
   name: opencode
   docs: https://opencode.ai/docs
