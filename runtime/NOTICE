@@ -18,5 +18,27 @@ As noted in their upstream headers, _streaming.py contains code initially copied
 httpx-sse (https://github.com/florimondmanca/httpx-sse, MIT) and _utils/_datetime_parse.py
 contains code from pydantic (https://github.com/pydantic/pydantic, MIT).
 
+runtime/typescript/template/ is derived from Stainless-generated TypeScript SDKs:
+  Repository: https://github.com/isaacus-dev/isaacus-typescript
+  Commit:     c56af182d21e32ea472def11c3af17641d8f89c3 (release 0.23.0)
+  Licence:    Apache License, Version 2.0
+  Copyright:  Copyright 2026 Isaacus
+  Files:      src/{api-promise,error,index,resource,resources,uploads}.ts, src/core/*,
+              src/internal/** except src/internal/qs/
+  Repository: https://github.com/knocklabs/knock-mgmt-node
+  Commit:     ca88fdba703717f355ad3e18e850a0bb23e548f6 (release 0.32.0)
+  Licence:    Apache License, Version 2.0
+  Copyright:  Copyright 2026 Knock Mgmt
+  Files:      src/internal/qs/*, the qs branch of src/internal/utils/query.ts
+  Changes:    Modified by The Ferrule Authors: names replaced by tokens (client and error
+              names, max retries, qs array format); //ferrule: directive and slot lines added
+              to src/index.ts, src/internal/utils/log.ts and src/internal/utils/query.ts.
+              Marks are recorded here and in runtime/README.md instead of in the files
+              (ADR 0004 amendment).
+
+src/internal/qs/ is the vendored copy of neoqs (https://github.com/PuruVJ/neoqs), a TypeScript
+rewrite of qs (https://github.com/ljharb/qs), BSD-3-Clause, Copyright (c) 2014 Nathan
+LaFreniere and other contributors, as its LICENSE.md and README.md note.
+
 src/ferrule_runtime/pagination.py reproduces the pagination class text of Stainless-generated
 SDKs (Apache-2.0): lithic-python, honcho-python-core, knock-python, knock-mgmt-python.

@@ -16,6 +16,7 @@
       "!target",
       "!docs/plan.html",
       "!docs/research",
+      "!runtime/typescript/template",
       "!**/manifest.yaml"
     ]
   },
