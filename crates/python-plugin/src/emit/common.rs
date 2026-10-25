@@ -1,7 +1,7 @@
 //! Helpers shared by the emitters.
 
 use crate::js;
-use crate::model::{SdkClient, SdkField, SdkMethod, SdkParam, SdkRef, SdkResource, SdkType};
+use crate::model::{SdkClient, SdkField, SdkMethod, SdkObject, SdkParam, SdkRef, SdkResource, SdkType};
 use crate::naming::{class_segment, singular, snake_case, split_words};
 
 /// First line of every generated file (no vendor branding, per the plan).
@@ -132,6 +132,23 @@ impl FieldLike for SdkParam {
     fn ty(&self) -> &SdkType {
         &self.ty
     }
+}
+
+/// Whether `t` holds an inline object, which would need a class name of its own.
+fn has_inline_object(t: &SdkType) -> bool {
+    match t {
+        SdkType::Object(_) => true,
+        SdkType::Array(inner) | SdkType::Map(inner) => has_inline_object(inner),
+        SdkType::Union { variants, .. } => variants.iter().any(has_inline_object),
+        _ => false,
+    }
+}
+
+/// The type of the other keys an object with fields takes, when the emitters type them: values
+/// that are inline objects are left out, since they would need names Stainless gives them.
+#[must_use]
+pub fn typed_extra(obj: &SdkObject) -> Option<&SdkType> {
+    obj.extra.as_deref().filter(|t| !has_inline_object(t))
 }
 
 /// Field order in the oracle SDKs: required before optional; within each, `id` first, then by
