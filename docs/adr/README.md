@@ -23,3 +23,4 @@ Stainless output needs an ADR.
 | [0015](./0015-opencode-spec-from-contract-json.md) | The opencode SDK's spec comes from our own contract.json converter | Accepted | 2026-10-23 |
 | [0016](./0016-sdk-testing-fake-server.md) | Ship a `<pkg>.testing` fake server in generated SDKs | Accepted | 2026-10-23 |
 | [0017](./0017-multi-language-targets.md) | Generate every major SDK language, from one language-neutral model | Proposed | 2026-10-26 |
+| [0018](./0018-older-generator-styles-from-the-adopted-runtime.md) | Emit an older generator's style when the adopted runtime is older | Proposed | 2026-10-26 |
