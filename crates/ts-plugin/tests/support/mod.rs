@@ -35,8 +35,9 @@ pub fn to_json(v: &CValue) -> Value {
     }
 }
 
-/// A TypeScript oracle: a config oracle in `oracles/cache` and the SDK checkout at its pinned
-/// commit in `.cache/ts-oracles/<sdk>` (both gitignored; tests skip without them).
+/// A TypeScript oracle: a config oracle and the SDK checkout at its pinned commit, both in
+/// `oracles/cache/<name>` under their `oracles/manifest.yaml` names (gitignored; tests skip
+/// without them).
 pub struct Oracle {
     pub sdk: PathBuf,
     pub client: Client,
@@ -65,7 +66,7 @@ fn stats(text: &str) -> Option<Stats> {
 /// Loads an oracle, or `None` (with a note) when its files are not cached.
 pub fn oracle(sdk: &str, config_dir: &str, spec: &str, config: &str) -> Option<Oracle> {
     let root = root();
-    let sdk_dir = root.join(".cache/ts-oracles").join(sdk);
+    let sdk_dir = root.join("oracles/cache").join(sdk);
     let cfg_dir = root.join("oracles/cache").join(config_dir);
     let (Some(spec_text), Some(config_text)) = (read(&cfg_dir.join(spec)), read(&cfg_dir.join(config))) else {
         eprintln!("skipped: {} is not cached", cfg_dir.display());

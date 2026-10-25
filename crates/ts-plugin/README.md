@@ -52,12 +52,13 @@ check layouts; it is not a dependency.
   substitutions of `BRANDING.md`; every other oracle file is a runtime file (33, proven by
   `runtime/tests/test_render_oracles_typescript.py`), `CHANGELOG.md`, the dropped
   `scripts/utils/upload-artifact.sh`, or `packages/mcp-server/**` (not generated yet).
-- `tests/oracle_more.rs`: imagekit-nodejs (identical/total reported, with a floor);
-  knock-mgmt-node is skipped while the adapter rejects its pagination (FER101).
+- `tests/oracle_more.rs`: imagekit-typescript (identical/total reported, with a floor);
+  knock-mgmt-typescript is skipped while the adapter rejects its pagination (FER101).
 - `tests/golden.rs`: a small synthetic SDK (`tests/fixtures/petstore`), byte for byte.
 
-The oracle tests read `oracles/cache/<config>` and `.cache/ts-oracles/<sdk>` (checkouts at the
-pinned commits, gitignored) and skip without them.
+The oracle tests read the config and SDK checkouts at `oracles/cache/<name>`, under their
+`oracles/manifest.yaml` names (`isaacus-config`, `isaacus-typescript`; checkouts at the pinned
+commits, gitignored), and skip without them.
 
 ## Not generated yet
 
