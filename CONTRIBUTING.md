@@ -10,19 +10,24 @@ Thanks for helping teams leave Stainless without their users noticing. Read
 
    ```bash
    git clone https://github.com/shrijayan/ferrule && cd ferrule
-   mise install          # Node 24, pnpm, Python 3.12, uv, lefthook, gitleaks
-   mise run install      # pnpm + uv workspaces from frozen lockfiles
-   mise run forge:setup  # build the pinned Forge commit
+   mise install          # Rust 1.99.0, Python 3.12, uv, Node 24 + pnpm (site only), lefthook, gitleaks
+   mise run install      # uv workspace and the site's pnpm packages, from frozen lockfiles
    lefthook install      # pre-commit: format, lint, typecheck, secret scan
    ```
+
+The converter and the plugin are Rust crates under `crates/` (ADR 0014); Forge comes in as a
+pinned Cargo dependency, so there is no separate Forge build to generate an SDK.
 
 ## Commands
 
 ```bash
-mise run check                  # everything CI runs; must pass before you push
-mise run lint:ts                # also lint:py, typecheck:ts, typecheck:py, test:ts, test:py
-mise run docs:build             # build the docs site
-mise run parity -- onebusaway   # one oracle
+mise run check                        # everything CI runs; must pass before you push
+mise run lint:rs                      # cargo fmt + clippy; also lint:py, lint:ts (site)
+mise run test:rs                      # cargo test; also test:py, typecheck:py
+mise run golden                       # the plugin's golden tests
+cargo build --release -p ferrule-gen  # the binary `ferrule generate` and `adopt` run
+mise run docs:build                   # build the docs site
+mise run parity -- onebusaway         # one oracle
 ```
 
 ## Commits: Conventional Commits + DCO

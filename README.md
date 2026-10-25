@@ -97,10 +97,7 @@ flowchart LR
 ```bash
 git clone https://github.com/shrijayan/ferrule && cd ferrule
 mise install && mise run install            # toolchain and dependencies
-mise run forge:setup                        # build the pinned Forge commit
-pnpm --filter @ferrule/python-plugin build  # build plugin.wasm
-export FERRULE_FORGE="$PWD/.cache/forge/target/release/forge"
-export FERRULE_PLUGIN="$PWD/python-plugin/dist/plugin.wasm"
+cargo build --release -p ferrule-gen        # converter, Forge and plugin in one binary
 
 uv run ferrule adopt ~/code/acme-python --config ~/code/acme-config/stainless.yml
 ```
@@ -111,7 +108,7 @@ uv run ferrule adopt ~/code/acme-python --config ~/code/acme-config/stainless.ym
 ✓ converted stainless.yml → overlays
 ✓ copied runtime from your repo (you own it)
 ✓ found 3 hand edits → .ferrule/patches/
-✓ generated via forge + ferrule-python
+✓ generated via ferrule-gen (forge + ferrule-python)
 ✓ committed 'Switch SDK generation to Ferrule' on local branch ferrule/adopt (not pushed)
 ferrule verify --against 1a2b3c4
 public API: 0 breaking · 6 additive
@@ -176,8 +173,9 @@ us.
 
 | Part | What it does |
 | --- | --- |
-| [`converter/`](./converter) | TypeScript: `stainless.yml` → annotated OpenAPI spec (overlays and `x-ferrule-*`) |
-| [`python-plugin/`](./python-plugin) | TypeScript → WebAssembly: the Forge plugin that emits the Python SDK |
+| [`crates/converter/`](./crates/converter) | Rust: `stainless.yml` → annotated OpenAPI spec (overlays and `x-ferrule-*`) |
+| [`crates/python-plugin/`](./crates/python-plugin) | Rust: the Forge plugin that emits the Python SDK, run natively in Forge |
+| [`crates/ferrule-gen/`](./crates/ferrule-gen) | Rust: the `ferrule-gen` binary that runs the converter, then Forge with the plugin |
 | [`runtime/`](./runtime) | The Python runtime copied into every generated SDK |
 | [`migrate/`](./migrate) | The `ferrule` CLI: `generate`, `adopt`, `rescue`, `verify`, `merge` |
 | [`action/`](./action) | The GitHub Action that keeps adopted SDKs regenerating |
@@ -189,8 +187,8 @@ Decisions live in [`docs/adr/`](./docs/adr/) and the full plan in [`docs/plan.ht
 ## Contributing
 
 ```bash
-mise install        # Node, pnpm, Python, uv, lefthook, gitleaks
-mise run install    # JS and Python dependencies
+mise install        # Rust, Python, uv, Node and pnpm (site only), lefthook, gitleaks
+mise run install    # Python and site dependencies
 mise run check      # everything CI runs
 ```
 
