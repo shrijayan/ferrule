@@ -1,0 +1,15 @@
+openapi: 3.1.0
+info: {title: fx, version: '1'}
+servers: [{url: 'https://api.example.com'}]
+
+paths:
+  /keys:
+    post:
+      operationId: createKey
+      responses:
+        '200': {description: ok, content: {application/json: {schema: {type: object, properties: {key: {type: string}}}}}}
+components:
+  securitySchemes:
+    HTTPBearer: {type: http, scheme: bearer}
+security:
+  - HTTPBearer: []

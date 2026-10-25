@@ -1,0 +1,25 @@
+organization: {name: fx}
+targets:
+  python: {package_name: fx, production_repo: fx/fx-python, publish: {pypi: false}}
+client_settings:
+  opts:
+    api_key:
+      type: string
+      nullable: true
+      read_env: FX_API_KEY
+      auth: {security_scheme: HTTPBearer}
+security:
+  - HTTPBearer: []
+environments:
+  demo: https://demo.example.com
+  local: http://localhost:8000
+  production: https://api.example.com
+
+resources:
+  keys:
+    methods:
+      create: post /keys
+readme:
+  example_requests:
+    default: {type: request, endpoint: 'post /keys', params: {}}
+    headline: {type: request, endpoint: 'post /keys', params: {}}
