@@ -97,12 +97,14 @@ fn method(out: &mut String, g: &Gen<'_>, s: &Service<'_>, m: &Method, ret: &Retu
     if matches!(ret, Returns::None) {
         out.push_str("\topts = append([]option.RequestOption{option.WithHeader(\"Accept\", \"\")}, opts...)\n");
     }
-    for (n, t) in &path_params {
+    // The message names the parameter as sent (knock-go: `user_id`).
+    for ((n, t), p) in path_params.iter().zip(&m.path_params) {
         if *t == "string" {
             ctx.import("errors");
             let _ = write!(
                 out,
-                "\tif {n} == \"\" {{\n\t\terr = errors.New(\"missing required {n} parameter\")\n\t\t{err_return}\n\t}}\n"
+                "\tif {n} == \"\" {{\n\t\terr = errors.New(\"missing required {} parameter\")\n\t\t{err_return}\n\t}}\n",
+                p.field.wire_name
             );
         }
     }
