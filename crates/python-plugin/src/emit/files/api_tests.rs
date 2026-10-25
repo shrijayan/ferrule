@@ -1,20 +1,55 @@
-//! `tests/api_resources/**`. Port of `python-plugin/src/emit/files/api-tests.ts`.
+//! `tests/api_resources/**`: one test module per resource with methods, sync and async from one
+//! pass ([`Mode`]), in the shape of the oracle SDKs' generated tests. Port of
+//! `python-plugin/src/emit/files/api-tests.ts`.
 
 use std::collections::BTreeSet;
 
 use serde_json::Value;
 
-use crate::model::SdkType;
+use super::api_md::import_line;
+use super::input::{FilesMethod, FilesParam, FilesResource, ParamLocation, ProjectFilesInput};
+use super::js;
+use super::render::isort_compare;
+use crate::emit::common::{HEADER, py_string};
+use crate::model::{SdkLiteral, SdkPrimitive, SdkType};
 
 /// Helpers a test module imports from `<pkg>._utils` because an example value uses them:
 /// `parse_date` and `parse_datetime`.
 pub type Uses = BTreeSet<&'static str>;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Mode {
+    Sync,
+    Async,
+}
+
+fn primitive_example(
+    name: SdkPrimitive,
+    uses: &mut Uses,
+    example: Option<&Value>,
+    fallback: &str,
+    bound: Option<f64>,
+) -> String {
+    match name {
+        SdkPrimitive::String => match example {
+            Some(Value::String(s)) => py_string(s),
+            _ => py_string(fallback),
+        },
+        SdkPrimitive::Integer | SdkPrimitive::Number => js::number_to_string(bound.unwrap_or(0.0)),
+        SdkPrimitive::Boolean => "True".to_owned(),
+        SdkPrimitive::Null => "None".to_owned(),
+        SdkPrimitive::Datetime => {
+            uses.insert("parse_datetime");
+            "parse_datetime(\"2019-12-27T18:11:19.117Z\")".to_owned()
+        }
+        SdkPrimitive::Date => {
+            uses.insert("parse_date");
+            "parse_date(\"2019-12-27\")".to_owned()
+        }
+    }
+}
+
 /// A Python literal for an example of `ty`, laid out the way ruff formats the oracle tests.
-///
-/// # Panics
-///
-/// Until the port lands (ADR 0014).
 #[must_use]
 pub fn example_value(
     ty: &SdkType,
@@ -24,6 +59,352 @@ pub fn example_value(
     fallback: &str,
     bound: Option<f64>,
 ) -> String {
-    let _ = (ty, uses, indent, example, fallback, bound);
-    todo!("port of exampleValue")
+    match ty {
+        SdkType::Primitive(name) => primitive_example(*name, uses, example, fallback, bound),
+        SdkType::Literal(values) => match values.first() {
+            Some(SdkLiteral::String(s)) => py_string(s),
+            Some(SdkLiteral::Boolean(true)) => "True".to_owned(),
+            Some(SdkLiteral::Boolean(false)) => "False".to_owned(),
+            Some(SdkLiteral::Number(n)) => js::number_to_string(*n),
+            // `String(undefined)` in the TypeScript.
+            None => "undefined".to_owned(),
+        },
+        // The bound is not passed on to the first variant, as in the TypeScript.
+        SdkType::Union { variants, .. } => variants.first().map_or_else(
+            || "{}".to_owned(),
+            |v| example_value(v, uses, indent, example, fallback, None),
+        ),
+        SdkType::Array(items) => {
+            let item = example_value(items, uses, &format!("{indent}    "), None, "string", None);
+            if item.contains('\n') {
+                format!("[\n{indent}    {item}\n{indent}]")
+            } else {
+                format!("[{item}]")
+            }
+        }
+        SdkType::Map(values) => format!(
+            "{{\"foo\": {}}}",
+            example_value(values, uses, indent, None, "string", None)
+        ),
+        SdkType::Object(object) => {
+            if object.fields.is_empty() {
+                return "{}".to_owned();
+            }
+            let inner = format!("{indent}    ");
+            let lines: Vec<String> = object
+                .fields
+                .iter()
+                .map(|f| {
+                    format!(
+                        "{inner}{}: {},",
+                        py_string(&f.wire_name),
+                        example_value(&f.ty, uses, &inner, None, "string", None)
+                    )
+                })
+                .collect();
+            format!("{{\n{}\n{indent}}}", lines.join("\n"))
+        }
+        SdkType::Unknown | SdkType::Ref(_) => "{}".to_owned(),
+    }
+}
+
+/// A parameter's example; query parameters ignore the spec's `example`, as in the oracles.
+fn example_of(p: &FilesParam, uses: &mut Uses, indent: &str) -> String {
+    let example = if p.location == ParamLocation::Query {
+        None
+    } else {
+        p.example.as_ref()
+    };
+    example_value(&p.ty, uses, indent, example, &p.wire_name, p.minimum.or(p.maximum))
+}
+
+/// Call arguments: the last path parameter first (it is positional), then path order, then the
+/// rest (required, then optional, each by name).
+fn call_order<'a>(params: &[&'a FilesParam]) -> Vec<&'a FilesParam> {
+    let path: Vec<&FilesParam> = params
+        .iter()
+        .copied()
+        .filter(|p| p.location == ParamLocation::Path)
+        .collect();
+    let by_name = |a: &&FilesParam, b: &&FilesParam| js::cmp(&a.py_name, &b.py_name);
+    let rest = params.iter().copied().filter(|p| p.location != ParamLocation::Path);
+    let mut required: Vec<&FilesParam> = rest.clone().filter(|p| p.required).collect();
+    let mut optional: Vec<&FilesParam> = rest.filter(|p| !p.required).collect();
+    required.sort_by(by_name);
+    optional.sort_by(by_name);
+    let mut ordered = Vec::with_capacity(params.len());
+    if let Some((last, others)) = path.split_last() {
+        ordered.push(*last);
+        ordered.extend_from_slice(others);
+    }
+    ordered.extend(required);
+    ordered.extend(optional);
+    ordered
+}
+
+/// The call's argument list at `indent`; `empty` is the parameter passed as `""`.
+fn args(params: &[&FilesParam], indent: &str, uses: &mut Uses, positional: bool, empty: Option<&FilesParam>) -> String {
+    let Some(only) = params.first() else {
+        return "()".to_owned();
+    };
+    let inner = format!("{indent}    ");
+    let is_empty = |p: &FilesParam| empty.is_some_and(|e| std::ptr::eq(e, p));
+    if params.len() == 1 && only.location == ParamLocation::Path && positional {
+        let value = if is_empty(only) {
+            "\"\"".to_owned()
+        } else {
+            example_of(only, uses, &inner)
+        };
+        return format!("(\n{inner}{value},\n{indent})");
+    }
+    let lines: Vec<String> = params
+        .iter()
+        .map(|p| {
+            let value = if is_empty(p) {
+                "\"\"".to_owned()
+            } else {
+                example_of(p, uses, &inner)
+            };
+            format!("{inner}{}={value},", p.py_name)
+        })
+        .collect();
+    format!("(\n{}\n{indent})", lines.join("\n"))
+}
+
+struct Ctx<'a> {
+    client: &'a str,
+    accessor: &'a str,
+    variable: &'a str,
+    uses: Uses,
+}
+
+/// The result check at `indent`, split the way ruff splits a call past 120 columns.
+fn assertion(m: &FilesMethod, variable: &str, indent: &str) -> String {
+    let Some(response) = &m.response else {
+        return format!("{indent}assert {variable} is None");
+    };
+    let call_args = format!("{}, {variable}, path=[\"response\"]", response.name);
+    let line = format!("{indent}assert_matches_type({call_args})");
+    if js::len(&line) <= 120 {
+        line
+    } else {
+        format!("{indent}assert_matches_type(\n{indent}    {call_args}\n{indent})")
+    }
+}
+
+fn method_tests(ctx: &mut Ctx<'_>, m: &FilesMethod, mode: Mode, tests: &mut Vec<String>) {
+    let a = mode == Mode::Async;
+    let def = if a { "async def" } else { "def" };
+    let aw = if a { "await " } else { "" };
+    let cl = if a { "async_client" } else { "client" };
+    let ty = if a {
+        format!("Async{}", ctx.client)
+    } else {
+        ctx.client.to_owned()
+    };
+    let sig = |name: &str| format!("    @parametrize\n    {def} {name}(self, {cl}: {ty}) -> None:");
+    let target = format!("{cl}.{}", ctx.accessor);
+    let name = &m.name;
+    let all_params: Vec<&FilesParam> = m.params.iter().collect();
+    let required_params: Vec<&FilesParam> = m
+        .params
+        .iter()
+        .filter(|p| p.required || p.location == ParamLocation::Path)
+        .collect();
+    let required = call_order(&required_params);
+    let all = call_order(&all_params);
+    let v = ctx.variable;
+    // A method whose only parameter is one path parameter is called with it positionally.
+    let pos = m.params.len() == 1;
+    let i8 = "        ";
+    let i12 = "            ";
+
+    let call = args(&required, i8, &mut ctx.uses, pos, None);
+    tests.push(format!(
+        "{}\n{i8}{v} = {aw}{target}.{name}{call}\n{}",
+        sig(&format!("test_method_{name}")),
+        assertion(m, v, i8)
+    ));
+    if all.len() > required.len() {
+        let call = args(&all, i8, &mut ctx.uses, pos, None);
+        tests.push(format!(
+            "{}\n{i8}{v} = {aw}{target}.{name}{call}\n{}",
+            sig(&format!("test_method_{name}_with_all_params")),
+            assertion(m, v, i8)
+        ));
+    }
+    let call = args(&required, i8, &mut ctx.uses, pos, None);
+    tests.push(format!(
+        "{}\n{i8}response = {aw}{target}.with_raw_response.{name}{call}\n\n\
+         {i8}assert response.is_closed is True\n\
+         {i8}assert response.http_request.headers.get(\"X-Stainless-Lang\") == \"python\"\n\
+         {i8}{v} = {aw}response.parse()\n{}",
+        sig(&format!("test_raw_response_{name}")),
+        assertion(m, v, i8)
+    ));
+    let call = args(&required, i8, &mut ctx.uses, pos, None);
+    tests.push(format!(
+        "{}\n{i8}{} {target}.with_streaming_response.{name}{call} as response:\n\
+         {i12}assert not response.is_closed\n\
+         {i12}assert response.http_request.headers.get(\"X-Stainless-Lang\") == \"python\"\n\n\
+         {i12}{v} = {aw}response.parse()\n{}\n\n\
+         {i8}assert cast(Any, response.is_closed) is True",
+        sig(&format!("test_streaming_response_{name}")),
+        if a { "async with" } else { "with" },
+        assertion(m, v, i12)
+    ));
+    let path: Vec<&FilesParam> = m.params.iter().filter(|p| p.location == ParamLocation::Path).collect();
+    if !path.is_empty() {
+        let blocks: Vec<String> = path
+            .iter()
+            .map(|p| {
+                let call = args(&required, i12, &mut ctx.uses, pos, Some(p));
+                format!(
+                    "{i8}with pytest.raises(ValueError, match=r\"Expected a non-empty value for `{}` but received ''\"):\n\
+                     {i12}{aw}{target}.with_raw_response.{name}{call}",
+                    p.py_name
+                )
+            })
+            .collect();
+        tests.push(format!(
+            "{}\n{}",
+            sig(&format!("test_path_params_{name}")),
+            blocks.join("\n\n")
+        ));
+    }
+}
+
+fn test_class(ctx: &mut Ctx<'_>, r: &FilesResource, mode: Mode) -> String {
+    let head = match mode {
+        Mode::Sync => format!(
+            "class Test{}:\n    parametrize = pytest.mark.parametrize(\"client\", [False, True], indirect=True, ids=[\"loose\", \"strict\"])",
+            r.title
+        ),
+        Mode::Async => format!(
+            "class TestAsync{}:\n    parametrize = pytest.mark.parametrize(\n        \"async_client\", [False, True, {{\"http_client\": \"aiohttp\"}}], indirect=True, ids=[\"loose\", \"strict\", \"aiohttp\"]\n    )",
+            r.title
+        ),
+    };
+    let mut parts = vec![head];
+    for m in &r.methods {
+        method_tests(ctx, m, mode, &mut parts);
+    }
+    parts.join("\n\n")
+}
+
+fn parent_module(module: &str) -> &str {
+    module.rsplit_once('.').map_or("", |(parent, _)| parent)
+}
+
+/// One test module, for resource `r` reached as `client.<accessor>`.
+#[must_use]
+pub fn emit_test_module(input: &ProjectFilesInput, r: &FilesResource, accessor: &str) -> String {
+    let pkg = &input.package_name;
+    let mut ctx = Ctx {
+        client: &input.client_class,
+        accessor,
+        variable: &r.variable,
+        uses: Uses::new(),
+    };
+    let sync = test_class(&mut ctx, r, Mode::Sync);
+    let body = format!("{sync}\n\n\n{}\n", test_class(&mut ctx, r, Mode::Async));
+
+    // Module -> names, each without duplicates; both are sorted below, so order doesn't matter.
+    let mut imports: Vec<(String, Vec<String>)> = Vec::new();
+    let mut add = |module: String, name: &str| {
+        let at = imports.iter().position(|(m, _)| *m == module).unwrap_or_else(|| {
+            imports.push((module, Vec::new()));
+            imports.len() - 1
+        });
+        let names = &mut imports[at].1;
+        if !names.iter().any(|n| n == name) {
+            names.push(name.to_owned());
+        }
+    };
+    add(pkg.clone(), &input.client_class);
+    add(pkg.clone(), &format!("Async{}", input.client_class));
+    for m in &r.methods {
+        let Some(response) = &m.response else {
+            continue;
+        };
+        add("tests.utils".to_owned(), "assert_matches_type");
+        add(format!("{pkg}.{}", parent_module(&response.module)), &response.name);
+    }
+    for u in &ctx.uses {
+        add(format!("{pkg}._utils"), u);
+    }
+    imports.sort_by(|(a, _), (b, _)| isort_compare(a, b));
+    let lines = imports.iter_mut().map(|(module, names)| {
+        names.sort_by(|a, b| isort_compare(a, b));
+        import_line(module, names, 88)
+    });
+
+    let mut out: Vec<String> = [
+        HEADER,
+        "",
+        "from __future__ import annotations",
+        "",
+        "import os",
+        "from typing import Any, cast",
+        "",
+        "import pytest",
+        "",
+    ]
+    .iter()
+    .map(|s| (*s).to_owned())
+    .collect();
+    out.extend(lines);
+    out.extend(
+        [
+            "",
+            "base_url = os.environ.get(\"TEST_API_BASE_URL\", \"http://127.0.0.1:4010\")",
+            "",
+            "",
+        ]
+        .iter()
+        .map(|s| (*s).to_owned()),
+    );
+    out.push(body);
+    out.join("\n")
+}
+
+/// Every test module and package `__init__.py` under `tests/api_resources/`, in the order the
+/// TypeScript inserts them (not sorted).
+#[must_use]
+pub fn emit_api_tests(input: &ProjectFilesInput) -> Vec<(String, String)> {
+    fn walk(
+        input: &ProjectFilesInput,
+        resources: &[FilesResource],
+        dir: &mut Vec<String>,
+        parent: &str,
+        files: &mut Vec<(String, String)>,
+    ) {
+        for r in resources {
+            let accessor = if parent.is_empty() {
+                r.name.clone()
+            } else {
+                format!("{parent}.{}", r.name)
+            };
+            let join = |last: &[&str]| {
+                let mut parts = vec!["tests/api_resources"];
+                parts.extend(dir.iter().map(String::as_str));
+                parts.extend_from_slice(last);
+                parts.join("/")
+            };
+            if !r.methods.is_empty() {
+                let path = join(&[&format!("test_{}.py", r.name)]);
+                files.push((path, emit_test_module(input, r, &accessor)));
+            }
+            if !r.subresources.is_empty() {
+                let path = join(&[&r.name, "__init__.py"]);
+                files.push((path, format!("{HEADER}\n")));
+                dir.push(r.name.clone());
+                walk(input, &r.subresources, dir, &accessor, files);
+                dir.pop();
+            }
+        }
+    }
+    let mut files = Vec::new();
+    walk(input, &input.resources, &mut Vec::new(), "", &mut files);
+    files
 }

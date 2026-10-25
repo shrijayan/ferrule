@@ -1,8 +1,11 @@
 //! Project files (README, api.md, pyproject, tests, scripts). Port of
 //! `python-plugin/src/emit/files/`.
 
+pub mod api_md;
 pub mod api_tests;
 pub mod input;
+mod js;
+pub mod render;
 
 pub use input::ProjectFilesInput;
 
