@@ -123,7 +123,8 @@ impl Out {
                     emit_model_file(&ModelFile {
                         r#ref: &ret.r#ref,
                         ty: obj,
-                        prefix_children: true,
+                        // A `$ref`'d schema keeps its nested names (honcho `LongSummary`).
+                        prefix_children: obj.hint.is_none(),
                         cycles: Some(&self.cycles),
                     })
                 }
