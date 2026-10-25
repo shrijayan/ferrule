@@ -221,6 +221,23 @@ def test_generate_copies_runtime_and_formats(inputs: tuple[GenerateRequest, Path
     assert result == GenerateResult("acme", 6, 3, tree_digest(request.out))
 
 
+def test_generate_marks_scripts_executable(inputs: tuple[GenerateRequest, Path]) -> None:
+    # Stainless SDKs ship scripts/* as 100755 (onebusaway-python); written fresh they were 644.
+    request, _ = inputs
+    calls: list[tuple[str, ...]] = []
+    base = fake_runner(calls)
+
+    def runner(argv: Sequence[str]) -> subprocess.CompletedProcess[str]:
+        done = base(argv)
+        if argv[1] == "generate":
+            write(Path(argv[argv.index("--out") + 1]) / "scripts/test", "#!/usr/bin/env bash\n")
+        return done
+
+    generate(request, runner=runner)
+    assert (request.out / "scripts/test").stat().st_mode & 0o111 == 0o111
+    assert (request.out / "src/acme/_client.py").stat().st_mode & 0o111 == 0
+
+
 def test_generate_is_deterministic(inputs: tuple[GenerateRequest, Path]) -> None:
     request, tmp = inputs
     first = generate(request, runner=fake_runner([]))
