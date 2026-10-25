@@ -4,9 +4,10 @@
 
 Usage: python3 -m scripts.oracles.converter_oracles [--update] [name ...]
 
-Each `config` entry in oracles/manifest.yaml is converted with the converter CLI. The
-gate fails on any error diagnostic or on output that differs from the snapshot in
-converter/test/__snapshots__/oracles/<name>.json.snap (see `digest`). Oracle files are
+Each `config` entry in oracles/manifest.yaml is converted with ``ferrule-gen convert``
+(``$FERRULE_GEN``, default ``target/release/ferrule-gen``). The gate fails on any error
+diagnostic or on output that differs from the snapshot in
+crates/converter/tests/snapshots/oracles/<name>.json.snap (see `digest`). Oracle files are
 data: they are read by the converter and never run.
 """
 
@@ -15,6 +16,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import re
 import subprocess
 import sys
@@ -25,8 +27,7 @@ type Json = dict[str, object]
 
 ROOT = Path(__file__).resolve().parents[2]
 CACHE = ROOT / "oracles" / "cache"
-SNAPSHOTS = ROOT / "converter" / "test" / "__snapshots__" / "oracles"
-CLI = ROOT / "converter" / "src" / "cli.ts"
+SNAPSHOTS = ROOT / "crates" / "converter" / "tests" / "snapshots" / "oracles"
 
 
 def objects(value: object) -> list[Json]:
@@ -97,8 +98,9 @@ def convert(entry: Json, out: Path) -> tuple[int, str]:
     """Run the converter CLI; return its exit code and diagnostics output."""
     name = str(entry["name"])
     config = CACHE / name / str(entry["config_path"])
+    gen = os.environ.get("FERRULE_GEN") or str(ROOT / "target" / "release" / "ferrule-gen")
     proc = subprocess.run(  # noqa: S603 - fixed argv, our own converter
-        ["node", str(CLI), str(spec_path(entry)), str(config), "-o", str(out)],  # noqa: S607
+        [gen, "convert", str(spec_path(entry)), str(config), "-o", str(out)],
         capture_output=True,
         text=True,
         check=False,

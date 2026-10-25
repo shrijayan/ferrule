@@ -15,7 +15,7 @@ use ferrule_python_plugin::model::{
 use ferrule_python_plugin::plugin::to_model;
 
 fn model() -> SdkClient {
-    let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../python-plugin/test/fixtures/onebusaway.json");
+    let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/onebusaway.json");
     let forge: forge::Forge = serde_json::from_slice(&fs::read(path).expect("fixture")).expect("a document");
     to_model(&forge).expect("converts").expect("has operations")
 }

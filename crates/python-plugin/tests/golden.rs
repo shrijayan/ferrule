@@ -1,6 +1,5 @@
-//! Golden test: each `python-plugin/test/fixtures/*.json` through Forge and the plugin, compared
-//! byte for byte with `python-plugin/test/golden/<fixture>/` (the `src/**` files, as
-//! `python-plugin/scripts/golden.ts` compares them). Goldens are approved by a human and never
+//! Golden test: each `tests/fixtures/*.json` through Forge and the plugin, compared byte for
+//! byte with `tests/golden/<fixture>/` (the `src/**` files). Goldens are approved by a human and never
 //! regenerated to make this pass.
 
 use std::collections::BTreeMap;
@@ -13,11 +12,11 @@ use ferrule_python_plugin::emit::files_input::placeholder_meta;
 use ferrule_python_plugin::plugin::{code_files, to_model};
 
 fn plugin_dir() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR")).join("../../python-plugin")
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
 }
 
 fn fixtures() -> Vec<PathBuf> {
-    let mut out: Vec<PathBuf> = fs::read_dir(plugin_dir().join("test/fixtures"))
+    let mut out: Vec<PathBuf> = fs::read_dir(plugin_dir().join("tests/fixtures"))
         .expect("fixtures directory")
         .map(|e| e.expect("entry").path())
         .filter(|p| p.extension().is_some_and(|e| e == "json"))
@@ -87,7 +86,7 @@ fn is_agent_file(path: &str) -> bool {
 }
 
 fn golden(fixture: &Path) -> BTreeMap<String, String> {
-    read_tree(&plugin_dir().join("test/golden").join(name(fixture)))
+    read_tree(&plugin_dir().join("tests/golden").join(name(fixture)))
 }
 
 #[test]
@@ -155,13 +154,13 @@ fn forge_run_matches_the_goldens() {
 
 #[test]
 fn agent_files_match_the_golden() {
-    let fixture = plugin_dir().join("test/fixtures/onebusaway.json");
+    let fixture = plugin_dir().join("tests/fixtures/onebusaway.json");
     let client = to_model(&forge_of(&fixture))
         .expect("converts")
         .expect("has operations");
     let meta = placeholder_meta();
     let actual: BTreeMap<String, String> = emit_agent_files(&client, Some(&meta)).into_iter().collect();
-    let text = fs::read_to_string(plugin_dir().join("test/agent/onebusaway.golden.json")).expect("golden");
+    let text = fs::read_to_string(plugin_dir().join("tests/agent/onebusaway.golden.json")).expect("golden");
     let expected: BTreeMap<String, String> = serde_json::from_str(&text).expect("a JSON object of strings");
     assert_eq!(actual, expected);
 }
