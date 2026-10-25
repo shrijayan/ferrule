@@ -3,7 +3,7 @@
 //! class with a sync/async mode flag.
 
 use super::common::{HEADER, leaf, py_fstring, py_string, resource_module};
-use super::format::{call, print_expr};
+use super::format::{bracket, call, print_expr};
 use super::models::all_list;
 use super::resources::{Mode, class_name, emit_client_methods};
 use crate::diagnostics::{FerCode, FerruleError};
@@ -12,6 +12,7 @@ use crate::model::{
     ApiKeyLocation, HttpAuthScheme, OptType, SdkClient, SdkClientOpt, SdkClientSettings, SdkResource,
     SdkSecurityScheme, SendLocation,
 };
+use crate::naming::{snake_case, split_words};
 use crate::printer::{LINE_LENGTH, PythonPrinter};
 
 const HERE: &str = "_client";
@@ -382,42 +383,99 @@ fn emit_resource_properties(s: &ClientState<'_>, p: &mut PythonPrinter, mode: Mo
     }
 }
 
-fn auth_lines(s: &ClientState<'_>) -> Option<Vec<String>> {
+/// The schemes the client sends credentials with, each with the option that holds them: the
+/// security requirements last to first (so the first one's headers win when merged), the schemes
+/// of one requirement in order, each once. Only a bearer token or an API key header is sent.
+fn auth_schemes<'a>(s: &ClientState<'a>) -> Vec<(&'a str, &'a SdkSecurityScheme, &'a SdkClientOpt)> {
     let settings = s.settings;
-    for alt in &settings.security {
+    let mut out: Vec<(&str, &SdkSecurityScheme, &SdkClientOpt)> = Vec::new();
+    for alt in settings.security.iter().rev() {
         for name in alt {
-            let scheme = s.scheme(name);
+            if out.iter().any(|(n, _, _)| n == name) {
+                continue;
+            }
+            let scheme = settings
+                .security_schemes
+                .iter()
+                .find(|(k, _)| k == name)
+                .map(|(_, v)| v);
             let opt = settings
                 .opts
                 .iter()
                 .find(|o| o.auth.as_ref().is_some_and(|a| a.security_scheme == *name));
-            let (Some(scheme), Some(opt)) = (scheme, opt) else {
-                continue;
-            };
-            match scheme {
-                SdkSecurityScheme::Http {
-                    scheme: HttpAuthScheme::Bearer,
-                    ..
-                } => {
-                    return Some(vec![
-                        format!("{0} = self.{0}", opt.name),
-                        format!("return {{\"Authorization\": f\"Bearer {{{}}}\"}}", opt.name),
-                    ]);
-                }
-                SdkSecurityScheme::ApiKey {
-                    location: ApiKeyLocation::Header,
-                    name: header,
-                } => {
-                    return Some(vec![
-                        format!("{0} = self.{0}", opt.name),
-                        format!("return {{{}: {}}}", py_string(header), opt.name),
-                    ]);
-                }
-                _ => {}
+            if let (Some(scheme), Some(opt)) = (scheme, opt)
+                && matches!(
+                    scheme,
+                    SdkSecurityScheme::Http {
+                        scheme: HttpAuthScheme::Bearer,
+                        ..
+                    } | SdkSecurityScheme::ApiKey {
+                        location: ApiKeyLocation::Header,
+                        ..
+                    }
+                )
+            {
+                out.push((name.as_str(), scheme, opt));
             }
         }
     }
-    None
+    out
+}
+
+/// The header dict of one scheme, `{"Authorization": f"Bearer {api_key}"}` or `{"X-Key": api_key}`.
+fn auth_header(scheme: &SdkSecurityScheme, opt: &SdkClientOpt) -> String {
+    match scheme {
+        SdkSecurityScheme::ApiKey { name: header, .. } => format!("{{{}: {}}}", py_string(header), opt.name),
+        _ => format!("{{\"Authorization\": f\"Bearer {{{}}}\"}}", opt.name),
+    }
+}
+
+/// The property of one auth scheme (papr `_x_api_key`, stagehand `_bb_api_key_auth`).
+fn auth_property(name: &str) -> String {
+    format!("_{}", snake_case(&split_words(name)))
+}
+
+/// `auth_headers`: one scheme's header inline; several merged from a property per scheme,
+/// empty while a nullable option is unset (papr-python and stagehand-python `_client.py`).
+fn emit_auth_headers(s: &ClientState<'_>, p: &mut PythonPrinter) {
+    let schemes = auth_schemes(s);
+    p.blank();
+    p.line("@property");
+    p.line("@override");
+    p.block("def auth_headers(self) -> dict[str, str]:", |p| {
+        match schemes.as_slice() {
+            [] => {
+                p.line("return {}");
+            }
+            [(_, scheme, opt)] => {
+                p.line(&format!("{0} = self.{0}", opt.name));
+                p.line(&format!("return {}", auth_header(scheme, opt)));
+            }
+            many => {
+                let items = many
+                    .iter()
+                    .map(|(name, _, _)| format!("**self.{}", auth_property(name)).into())
+                    .collect();
+                print_expr(p, &bracket("{", items, false, "}").into(), "return ", "");
+            }
+        }
+    });
+    if schemes.len() < 2 {
+        return;
+    }
+    for (name, scheme, opt) in &schemes {
+        p.blank();
+        p.line("@property");
+        p.block(&format!("def {}(self) -> dict[str, str]:", auth_property(name)), |p| {
+            p.line(&format!("{0} = self.{0}", opt.name));
+            if opt.nullable {
+                p.block(&format!("if {} is None:", opt.name), |p| {
+                    p.line("return {}");
+                });
+            }
+            p.line(&format!("return {}", auth_header(scheme, opt)));
+        });
+    }
 }
 
 fn emit_client_class(s: &ClientState<'_>, p: &mut PythonPrinter, mode: Mode) -> Result<(), FerruleError> {
@@ -528,14 +586,7 @@ fn emit_request_properties(s: &ClientState<'_>, p: &mut PythonPrinter, mode: Mod
         };
         p.line(&format!("return Querystring(array_format={})", py_string(format)));
     });
-    p.blank();
-    p.line("@property");
-    p.line("@override");
-    p.block("def auth_headers(self) -> dict[str, str]:", |p| {
-        for l in auth_lines(s).unwrap_or_else(|| vec!["return {}".to_owned()]) {
-            p.line(&l);
-        }
-    });
+    emit_auth_headers(s, p);
     p.blank();
     p.line("@property");
     p.line("@override");

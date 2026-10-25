@@ -355,7 +355,7 @@ fn rejects_a_bad_client_member() {
         ("retries", json!({ "maxRetries": "x" })),
         ("query", json!({ "arrayFormat": "pipes" })),
         ("query", json!({ "nestedFormat": "pipes" })),
-        ("opts", json!([{ "name": "a-b", "type": "string", "nullable": false }])),
+        ("opts", json!([{ "name": "--", "type": "string", "nullable": false }])),
         (
             "opts",
             json!([{ "name": "a", "type": "string", "nullable": false, "auth": { "role": "x" } }]),
