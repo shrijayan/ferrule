@@ -216,6 +216,7 @@ version = "0.0.0"
 dependencies = [
  "ferrule-converter",
  "ferrule-python-plugin",
+ "ferrule-sdk-model",
  "forge",
  "serde_json",
 ]

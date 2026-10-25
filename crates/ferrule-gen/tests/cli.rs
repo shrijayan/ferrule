@@ -119,3 +119,104 @@ fn reports_usage_errors_with_exit_code_2() {
     let output = bin().arg("generate").output().expect("runs");
     assert_eq!(output.status.code(), Some(2));
 }
+
+#[test]
+fn generates_python_for_an_explicit_python_target() {
+    let out = scratch("target-python");
+    let status = bin()
+        .arg("generate")
+        .arg(plugin_dir().join("tests/fixtures/cursor-page.json"))
+        .args(["--target", "python", "--out"])
+        .arg(&*out)
+        .status()
+        .expect("runs");
+    assert!(status.success());
+    assert_eq!(files(&out), files(&plugin_dir().join("tests/golden/cursor-page")));
+}
+
+#[test]
+fn reports_targets_without_a_plugin_as_fer202() {
+    let dir = scratch("target-ts");
+    let output = bin()
+        .arg("generate")
+        .arg(plugin_dir().join("tests/fixtures/cursor-page.json"))
+        .args(["--target=typescript", "--out"])
+        .arg(dir.join("out"))
+        .output()
+        .expect("runs");
+    assert_eq!(output.status.code(), Some(1));
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.starts_with("ferrule-gen: FER202 at --target: target typescript is not supported yet. Fix: "),
+        "{stderr}"
+    );
+    assert!(!dir.join("out").exists());
+}
+
+#[test]
+fn reports_unknown_targets_as_usage_errors() {
+    let output = bin()
+        .args(["generate", "a.json", "--out", "x", "--target", "cobol"])
+        .output()
+        .expect("runs");
+    assert_eq!(output.status.code(), Some(2));
+    assert!(String::from_utf8_lossy(&output.stderr).contains("possible values: python"));
+}
+
+fn model(spec: &Path) -> std::process::Output {
+    bin().arg("model").arg(spec).output().expect("runs")
+}
+
+#[test]
+fn prints_the_neutral_model_deterministically() {
+    let spec = plugin_dir().join("tests/fixtures/cursor-page.json");
+    let first = model(&spec);
+    assert!(first.status.success(), "{}", String::from_utf8_lossy(&first.stderr));
+    assert_eq!(first.stdout, model(&spec).stdout);
+    let text = String::from_utf8(first.stdout).expect("utf-8");
+    assert!(text.ends_with("}\n"));
+    let json: serde_json::Value = serde_json::from_str(&text).expect("JSON");
+    let method = &json["resources"][0]["methods"][0];
+    assert_eq!(method["name"]["written"], "list");
+    assert_eq!(method["pagination"]["scheme"], "cursor");
+}
+
+#[test]
+fn reads_the_model_spec_from_stdin() {
+    use std::io::Write as _;
+    let path = plugin_dir().join("tests/fixtures/cursor-page.json");
+    let mut child = bin()
+        .args(["model", "-"])
+        .stdin(std::process::Stdio::piped())
+        .stdout(std::process::Stdio::piped())
+        .spawn()
+        .expect("runs");
+    child
+        .stdin
+        .take()
+        .expect("stdin")
+        .write_all(&fs::read(&path).expect("fixture"))
+        .expect("write");
+    let output = child.wait_with_output().expect("exits");
+    assert!(output.status.success());
+    assert_eq!(output.stdout, model(&path).stdout);
+}
+
+#[test]
+fn reports_model_errors_with_exit_code_1() {
+    let dir = scratch("model-bad");
+    let fixture = fs::read_to_string(plugin_dir().join("tests/fixtures/cursor-page.json")).expect("fixture");
+    let bad = fixture.replacen("\"x-ferrule-method-name\": \"list\"", "\"x-ferrule-method-name\": 3", 1);
+    let spec = dir.join("bad.json");
+    fs::write(&spec, bad).expect("write");
+    let output = model(&spec);
+    assert_eq!(output.status.code(), Some(1));
+    assert_eq!(output.stdout, Vec::<u8>::new());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.starts_with("ferrule-gen: FER101 at #/paths/~1v1~1items/get/x-ferrule-method-name: "),
+        "{stderr}"
+    );
+    assert_eq!(model(Path::new("/nonexistent/spec.json")).status.code(), Some(1));
+    assert_eq!(bin().arg("model").output().expect("runs").status.code(), Some(2));
+}

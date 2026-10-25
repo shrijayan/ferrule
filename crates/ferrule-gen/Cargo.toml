@@ -9,6 +9,7 @@ publish.workspace = true
 [dependencies]
 ferrule-converter.workspace = true
 ferrule-python-plugin.workspace = true
+ferrule-sdk-model.workspace = true
 forge.workspace = true
 serde_json.workspace = true
 
