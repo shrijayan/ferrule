@@ -30,7 +30,7 @@ impl ClassRef {
         format!("{module}::Models::{}", self.segs.join("::"))
     }
 
-    /// The RBS type alias of an enum or union: `OnebusawaySDK::Models::Params::code`.
+    /// The RBS type alias of the declaration: `OnebusawaySDK::Models::Params::code`.
     #[must_use]
     pub fn rbs_alias(&self, module: &str) -> String {
         let mut path = vec![module.to_owned(), "Models".to_owned()];
@@ -60,7 +60,7 @@ impl ClassRef {
 }
 
 /// A Ruby type of a field or parameter.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum RType {
     String,
     Integer,
@@ -80,11 +80,16 @@ pub enum RType {
     Model(ClassRef),
     /// A module extending `Internal::Type::Enum`.
     Enum(ClassRef),
-    /// A module extending `Internal::Type::Union`.
-    Union(ClassRef),
+    /// A module extending `Internal::Type::Union`, with its variants' types.
+    Union(ClassRef, Vec<RType>),
+    /// A named converter constant (`Extensions = ArrayOf[...]`): code and Sorbet use its type,
+    /// RBS its alias.
+    Alias(ClassRef, Box<RType>),
     /// `inner` or nil, inside an array or map (a field's own nullability is
     /// [`crate::tree::RField::nullable`]).
     Nullable(Box<RType>),
+    /// One literal value (a union's `variant const: :all`).
+    Const(ferrule_sdk_model::model::Literal),
 }
 
 /// How the Ruby views name one type; `m` is the top-level module (`OnebusawaySDK`).
@@ -96,7 +101,9 @@ impl RType {
         match self {
             Self::Model(c) => format!("-> {{ {} }}", c.code(m)),
             Self::Enum(c) => format!("enum: -> {{ {} }}", c.code(m)),
-            Self::Union(c) => format!("union: -> {{ {} }}", c.code(m)),
+            Self::Union(c, _) => format!("union: -> {{ {} }}", c.code(m)),
+            Self::Alias(_, t) => t.rb_field(m),
+            Self::Const(v) => format!("const: {}", crate::printer::literal(v)),
             Self::Array(_) | Self::Map(_) if self.has_class() => format!("-> {{ {} }}", self.rb_inner(m)),
             _ => self.rb_inner(m),
         }
@@ -107,13 +114,13 @@ impl RType {
     #[must_use]
     pub fn has_class(&self) -> bool {
         match self {
-            Self::Model(_) | Self::Enum(_) | Self::Union(_) => true,
-            Self::Array(t) | Self::Map(t) | Self::Nullable(t) => t.has_class(),
+            Self::Model(_) | Self::Enum(_) | Self::Union(..) => true,
+            Self::Array(t) | Self::Map(t) | Self::Nullable(t) | Self::Alias(_, t) => t.has_class(),
             _ => false,
         }
     }
 
-    /// The converter inside another one (`ArrayOf[...]`).
+    /// The converter inside another one (`ArrayOf[...]`), or as a method's `model:`.
     #[must_use]
     pub fn rb_inner(&self, m: &str) -> String {
         match self {
@@ -125,24 +132,48 @@ impl RType {
             Self::Date => "Date".to_owned(),
             Self::Unknown => format!("{m}::Internal::Type::Unknown"),
             Self::File => format!("{m}::Internal::Type::FileInput"),
-            Self::Array(t) => format!("{m}::Internal::Type::ArrayOf[{}]", t.rb_element(m)),
-            Self::Map(t) => format!("{m}::Internal::Type::HashOf[{}]", t.rb_element(m)),
-            Self::Model(c) | Self::Enum(c) | Self::Union(c) => c.code(m),
-            Self::Nullable(t) => t.rb_inner(m),
+            Self::Array(t) => format!("{m}::Internal::Type::ArrayOf[{}]", t.rb_element(m, false)),
+            Self::Map(t) => format!("{m}::Internal::Type::HashOf[{}]", t.rb_element(m, false)),
+            Self::Model(c) | Self::Enum(c) | Self::Union(c, _) => c.code(m),
+            Self::Nullable(t) | Self::Alias(_, t) => t.rb_inner(m),
+            Self::Const(v) => crate::printer::literal(v),
         }
     }
 
-    /// The element of `ArrayOf[...]`/`HashOf[...]`: `enum: -> { X }`, `X, nil?: true`.
-    fn rb_element(&self, m: &str) -> String {
+    /// The converter as a constant defines it: classes inside containers deferred by a lambda
+    /// (`ArrayOf[-> { X }]`), as the constant may load before them.
+    #[must_use]
+    pub fn rb_const(&self, m: &str) -> String {
         match self {
-            Self::Enum(c) => format!("enum: -> {{ {} }}", c.code(m)),
-            Self::Union(c) => format!("union: -> {{ {} }}", c.code(m)),
-            Self::Nullable(t) => format!("{}, nil?: true", t.rb_element(m)),
+            Self::Array(t) => format!("{m}::Internal::Type::ArrayOf[{}]", t.rb_element(m, true)),
+            Self::Map(t) => format!("{m}::Internal::Type::HashOf[{}]", t.rb_element(m, true)),
+            Self::Nullable(t) | Self::Alias(_, t) => t.rb_const(m),
+            other => other.rb_inner(m),
+        }
+    }
+
+    /// The element of `ArrayOf[...]`/`HashOf[...]`: `enum: X`, `X, nil?: true`; `lazy` wraps
+    /// classes in a lambda.
+    fn rb_element(&self, m: &str, lazy: bool) -> String {
+        let class = |kind: &str, c: &ClassRef| {
+            if lazy {
+                format!("{kind}-> {{ {} }}", c.code(m))
+            } else {
+                format!("{kind}{}", c.code(m))
+            }
+        };
+        match self {
+            Self::Model(c) => class("", c),
+            Self::Enum(c) => class("enum: ", c),
+            Self::Union(c, _) => class("union: ", c),
+            Self::Nullable(t) => format!("{}, nil?: true", t.rb_element(m, lazy)),
+            Self::Alias(_, t) => t.rb_element(m, lazy),
             _ => self.rb_inner(m),
         }
     }
 
-    /// YARD: `String`, `Array<X>`, `Hash{Symbol=>X}`, `Symbol, X` for an enum.
+    /// YARD: `String`, `Array<X>`, `Hash{Symbol=>X}`, `Symbol, X` for an enum, a union's
+    /// variants.
     #[must_use]
     pub fn yard(&self, m: &str) -> String {
         match self {
@@ -153,12 +184,31 @@ impl RType {
             Self::Time => "Time".to_owned(),
             Self::Date => "Date".to_owned(),
             Self::Unknown => "Object".to_owned(),
-            Self::File => "Pathname, StringIO, IO, String, #{m}::FilePart".replace("#{m}", m),
+            Self::File => format!("Pathname, StringIO, IO, String, {m}::FilePart"),
             Self::Array(t) => format!("Array<{}>", t.yard(m)),
             Self::Map(t) => format!("Hash{{Symbol=>{}}}", t.yard(m)),
-            Self::Model(c) | Self::Union(c) => c.doc(m),
+            Self::Model(c) => c.doc(m),
+            Self::Union(c, variants) => {
+                if variants.is_empty() {
+                    c.doc(m)
+                } else {
+                    variants.iter().map(|v| v.yard(m)).collect::<Vec<_>>().join(", ")
+                }
+            }
             Self::Enum(c) => format!("Symbol, {}", c.doc(m)),
+            Self::Alias(_, t) => t.yard(m),
             Self::Nullable(t) => format!("{}, nil", t.yard(m)),
+            Self::Const(v) => format!("{}, {}", Self::const_class(v), crate::printer::literal(v)),
+        }
+    }
+
+    /// The class of a literal: `Symbol` for a string.
+    fn const_class(v: &ferrule_sdk_model::model::Literal) -> &'static str {
+        match v {
+            ferrule_sdk_model::model::Literal::String(_) => "Symbol",
+            ferrule_sdk_model::model::Literal::Number(n) if n.fract() == 0.0 => "Integer",
+            ferrule_sdk_model::model::Literal::Number(_) => "Float",
+            ferrule_sdk_model::model::Literal::Boolean(_) => "Boolean",
         }
     }
 
@@ -208,8 +258,13 @@ impl RType {
                     format!("{}::TaggedSymbol", c.code(m))
                 }
             }
-            Self::Union(c) => format!("{}::Variants", c.code(m)),
+            Self::Union(c, _) => format!("{}::Variants", c.code(m)),
+            Self::Alias(_, t) => t.rbi_with(m, or_hash, or_symbol),
             Self::Nullable(t) => format!("T.nilable({})", t.rbi_with(m, or_hash, or_symbol)),
+            Self::Const(v) => match Self::const_class(v) {
+                "Boolean" => "T::Boolean".to_owned(),
+                class => class.to_owned(),
+            },
         }
     }
 
@@ -228,19 +283,9 @@ impl RType {
             Self::Array(t) => format!("::Array[{}]", t.rbs(m)),
             Self::Map(t) => format!("::Hash[Symbol, {}]", t.rbs(m)),
             Self::Model(c) => c.code(m),
-            Self::Enum(c) | Self::Union(c) => c.rbs_alias(m),
+            Self::Enum(c) | Self::Union(c, _) | Self::Alias(c, _) => c.rbs_alias(m),
             Self::Nullable(t) => format!("{}?", t.rbs(m)),
-        }
-    }
-
-    /// Whether Sorbet's reader and writer of a required field of this type differ, so the
-    /// field gets `attr_reader` and `attr_writer` rather than `attr_accessor`.
-    #[must_use]
-    pub fn is_model(&self) -> bool {
-        match self {
-            Self::Model(_) => true,
-            Self::Nullable(t) => t.is_model(),
-            _ => false,
+            Self::Const(v) => crate::printer::literal(v),
         }
     }
 }
@@ -263,6 +308,10 @@ mod tests {
             t.rb_field("M"),
             "-> { M::Internal::Type::ArrayOf[M::References::Agency] }"
         );
+        assert_eq!(
+            t.rb_const("M"),
+            "M::Internal::Type::ArrayOf[-> { M::References::Agency }]"
+        );
         assert_eq!(t.yard("M"), "Array<M::Models::References::Agency>");
         assert_eq!(t.rbi("M"), "T::Array[M::References::Agency]");
         assert_eq!(t.rbi_input("M"), "T::Array[M::References::Agency::OrHash]");
@@ -271,7 +320,7 @@ mod tests {
     }
 
     #[test]
-    fn names_enum_aliases() {
+    fn names_enum_unions_and_aliases() {
         let code = ClassRef {
             segs: vec!["ReportProblemWithStopRetrieveParams".into(), "Code".into()],
             aliased: true,
@@ -284,5 +333,20 @@ mod tests {
             RType::Enum(code).rb_field("M"),
             "enum: -> { M::ReportProblemWithStopRetrieveParams::Code }"
         );
+        let item = ClassRef {
+            segs: vec!["Item".into()],
+            aliased: false,
+        };
+        let u = RType::Union(item, vec![RType::String, RType::Float]);
+        assert_eq!(u.yard("M"), "String, Float");
+        let list = RType::Alias(
+            ClassRef {
+                segs: vec!["Extensions".into()],
+                aliased: true,
+            },
+            Box::new(RType::Array(Box::new(u))),
+        );
+        assert_eq!(list.rbs("M"), "M::Models::extensions");
+        assert_eq!(list.rb_inner("M"), "M::Internal::Type::ArrayOf[union: M::Models::Item]");
     }
 }

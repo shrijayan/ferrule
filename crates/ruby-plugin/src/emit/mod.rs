@@ -65,6 +65,10 @@ pub struct Meth<'a> {
     pub params: ClassRef,
     /// The response as the method returns it; `None` without a JSON response.
     pub response: Option<RType>,
+    /// Its arguments.
+    pub args: crate::tree::Args,
+    /// Its parameters class.
+    pub class: crate::tree::Class,
 }
 
 /// Standard methods come first in this order; the rest follow by name (as the oracles order).
@@ -137,9 +141,16 @@ impl<'a> Gen<'a> {
                     segs.push(format!("{prefix}{method_class}Response"));
                     self.builder.response_type(&ClassRef { segs, aliased: false }, &resp.ty)
                 });
+                let see = See::Method {
+                    resource: class.clone(),
+                    method: name.clone(),
+                };
+                let (args, params_class) = self.builder.method_shape(params.clone(), m, see);
                 Meth {
                     method: m,
                     name,
+                    args,
+                    class: params_class,
                     params,
                     response,
                 }
@@ -162,10 +173,14 @@ impl<'a> Gen<'a> {
         let mut out = Vec::new();
         for d in &self.client.models {
             if let Some(decl) = self.builder.model_decl(d) {
-                out.push(ModelFile {
-                    path: snake(&crate::naming::split_words(decl.r().name())),
-                    decl,
-                });
+                let path = decl
+                    .r()
+                    .segs
+                    .iter()
+                    .map(|s| snake(&crate::naming::class_words(s)))
+                    .collect::<Vec<_>>()
+                    .join("/");
+                out.push(ModelFile { path, decl });
             }
         }
         for res in &self.resources {
@@ -179,15 +194,14 @@ impl<'a> Gen<'a> {
                     resource: res.class.clone(),
                     method: m.name.clone(),
                 };
-                let params = self.builder.params_class(m.params.clone(), m.method, see.clone());
                 out.push(ModelFile {
                     path: format!("{dir}{prefix}_{}_params", m.name),
-                    decl: Decl::Class(params),
+                    decl: Decl::Class(m.class.clone()),
                 });
-                if let (Some(resp), Some(RType::Model(r) | RType::Enum(r) | RType::Union(r))) =
-                    (&m.method.response, &m.response)
-                    && !r.aliased
+                if let Some(resp) = &m.method.response
                     && !matches!(resp.ty, Type::Ref(_))
+                    && let Some(RType::Model(r) | RType::Enum(r) | RType::Union(r, _) | RType::Alias(r, _)) =
+                        &m.response
                     && let Some(decl) = self.builder.response_decl(r.clone(), &resp.ty, see)
                 {
                     out.push(ModelFile {

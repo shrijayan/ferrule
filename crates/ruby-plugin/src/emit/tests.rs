@@ -50,11 +50,12 @@ fn example(g: &Gen<'_>, ty: &RType, wire: &str) -> Doc {
         RType::Boolean => text("true"),
         RType::Time => text("\"2019-12-27T18:11:19.117Z\""),
         RType::Date => text("\"2019-12-27\""),
-        RType::Unknown | RType::Union(_) => text("{}"),
+        RType::Unknown | RType::Union(..) => text("{}"),
+        RType::Const(v) => text(crate::printer::literal(v)),
         RType::File => text("StringIO.new(\"Example data\")"),
         RType::Array(t) => concat(vec![text("["), example(g, t, wire), text("]")]),
         RType::Map(t) => hash(vec![concat(vec![text("foo: "), example(g, t, "foo")])]),
-        RType::Nullable(t) => example(g, t, wire),
+        RType::Nullable(t) | RType::Alias(_, t) => example(g, t, wire),
         RType::Enum(r) => {
             let first = g.models.iter().find_map(|f| find_enum(&f.decl, r));
             text(first.unwrap_or_else(|| ":".to_owned()))
@@ -78,6 +79,7 @@ fn find_class<'d>(d: &'d Decl, r: &crate::types::ClassRef) -> Option<&'d Class> 
         Decl::Class(c) if c.r == *r => Some(c),
         Decl::Class(c) => c.nested.iter().find_map(|n| find_class(n, r)),
         Decl::Union(u) => u.nested.iter().find_map(|n| find_class(n, r)),
+        Decl::Alias(a) => a.before.iter().find_map(|n| find_class(n, r)),
         Decl::Enum(_) => None,
     }
 }
@@ -87,28 +89,18 @@ fn find_enum(d: &Decl, r: &crate::types::ClassRef) -> Option<String> {
         Decl::Enum(e) if e.r == *r => e.members.first().map(|m| crate::printer::literal(&m.value)),
         Decl::Class(c) => c.nested.iter().find_map(|n| find_enum(n, r)),
         Decl::Union(u) => u.nested.iter().find_map(|n| find_enum(n, r)),
+        Decl::Alias(a) => a.before.iter().find_map(|n| find_enum(n, r)),
         Decl::Enum(_) => None,
     }
 }
 
-fn params_of<'g>(g: &'g Gen<'_>, m: &Meth<'_>) -> &'g Class {
-    g.models
-        .iter()
-        .find_map(|f| match &f.decl {
-            Decl::Class(c) if c.r == m.params => Some(c),
-            _ => None,
-        })
-        .expect("every method has a params class")
-}
-
 /// The arguments of a call with only the required parameters: path parameters positional.
 fn required_args(g: &Gen<'_>, m: &Meth<'_>) -> Vec<Doc> {
-    let c = params_of(g, m);
-    let (path, rest) = c.fields.split_at(m.method.path_params.len());
-    let mut args: Vec<Doc> = path.iter().map(|f| example(g, &f.ty, &f.wire)).collect();
+    let (positional, path) = m.args.path.split_last().map_or((None, &[][..]), |(l, p)| (Some(l), p));
+    let mut args: Vec<Doc> = positional.iter().map(|f| example(g, &f.ty, &f.wire)).collect();
     args.extend(
-        rest.iter()
-            .filter(|f| f.required)
+        path.iter()
+            .chain(m.args.rest.iter().filter(|f| f.required))
             .map(|f| concat(vec![text(format!("{}: ", f.name)), example(g, &f.ty, &f.wire)])),
     );
     args
@@ -138,8 +130,7 @@ fn shape(g: &Gen<'_>, f: &RField) -> String {
 }
 
 fn method_test(g: &Gen<'_>, out: &mut String, accessor: &str, m: &Meth<'_>) {
-    let c = params_of(g, m);
-    let required = c.fields[m.method.path_params.len()..].iter().any(|f| f.required);
+    let required = m.args.path.len() > 1 || m.args.rest.iter().any(|f| f.required);
     let name = if required {
         format!("test_{}_required_params", m.name)
     } else {
@@ -334,8 +325,7 @@ fn example_method<'g>(g: &'g Gen<'_>) -> Option<(&'g Res<'g>, &'g Meth<'g>)> {
 /// The URL `client_test.rb` stubs: the example's path, with the query authentication.
 fn stub_url(g: &Gen<'_>, m: &Meth<'_>) -> String {
     let mut path = m.method.path.clone();
-    let c = params_of(g, m);
-    for (p, f) in m.method.path_params.iter().zip(&c.fields) {
+    for (p, f) in m.method.path_params.iter().zip(&m.args.path) {
         path = path.replace(&format!("{{{}}}", p.field.wire_name), &f.wire);
     }
     let mut url = format!("http://localhost{path}");

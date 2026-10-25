@@ -11,8 +11,8 @@
 use ferrule_sdk_model::model::{Casing, CustomCasing, Name};
 
 /// Words Stainless spells upper-case in class names; a plural `s` stays lower-case (`IDs`).
-const INITIALISMS: [&str; 11] = [
-    "id", "ids", "url", "uri", "api", "http", "https", "ip", "json", "uuid", "sdk",
+const INITIALISMS: [&str; 12] = [
+    "id", "ids", "url", "uri", "api", "http", "https", "ip", "json", "uuid", "sdk", "ai",
 ];
 
 /// The words of `x-ferrule-casings`, looked up by lower-case word.
@@ -61,7 +61,7 @@ fn class_word(w: &str, casings: Casings<'_>) -> String {
         return format!("{}s", stem.to_ascii_uppercase());
     }
     if !INITIALISMS.contains(&lower.as_str()) {
-        capitalize(w)
+        capitalize(&lower)
     } else if lower.ends_with('s') && lower != "https" {
         format!("{}s", lower[..lower.len() - 1].to_ascii_uppercase())
     } else {
