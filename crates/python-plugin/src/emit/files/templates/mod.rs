@@ -3,10 +3,13 @@
 //!
 //! Each `<name>.tmpl` is derived from the file at the output path in
 //! OneBusAway/python-sdk@4c20fa834c2a (Apache-2.0). Modified by The Ferrule Authors: per-SDK values
-//! replaced by %%TOKENS%%, branding per `src/emit/files/BRANDING.md`. The text is byte-identical to
-//! the TypeScript templates it was ported from; do not edit by hand. The `.tmpl` extension keeps
-//! GitHub's dependency graph from reading the generated SDK's `requirements*.lock` templates as
-//! Ferrule's own manifests.
+//! replaced by %%TOKENS%%, branding per `src/emit/files/BRANDING.md`; the lines that differ by how
+//! the client authenticates (bearer, basic, header, none), by `disable_mock_tests` and by name
+//! lengths are conditionals and `%%wrap%%` lines, after the same files in isaacus-python@c3a0e7d,
+//! lumaai-python@513697a and imagekit-python@e75f626 (Apache-2.0). `tests/files_oracle.rs` and
+//! `tests/project_files_oracles.rs` check the output against those oracles byte for byte. The
+//! `.tmpl` extension keeps GitHub's dependency graph from reading the generated SDK's
+//! `requirements*.lock` templates as Ferrule's own manifests.
 
 /// Output path -> template text, in the order of the TypeScript `TEMPLATES` map.
 pub const TEMPLATES: &[(&str, &str)] = &[

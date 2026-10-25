@@ -1,0 +1,21 @@
+{
+  "version": "1.21.0",
+  "copyrightYear": 2026,
+  "organization": {
+    "title": "LumaAI",
+    "contact": "support+api@lumalabs.ai",
+    "docsUrl": "https://lumalabs.ai"
+  },
+  "readmeTitle": "LumaAI",
+  "readmeRequest": {
+    "endpoint": "post /generations/video",
+    "params": {
+      "prompt": "A teddy bear in sunglasses playing electric guitar, dancing and headbanging in the jungle in front of a large beautiful waterfall",
+      "aspect_ratio": "16:9",
+      "loop": false,
+      "model": "ray-2"
+    }
+  },
+  "readmeAttribution": false,
+  "mockTests": true
+}

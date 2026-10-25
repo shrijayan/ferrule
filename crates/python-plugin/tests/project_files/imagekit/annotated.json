@@ -1,0 +1,1770 @@
+{
+  "components": {
+    "responses": {
+      "Forbidden": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "properties": {
+                "help": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          }
+        }
+      },
+      "RateLimitExceeded": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "properties": {
+                "message": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          }
+        },
+        "headers": {
+          "X-RateLimit-Interval": {
+            "schema": {
+              "type": "integer"
+            }
+          },
+          "X-RateLimit-Limit": {
+            "schema": {
+              "type": "integer"
+            }
+          },
+          "X-RateLimit-Reset": {
+            "schema": {
+              "type": "integer"
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "properties": {
+                "help": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "AITag": {
+        "properties": {
+          "confidence": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "AITaskAction": {
+        "properties": {
+          "add_tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "remove_tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "set_metadata": {
+            "items": {
+              "properties": {
+                "field": {
+                  "type": "string"
+                },
+                "value": {
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "items": {
+                        "oneOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "boolean"
+                          }
+                        ]
+                      },
+                      "type": "array",
+                      "x-stainless-variantName": "Mixed"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "field",
+                "value"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "unset_metadata": {
+            "items": {
+              "properties": {
+                "field": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "field"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "AITaskSelectMetadata": {
+        "properties": {
+          "field": {
+            "type": "string"
+          },
+          "instruction": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "type": "string"
+          },
+          "max_selections": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "min_selections": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "type": {
+            "const": "select_metadata",
+            "type": "string"
+          },
+          "vocabulary": {
+            "items": {
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "boolean"
+                }
+              ]
+            },
+            "maxItems": 30,
+            "minItems": 1,
+            "type": "array"
+          }
+        },
+        "required": [
+          "type",
+          "instruction",
+          "field"
+        ],
+        "type": "object"
+      },
+      "AITaskSelectTags": {
+        "properties": {
+          "instruction": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "type": "string"
+          },
+          "max_selections": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "min_selections": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "type": {
+            "const": "select_tags",
+            "type": "string"
+          },
+          "vocabulary": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 30,
+            "minItems": 1,
+            "type": "array"
+          }
+        },
+        "required": [
+          "type",
+          "instruction"
+        ],
+        "type": "object"
+      },
+      "AITaskYesNo": {
+        "properties": {
+          "instruction": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "type": "string"
+          },
+          "on_no": {
+            "$ref": "#/components/schemas/AITaskAction"
+          },
+          "on_unknown": {
+            "$ref": "#/components/schemas/AITaskAction"
+          },
+          "on_yes": {
+            "$ref": "#/components/schemas/AITaskAction"
+          },
+          "type": {
+            "const": "yes_no",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "instruction"
+        ],
+        "type": "object"
+      },
+      "AITasksExtension": {
+        "properties": {
+          "name": {
+            "const": "ai-tasks",
+            "type": "string"
+          },
+          "tasks": {
+            "items": {
+              "discriminator": {
+                "propertyName": "type"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/AITaskSelectTags"
+                },
+                {
+                  "$ref": "#/components/schemas/AITaskSelectMetadata"
+                },
+                {
+                  "$ref": "#/components/schemas/AITaskYesNo"
+                }
+              ]
+            },
+            "maxItems": 10,
+            "minItems": 1,
+            "type": "array"
+          }
+        },
+        "required": [
+          "name",
+          "tasks"
+        ],
+        "type": "object"
+      },
+      "AutoDescriptionExtension": {
+        "properties": {
+          "name": {
+            "const": "ai-auto-description",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "type": "object"
+      },
+      "AutoTaggingExtension": {
+        "properties": {
+          "maxTags": {
+            "type": "integer"
+          },
+          "minConfidence": {
+            "type": "integer"
+          },
+          "name": {
+            "enum": [
+              "google-auto-tagging",
+              "aws-auto-tagging"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "minConfidence",
+          "maxTags"
+        ],
+        "type": "object"
+      },
+      "CustomMetadata": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "EmbeddedMetadata": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "ExifDetails": {
+        "properties": {
+          "ApertureValue": {
+            "type": "number"
+          },
+          "ColorSpace": {
+            "type": "integer"
+          },
+          "CreateDate": {
+            "type": "string"
+          },
+          "CustomRendered": {
+            "type": "integer"
+          },
+          "DateTimeOriginal": {
+            "type": "string"
+          },
+          "ExifImageHeight": {
+            "type": "integer"
+          },
+          "ExifImageWidth": {
+            "type": "integer"
+          },
+          "ExifVersion": {
+            "type": "string"
+          },
+          "ExposureCompensation": {
+            "type": "number"
+          },
+          "ExposureMode": {
+            "type": "integer"
+          },
+          "ExposureProgram": {
+            "type": "integer"
+          },
+          "ExposureTime": {
+            "type": "number"
+          },
+          "FNumber": {
+            "type": "number"
+          },
+          "Flash": {
+            "type": "integer"
+          },
+          "FlashpixVersion": {
+            "type": "string"
+          },
+          "FocalLength": {
+            "type": "integer"
+          },
+          "FocalPlaneResolutionUnit": {
+            "type": "integer"
+          },
+          "FocalPlaneXResolution": {
+            "type": "number"
+          },
+          "FocalPlaneYResolution": {
+            "type": "number"
+          },
+          "ISO": {
+            "type": "integer"
+          },
+          "InteropOffset": {
+            "type": "integer"
+          },
+          "MeteringMode": {
+            "type": "integer"
+          },
+          "SceneCaptureType": {
+            "type": "integer"
+          },
+          "ShutterSpeedValue": {
+            "type": "number"
+          },
+          "SubSecTime": {
+            "type": "string"
+          },
+          "WhiteBalance": {
+            "type": "integer"
+          }
+        },
+        "type": "object",
+        "x-stainless-naming": {
+          "java": {
+            "type_name": "ExifDetails"
+          }
+        }
+      },
+      "ExifImage": {
+        "properties": {
+          "ExifOffset": {
+            "type": "integer"
+          },
+          "GPSInfo": {
+            "type": "integer"
+          },
+          "Make": {
+            "type": "string"
+          },
+          "Model": {
+            "type": "string"
+          },
+          "ModifyDate": {
+            "type": "string"
+          },
+          "Orientation": {
+            "type": "integer"
+          },
+          "ResolutionUnit": {
+            "type": "integer"
+          },
+          "Software": {
+            "type": "string"
+          },
+          "XResolution": {
+            "type": "integer"
+          },
+          "YCbCrPositioning": {
+            "type": "integer"
+          },
+          "YResolution": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "Extensions": {
+        "items": {
+          "anyOf": [
+            {
+              "$ref": "#/components/schemas/RemovedotBGExtension"
+            },
+            {
+              "$ref": "#/components/schemas/AutoTaggingExtension"
+            },
+            {
+              "$ref": "#/components/schemas/AutoDescriptionExtension"
+            },
+            {
+              "$ref": "#/components/schemas/AITasksExtension"
+            },
+            {
+              "$ref": "#/components/schemas/SavedExtensionReference"
+            }
+          ],
+          "discriminator": {
+            "propertyName": "name"
+          }
+        },
+        "type": "array",
+        "x-fern-type-name": "Extensions"
+      },
+      "FileUploadV1": {
+        "properties": {
+          "checks": {
+            "type": "string"
+          },
+          "customCoordinates": {
+            "type": "string"
+          },
+          "customMetadata": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "description": {
+            "type": "string"
+          },
+          "expire": {
+            "type": "integer"
+          },
+          "extensions": {
+            "$ref": "#/components/schemas/Extensions"
+          },
+          "file": {
+            "contentEncoding": "binary",
+            "format": "binary",
+            "type": "string"
+          },
+          "fileName": {
+            "type": "string"
+          },
+          "folder": {
+            "default": "/",
+            "type": "string"
+          },
+          "isPrivateFile": {
+            "default": false,
+            "type": "boolean"
+          },
+          "isPublished": {
+            "default": true,
+            "type": "boolean"
+          },
+          "overwriteAITags": {
+            "default": true,
+            "type": "boolean"
+          },
+          "overwriteCustomMetadata": {
+            "default": true,
+            "type": "boolean"
+          },
+          "overwriteFile": {
+            "default": true,
+            "type": "boolean"
+          },
+          "overwriteTags": {
+            "default": true,
+            "type": "boolean"
+          },
+          "publicKey": {
+            "type": "string"
+          },
+          "responseFields": {
+            "items": {
+              "enum": [
+                "tags",
+                "customCoordinates",
+                "isPrivateFile",
+                "embeddedMetadata",
+                "isPublished",
+                "customMetadata",
+                "metadata",
+                "selectedFieldsSchema"
+              ],
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "signature": {
+            "type": "string"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "token": {
+            "type": "string"
+          },
+          "transformation": {
+            "$ref": "#/components/schemas/TransformationObject",
+            "type": "object"
+          },
+          "useUniqueFileName": {
+            "default": true,
+            "type": "boolean"
+          },
+          "webhookUrl": {
+            "format": "uri",
+            "type": "string"
+          }
+        },
+        "required": [
+          "file",
+          "fileName"
+        ],
+        "type": "object"
+      },
+      "Gps": {
+        "properties": {
+          "GPSVersionID": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "Interoperability": {
+        "properties": {
+          "InteropIndex": {
+            "type": "string"
+          },
+          "InteropVersion": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "Metadata": {
+        "properties": {
+          "audioCodec": {
+            "type": "string"
+          },
+          "bitRate": {
+            "type": "integer"
+          },
+          "density": {
+            "type": "integer"
+          },
+          "duration": {
+            "type": "integer"
+          },
+          "exif": {
+            "properties": {
+              "exif": {
+                "$ref": "#/components/schemas/ExifDetails"
+              },
+              "gps": {
+                "$ref": "#/components/schemas/Gps"
+              },
+              "image": {
+                "$ref": "#/components/schemas/ExifImage"
+              },
+              "interoperability": {
+                "$ref": "#/components/schemas/Interoperability"
+              },
+              "makernote": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "thumbnail": {
+                "$ref": "#/components/schemas/Thumbnail"
+              }
+            },
+            "type": "object"
+          },
+          "format": {
+            "type": "string"
+          },
+          "hasColorProfile": {
+            "type": "boolean"
+          },
+          "hasTransparency": {
+            "type": "boolean"
+          },
+          "height": {
+            "type": "integer"
+          },
+          "pHash": {
+            "type": "string"
+          },
+          "quality": {
+            "type": "integer"
+          },
+          "size": {
+            "type": "integer"
+          },
+          "videoCodec": {
+            "type": "string"
+          },
+          "width": {
+            "type": "integer"
+          }
+        },
+        "type": "object",
+        "x-fern-type-name": "Metadata"
+      },
+      "RemovedotBGExtension": {
+        "properties": {
+          "name": {
+            "const": "remove-bg",
+            "type": "string"
+          },
+          "options": {
+            "properties": {
+              "add_shadow": {
+                "default": false,
+                "type": "boolean"
+              },
+              "bg_color": {
+                "type": "string"
+              },
+              "bg_image_url": {
+                "type": "string"
+              },
+              "semitransparency": {
+                "default": true,
+                "type": "boolean"
+              }
+            },
+            "type": "object"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "type": "object"
+      },
+      "SavedExtensionReference": {
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "const": "saved-extension",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "id"
+        ],
+        "type": "object"
+      },
+      "SelectedFieldsSchema": {
+        "additionalProperties": {
+          "properties": {
+            "defaultValue": {
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "boolean"
+                },
+                {
+                  "items": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "boolean"
+                      }
+                    ]
+                  },
+                  "type": "array",
+                  "x-stainless-variantName": "Mixed"
+                }
+              ]
+            },
+            "isValueRequired": {
+              "type": "boolean"
+            },
+            "maxLength": {
+              "type": "number"
+            },
+            "maxValue": {
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            },
+            "minLength": {
+              "type": "number"
+            },
+            "minValue": {
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            },
+            "readOnly": {
+              "type": "boolean"
+            },
+            "selectOptions": {
+              "items": {
+                "oneOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "boolean"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            "selectOptionsTruncated": {
+              "type": "boolean"
+            },
+            "type": {
+              "enum": [
+                "Text",
+                "Textarea",
+                "Number",
+                "Date",
+                "Boolean",
+                "SingleSelect",
+                "MultiSelect"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "type": "object"
+        },
+        "type": "object"
+      },
+      "Thumbnail": {
+        "properties": {
+          "Compression": {
+            "type": "integer"
+          },
+          "ResolutionUnit": {
+            "type": "integer"
+          },
+          "ThumbnailLength": {
+            "type": "integer"
+          },
+          "ThumbnailOffset": {
+            "type": "integer"
+          },
+          "XResolution": {
+            "type": "integer"
+          },
+          "YResolution": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "TransformationObject": {
+        "additionalProperties": false,
+        "properties": {
+          "post": {
+            "items": {
+              "discriminator": {
+                "propertyName": "type"
+              },
+              "oneOf": [
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "type": {
+                      "const": "transformation",
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "value"
+                  ],
+                  "type": "object"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "type": {
+                      "const": "gif-to-video",
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "type"
+                  ],
+                  "type": "object"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "type": {
+                      "const": "thumbnail",
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "type"
+                  ],
+                  "type": "object"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "protocol": {
+                      "enum": [
+                        "hls",
+                        "dash"
+                      ],
+                      "type": "string"
+                    },
+                    "type": {
+                      "const": "abs",
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "value",
+                    "protocol"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "type": "array"
+          },
+          "pre": {
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "x-stainless-naming": {
+          "java": {
+            "type_name": "UploadTransformation"
+          }
+        }
+      },
+      "Upload": {
+        "properties": {
+          "AITags": {
+            "items": {
+              "$ref": "#/components/schemas/AITag"
+            },
+            "type": [
+              "array",
+              "null"
+            ],
+            "x-ferrule-normalized": [
+              "type-null-literal"
+            ]
+          },
+          "audioCodec": {
+            "type": "string"
+          },
+          "bitRate": {
+            "type": "integer"
+          },
+          "customCoordinates": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "x-ferrule-normalized": [
+              "type-null-literal"
+            ]
+          },
+          "customMetadata": {
+            "$ref": "#/components/schemas/CustomMetadata"
+          },
+          "description": {
+            "type": "string"
+          },
+          "duration": {
+            "type": "integer"
+          },
+          "embeddedMetadata": {
+            "$ref": "#/components/schemas/EmbeddedMetadata"
+          },
+          "extensionStatus": {
+            "properties": {
+              "ai-auto-description": {
+                "enum": [
+                  "success",
+                  "pending",
+                  "failed"
+                ],
+                "type": "string"
+              },
+              "ai-tasks": {
+                "enum": [
+                  "success",
+                  "pending",
+                  "failed"
+                ],
+                "type": "string"
+              },
+              "aws-auto-tagging": {
+                "enum": [
+                  "success",
+                  "pending",
+                  "failed"
+                ],
+                "type": "string"
+              },
+              "google-auto-tagging": {
+                "enum": [
+                  "success",
+                  "pending",
+                  "failed"
+                ],
+                "type": "string"
+              },
+              "remove-bg": {
+                "enum": [
+                  "success",
+                  "pending",
+                  "failed"
+                ],
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "fileId": {
+            "type": "string"
+          },
+          "filePath": {
+            "type": "string"
+          },
+          "fileType": {
+            "type": "string"
+          },
+          "height": {
+            "type": "number"
+          },
+          "isPrivateFile": {
+            "type": "boolean"
+          },
+          "isPublished": {
+            "type": "boolean"
+          },
+          "metadata": {
+            "$ref": "#/components/schemas/Metadata",
+            "type": "object"
+          },
+          "name": {
+            "type": "string"
+          },
+          "selectedFieldsSchema": {
+            "$ref": "#/components/schemas/SelectedFieldsSchema"
+          },
+          "size": {
+            "type": "number"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": [
+              "array",
+              "null"
+            ],
+            "x-ferrule-normalized": [
+              "type-null-literal"
+            ]
+          },
+          "thumbnailUrl": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "versionInfo": {
+            "$ref": "#/components/schemas/VersionInfo"
+          },
+          "videoCodec": {
+            "type": "string"
+          },
+          "width": {
+            "type": "number"
+          }
+        },
+        "type": "object"
+      },
+      "VersionInfo": {
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "basicAuth": {
+        "scheme": "basic",
+        "type": "http"
+      }
+    }
+  },
+  "info": {
+    "title": "reduced",
+    "version": "0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/v1/files/upload": {
+      "post": {
+        "operationId": "upload-file",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/FileUploadV1"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Upload"
+                }
+              }
+            }
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "help": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        },
+        "tags": [
+          "Upload File"
+        ],
+        "x-fern-sdk-group-name": [
+          "files"
+        ],
+        "x-fern-sdk-method-name": "upload",
+        "x-ferrule-client": {
+          "defaultEnvironment": "production",
+          "defaultHeaders": {},
+          "envPrefix": "IMAGE_KIT",
+          "environments": [
+            {
+              "name": "production",
+              "url": "https://api.imagekit.io"
+            }
+          ],
+          "name": "ImageKit",
+          "omitPlatformHeaders": false,
+          "opts": [
+            {
+              "auth": {
+                "role": "username",
+                "securityScheme": "basicAuth"
+              },
+              "description": "Your ImageKit private API key (starts with `private_`).\nYou can find this in the [ImageKit dashboard](https://imagekit.io/dashboard/developer/api-keys).\n",
+              "name": "private_key",
+              "nullable": false,
+              "readEnv": "IMAGEKIT_PRIVATE_KEY",
+              "type": "string"
+            },
+            {
+              "auth": {
+                "role": "password",
+                "securityScheme": "basicAuth"
+              },
+              "default": "do_not_set",
+              "description": "ImageKit uses your API key as username and ignores the password. \nThe SDK sets a dummy value. You can ignore this field.\n",
+              "name": "password",
+              "nullable": true,
+              "readEnv": "OPTIONAL_IMAGEKIT_IGNORES_THIS",
+              "type": "string"
+            },
+            {
+              "description": "Your ImageKit webhook secret for verifying webhook signatures (starts with `whsec_`).\nYou can find this in the [ImageKit dashboard](https://imagekit.io/dashboard/developer/webhooks).\nOnly required if you're using webhooks.\n",
+              "name": "webhook_secret",
+              "nullable": true,
+              "readEnv": "IMAGEKIT_WEBHOOK_SECRET",
+              "type": "string"
+            }
+          ],
+          "query": {
+            "arrayFormat": "comma",
+            "nestedFormat": "brackets"
+          },
+          "retries": {
+            "initialDelaySeconds": 0.5,
+            "maxDelaySeconds": 8,
+            "maxRetries": 2
+          },
+          "security": [
+            {
+              "basicAuth": []
+            }
+          ],
+          "securitySchemes": {
+            "basicAuth": {
+              "disableBase64": false,
+              "scheme": "basic",
+              "type": "http"
+            }
+          },
+          "timeoutSeconds": 60
+        },
+        "x-ferrule-method-name": "upload",
+        "x-ferrule-method-order": 0,
+        "x-ferrule-models": {
+          "BaseOverlay": {
+            "module": "shared.BaseOverlay",
+            "name": "BaseOverlay"
+          },
+          "BaseWebhookEvent": {
+            "module": "BaseWebhookEvent",
+            "name": "BaseWebhookEvent"
+          },
+          "CustomMetadataField": {
+            "module": "CustomMetadataField",
+            "name": "CustomMetadataField"
+          },
+          "ExtensionConfig": {
+            "module": "shared.ExtensionConfig",
+            "name": "ExtensionConfig"
+          },
+          "Extensions": {
+            "module": "shared.Extensions",
+            "name": "Extensions"
+          },
+          "FileCreateEvent": {
+            "module": "FileCreateEvent",
+            "name": "FileCreateEvent"
+          },
+          "FileDeleteEvent": {
+            "module": "FileDeleteEvent",
+            "name": "FileDeleteEvent"
+          },
+          "FileDetails": {
+            "module": "File",
+            "name": "File"
+          },
+          "FileUpdateEvent": {
+            "module": "FileUpdateEvent",
+            "name": "FileUpdateEvent"
+          },
+          "FileVersionCreateEvent": {
+            "module": "FileVersionCreateEvent",
+            "name": "FileVersionCreateEvent"
+          },
+          "FileVersionDeleteEvent": {
+            "module": "FileVersionDeleteEvent",
+            "name": "FileVersionDeleteEvent"
+          },
+          "FolderDetails": {
+            "module": "Folder",
+            "name": "Folder"
+          },
+          "GetImageAttributesOptions": {
+            "module": "shared.GetImageAttributesOptions",
+            "name": "GetImageAttributesOptions"
+          },
+          "ImageOverlay": {
+            "module": "shared.ImageOverlay",
+            "name": "ImageOverlay"
+          },
+          "Metadata": {
+            "module": "Metadata",
+            "name": "Metadata"
+          },
+          "OriginRequest": {
+            "module": "accounts.OriginRequest",
+            "name": "OriginRequest"
+          },
+          "OriginResponse": {
+            "module": "accounts.OriginResponse",
+            "name": "OriginResponse"
+          },
+          "Overlay": {
+            "module": "shared.Overlay",
+            "name": "Overlay"
+          },
+          "OverlayPosition": {
+            "module": "shared.OverlayPosition",
+            "name": "OverlayPosition"
+          },
+          "OverlayTiming": {
+            "module": "shared.OverlayTiming",
+            "name": "OverlayTiming"
+          },
+          "ResponsiveImageAttributes": {
+            "module": "shared.ResponsiveImageAttributes",
+            "name": "ResponsiveImageAttributes"
+          },
+          "SavedExtension": {
+            "module": "shared.SavedExtension",
+            "name": "SavedExtension"
+          },
+          "SolidColorOverlay": {
+            "module": "shared.SolidColorOverlay",
+            "name": "SolidColorOverlay"
+          },
+          "SolidColorOverlayTransformation": {
+            "module": "shared.SolidColorOverlayTransformation",
+            "name": "SolidColorOverlayTransformation"
+          },
+          "SrcOptions": {
+            "module": "shared.SrcOptions",
+            "name": "SrcOptions"
+          },
+          "StreamingResolution": {
+            "module": "shared.StreamingResolution",
+            "name": "StreamingResolution"
+          },
+          "SubtitleOverlay": {
+            "module": "shared.SubtitleOverlay",
+            "name": "SubtitleOverlay"
+          },
+          "SubtitleOverlayTransformation": {
+            "module": "shared.SubtitleOverlayTransformation",
+            "name": "SubtitleOverlayTransformation"
+          },
+          "TextOverlay": {
+            "module": "shared.TextOverlay",
+            "name": "TextOverlay"
+          },
+          "TextOverlayTransformation": {
+            "module": "shared.TextOverlayTransformation",
+            "name": "TextOverlayTransformation"
+          },
+          "Transformation": {
+            "module": "shared.Transformation",
+            "name": "Transformation"
+          },
+          "TransformationPosition": {
+            "module": "shared.TransformationPosition",
+            "name": "TransformationPosition"
+          },
+          "UpdateFileRequest": {
+            "module": "UpdateFileRequest",
+            "name": "UpdateFileRequest"
+          },
+          "UploadPostTransformErrorEvent": {
+            "module": "UploadPostTransformErrorEvent",
+            "name": "UploadPostTransformErrorEvent"
+          },
+          "UploadPostTransformSuccessEvent": {
+            "module": "UploadPostTransformSuccessEvent",
+            "name": "UploadPostTransformSuccessEvent"
+          },
+          "UploadPreTransformErrorEvent": {
+            "module": "UploadPreTransformErrorEvent",
+            "name": "UploadPreTransformErrorEvent"
+          },
+          "UploadPreTransformSuccessEvent": {
+            "module": "UploadPreTransformSuccessEvent",
+            "name": "UploadPreTransformSuccessEvent"
+          },
+          "UrlEndpointRequest": {
+            "module": "accounts.UrlEndpointRequest",
+            "name": "UrlEndpointRequest"
+          },
+          "UrlEndpointResponse": {
+            "module": "accounts.UrlEndpointResponse",
+            "name": "UrlEndpointResponse"
+          },
+          "VideoOverlay": {
+            "module": "shared.VideoOverlay",
+            "name": "VideoOverlay"
+          },
+          "VideoTransformationAcceptedEvent": {
+            "module": "VideoTransformationAcceptedEvent",
+            "name": "VideoTransformationAcceptedEvent"
+          },
+          "VideoTransformationErrorEvent": {
+            "module": "VideoTransformationErrorEvent",
+            "name": "VideoTransformationErrorEvent"
+          },
+          "VideoTransformationReadyEvent": {
+            "module": "VideoTransformationReadyEvent",
+            "name": "VideoTransformationReadyEvent"
+          }
+        },
+        "x-ferrule-package": {
+          "name": "imagekitio",
+          "repo": "imagekit-developer/imagekit-python#master"
+        },
+        "x-ferrule-resource": {
+          "order": [
+            3
+          ],
+          "path": [
+            "files"
+          ]
+        }
+      },
+      "servers": [
+        {
+          "url": "https://upload.imagekit.io"
+        }
+      ]
+    }
+  },
+  "security": [
+    {
+      "basicAuth": []
+    }
+  ],
+  "servers": [
+    {
+      "url": "https://api.imagekit.io"
+    }
+  ],
+  "webhooks": {
+    "file-version.created": {
+      "post": {
+        "operationId": "file-version-created",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FileVersionCreateEvent"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {}
+        }
+      }
+    },
+    "file-version.deleted": {
+      "post": {
+        "operationId": "file-version-deleted",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FileVersionDeleteEvent"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {}
+        }
+      }
+    },
+    "file.created": {
+      "post": {
+        "operationId": "file-created",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FileCreateEvent"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {}
+        }
+      }
+    },
+    "file.deleted": {
+      "post": {
+        "operationId": "file-deleted",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FileDeleteEvent"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {}
+        }
+      }
+    },
+    "file.updated": {
+      "post": {
+        "operationId": "file-updated",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FileUpdateEvent"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {}
+        }
+      }
+    },
+    "upload.post-transform.error": {
+      "post": {
+        "operationId": "upload-post-transform-error",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UploadPostTransformErrorEvent"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {}
+        }
+      }
+    },
+    "upload.post-transform.success": {
+      "post": {
+        "operationId": "upload-post-transform-success",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UploadPostTransformSuccessEvent"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {}
+        }
+      }
+    },
+    "upload.pre-transform.error": {
+      "post": {
+        "operationId": "upload-pre-transform-error",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UploadPreTransformErrorEvent"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {}
+        }
+      }
+    },
+    "upload.pre-transform.success": {
+      "post": {
+        "operationId": "upload-pre-transform-success",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UploadPreTransformSuccessEvent"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {}
+        }
+      }
+    },
+    "video.transformation.accepted": {
+      "post": {
+        "operationId": "video-transformation-accepted",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VideoTransformationAcceptedEvent"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {}
+        }
+      }
+    },
+    "video.transformation.error": {
+      "post": {
+        "operationId": "video-transformation-error",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VideoTransformationErrorEvent"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {}
+        }
+      }
+    },
+    "video.transformation.ready": {
+      "post": {
+        "operationId": "video-transformation-ready",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VideoTransformationReadyEvent"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {}
+        }
+      }
+    }
+  },
+  "x-ferrule-client": {
+    "defaultEnvironment": "production",
+    "defaultHeaders": {},
+    "envPrefix": "IMAGE_KIT",
+    "environments": [
+      {
+        "name": "production",
+        "url": "https://api.imagekit.io"
+      }
+    ],
+    "name": "ImageKit",
+    "omitPlatformHeaders": false,
+    "opts": [
+      {
+        "auth": {
+          "role": "username",
+          "securityScheme": "basicAuth"
+        },
+        "name": "private_key",
+        "nullable": false,
+        "readEnv": "IMAGEKIT_PRIVATE_KEY",
+        "type": "string"
+      },
+      {
+        "auth": {
+          "role": "password",
+          "securityScheme": "basicAuth"
+        },
+        "default": "do_not_set",
+        "name": "password",
+        "nullable": true,
+        "readEnv": "OPTIONAL_IMAGEKIT_IGNORES_THIS",
+        "type": "string"
+      },
+      {
+        "name": "webhook_secret",
+        "nullable": true,
+        "readEnv": "IMAGEKIT_WEBHOOK_SECRET",
+        "type": "string"
+      }
+    ],
+    "query": {
+      "arrayFormat": "comma",
+      "nestedFormat": "brackets"
+    },
+    "retries": {
+      "initialDelaySeconds": 0.5,
+      "maxDelaySeconds": 8,
+      "maxRetries": 2
+    },
+    "security": [
+      {
+        "basicAuth": []
+      }
+    ],
+    "securitySchemes": {
+      "basicAuth": {
+        "disableBase64": false,
+        "scheme": "basic",
+        "type": "http"
+      }
+    },
+    "timeoutSeconds": 60
+  },
+  "x-ferrule-config": {
+    "edition": "2025-10-08",
+    "packageName": "imagekitio",
+    "projectName": "imagekitio",
+    "pythonEdition": "python.2025-10-08",
+    "version": 1
+  }
+}

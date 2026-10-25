@@ -1,0 +1,19 @@
+{
+  "version": "5.5.0",
+  "copyrightYear": 2026,
+  "organization": {
+    "title": "Image Kit",
+    "contact": "developer@imagekit.io",
+    "docsUrl": "https://imagekit.io/docs/api-reference"
+  },
+  "readmeTitle": "Image Kit",
+  "readmeRequest": {
+    "endpoint": "post /api/v1/files/upload",
+    "params": {
+      "file": "https://www.example.com/public-url.jpg",
+      "fileName": "file-name.jpg"
+    }
+  },
+  "readmeAttribution": false,
+  "mockTests": true
+}
