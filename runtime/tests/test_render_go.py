@@ -4,6 +4,8 @@
 
 from __future__ import annotations
 
+import shutil
+import subprocess
 from typing import Any
 
 import pytest
@@ -57,6 +59,53 @@ def test_go_slots_and_options() -> None:
     )
     assert "made by the acme-inc API Client" in files["option/requestoption.go"]
     assert '[]string{"authorization", "cookie", "set-cookie"}' in files["option/middleware.go"]
+
+
+def test_go_long_client_settings_realign_their_runtime_neighbours() -> None:
+    # A setting longer than the runtime's longest field widens the whole gofmt alignment run.
+    files = render_go_files(
+        GoOptions(
+            module_path="github.com/acme/acme-go",
+            package_name="acme",
+            client_name="Acme",
+            config_fields="\tAPIKey         *string\n\tWebhookSigningSecret *string\n",
+            config_clone=(
+                "\t\tAPIKey:         cfg.APIKey,\n"
+                "\t\tWebhookSigningSecret: cfg.WebhookSigningSecret,\n"
+            ),
+        )
+    )
+    config = files["internal/requestconfig/requestconfig.go"]
+    assert (
+        "\t// WithBaseURL.\n"
+        "\tDefaultBaseURL       *url.URL\n"
+        "\tCustomHTTPDoer       HTTPDoer\n"
+        "\tHTTPClient           *http.Client\n"
+        "\tMiddlewares          []middleware\n"
+        "\tAPIKey               *string\n"
+        "\tWebhookSigningSecret *string\n"
+        "\t// If ResponseBodyInto"
+    ) in config
+    # The fields before the comment are another run and keep their width.
+    assert "\tMaxRetries     int\n\tRequestTimeout time.Duration\n" in config
+    assert (
+        "\t\tMaxRetries:           cfg.MaxRetries,\n"
+        "\t\tRequestTimeout:       cfg.RequestTimeout,\n"
+        "\t\tContext:              ctx,\n"
+        "\t\tRequest:              req,\n"
+        "\t\tBaseURL:              cfg.BaseURL,\n"
+        "\t\tHTTPClient:           cfg.HTTPClient,\n"
+        "\t\tMiddlewares:          cfg.Middlewares,\n"
+        "\t\tAPIKey:               cfg.APIKey,\n"
+        "\t\tWebhookSigningSecret: cfg.WebhookSigningSecret,\n"
+        "\t}\n"
+    ) in config
+    gofmt = shutil.which("gofmt")
+    if gofmt is not None:
+        out = subprocess.run(  # noqa: S603 - gofmt from PATH on generated text
+            [gofmt], input=config, capture_output=True, text=True, check=True
+        )
+        assert out.stdout == config
 
 
 @pytest.mark.parametrize(
