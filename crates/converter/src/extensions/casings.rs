@@ -162,8 +162,11 @@ impl Casings {
             .filter(|w| !w.is_empty())
             .map(|w| {
                 let lower = w.to_ascii_lowercase();
-                if let Some(Casing::Pascal(p)) = self.get(&lower) {
-                    return p.clone();
+                match self.get(&lower) {
+                    Some(Casing::Pascal(p)) => return p.clone(),
+                    // Not read as a plural either: `https` off stays `Https`, not `HTTPs`.
+                    Some(Casing::Initialism(false)) => return capitalize(w),
+                    _ => {}
                 }
                 if self.is_initialism(&lower) {
                     return lower.to_ascii_uppercase();
