@@ -137,7 +137,8 @@ impl FieldLike for SdkParam {
 }
 
 /// Whether `t` holds an inline object, which would need a class name of its own.
-fn has_inline_object(t: &SdkType) -> bool {
+#[must_use]
+pub fn has_inline_object(t: &SdkType) -> bool {
     match t {
         SdkType::Object(_) => true,
         SdkType::Array(inner) | SdkType::Map(inner) => has_inline_object(inner),
