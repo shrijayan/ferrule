@@ -50,3 +50,17 @@ fn required_dictionary_and_json_properties_get_test_values() {
     assert!(test.contains("using System.Collections.Generic;"), "{test}");
     assert!(test.contains("using System.Text.Json;"), "{test}");
 }
+
+/// A method whose required argument the test cannot build (here a dictionary of enum values) has
+/// no service test, rather than one that does not compile; the others keep theirs.
+#[test]
+fn a_method_whose_required_argument_cannot_be_built_has_no_test() {
+    let f = files(
+        "  /things:\n    get:\n      responses:\n        '204':\n          description: Done.\n    post:\n      requestBody:\n        required: true\n        content:\n          application/json:\n            schema:\n              type: object\n              required: [levels]\n              properties:\n                levels:\n                  type: object\n                  additionalProperties:\n                    type: string\n                    enum: [low, high]\n      responses:\n        '204':\n          description: Done.\n",
+        BEARER,
+        "      create: post /things\n      list: get /things\n",
+    );
+    let test = &f["src/Acme.Tests/Services/ThingServiceTest.cs"];
+    assert!(!test.contains("Create_Works"), "{test}");
+    assert!(test.contains("List_Works"), "{test}");
+}
