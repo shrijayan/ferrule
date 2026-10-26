@@ -367,9 +367,22 @@ pub fn keyword_path_params(method: &SdkMethod) -> &[SdkParam] {
     &method.path_params[..method.path_params.len().saturating_sub(1)]
 }
 
-/// The keyword arguments of a method (query and body), in the oracle order.
+/// The keyword arguments of a method (query and body), in the oracle order, without a raw-bytes
+/// body: the ones its params `TypedDict` declares.
 #[must_use]
 pub fn method_params(method: &SdkMethod) -> Vec<&SdkParam> {
+    let mut out = query_and_body(method);
+    out.retain(|q| !is_binary_body(method, q));
+    out
+}
+
+/// Whether `q` is the one argument of a raw-bytes body, which no params `TypedDict` declares.
+#[must_use]
+pub fn is_binary_body(method: &SdkMethod, q: &SdkParam) -> bool {
+    method.body_binary && method.body_params.iter().any(|b| std::ptr::eq(b, q))
+}
+
+fn query_and_body(method: &SdkMethod) -> Vec<&SdkParam> {
     sort_fields(method.query_params.iter().chain(&method.body_params))
 }
 
@@ -380,10 +393,11 @@ pub fn header_params(method: &SdkMethod) -> Vec<&SdkParam> {
     sort_fields(&method.header_params)
 }
 
-/// Every keyword argument of a method: [`method_params`], then [`header_params`].
+/// Every keyword argument of a method: [`method_params`] and a raw-bytes body, then
+/// [`header_params`].
 #[must_use]
 pub fn method_args(method: &SdkMethod) -> Vec<&SdkParam> {
-    let mut out = method_params(method);
+    let mut out = query_and_body(method);
     out.extend(header_params(method));
     out
 }
