@@ -14,7 +14,7 @@ gem "syntax_tree", "6.3.0"
 gem "syntax_tree-rbs", github: "ruby-syntax-tree/syntax_tree-rbs", ref: "f94bc3060682ffbd126e4d5086ffedc89073d626"
 
 gem "ast", "2.4.3"
-gem "json", "2.15.2.1"
+gem "json", "2.19.9"
 gem "language_server-protocol", "3.17.0.5"
 gem "lint_roller", "1.1.0"
 gem "parallel", "1.27.0"
