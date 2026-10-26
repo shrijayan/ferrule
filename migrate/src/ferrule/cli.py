@@ -16,6 +16,8 @@ from ferrule import __version__
 from ferrule.adopt import AdoptRequest, adopt
 from ferrule.errors import MISSING_INPUT, FerruleError, fail
 from ferrule.generate import GenerateRequest, generate, load_renderer, resolve_tools
+from ferrule.generate_csharp import FORMATTER_BIN as CSHARP_FORMATTER_BIN
+from ferrule.generate_csharp import CSharpRequest, generate_csharp, load_csharp_renderer
 from ferrule.generate_go import GoRequest, generate_go, load_go_renderer
 from ferrule.generate_jvm import JvmRequest, generate_jvm, load_java_renderer, resolve_ktfmt
 from ferrule.generate_php import FORMATTER_BIN as PHP_FORMATTER_BIN
@@ -64,7 +66,7 @@ def build_parser() -> argparse.ArgumentParser:
     gen.add_argument("--gen", type=Path, help="ferrule-gen binary (default: $FERRULE_GEN)")
     gen.add_argument(
         "--target",
-        choices=("python", "go", "java", "kotlin", "ruby", "php"),
+        choices=("python", "go", "java", "kotlin", "ruby", "php", "csharp"),
         default="python",
         help="SDK language (default: python)",
     )
@@ -229,6 +231,31 @@ def _generate_php(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def _generate_csharp(args: argparse.Namespace) -> int:
+    if args.runtime_from is not None:
+        raise fail(
+            MISSING_INPUT,
+            "--runtime-from is not supported with --target csharp",
+            "--runtime-from",
+            "drop it: the C# runtime is rendered from ferrule_runtime",
+        )
+    request = CSharpRequest(
+        spec=args.spec,
+        config=args.config,
+        out=args.out,
+        gen=resolve_tools(os.environ, gen=args.gen).gen,
+        csharpier=resolve_formatter(
+            os.environ, "FERRULE_CSHARPIER", "csharpier", CSHARP_FORMATTER_BIN
+        ),
+    )
+    result = generate_csharp(request, renderer=load_csharp_renderer())
+    sys.stdout.write(
+        f"generated {result.package}: {result.files} files "
+        f"({result.runtime_files} runtime) sha256 {result.digest}\n",
+    )
+    return EXIT_OK
+
+
 def _generate(args: argparse.Namespace) -> int:
     if args.target == "go":
         return _generate_go(args)
@@ -238,6 +265,8 @@ def _generate(args: argparse.Namespace) -> int:
         return _generate_ruby(args)
     if args.target == "php":
         return _generate_php(args)
+    if args.target == "csharp":
+        return _generate_csharp(args)
     request = GenerateRequest(
         spec=args.spec,
         config=args.config,
