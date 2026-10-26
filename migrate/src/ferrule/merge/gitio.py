@@ -26,7 +26,7 @@ from ferrule.errors import (
 from ferrule.merge.core import MergeResult, merge_trees
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
+    from collections.abc import Collection, Mapping
 
     from ferrule.merge.core import Tree
     from ferrule.merge.rules import KeepRules
@@ -164,7 +164,37 @@ def _identity_env(repo: Path) -> dict[str, str]:
     return {} if proc.returncode == 0 else dict(_FALLBACK_IDENTITY)
 
 
-def commit_tree(repo: Path, files: Tree, parent: str | None, message: str) -> str:
+def executables(repo: Path, ref: str) -> set[str]:
+    """Return the paths of ``ref`` with the executable mode."""
+    listing = _git(repo, "ls-tree", "-r", "-z", "--full-tree", ref)
+    out: set[str] = set()
+    for entry in filter(None, listing.split(b"\0")):
+        meta, path = entry.split(b"\t", 1)
+        if meta.startswith(b"100755 "):
+            out.add(path.decode())
+    return out
+
+
+def modes_for(files: Tree, kept: set[str], known: set[str]) -> set[str]:
+    """Return the executable paths of ``files``.
+
+    A path a commit already has (``known``) keeps its mode (executable when in ``kept``); a new
+    one is executable when it starts with a shebang (generated ``bin/`` scripts).
+    """
+    return {
+        path
+        for path, data in files.items()
+        if ((path in kept) if path in known else data.startswith(b"#!"))
+    }
+
+
+def commit_tree(
+    repo: Path,
+    files: Tree,
+    parent: str | None,
+    message: str,
+    executable: Collection[str] = (),
+) -> str:
     """Create a commit holding exactly ``files`` (the work tree and index are not touched)."""
     paths = sorted(files)
     with tempfile.TemporaryDirectory(prefix="ferrule-merge-") as tmp:
@@ -173,7 +203,8 @@ def commit_tree(repo: Path, files: Tree, parent: str | None, message: str) -> st
         listing = "".join(f"{work / p}\n" for p in paths).encode()
         shas = _git(repo, "hash-object", "-w", "--stdin-paths", stdin=listing).split()
         info = b"".join(
-            b"100644 %s\t%s\0" % (sha, p.encode()) for sha, p in zip(shas, paths, strict=True)
+            b"%s %s\t%s\0" % (b"100755" if p in executable else b"100644", sha, p.encode())
+            for sha, p in zip(shas, paths, strict=True)
         )
         env = {"GIT_INDEX_FILE": str(Path(tmp) / "index")}
         _git(repo, "update-index", "-z", "--index-info", stdin=info, env=env)
@@ -241,13 +272,14 @@ def regenerate_branch(  # noqa: PLR0913 - keyword-only knobs with defaults
     # regeneration (adopt) the integrated branch is the baseline and nothing is forced.
     taken = merged_generation(repo, ours_sha) or previous
     base = read_ref(repo, taken) if taken else dict(new_tree)
-    gen_sha = commit_tree(repo, new_tree, previous, message)
+    gen_sha = commit_tree(repo, new_tree, previous, message, modes_for(new_tree, set(), set()))
     _git(repo, "update-ref", f"refs/heads/{generated}", gen_sha, previous or "")
     result = merge_trees(base, ours, new_tree, keep=keep)
     if result.files == ours:
         return Regeneration(gen_sha, result, branch, None, None)
     body = f"{message}\n\n{TRAILER}: {gen_sha}\n"
-    sha = commit_tree(repo, result.files, ours_sha, body)
+    mode = modes_for(result.files, executables(repo, ours_sha), set(ours))
+    sha = commit_tree(repo, result.files, ours_sha, body, mode)
     if result.blocking:
         conflict = f"ferrule/conflict-{gen_sha[:12]}"
         _git(repo, "update-ref", f"refs/heads/{conflict}", sha)
