@@ -71,23 +71,19 @@ def _repo(tmp: Path) -> Path:
     return repo
 
 
-def _open_pr(
-    tmp: Path, repo: Path, manifest: list[str], **extra: str
-) -> subprocess.CompletedProcess[str]:
-    listing = tmp / "manifest.txt"
-    listing.write_text("".join(f"{p}\n" for p in manifest))
-    env = _env(
-        tmp,
-        LABEL="minor",
-        BREAKING="0",
-        ADDITIVE="1",
-        WORKSPACE=str(repo),
-        MANIFEST=str(listing),
-        **extra,
-    )
+def _open_pr(tmp: Path, repo: Path, **extra: str) -> subprocess.CompletedProcess[str]:
+    env = _env(tmp, LABEL="minor", BREAKING="0", ADDITIVE="1", WORKSPACE=str(repo), **extra)
     return subprocess.run(  # noqa: S603
         [BASH, str(SCRIPTS / "open_pr.sh")], env=env, capture_output=True, text=True, check=False
     )
+
+
+def _regenerated(repo: Path) -> None:
+    """What regenerate.sh leaves: a merge commit on ferrule/regenerate and a generated branch."""
+    _git(repo, "switch", "-q", "-c", "ferrule/regenerate")
+    (repo / "gen.py").write_text("new\n")
+    _git(repo, "commit", "-qam", "chore: regenerate SDK")
+    _git(repo, "branch", "generated")
 
 
 def _log(tmp: Path) -> str:
@@ -103,8 +99,8 @@ PRS = [
 
 def test_open_pr_ignores_fork_prs(tmp_path: Path) -> None:
     repo = _repo(tmp_path)
-    (repo / "gen.py").write_text("new\n")
-    done = _open_pr(tmp_path, repo, ["gen.py"], GH_PR_LIST_JSON=json.dumps(PRS))
+    _regenerated(repo)
+    done = _open_pr(tmp_path, repo, CHANGED="true", GH_PR_LIST_JSON=json.dumps(PRS))
     assert done.returncode == 0, done.stderr
     assert "pr edit 9" in _log(tmp_path)
     assert "pr edit 7" not in _log(tmp_path)
@@ -112,39 +108,50 @@ def test_open_pr_ignores_fork_prs(tmp_path: Path) -> None:
 
 def test_open_pr_creates_when_only_fork_pr(tmp_path: Path) -> None:
     repo = _repo(tmp_path)
-    (repo / "gen.py").write_text("new\n")
-    done = _open_pr(tmp_path, repo, ["gen.py"], GH_PR_LIST_JSON=json.dumps(PRS[:1]))
+    _regenerated(repo)
+    done = _open_pr(tmp_path, repo, CHANGED="true", GH_PR_LIST_JSON=json.dumps(PRS[:1]))
     assert done.returncode == 0, done.stderr
     assert "pr create" in _log(tmp_path)
     assert "pr edit" not in _log(tmp_path)
 
 
-def test_open_pr_refuses_unrelated_changes(tmp_path: Path) -> None:
+def test_open_pr_does_nothing_without_a_new_generation(tmp_path: Path) -> None:
     repo = _repo(tmp_path)
-    (repo / "gen.py").write_text("new\n")
-    (repo / "hand.py").write_text("tampered\n")
-    (repo / "stray.txt").write_text("x\n")
-    done = _open_pr(tmp_path, repo, ["gen.py"])
-    assert done.returncode != 0
-    assert "push" not in _git(repo, "reflog")
-    assert not _git(tmp_path / "remote.git", "branch", "--list")
-
-
-def test_open_pr_stages_only_generated_paths(tmp_path: Path) -> None:
-    repo = _repo(tmp_path)
-    (repo / "gen.py").write_text("new\n")
-    (repo / "new_gen.py").write_text("added\n")
-    done = _open_pr(tmp_path, repo, ["gen.py", "new_gen.py"])
+    done = _open_pr(tmp_path, repo, CHANGED="false")
     assert done.returncode == 0, done.stderr
-    files = _git(repo, "show", "--name-only", "--format=", "HEAD").split()
-    assert sorted(files) == ["gen.py", "new_gen.py"]
-    assert _git(tmp_path / "remote.git", "branch", "--list").strip() == "ferrule/regenerate"
+    assert "nothing to open" in done.stdout
+    assert not _git(tmp_path / "remote.git", "branch", "--list")
+    assert _log(tmp_path) == ""
+
+
+def test_open_pr_pushes_the_merge_and_the_generated_branch(tmp_path: Path) -> None:
+    # The merge commit carries custom code and keep_files as they were; the generated branch is
+    # the base of the next regeneration.
+    repo = _repo(tmp_path)
+    _regenerated(repo)
+    done = _open_pr(tmp_path, repo, CHANGED="true")
+    assert done.returncode == 0, done.stderr
+    remote = tmp_path / "remote.git"
+    assert sorted(_git(remote, "branch", "--list", "--format=%(refname:short)").split()) == [
+        "ferrule/regenerate",
+        "generated",
+    ]
+    assert _git(remote, "show", "ferrule/regenerate:hand.py") == "mine\n"
+    assert _git(remote, "show", "ferrule/regenerate:gen.py") == "new\n"
+
+
+def test_open_pr_names_a_merge_conflict(tmp_path: Path) -> None:
+    repo = _repo(tmp_path)
+    _regenerated(repo)
+    done = _open_pr(tmp_path, repo, CHANGED="true", CONFLICT="true")
+    assert done.returncode == 0, done.stderr
+    assert "merge conflict" in _log(tmp_path)
 
 
 def test_open_pr_drops_allow_breaking_on_push(tmp_path: Path) -> None:
     repo = _repo(tmp_path)
-    (repo / "gen.py").write_text("new\n")
-    done = _open_pr(tmp_path, repo, ["gen.py"], GH_PR_LIST_JSON=json.dumps(PRS))
+    _regenerated(repo)
+    done = _open_pr(tmp_path, repo, CHANGED="true", GH_PR_LIST_JSON=json.dumps(PRS))
     assert done.returncode == 0, done.stderr
     edit = _log(tmp_path).split("pr edit 9", 1)[1]
     assert "--remove-label major,minor,patch,ferrule:allow-breaking" in edit
@@ -189,27 +196,32 @@ printf '%s %s\\n' "$PWD" "$*" >> "$CARGO_LOG"
 """
 
 STUB_FERRULE = """#!/usr/bin/env bash
-printf '%s %s\\n' "$1" "${FERRULE_GEN:-}" >> "$FERRULE_LOG"
+printf '%s %s\\n' "$*" "${FERRULE_GEN:-}" >> "$FERRULE_LOG"
 case "$1" in
-  generate) mkdir -p "$OUT" && echo gen > "$OUT/gen.py" ;;
+  regenerate)
+    if [[ -n "${FERRULE_CONFLICT:-}" ]]; then
+      git branch ferrule/conflict-0123456789ab
+      exit 1
+    fi
+    echo gen > gen.py && git commit -qam "chore: regenerate SDK" && git branch -f generated ;;
   verify) echo '{}' > "$REPORT" ;;
 esac
 """
 
 
-def _regenerate(tmp: Path, **extra: str) -> tuple[Path, str, str]:
+def _regenerate(tmp: Path, **extra: str) -> tuple[Path, str, str, Path]:
     src = tmp / "ferrule"
     (src / "action").mkdir(parents=True)
+    repo = _repo(tmp)
     env = _env(
         tmp,
         GITHUB_ACTION_PATH=str(src / "action"),
         INPUT_SPEC="openapi.json",
         INPUT_CONFIG="stainless.yml",
         INPUT_AGAINST="HEAD",
-        WORKSPACE=str(_repo(tmp)),
-        OUT=str(tmp / "out"),
+        WORKSPACE=str(repo),
         REPORT=str(tmp / "report.json"),
-        MANIFEST=str(tmp / "manifest.txt"),
+        GITHUB_OUTPUT=str(tmp / "output"),
         CARGO_LOG=str(tmp / "cargo.log"),
         FERRULE_LOG=str(tmp / "ferrule.log"),
         **extra,
@@ -226,17 +238,32 @@ def _regenerate(tmp: Path, **extra: str) -> tuple[Path, str, str]:
         src.resolve(),
         cargo.read_text() if cargo.exists() else "",
         (tmp / "ferrule.log").read_text(),
+        repo,
     )
 
 
 def test_regenerate_builds_ferrule_gen_from_the_action_checkout(tmp_path: Path) -> None:
-    src, cargo, ferrule = _regenerate(tmp_path)
+    src, cargo, ferrule, repo = _regenerate(tmp_path)
     assert cargo == f"{src} build --release --locked --quiet -p ferrule-gen\n"
     gen = src / "target/release/ferrule-gen"
-    assert ferrule.splitlines() == [f"generate {gen}", f"verify {gen}"]
+    assert ferrule.splitlines() == [
+        f"regenerate --repo {repo} --spec {repo}/openapi.json --config {repo}/stainless.yml {gen}",
+        f"verify --repo {repo} --against HEAD --new {repo} --json {tmp_path}/report.json {gen}",
+    ]
+    assert _git(repo, "branch", "--show-current").strip() == "ferrule/regenerate"
+    assert (tmp_path / "output").read_text() == "changed=true\nconflict=false\n"
 
 
 def test_regenerate_uses_a_given_ferrule_gen(tmp_path: Path) -> None:
-    _, cargo, ferrule = _regenerate(tmp_path, FERRULE_GEN="/opt/ferrule-gen")
+    _, cargo, ferrule, _ = _regenerate(tmp_path, FERRULE_GEN="/opt/ferrule-gen")
     assert cargo == ""
-    assert ferrule.splitlines()[0] == "generate /opt/ferrule-gen"
+    assert ferrule.splitlines()[0].endswith(" /opt/ferrule-gen")
+
+
+def test_regenerate_hands_a_conflict_to_the_pr(tmp_path: Path) -> None:
+    _, _, ferrule, repo = _regenerate(tmp_path, FERRULE_CONFLICT="1", FERRULE_GEN="/g")
+    assert [line.split()[0] for line in ferrule.splitlines()] == ["regenerate"]
+    assert _git(repo, "branch", "--show-current").strip() == "ferrule/conflict-0123456789ab"
+    assert (tmp_path / "output").read_text() == "changed=true\nconflict=true\n"
+    report = json.loads((tmp_path / "report.json").read_text())
+    assert report["breaking_count"] == 0
