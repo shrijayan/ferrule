@@ -19,7 +19,8 @@ annotated spec --sdk-model adapter--> model::Client --for_target("php")--> namer
   an imported class, or fully qualified (php-cs-fixer imports and shortens those where it can).
 - `tree.rs`: the declarations built from the model: field order, `allOf` bases flattened, inline
   objects, enums and unions nested, models on a reference cycle typed `mixed` in phpdoc, a method's
-  params class (path parameters but the last, query, body; a union body's variants merged).
+  params class (path parameters but the last, query, body, headers; a union body's variants
+  merged). A body that is not an object or a union of objects is FER201, as in the Python plugin.
 - `layout.rs`: the generator's line breaking (80 columns at 2 per level: a list in brackets is flat,
   hugged on one line of its own, or one item per line with trailing commas), which php-cs-fixer
   keeps while it re-indents to 4.
@@ -78,7 +79,9 @@ difference is listed with its reason:
 
 `tests/golden.rs` pins a synthetic API (bearer auth, integer path and query params, a date-time
 query param, a map of objects, a union response, a subresource, a custom casing) as `ferrule-gen`
-writes it, and checks that php-cs-fixer accepts it and settles after one pass.
+writes it, and checks that php-cs-fixer accepts it and settles after one pass. `tests/requests.rs`
+pins, on small inline specs, what neither covers: an API key in the query, query and header
+parameters split from the body, integer enums, nested date-times and a required recursive field.
 
 `ferrule generate --target php` on the imagekit config, with the package's `composer install`,
 passes the package's own tests (`vendor/bin/pest`, 87 tests) against a stand-in mock that answers
@@ -96,5 +99,7 @@ None: the project files are imagekit-php's, which name no generator.
 - Pagination (`SdkPage`), streaming and webhooks; the gaps under Proof.
 - `disable_mock_tests` and the README example request are not in the model: `ferrule-gen` uses
   the defaults (`PhpMeta::default()`).
-- Unverified with one oracle: the authentication headers other than HTTP basic (bearer and API
-  key follow the other SDKs), integer enums, and the docblock widths of nested shapes.
+- Unverified with one oracle: the authentication other than HTTP basic (bearer and a header API
+  key follow the other SDKs, a query API key nps-php; a cookie API key is not sent), the query and
+  header split (courier-php's and telnyx-php's form), integer enums, and the docblock widths of
+  nested shapes.
