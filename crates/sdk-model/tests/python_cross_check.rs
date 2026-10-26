@@ -392,7 +392,7 @@ impl Python<'_> {
             body_file_paths,
             response,
             unwrap,
-            skip_test: None,
+            skip_test: m.skip_test.clone(),
             pagination: m.pagination.as_ref().map(|p| self.pagination(p)),
             streaming: m.streaming.as_ref().map(|s| py::SdkStreaming {
                 format: match s.format {
@@ -463,6 +463,17 @@ impl Python<'_> {
     fn model(&self, d: &n::ModelDecl) -> py::SdkModelDecl {
         let (ty, alias) = match self.ty(&d.ty) {
             py::SdkType::Object(o) => (o, None),
+            // No type at all holds any value: an alias, not the empty class below.
+            py::SdkType::Unknown
+                if matches!(
+                    d.ty,
+                    n::Type::Scalar {
+                        scalar: n::Scalar::Unknown
+                    }
+                ) =>
+            {
+                (py::SdkObject::default(), Some(py::SdkType::Unknown))
+            }
             // An object without properties: an empty class, as Stainless prints it.
             py::SdkType::Unknown => (py::SdkObject::default(), None),
             other => (py::SdkObject::default(), Some(other)),

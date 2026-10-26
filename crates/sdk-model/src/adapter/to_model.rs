@@ -494,6 +494,7 @@ impl Context<'_> {
             pagination,
             streaming,
             only: self.ext.only.clone(),
+            skip_test: self.ext.skip_test.clone(),
         })
     }
 }

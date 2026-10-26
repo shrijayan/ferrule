@@ -838,9 +838,8 @@ fn emit_method(
         ))
     });
     // A union is cast unless it is unwrapped through a wrapper or switched to a stream.
-    let union = switch.is_none()
-        && method.unwrap.is_none()
-        && ret.as_ref().is_some_and(|r| returns_union(&s.client.models, r));
+    let union =
+        switch.is_none() && method.unwrap.is_none() && ret.as_ref().is_some_and(|r| returns_union(&s.client.models, r));
     push_options_and_cast(
         s,
         p,
