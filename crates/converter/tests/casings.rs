@@ -189,3 +189,22 @@ custom_casings:
         Some(&v(&json!({"qa": {"initialism": true}})))
     );
 }
+
+/// The class name `config` gives the model that names the `Embedding` schema.
+fn embedding_name(config: &str) -> Option<Value> {
+    let r = convert(&spec(), &parse_config(config).expect("config"));
+    let models = op(&r.spec, "/embeddings", "x-ferrule-models")?;
+    models.get("Embedding").and_then(|m| m.get("name")).cloned()
+}
+
+#[test]
+fn an_initialism_set_to_false_is_not_read_as_a_plural() {
+    // `https` is a default initialism; turned off, it is not the plural of `http` either.
+    let name = embedding_name(
+        "
+resources: { embeddings: { models: { https_result: Embedding }, methods: { create: post /embeddings } } }
+custom_casings: { https: { initialism: false } }
+",
+    );
+    assert_eq!(name, Some(Value::from("HttpsResult")));
+}
