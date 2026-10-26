@@ -596,3 +596,51 @@ fn prints_deterministic_json() {
     assert_eq!(Some(back), model(&d).expect("converts"));
     assert_eq!(ferrule_sdk_model::to_json(None), "null\n");
 }
+
+/// The model as the JSON `ferrule-gen model` prints.
+fn printed(d: &Value) -> Value {
+    let text = ferrule_sdk_model::to_json(model(d).expect("converts").as_ref());
+    serde_json::from_str(&text).expect("JSON")
+}
+
+/// A map or array body is documented by its schema's description (Forge's content description),
+/// which is not the description of the body as a whole.
+#[test]
+fn keeps_the_description_of_the_body_schema_apart_from_the_body() {
+    let d = doc(
+        &json!({
+            "requestBody": { "description": "The body.", "content": { "application/json": { "schema": {
+                "type": "array", "description": "The ids.", "items": { "type": "string" },
+            } } } },
+        }),
+        &json!({}),
+    );
+    let body = &printed(&d)["resources"][0]["methods"][0]["body"];
+    assert_eq!(body["description"], json!("The body."));
+    assert_eq!(body["schema_description"], json!("The ids."));
+}
+
+/// `x-ferrule-style` (ADR 0018): what the adopted runtime spells differently from today's
+/// generator. It describes one target's runtime, so the model keeps each switch as written for
+/// that target; a malformed one is FER101, as for the other extensions.
+#[test]
+fn keeps_the_runtime_style_for_its_target_and_rejects_a_malformed_one() {
+    let style = |s: &Value| doc(&json!({ "x-ferrule-style": s }), &json!({}));
+    let older = printed(&style(&json!({ "sentinel": "NOT_GIVEN", "resources": "eager" })));
+    assert_eq!(
+        older["style"],
+        json!([
+            { "target": "python", "key": "sentinel", "value": "NOT_GIVEN" },
+            { "target": "python", "key": "resources", "value": "eager" },
+        ])
+    );
+    assert_eq!(printed(&doc(&json!({}), &json!({})))["style"], json!([]));
+    for bad in [
+        json!("eager"),
+        json!({ "resources": "lazyish" }),
+        json!({ "colour": "blue" }),
+        json!({ "paths": 1 }),
+    ] {
+        assert_eq!(code(model(&style(&bad))), "FER101", "{bad}");
+    }
+}
