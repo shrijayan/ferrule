@@ -247,7 +247,6 @@ const IMAGEKIT_KNOWN: &[(&str, &str)] = &[
     ),
     ("sig/imagekitio/models/text_overlay_transformation.rbs", VARIANT_ORDER),
     ("sig/imagekitio/models/transformation.rbs", VARIANT_ORDER),
-    ("sig/imagekitio/models/update_file_request.rbs", VARIANT_NAME),
     ("sig/imagekitio/models.rbs", WEBHOOKS),
     ("sig/imagekitio/resources/beta/v2/files.rbs", TOKEN),
     ("sig/imagekitio/resources/files.rbs", TOKEN),
