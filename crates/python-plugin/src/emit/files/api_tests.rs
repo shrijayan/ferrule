@@ -196,16 +196,27 @@ struct Ctx<'a> {
 }
 
 /// The result check at `indent`, split the way ruff splits a call past 120 columns.
-fn assertion(m: &FilesMethod, variable: &str, indent: &str) -> String {
+fn assertion(m: &FilesMethod, mode: Mode, variable: &str, indent: &str) -> String {
     let Some(response) = &m.response else {
         return format!("{indent}assert {variable} is None");
     };
-    let call_args = format!("{}, {variable}, path=[\"response\"]", response.name);
+    let ty = match &m.page {
+        Some(page) => format!("{}{page}[{}]", page_prefix(mode), response.name),
+        None => response.name.clone(),
+    };
+    let call_args = format!("{ty}, {variable}, path=[\"response\"]");
     let line = format!("{indent}assert_matches_type({call_args})");
     if js::len(&line) <= 120 {
         line
     } else {
         format!("{indent}assert_matches_type(\n{indent}    {call_args}\n{indent})")
+    }
+}
+
+fn page_prefix(mode: Mode) -> &'static str {
+    match mode {
+        Mode::Sync => "Sync",
+        Mode::Async => "Async",
     }
 }
 
@@ -229,7 +240,7 @@ fn method_tests(ctx: &mut Ctx<'_>, m: &FilesMethod, mode: Mode, tests: &mut Vec<
             m,
             mode,
             tests,
-            ("", false),
+            ("", m.streaming),
             &call_order(&required),
             &call_order(&all),
         );
@@ -311,14 +322,14 @@ fn call_tests(
         if streamed {
             format!("{indent}{aw}{v}.response.{close}()")
         } else {
-            assertion(m, v, indent)
+            assertion(m, mode, v, indent)
         }
     };
     let parsed = |indent: &str| {
         if streamed {
             format!("{indent}stream = {aw}response.parse()\n{indent}{aw}stream.close()")
         } else {
-            format!("{indent}{v} = {aw}response.parse()\n{}", assertion(m, v, indent))
+            format!("{indent}{v} = {aw}response.parse()\n{}", assertion(m, mode, v, indent))
         }
     };
 
@@ -434,11 +445,16 @@ pub fn emit_test_module(input: &ProjectFilesInput, r: &FilesResource, accessor: 
     add(pkg.clone(), &input.client_class);
     add(pkg.clone(), &format!("Async{}", input.client_class));
     for m in &r.methods {
-        let Some(response) = &m.response else {
+        let Some(response) = m.response.as_ref().filter(|_| !m.streaming) else {
             continue;
         };
         add("tests.utils".to_owned(), "assert_matches_type");
         add(format!("{pkg}.{}", parent_module(&response.module)), &response.name);
+        if let Some(page) = &m.page {
+            for mode in [Mode::Sync, Mode::Async] {
+                add(format!("{pkg}.pagination"), &format!("{}{page}", page_prefix(mode)));
+            }
+        }
     }
     for u in &ctx.uses {
         add(format!("{pkg}._utils"), u);
