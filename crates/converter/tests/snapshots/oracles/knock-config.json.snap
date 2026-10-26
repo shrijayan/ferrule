@@ -1,5 +1,5 @@
 {
-  "sha256": "dc2dbff6089ba2d0961b145ea87686fed715635d37e142fe60ee2335c51c1e88",
+  "sha256": "cb7e8b110fd96395339e4f26b70b92e06f064ecacd0e4aa7558e59c15afe2a68",
   "root": {
     "x-ferrule-client": {
       "defaultEnvironment": "production",
@@ -1313,8 +1313,8 @@
           "query_options.$top": "query_options.$top"
         },
         "response": {
-          "ms_teams_teams": "ms_teams_teams",
-          "skip_token": "next_cursor_field"
+          "skip_token": "next_cursor_field",
+          "ms_teams_teams": "ms_teams_teams"
         },
         "scheme": "cursor"
       },

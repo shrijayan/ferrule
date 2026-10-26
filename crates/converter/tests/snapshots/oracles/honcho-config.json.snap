@@ -1,5 +1,5 @@
 {
-  "sha256": "70495c64db2a4fc929b4965120378b8dbab99274a178a8b128acb3f68ded47cd",
+  "sha256": "32179bbe3f1c10ce75f1312a4a5af55589ce3c534121ae068e9bcfc672d46526",
   "root": {
     "x-ferrule-client": {
       "defaultEnvironment": "demo",
@@ -224,11 +224,11 @@
           "size": "size"
         },
         "response": {
+          "total": "total",
           "items": "items",
           "page": "current_page_number_field",
-          "pages": "total_page_count_field",
           "size": "size",
-          "total": "total"
+          "pages": "total_page_count_field"
         },
         "scheme": "page_number"
       },
@@ -309,11 +309,11 @@
           "size": "size"
         },
         "response": {
+          "total": "total",
           "items": "items",
           "page": "current_page_number_field",
-          "pages": "total_page_count_field",
           "size": "size",
-          "total": "total"
+          "pages": "total_page_count_field"
         },
         "scheme": "page_number"
       },
@@ -441,11 +441,11 @@
           "size": "size"
         },
         "response": {
+          "total": "total",
           "items": "items",
           "page": "current_page_number_field",
-          "pages": "total_page_count_field",
           "size": "size",
-          "total": "total"
+          "pages": "total_page_count_field"
         },
         "scheme": "page_number"
       },
@@ -514,11 +514,11 @@
           "size": "size"
         },
         "response": {
+          "total": "total",
           "items": "items",
           "page": "current_page_number_field",
-          "pages": "total_page_count_field",
           "size": "size",
-          "total": "total"
+          "pages": "total_page_count_field"
         },
         "scheme": "page_number"
       },
@@ -649,11 +649,11 @@
           "size": "size"
         },
         "response": {
+          "total": "total",
           "items": "items",
           "page": "current_page_number_field",
-          "pages": "total_page_count_field",
           "size": "size",
-          "total": "total"
+          "pages": "total_page_count_field"
         },
         "scheme": "page_number"
       },
@@ -776,11 +776,11 @@
           "size": "size"
         },
         "response": {
+          "total": "total",
           "items": "items",
           "page": "current_page_number_field",
-          "pages": "total_page_count_field",
           "size": "size",
-          "total": "total"
+          "pages": "total_page_count_field"
         },
         "scheme": "page_number"
       },
@@ -940,11 +940,11 @@
           "size": "size"
         },
         "response": {
+          "total": "total",
           "items": "items",
           "page": "current_page_number_field",
-          "pages": "total_page_count_field",
           "size": "size",
-          "total": "total"
+          "pages": "total_page_count_field"
         },
         "scheme": "page_number"
       },
