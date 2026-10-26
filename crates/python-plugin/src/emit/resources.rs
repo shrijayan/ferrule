@@ -64,6 +64,27 @@ fn unsupported(method: &SdkMethod, what: &str) -> FerruleError {
 struct FileState<'a> {
     here: &'a str,
     client: &'a SdkClient,
+    /// The shared models the file's methods return (see [`ParamsContext::outputs`]).
+    outputs: HashSet<String>,
+}
+
+/// The shared models `methods` return or stream, by class name.
+fn shared_outputs<'m>(
+    holder: Option<&SdkResource>,
+    methods: impl IntoIterator<Item = &'m SdkMethod>,
+) -> HashSet<String> {
+    methods
+        .into_iter()
+        .flat_map(|m| {
+            [
+                return_model(holder, m).map(|r| r.r#ref),
+                stream_event_model(holder, m).map(|r| r.r#ref),
+            ]
+        })
+        .flatten()
+        .filter(|r| r.module.starts_with("shared."))
+        .map(|r| r.name)
+        .collect()
 }
 
 fn imp(s: &FileState<'_>, p: &mut PythonPrinter, target: &str, name: &str) {
@@ -636,11 +657,12 @@ fn emit_method(
         qualify: format!("{leaf_module}."),
         here: s.here.to_owned(),
         shadowed: HashSet::new(),
+        outputs: s.outputs.clone(),
     };
 
     let model = ret
         .as_ref()
-        .map_or_else(|| "None".to_owned(), |r| ctx.ref_name(p, &r.r#ref));
+        .map_or_else(|| "None".to_owned(), |r| ctx.output_ref(p, &r.r#ref));
     let mut returns = model.clone();
     let sync_or_async = if is_async { "Async" } else { "Sync" };
     if let Some(page) = page {
@@ -661,7 +683,8 @@ fn emit_method(
     }
     // A param-switched method returns the response, or a stream of events.
     let streamed = switch.map(|_| {
-        let event = stream_event_model(holder, method).map_or_else(|| "None".to_owned(), |r| ctx.ref_name(p, &r.r#ref));
+        let event =
+            stream_event_model(holder, method).map_or_else(|| "None".to_owned(), |r| ctx.output_ref(p, &r.r#ref));
         let streamed = format!("{}[{event}]", if is_async { "AsyncStream" } else { "Stream" });
         returns = format!("{model} | {streamed}");
         streamed
@@ -967,7 +990,11 @@ fn emit_wrapper(s: &FileState<'_>, p: &mut PythonPrinter, resource: &SdkResource
 pub fn emit_resource_file(client: &SdkClient, resource: &SdkResource) -> Result<String, FerruleError> {
     let mut p = PythonPrinter::new(&[HEADER]);
     let here = resource_module(resource);
-    let s = FileState { here: &here, client };
+    let s = FileState {
+        here: &here,
+        client,
+        outputs: shared_outputs(Some(resource), &resource.methods),
+    };
     p.import_from("__future__", "annotations");
     p.import_module("httpx");
     for name in ["Body", "Query", "Headers", "NotGiven", client.style.not_given()] {
@@ -1007,7 +1034,11 @@ pub fn emit_client_methods(
     here: &str,
     mode: Mode,
 ) -> Result<(), FerruleError> {
-    let s = FileState { here, client };
+    let s = FileState {
+        here,
+        client,
+        outputs: shared_outputs(None, &client.client_methods),
+    };
     for method in stainless_method_order(&client.client_methods) {
         p.blank();
         emit_method(&s, p, method, mode, None)?;
