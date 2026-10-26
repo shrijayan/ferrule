@@ -39,8 +39,9 @@ pub struct Diagnostic {
 /// The result of [`convert_text`].
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ConvertOutput {
-    /// Deterministic JSON: sorted keys, 2-space indent, trailing newline. Empty when the config
-    /// fails validation.
+    /// Deterministic JSON: sorted keys (except the maps in
+    /// [`extensions::pagination::CONFIG_ORDER_MAPS`], which keep config order), 2-space indent,
+    /// trailing newline. Empty when the config fails validation.
     pub output: String,
     pub diagnostics: Vec<Diagnostic>,
 }
@@ -108,7 +109,7 @@ pub fn convert_text(spec_text: &str, config_text: &str) -> Result<ConvertOutput,
     diagnostics.extend(ed.diagnostics);
     diagnostics.extend(result.diagnostics);
     Ok(ConvertOutput {
-        output: value::stable_stringify(&result.spec),
+        output: value::stable_stringify_keeping(&result.spec, &extensions::pagination::CONFIG_ORDER_MAPS),
         diagnostics,
     })
 }

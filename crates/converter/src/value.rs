@@ -353,14 +353,28 @@ pub fn utf16_len(s: &str) -> usize {
 /// Recursively sort object keys so equal values serialize to identical bytes (`sortKeys`).
 #[must_use]
 pub fn sort_keys(value: &Value) -> Value {
+    sort_keys_keeping(value, &[])
+}
+
+/// [`sort_keys`], except that an object reached through a `(parent key, key)` pair in `keep`
+/// keeps its own key order (its values are still sorted). Insertion order is deterministic, so
+/// the output still is.
+#[must_use]
+pub fn sort_keys_keeping(value: &Value, keep: &[(&str, &str)]) -> Value {
+    sort_below(value, None, None, keep)
+}
+
+fn sort_below(value: &Value, parent: Option<&str>, key: Option<&str>, keep: &[(&str, &str)]) -> Value {
     match value {
-        Value::Array(a) => Value::Array(a.iter().map(sort_keys).collect()),
+        Value::Array(a) => Value::Array(a.iter().map(|v| sort_below(v, None, None, keep)).collect()),
         Value::Object(m) => {
             let mut keys: Vec<&String> = m.keys().collect();
-            keys.sort_by(|a, b| cmp_utf16(a, b));
+            if !parent.zip(key).is_some_and(|pair| keep.contains(&pair)) {
+                keys.sort_by(|a, b| cmp_utf16(a, b));
+            }
             let mut out = Map::new();
             for k in keys {
-                out.insert(k.clone(), sort_keys(&m.0[k.as_str()]));
+                out.insert(k.clone(), sort_below(&m.0[k.as_str()], key, Some(k), keep));
             }
             Value::Object(out)
         }
@@ -371,8 +385,14 @@ pub fn sort_keys(value: &Value) -> Value {
 /// Deterministic JSON: sorted keys, 2-space indent, trailing newline (`stableStringify`).
 #[must_use]
 pub fn stable_stringify(value: &Value) -> String {
+    stable_stringify_keeping(value, &[])
+}
+
+/// [`stable_stringify`] with the objects [`sort_keys_keeping`] names in their own key order.
+#[must_use]
+pub fn stable_stringify_keeping(value: &Value, keep: &[(&str, &str)]) -> String {
     let mut out = String::new();
-    write_pretty(&sort_keys(value), 0, &mut out);
+    write_pretty(&sort_keys_keeping(value, keep), 0, &mut out);
     out.push('\n');
     out
 }
@@ -912,6 +932,18 @@ mod tests {
         assert_eq!(
             out,
             "{\n  \"200\": null,\n  \"$ref\": null,\n  \"a\": null,\n  \"\u{1f600}\": null,\n  \"\u{ff61}\": null\n}\n"
+        );
+    }
+
+    #[test]
+    fn sort_keys_keeping_keeps_only_the_named_objects_in_their_order() {
+        let v =
+            parse_json(r#"[{"p": {"z": {"b": 1, "a": 2}, "keep": {"z": {"b": 1, "a": 2}, "y": 0}}}]"#).expect("json");
+        let out = to_json(&sort_keys_keeping(&v, &[("p", "keep")]));
+        assert_eq!(out, r#"[{"p":{"keep":{"z":{"a":2,"b":1},"y":0},"z":{"a":2,"b":1}}}]"#);
+        assert_eq!(
+            to_json(&sort_keys(&v)),
+            r#"[{"p":{"keep":{"y":0,"z":{"a":2,"b":1}},"z":{"a":2,"b":1}}}]"#
         );
     }
 
