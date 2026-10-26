@@ -283,6 +283,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "ferrule-rust-plugin"
+version = "0.0.0"
+dependencies = [
+ "ferrule-converter",
+ "ferrule-sdk-model",
+ "forge",
+ "serde_json",
+]
+
+[[package]]
 name = "ferrule-sdk-model"
 version = "0.0.0"
 dependencies = [
