@@ -33,7 +33,8 @@
 //! For Ruby, the output holds the generated files, before the gem's `rake format` lays them out,
 //! and [`RUBY_RUNTIME_OPTIONS`], the options the Ruby runtime template is rendered with
 //! (`ferrule_runtime.render_ruby_files`); `ferrule generate` renders the runtime from it, removes
-//! it and runs the formatters, as it renders Python's runtime.
+//! it and runs the formatters, as it renders Python's runtime. PHP is the same, with
+//! [`PHP_RUNTIME_OPTIONS`] (`ferrule_runtime.render_php_files`) and the package's php-cs-fixer.
 //!
 //! `model` prints the language-neutral SDK model (`ferrule-sdk-model`) of an annotated spec as
 //! deterministic JSON, for debugging and for plugin tests.
@@ -56,7 +57,7 @@ Commands:
   model     Print the language-neutral SDK model of an annotated spec as JSON
 
 Targets: python (default), typescript, node (the legacy TypeScript layout), go, java, kotlin,
-ruby; php, csharp, cli and terraform are planned and not supported yet";
+ruby, php; csharp, cli and terraform are planned and not supported yet";
 
 /// `ferrule-gen <crate version> forge <40-hex rev>`: the rev is the Forge commit pinned in the
 /// workspace `Cargo.lock` (read by `build.rs`). `ferrule.lock` records both parts.
@@ -97,8 +98,10 @@ const KOTLIN: &str = "kotlin";
 
 const RUBY: &str = "ruby";
 
+const PHP: &str = "php";
+
 /// The targets with a plugin.
-const PLUGINS: [&str; 7] = [DEFAULT_TARGET, TYPESCRIPT, NODE, GO, JAVA, KOTLIN, RUBY];
+const PLUGINS: [&str; 8] = [DEFAULT_TARGET, TYPESCRIPT, NODE, GO, JAVA, KOTLIN, RUBY, PHP];
 
 /// Where `generate --target go` writes the Go runtime's options (JSON), relative to `--out`.
 pub const GO_RUNTIME_OPTIONS: &str = ".ferrule/go-runtime.json";
@@ -109,6 +112,9 @@ pub const JVM_RUNTIME_OPTIONS: &str = ".ferrule/jvm-runtime.json";
 
 /// Where `generate --target ruby` writes the Ruby runtime's options (JSON), relative to `--out`.
 pub const RUBY_RUNTIME_OPTIONS: &str = ".ferrule/ruby-runtime.json";
+
+/// Where `generate --target php` writes the PHP runtime's options (JSON), relative to `--out`.
+pub const PHP_RUNTIME_OPTIONS: &str = ".ferrule/php-runtime.json";
 
 fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().skip(1).collect();
@@ -266,6 +272,7 @@ fn generate(args: &[String], stderr: &mut dyn Write) -> i32 {
         JAVA => write_jvm(&args, ferrule_jvm_plugin::Flavor::Java),
         KOTLIN => write_jvm(&args, ferrule_jvm_plugin::Flavor::Kotlin),
         RUBY => write_ruby(&args),
+        PHP => write_php(&args),
         other => return fail(stderr, &unsupported_target(other)),
     };
     match written {
@@ -446,6 +453,26 @@ fn write_ruby(args: &GenerateArgs) -> Result<(), forge::Err> {
     forge::write(&args.out, files)
 }
 
+/// Reads the annotated spec, maps it to the neutral model and writes the PHP plugin's files with
+/// the runtime options; nothing for a document without operations.
+fn write_php(args: &GenerateArgs) -> Result<(), forge::Err> {
+    let forge = read(&args.spec)?;
+    let Some(client) = ferrule_sdk_model::forge_to_model(&forge)? else {
+        return forge::write(&args.out, Vec::<TextFile>::new());
+    };
+    let out = ferrule_php_plugin::generate(&client, &ferrule_php_plugin::PhpMeta::default())?;
+    let mut files: Vec<TextFile> = out
+        .files
+        .into_iter()
+        .map(|(path, content)| TextFile { path, content })
+        .collect();
+    files.push(TextFile {
+        path: PHP_RUNTIME_OPTIONS.to_owned(),
+        content: out.runtime.to_json(),
+    });
+    forge::write(&args.out, files)
+}
+
 fn parse_model(args: &[String]) -> Result<PathBuf, String> {
     match args {
         [spec] if !spec.starts_with('-') || spec == "-" => Ok(PathBuf::from(spec)),
@@ -535,7 +562,7 @@ mod tests {
         assert!(err.contains("possible values: python, typescript"), "{err}");
         let fix = unsupported_target("terraform").fix;
         assert!(
-            fix.contains("python or typescript or node or go or java or kotlin or ruby"),
+            fix.contains("python or typescript or node or go or java or kotlin or ruby or php"),
             "{fix}"
         );
         let err = parse_generate(&strings(&["a.json", "--out", "sdk", "--target"])).expect_err("no value");
