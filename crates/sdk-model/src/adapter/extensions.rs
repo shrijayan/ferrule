@@ -90,6 +90,8 @@ pub struct MethodExtensions {
     pub streaming: Option<RawStreaming>,
     /// The response envelope field the method returns (`unwrap_response`), if any.
     pub unwrap: Option<String>,
+    /// Why the method's generated tests are skipped (`skip_test_reason`), if they are.
+    pub skip_test: Option<String>,
     /// Mirrored from the root (Forge gap G2): `custom_casings`; empty without.
     pub casings: Vec<CustomCasing>,
     /// Mirrored from the root (Forge gap G2): every `standalone_api` resource, including ones
@@ -367,6 +369,11 @@ pub fn read_method_extensions(extensions: &[(&str, &Json)], pointer: &str) -> Re
         Some(Json::String(field)) => Some(field.clone()),
         Some(_) => return Err(bad("x-ferrule-unwrap", "a response property name")),
     };
+    let skip_test = match get("x-ferrule-skip-test") {
+        None | Some(Json::Null) => None,
+        Some(Json::String(reason)) => Some(reason.clone()),
+        Some(_) => return Err(bad("x-ferrule-skip-test", "a reason")),
+    };
     let streaming = get("x-ferrule-streaming")
         .map(|raw| read_streaming(raw).ok_or_else(|| bad("x-ferrule-streaming", STREAMING_SHAPE)))
         .transpose()?;
@@ -410,6 +417,7 @@ pub fn read_method_extensions(extensions: &[(&str, &Json)], pointer: &str) -> Re
         pagination,
         streaming,
         unwrap,
+        skip_test,
         casings,
         standalone,
         style,
