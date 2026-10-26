@@ -4,8 +4,8 @@
 use std::collections::HashSet;
 
 use super::common::{
-    HEADER, args_docstring, header_params, is_header, is_param_switched, keyword_path_params, leaf, method_args,
-    method_ref, py_fstring, py_string, rel_import, resource_class_base, resource_module, return_model,
+    HEADER, args_docstring, has_inline_object, header_params, is_header, is_param_switched, keyword_path_params, leaf,
+    method_args, method_ref, py_fstring, py_string, rel_import, resource_class_base, resource_module, return_model,
     stainless_method_order, stream_event_model, stream_switch, with_bool_literal,
 };
 use super::format::{Bracket, Cond, Expr, bracket, call, flat, print_expr};
@@ -475,6 +475,14 @@ fn check_supported(method: &SdkMethod) -> Result<(), FerruleError> {
     }
     if method.body.is_some() && method.body_params.is_empty() && method.body_variants.is_empty() {
         return Err(unsupported(method, "a request body that is not an object"));
+    }
+    // No oracle sends an object as a header: it would go out as `str(...)`, and a header-only
+    // method has no params module to declare its class in.
+    if let Some(h) = method.header_params.iter().find(|h| has_inline_object(&h.ty)) {
+        return Err(unsupported(
+            method,
+            &format!("the header parameter \"{}\" with an object schema", h.wire_name),
+        ));
     }
     Ok(())
 }
