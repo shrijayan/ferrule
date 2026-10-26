@@ -1,0 +1,181 @@
+{
+  "info": {
+    "title": "fx",
+    "version": "1"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/terminals": {
+      "get": {
+        "operationId": "listTerminals",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "ok"
+          }
+        },
+        "x-fern-sdk-group-name": [
+          "terminals"
+        ],
+        "x-fern-sdk-method-name": "list",
+        "x-ferrule-client": {
+          "defaultEnvironment": "production",
+          "defaultHeaders": {},
+          "envPrefix": "FX",
+          "environments": [
+            {
+              "name": "production",
+              "url": "https://api.example.com"
+            }
+          ],
+          "name": "fx",
+          "omitPlatformHeaders": false,
+          "opts": [],
+          "query": {
+            "arrayFormat": "comma",
+            "nestedFormat": "brackets"
+          },
+          "retries": {
+            "initialDelaySeconds": 0.5,
+            "maxDelaySeconds": 8,
+            "maxRetries": 2
+          },
+          "security": [],
+          "securitySchemes": {},
+          "timeoutSeconds": 60
+        },
+        "x-ferrule-method-name": "list",
+        "x-ferrule-method-order": 1,
+        "x-ferrule-models": {},
+        "x-ferrule-package": {
+          "name": "fx",
+          "repo": "fx/fx-python"
+        },
+        "x-ferrule-resource": {
+          "order": [
+            0
+          ],
+          "path": [
+            "terminals"
+          ]
+        }
+      }
+    },
+    "/terminals/read": {
+      "get": {
+        "operationId": "readTerminal",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "lines",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "ok"
+          }
+        },
+        "x-fern-sdk-group-name": [
+          "terminals"
+        ],
+        "x-fern-sdk-method-name": "read",
+        "x-ferrule-client": {
+          "defaultEnvironment": "production",
+          "defaultHeaders": {},
+          "envPrefix": "FX",
+          "environments": [
+            {
+              "name": "production",
+              "url": "https://api.example.com"
+            }
+          ],
+          "name": "fx",
+          "omitPlatformHeaders": false,
+          "opts": [],
+          "query": {
+            "arrayFormat": "comma",
+            "nestedFormat": "brackets"
+          },
+          "retries": {
+            "initialDelaySeconds": 0.5,
+            "maxDelaySeconds": 8,
+            "maxRetries": 2
+          },
+          "security": [],
+          "securitySchemes": {},
+          "timeoutSeconds": 60
+        },
+        "x-ferrule-method-name": "read",
+        "x-ferrule-method-order": 0,
+        "x-ferrule-models": {},
+        "x-ferrule-package": {
+          "name": "fx",
+          "repo": "fx/fx-python"
+        },
+        "x-ferrule-resource": {
+          "order": [
+            0
+          ],
+          "path": [
+            "terminals"
+          ]
+        },
+        "x-ferrule-skip-test": "the mock server does not read integer query parameters through a $ref"
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.example.com"
+    }
+  ],
+  "x-ferrule-client": {
+    "defaultEnvironment": "production",
+    "defaultHeaders": {},
+    "envPrefix": "FX",
+    "environments": [
+      {
+        "name": "production",
+        "url": "https://api.example.com"
+      }
+    ],
+    "name": "fx",
+    "omitPlatformHeaders": false,
+    "opts": [],
+    "query": {
+      "arrayFormat": "comma",
+      "nestedFormat": "brackets"
+    },
+    "retries": {
+      "initialDelaySeconds": 0.5,
+      "maxDelaySeconds": 8,
+      "maxRetries": 2
+    },
+    "security": [],
+    "securitySchemes": {},
+    "timeoutSeconds": 60
+  },
+  "x-ferrule-config": {
+    "edition": "2025-10-08",
+    "packageName": "fx",
+    "projectName": "fx",
+    "pythonEdition": "python.2025-10-08",
+    "version": 1
+  }
+}
