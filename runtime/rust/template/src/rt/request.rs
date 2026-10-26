@@ -130,17 +130,16 @@ impl RequestSpec {
 ///
 /// # Errors
 ///
-/// [`Error::Config`] for `.` or `..`: URL parsers resolve those segments even when they are
-/// percent-encoded, so the request would go to another path.
+/// [`Error::Config`] for an empty value, `null`, `.` or `..`: the request would go to another
+/// path (URL parsers resolve dot segments even when they are percent-encoded).
 #[doc(hidden)]
 pub fn path_param(value: &impl Serialize) -> Result<String> {
     let value = serde_json::to_value(value).map_err(Error::Encode)?;
     match query::scalar(&value).as_deref() {
-        Some("." | "..") => Err(Error::Config(
-            "a path param cannot be `.` or `..`".to_owned(),
+        Some(text) if !matches!(text, "" | "." | "..") => Ok(query::percent(text)),
+        _ => Err(Error::Config(
+            "a path param cannot be empty, null, `.` or `..`".to_owned(),
         )),
-        Some(text) => Ok(query::percent(text)),
-        None => Ok(String::new()),
     }
 }
 
@@ -362,7 +361,7 @@ mod tests {
 
     #[test]
     fn rejects_dot_segments() {
-        for value in [".", ".."] {
+        for value in [json!("."), json!(".."), json!(""), Value::Null] {
             assert!(
                 matches!(path_param(&value), Err(Error::Config(_))),
                 "{value}"
