@@ -333,6 +333,12 @@ pub fn read_method_extensions(extensions: &[(&str, &Json)], pointer: &str) -> Re
             name: n.to_owned(),
             repo: repo_slug(repo).unwrap_or_default().to_owned(),
         },
+        // The Python target's package: a config without one has none, and every other target
+        // reads its own settings from `x-ferrule-targets`.
+        _ if raw_pkg.is_none() => Package {
+            name: String::new(),
+            repo: String::new(),
+        },
         _ => {
             return Err(bad(
                 "x-ferrule-package",

@@ -265,9 +265,6 @@ fn a_config_without_a_python_target_has_no_package_but_its_own_target() {
         .remove("x-ferrule-package");
     let c = client(&d);
     assert_eq!((c.package.name.as_str(), c.package.repo.as_str()), ("", ""));
-    assert_eq!(
-        c.target("csharp").and_then(|t| t.package_name.as_deref()),
-        Some("Acme")
-    );
+    assert_eq!(c.target("csharp").and_then(|t| t.package_name.as_deref()), Some("Acme"));
     assert_eq!(c.for_target("csharp").resources.len(), 1);
 }

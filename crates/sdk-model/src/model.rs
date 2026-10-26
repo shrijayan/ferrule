@@ -426,7 +426,8 @@ pub struct Resource {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Package {
-    /// `x-ferrule-package.name`: today the Python target's package name.
+    /// `x-ferrule-package.name`: the Python target's package name; empty for a config without a
+    /// Python target (each target reads its own settings from `Client::target`).
     pub name: String,
     /// GitHub `owner/repo` of the SDK, or empty.
     pub repo: String,
