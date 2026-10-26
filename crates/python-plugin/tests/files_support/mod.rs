@@ -154,6 +154,8 @@ fn method(v: &Value) -> FilesMethod {
             module: string(r, "module"),
         }),
         stream_switch: opt_string(v, "streamSwitch"),
+        page: None,
+        streaming: false,
     }
 }
 
