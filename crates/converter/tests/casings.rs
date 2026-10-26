@@ -208,3 +208,33 @@ custom_casings: { https: { initialism: false } }
     );
     assert_eq!(name, Some(Value::from("HttpsResult")));
 }
+
+#[test]
+fn ignores_a_pascal_spelling_that_puts_a_digit_first() {
+    // `123` would start `qa_answer` as `123Answer`; a word that starts with a digit (`3ds`) may
+    // keep one, since it cannot start a class name either way.
+    let config = parse_config(
+        "
+targets: { python: { package_name: acme } }
+resources: { embeddings: { models: { qa_answer: Embedding }, methods: { create: post /embeddings } } }
+custom_casings:
+  qa: { pascal: \"123\", camel: qa, snake: qa, capital: QA }
+  3ds: { pascal: 3DS, camel: 3ds, snake: 3ds, capital: 3DS }
+",
+    )
+    .expect("config");
+    let r = convert(&spec(), &config);
+    assert_eq!(
+        codes(&r.diagnostics),
+        [("FER1703", "warning".to_owned(), "/custom_casings/qa/pascal")]
+    );
+    assert_eq!(
+        r.spec.get("x-ferrule-casings"),
+        Some(&v(&json!({"3ds": {"pascal": "3DS"}})))
+    );
+    let models = op(&r.spec, "/embeddings", "x-ferrule-models").expect("models");
+    assert_eq!(
+        models.get("Embedding").and_then(|m| m.get("name")),
+        Some(&Value::from("QaAnswer"))
+    );
+}
