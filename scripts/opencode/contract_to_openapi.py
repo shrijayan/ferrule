@@ -121,7 +121,9 @@ def _request_body(endpoint: Json, payload: list[Json]) -> Json | None:
         return None
     mode = cast("Json", endpoint.get("payload") or {}).get("mode", "struct")
     if mode == "binary":
-        content: Json = {"application/octet-stream": {"schema": {"type": "string"}}}
+        content: Json = {
+            "application/octet-stream": {"schema": {"type": "string", "format": "binary"}}
+        }
         return {"required": True, "content": content}
     if mode != "struct":
         msg = f"{endpoint['operationId']}: unknown payload mode {mode!r}"
