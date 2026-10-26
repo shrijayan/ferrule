@@ -114,6 +114,21 @@ fn a_required_recursive_field_ends_the_test_example() {
     assert!(test.contains("'children' => []"), "{test}");
 }
 
+/// A method with query parameters and a body sends each parameter where it belongs: the query
+/// ones in the URL, the others in the body.
+#[test]
+fn query_and_body_parameters_are_split() {
+    let f = files(
+        "  /things:\n    post:\n      parameters:\n        - name: dry_run\n          in: query\n          schema:\n            type: boolean\n      requestBody:\n        required: true\n        content:\n          application/json:\n            schema:\n              type: object\n              required: [password]\n              properties:\n                password:\n                  type: string\n      responses:\n        '204':\n          description: Done.\n",
+        BEARER,
+        "      create: post /things\n",
+    );
+    let raw = &f["src/Services/ThingsRawService.php"];
+    assert!(raw.contains("$query_params = array_flip(['dry_run']);"), "{raw}");
+    assert!(raw.contains("query: array_intersect_key($parsed, $query_params),"), "{raw}");
+    assert!(raw.contains("body: (object) array_diff_key($parsed, $query_params),"), "{raw}");
+}
+
 /// A request body that is not an object (or a union of objects) has no parameters to spread, so
 /// it is reported, as the Python plugin reports it, rather than dropped from the request.
 #[test]
