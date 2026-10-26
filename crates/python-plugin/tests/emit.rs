@@ -11,8 +11,8 @@ use ferrule_python_plugin::emit::resources::emit_resource_file;
 use ferrule_python_plugin::model::{
     ApiKeyLocation, ArrayFormat, AuthRole, HttpAuthScheme, HttpVerb, NestedFormat, OptType, PaginationScheme,
     ParamLocation, SdkAuth, SdkClient, SdkClientOpt, SdkClientSettings, SdkEnvironment, SdkField, SdkLiteral,
-    SdkMethod, SdkObject, SdkPackage, SdkPagination, SdkParam, SdkPrimitive, SdkRef, SdkResource, SdkSecurityScheme,
-    SdkSend, SdkStreaming, SdkStyle, SdkType, SendLocation, StreamFormat,
+    SdkMethod, SdkModelDecl, SdkObject, SdkPackage, SdkPagination, SdkParam, SdkPrimitive, SdkRef, SdkResource,
+    SdkSecurityScheme, SdkSend, SdkStreaming, SdkStyle, SdkType, SendLocation, StreamFormat,
 };
 
 fn str_t() -> SdkType {
@@ -875,4 +875,33 @@ fn names_the_path_arguments_of_a_retry_probe_with_several() {
         arg_pairs(&probe),
         [("file_id", "\"file_id\""), ("project_id", "\"project_id\"")]
     );
+}
+
+/// A model whose extra values are itself (`additionalProperties: {$ref: Node}` beside
+/// `properties`) refers to itself as a string and is rebuilt, as through a field.
+#[test]
+fn defers_a_model_that_refers_to_itself_through_its_extra_values() {
+    let node = SdkRef {
+        name: "Node".into(),
+        module: "node".into(),
+    };
+    let mut c = client(Vec::new(), None, "a/b");
+    c.models = vec![SdkModelDecl {
+        r#ref: node.clone(),
+        description: String::new(),
+        ty: SdkObject {
+            extra: Some(Box::new(SdkType::Ref(node))),
+            ..obj_with("name")
+        },
+        alias: None,
+    }];
+    let files = emit_root_files(&c, None).expect("emits");
+    let get = |path: &str| files.iter().find(|(p, _)| p == path).map(|(_, t)| t.as_str());
+    let module = get("src/acme/types/node.py").expect("node.py");
+    assert!(
+        module.contains("        __pydantic_extra__: Dict[str, \"Node\"]\n"),
+        "{module}"
+    );
+    let init = get("src/acme/types/__init__.py").expect("types/__init__.py");
+    assert!(init.contains("Node.model_rebuild("), "{init}");
 }
