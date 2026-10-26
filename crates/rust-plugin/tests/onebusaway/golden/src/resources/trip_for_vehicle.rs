@@ -81,7 +81,7 @@ impl Endpoint for TripForVehicleRetrieveParams {
             reqwest::Method::GET,
             format!(
                 "/api/where/trip-for-vehicle/{}.json",
-                path_param(&self.vehicle_id)
+                path_param(&self.vehicle_id)?
             ),
         );
         spec.query("time", &self.time)?;

@@ -573,7 +573,7 @@ fn path_expr(cx: &mut Cx<'_, '_>, m: &Method, fields: &[ParamField]) -> String {
         match fields.iter().find(|f| f.location == Location::Path && f.wire == wire) {
             Some(f) => {
                 template.push_str("{}");
-                args.push(format!("path_param(&self.{})", f.ident));
+                args.push(format!("path_param(&self.{})?", f.ident));
             }
             None => {
                 let _ = write!(template, "{{{{{wire}}}}}");

@@ -143,15 +143,13 @@ impl Core {
         );
         let query = query::encode(&params, self.config.array_format, self.config.nested_format);
         let base = self.config.base_url.trim_end_matches('/');
-        // A `cursor_url` page's next URL is absolute; the client's credentials go only to the
-        // base URL's origin.
-        let mut url = if spec.path.starts_with("http://") || spec.path.starts_with("https://") {
-            if origin(&spec.path) != origin(base) {
-                return Err(Error::Config(format!(
-                    "refusing to send a request to {}, which is not on the base URL's origin",
-                    origin(&spec.path).unwrap_or_default()
-                )));
-            }
+        // A `cursor_url` page's next URL is absolute; any other path is under the base URL.
+        let absolute = ["http://", "https://"].iter().any(|s| {
+            spec.path
+                .get(..s.len())
+                .is_some_and(|p| p.eq_ignore_ascii_case(s))
+        });
+        let mut url = if absolute {
             spec.path.clone()
         } else {
             format!("{base}{}", spec.path)
@@ -165,6 +163,15 @@ impl Core {
             let shown = url.split('?').next().unwrap_or_default();
             Error::Config(format!("invalid URL {shown}: {err}"))
         })?;
+        // The client's credentials go only to the base URL's origin, whatever the path holds.
+        let expected =
+            origin(base).ok_or_else(|| Error::Config(format!("invalid base URL {base}")))?;
+        if origin(url.as_str()).as_ref() != Some(&expected) {
+            return Err(Error::Config(format!(
+                "refusing to send a request to {}, which is not on the base URL's origin",
+                origin(url.as_str()).unwrap_or_default()
+            )));
+        }
         let mut request = reqwest::Request::new(spec.method.clone(), url);
         let headers = request.headers_mut();
         insert(headers, "user-agent", &self.config.user_agent)?;
@@ -487,6 +494,22 @@ pub(crate) mod tests {
             .expect_err("refused");
         assert!(
             matches!(&err, Error::Config(m) if m.contains("https://elsewhere.test:443")),
+            "{err:?}"
+        );
+        assert!(server.requests().is_empty());
+        let upper = RequestSpec::new(reqwest::Method::GET, "HTTPS://elsewhere.test/page".into());
+        assert!(
+            core.execute(&upper, &RequestOptions::default())
+                .await
+                .is_err()
+        );
+        let userinfo = RequestSpec::new(reqwest::Method::GET, "@elsewhere.test/page".into());
+        let err = core
+            .execute(&userinfo, &RequestOptions::default())
+            .await
+            .expect_err("refused");
+        assert!(
+            matches!(&err, Error::Config(m) if m.contains("elsewhere.test")),
             "{err:?}"
         );
         assert!(server.requests().is_empty());

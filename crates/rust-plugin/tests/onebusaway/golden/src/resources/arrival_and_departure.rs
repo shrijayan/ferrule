@@ -89,7 +89,7 @@ impl Endpoint for ArrivalAndDepartureListParams {
             reqwest::Method::GET,
             format!(
                 "/api/where/arrivals-and-departures-for-stop/{}.json",
-                path_param(&self.stop_id)
+                path_param(&self.stop_id)?
             ),
         );
         spec.query("minutesBefore", &self.minutes_before)?;
@@ -397,7 +397,7 @@ impl Endpoint for ArrivalAndDepartureRetrieveParams {
             reqwest::Method::GET,
             format!(
                 "/api/where/arrival-and-departure-for-stop/{}.json",
-                path_param(&self.stop_id)
+                path_param(&self.stop_id)?
             ),
         );
         spec.query("tripId", &self.trip_id)?;

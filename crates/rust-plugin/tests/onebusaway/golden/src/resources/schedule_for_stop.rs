@@ -54,7 +54,7 @@ impl Endpoint for ScheduleForStopRetrieveParams {
             reqwest::Method::GET,
             format!(
                 "/api/where/schedule-for-stop/{}.json",
-                path_param(&self.stop_id)
+                path_param(&self.stop_id)?
             ),
         );
         spec.query("date", &self.date)?;

@@ -40,7 +40,7 @@ impl Endpoint for StopIdsForAgencyListParams {
             reqwest::Method::GET,
             format!(
                 "/api/where/stop-ids-for-agency/{}.json",
-                path_param(&self.agency_id)
+                path_param(&self.agency_id)?
             ),
         ))
     }

@@ -38,7 +38,7 @@ impl Endpoint for StopRetrieveParams {
     fn spec(&self) -> Result<RequestSpec> {
         Ok(RequestSpec::new(
             reqwest::Method::GET,
-            format!("/api/where/stop/{}.json", path_param(&self.stop_id)),
+            format!("/api/where/stop/{}.json", path_param(&self.stop_id)?),
         ))
     }
 

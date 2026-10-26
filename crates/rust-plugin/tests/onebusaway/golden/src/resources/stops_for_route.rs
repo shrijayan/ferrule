@@ -60,7 +60,7 @@ impl Endpoint for StopsForRouteListParams {
             reqwest::Method::GET,
             format!(
                 "/api/where/stops-for-route/{}.json",
-                path_param(&self.route_id)
+                path_param(&self.route_id)?
             ),
         );
         spec.query("includePolylines", &self.include_polylines)?;

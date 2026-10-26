@@ -90,7 +90,7 @@ impl Endpoint for ReportProblemWithStopRetrieveParams {
             reqwest::Method::GET,
             format!(
                 "/api/where/report-problem-with-stop/{}.json",
-                path_param(&self.stop_id)
+                path_param(&self.stop_id)?
             ),
         );
         spec.query("code", &self.code)?;

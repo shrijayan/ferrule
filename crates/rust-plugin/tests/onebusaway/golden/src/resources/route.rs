@@ -40,7 +40,7 @@ impl Endpoint for RouteRetrieveParams {
     fn spec(&self) -> Result<RequestSpec> {
         Ok(RequestSpec::new(
             reqwest::Method::GET,
-            format!("/api/where/route/{}.json", path_param(&self.route_id)),
+            format!("/api/where/route/{}.json", path_param(&self.route_id)?),
         ))
     }
 
