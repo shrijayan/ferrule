@@ -1074,3 +1074,27 @@ fn maps_header_params_after_the_others_into_the_project_files() {
     assert_eq!(by_name("retrieve").params.len(), 2);
     assert_eq!(by_name("retrieve").params_module, None);
 }
+
+/// A header parameter whose schema is an inline object is FER201: it would be sent as
+/// `str(x_meta)`, and alone it leaves its class `XMeta` declared in no module.
+#[test]
+fn rejects_a_header_parameter_that_is_an_inline_object() {
+    let meta = SdkParam {
+        ty: SdkType::Object(obj_with("a")),
+        ..param("x-meta", "x_meta")
+    };
+    let mut alone = method(Some(SdkType::Object(obj_with("id"))));
+    alone.header_params = vec![meta.clone()];
+    let c = plain_client(alone);
+    let err = emit_resource_file(&c, first(&c)).expect_err("FER201");
+    assert_eq!((err.code, err.pointer.as_str()), (FerCode::Fer201, "#/paths/~1t/get"));
+    assert!(err.detail.contains("x-meta"), "{}", err.detail);
+    let mut beside = method(Some(SdkType::Object(obj_with("id"))));
+    beside.query_params = vec![param("q", "q")];
+    beside.header_params = vec![meta];
+    let c = plain_client(beside);
+    assert_eq!(
+        emit_resource_file(&c, first(&c)).map_err(|e| e.code),
+        Err(FerCode::Fer201)
+    );
+}
