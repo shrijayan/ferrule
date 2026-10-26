@@ -172,3 +172,24 @@ fn a_binary_body_is_sent_as_raw_content() {
         .expect("file_write_params.py");
     assert!(!params.contains("body"), "{params}");
 }
+
+/// A parameter named like a request option (the opencode SDK's `shell.create` body field
+/// `timeout`) is prefixed `api_`, as browserbase-python's `sessions.create(api_timeout=...)`
+/// sends `"timeout"`; the wire name and the params `TypedDict` keep the spec's name.
+#[test]
+fn a_parameter_named_like_a_request_option_is_prefixed_api() {
+    let files = generated("option_names");
+    let resource = files.get("src/fx/resources/shell.py").expect("shell.py");
+    for want in [
+        "        api_extra_query: str | Omit = omit,\n",
+        "        api_timeout: int | Omit = omit,\n",
+        "          api_timeout: Seconds before the command is stopped\n",
+        "                    \"timeout\": api_timeout,\n",
+        "                query=maybe_transform({\"extra_query\": api_extra_query}, shell_create_params.ShellCreateParams),\n",
+    ] {
+        assert!(resource.contains(want), "{want}\n---\n{resource}");
+    }
+    assert_eq!(resource.matches("        timeout: ").count(), 2, "{resource}");
+    let params = files.get("src/fx/types/shell_create_params.py").expect("params");
+    assert!(params.contains("    timeout: int\n"), "{params}");
+}
