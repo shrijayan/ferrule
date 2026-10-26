@@ -37,7 +37,8 @@ annotated spec --sdk-model adapter--> model::Client --for_target("php")--> namer
 `tools/composer.json` pins php-cs-fixer 3.92.5, the version imagekit-php's `composer.lock` pins
 (its dependencies at current releases, `tools/composer.lock`). Install it once, with the PHP that
 `tools/env.sh` pins (8.3, as imagekit-php's CI and composer platform). PHP is not in `mise.toml`'s
-tools, since mise builds it from source; the task installs it the first time:
+tools, since mise builds it from source; the task installs it the first time, unless a PHP 8.3 is
+already on the PATH (as on GitHub's Ubuntu runners), which it then uses:
 
 ```bash
 mise run php:tools         # builds PHP 8.3.36 (needs autoconf, bison, re2c, libxml2, ... from

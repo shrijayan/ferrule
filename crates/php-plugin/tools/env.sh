@@ -22,6 +22,12 @@ if command -v mise >/dev/null 2>&1; then
   fi
 fi
 
+# Whether the PHP on the PATH has the pinned minor version.
+ferrule_php_fits() {
+  command -v php >/dev/null 2>&1 &&
+    [ "$(php -r 'echo PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION;')" = "${php_version%.*}" ]
+}
+
 ferrule_tools_installed() {
   if [ ! -f "$COMPOSER_VENDOR_DIR/friendsofphp/php-cs-fixer/php-cs-fixer" ]; then
     echo "the PHP plugin's formatter is not installed in .cache/php-tools: run \`mise run php:tools\`" >&2
