@@ -240,6 +240,7 @@ pub(crate) fn input(v: &Value) -> ProjectFilesInput {
                 value: "My API Key".to_owned(),
                 label: "API Key".to_owned(),
                 has_default: false,
+                nullable: false,
             }],
         },
         query: QueryFormat {

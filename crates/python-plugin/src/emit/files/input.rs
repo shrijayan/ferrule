@@ -162,6 +162,8 @@ pub struct AuthOpt {
     pub label: String,
     /// Whether it has a config default (imagekit's `password`): the README leaves it out.
     pub has_default: bool,
+    /// Whether the client builds without it (`nullable`), rather than raising.
+    pub nullable: bool,
 }
 
 /// The client's credentials: the scheme and the options it reads, in config order.
