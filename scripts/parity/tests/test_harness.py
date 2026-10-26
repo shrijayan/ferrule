@@ -79,6 +79,25 @@ def test_resolve_pair_language_from_sdk_name() -> None:
     assert (pair.sdk.name, pair.language, pair.paired) == ("acme-go", "go", "proven")
 
 
+def test_resolve_pair_config_without_a_python_sdk() -> None:
+    # A second config of the group, generated only for C#: the group stays the Python pair.
+    oracles = [
+        *MULTI,
+        oracle("acme-csharp-config", "config", None),
+        oracle("acme-csharp", "sdk", "acme-csharp-config", "csharp", "proven"),
+    ]
+    assert resolve_pair(oracles, "acme").config.name == "acme-config"
+    for wanted in ("acme", "acme-csharp-config", "acme-csharp"):
+        pair = resolve_pair(oracles, wanted, language="csharp")
+        assert (pair.config.name, pair.sdk.name, pair.paired) == (
+            "acme-csharp-config",
+            "acme-csharp",
+            "proven",
+        )
+    with pytest.raises(HarnessError, match="FER4020"):
+        resolve_pair(oracles, "acme-csharp-config")
+
+
 def test_resolve_pair_language_mismatch() -> None:
     with pytest.raises(HarnessError, match="FER4020 acme: no config oracle with a paired ruby"):
         resolve_pair(MULTI, "acme", language="ruby")

@@ -405,6 +405,48 @@ def test_rejects_bad_language_sdks(bad: dict[str, object]) -> None:
         fetch.parse_manifest(doc(config_entry(), sdk_entry(), raw))
 
 
+def no_python_config(**overrides: object) -> dict[str, object]:
+    """A demo config with no Python target: no pairs_with and no paired of its own."""
+    raw = config_entry(name="demo-csharp-config", pairs_with=None)
+    raw.pop("paired")
+    raw.update(overrides)
+    return raw
+
+
+def test_parses_config_without_a_python_sdk() -> None:
+    sdk = lang_entry("csharp", pairs_with="demo-csharp-config")
+    config, csharp = fetch.parse_manifest(doc(no_python_config(), sdk))
+    assert (config.pairs_with, config.paired) == (None, None)
+    assert (csharp.language, csharp.paired) == ("csharp", "proven")
+    assert fetch.paired_sdks([config, csharp], config) == [csharp]
+    # A group holds both configs: `demo` stays the Python pair, csharp picks the other one.
+    oracles = fetch.parse_manifest(doc(config_entry(), sdk_entry(), no_python_config(), sdk))
+    assert [o.name for o in fetch.select(oracles, ["demo"])] == ["demo-config", "demo-python"]
+    assert [o.name for o in fetch.select(oracles, ["demo"], None, "csharp")] == [
+        "demo-csharp-config",
+        "demo-csharp",
+    ]
+
+
+@pytest.mark.parametrize(
+    "case",
+    [
+        "no sdk names it",
+        "paired without a python sdk",
+    ],
+)
+def test_rejects_bad_config_without_a_python_sdk(case: str) -> None:
+    if case == "no sdk names it":
+        raw = doc(no_python_config())
+    else:
+        raw = doc(
+            no_python_config(paired="proven"),
+            lang_entry("csharp", pairs_with="demo-csharp-config"),
+        )
+    with pytest.raises(fetch.ManifestError):
+        fetch.parse_manifest(raw)
+
+
 def test_rejects_language_on_config_and_two_sdks_per_language() -> None:
     with pytest.raises(fetch.ManifestError, match="only for sdk"):
         fetch.parse_manifest(doc(config_entry(language="python"), sdk_entry()))
