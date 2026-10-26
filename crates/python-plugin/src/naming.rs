@@ -16,6 +16,25 @@ const DEFAULT_INITIALISMS: [&str; 39] = [
     "sdk", "sku", "sms", "ss", "ssh", "sso", "url",
 ];
 
+/// Field names that would shadow an attribute of Pydantic's `BaseModel`: Stainless appends `_`
+/// and keeps the wire name as the alias (`schema_`: knock-mgmt, imagekit, ogx, perplexity). The
+/// oracles keep other names that `BaseModel` v1 also has, such as `fields`.
+const SHADOWS_BASE_MODEL: [&str; 1] = ["schema"];
+
+/// The attribute name of a model field with this wire and Python name. A name Pydantic keeps
+/// for itself, private (a wire name with a leading `_`) or protected (`model_`), is prefixed
+/// `api_` (knock `api_typename` from `__typename`; ogx and opencode `api_model_id`).
+#[must_use]
+pub fn model_attribute(wire_name: &str, py_name: &str) -> String {
+    if SHADOWS_BASE_MODEL.contains(&py_name) {
+        format!("{py_name}_")
+    } else if wire_name.starts_with('_') || py_name.starts_with("model_") {
+        format!("api_{py_name}")
+    } else {
+        py_name.to_owned()
+    }
+}
+
 fn clean<S: AsRef<str>>(words: &[S]) -> Vec<String> {
     words
         .iter()
