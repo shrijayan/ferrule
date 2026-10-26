@@ -39,6 +39,10 @@ _GO_KEYWORDS = frozenset(
     }
 )  # fmt: skip
 _SLOTS = ("config_fields", "config_clone", "client_options")
+_REQUEST_CONFIG = "internal/requestconfig/requestconfig.go"
+# The runtime lines ending the runs `config_fields` and `config_clone` extend.
+_REALIGNED = ("\tMiddlewares ", "\t\tMiddlewares: ")
+_ALIGNED = re.compile(r"^(\t+)([A-Za-z_][A-Za-z0-9_]*:?) +(\S.*)$")
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -97,11 +101,41 @@ def _sensitive_headers(redacted: tuple[str, ...]) -> str:
     return ", ".join(f'"{name}"' for name in names)
 
 
+def _realign_run(text: str, anchor: str, *, path: str) -> str:
+    """Re-pad the gofmt alignment run that holds the line starting with ``anchor``.
+
+    A run is the consecutive ``<name> <value>`` (or ``<key>: <value>``) lines at one indent;
+    gofmt pads every name in it to the longest plus one. A client setting slotted into a run can
+    be longer than the runtime's own names, so the whole run is padded again.
+    """
+    lines = text.split("\n")
+    at = next((n for n, line in enumerate(lines) if line.startswith(anchor)), None)
+    anchored = _ALIGNED.match(lines[at]) if at is not None else None
+    if at is None or anchored is None:
+        msg = f"{path}: no alignment run at {anchor!r}"
+        raise RenderError(msg)
+    indent = anchored.group(1)
+
+    def in_run(line: str) -> bool:
+        match = _ALIGNED.match(line)
+        return match is not None and match.group(1) == indent
+
+    start, end = at, at
+    while start > 0 and in_run(lines[start - 1]):
+        start -= 1
+    while end + 1 < len(lines) and in_run(lines[end + 1]):
+        end += 1
+    run = [m for m in map(_ALIGNED.match, lines[start : end + 1]) if m is not None]
+    width = max(len(m.group(2)) for m in run) + 1
+    lines[start : end + 1] = [f"{m.group(1)}{m.group(2):<{width}}{m.group(3)}" for m in run]
+    return "\n".join(lines)
+
+
 def render_go_files(options: GoOptions) -> dict[str, str]:
     """Render the Go runtime (pure): ``{path from the module root: exact text}``."""
     _check(options)
     module = options.module_path
-    return render_tree(
+    files = render_tree(
         template_root("go"),
         comment="//",
         replacements={
@@ -120,3 +154,9 @@ def render_go_files(options: GoOptions) -> dict[str, str]:
         },
         slots={name: getattr(options, name) for name in _SLOTS},
     )
+    # The client-setting slots sit in an alignment run of the struct and of its Clone literal.
+    config = files[_REQUEST_CONFIG]
+    for anchor in _REALIGNED:
+        config = _realign_run(config, anchor, path=_REQUEST_CONFIG)
+    files[_REQUEST_CONFIG] = config
+    return files
