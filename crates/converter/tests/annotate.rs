@@ -168,6 +168,23 @@ mod resources_and_methods {
         assert_eq!(op(&r.spec, "/unconfigured", "get"), op(&input, "/unconfigured", "get"));
     }
 
+    /// Reduced from the Tier 1 corpus (cloudflare): the spec carries Fern's grouping extensions
+    /// on every operation, so Forge grouped operations the config leaves out and the plugin
+    /// refused them (FER103, no `x-ferrule-resource`). Stainless generates configured endpoints only.
+    #[test]
+    #[should_panic(expected = "unconfigured operation keeps")]
+    fn drops_fern_grouping_from_operations_not_in_the_config() {
+        let mut spec = make_spec_json();
+        spec["paths"]["/unconfigured"]["get"]["x-fern-sdk-group-name"] = json!("accounts.billing");
+        spec["paths"]["/unconfigured"]["get"]["x-fern-sdk-method-name"] = json!("createSetupIntent");
+        let r = convert(&v(&spec), &config());
+        let unbound = op(&r.spec, "/unconfigured", "get");
+        for key in ["x-fern-sdk-group-name", "x-fern-sdk-method-name"] {
+            assert!(unbound.get(key).is_none(), "unconfigured operation keeps {key}");
+        }
+        assert!(unbound.get("responses").is_some());
+    }
+
     #[test]
     fn reports_fer1001_with_a_pointer_for_missing_operations() {
         let r = convert(
