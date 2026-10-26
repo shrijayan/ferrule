@@ -96,7 +96,7 @@ fn example(g: &Gen<'_>, ty: &PType, wire: &str, all: bool, imp: &mut Imports, de
             "]",
         ),
         PType::Nullable(t) | PType::Rec(t) => example(g, t, wire, all, imp, depth),
-        PType::Enum(c) => text(find_enum_first(g, c).map_or_else(|| "''".to_owned(), |v| literal(&v))),
+        PType::Enum(c, _) => text(find_enum_first(g, c).map_or_else(|| "''".to_owned(), |v| literal(&v))),
         PType::Union(_, variants) => variants
             .first()
             .map_or_else(|| text("[]"), |v| example(g, v, wire, all, imp, depth)),
