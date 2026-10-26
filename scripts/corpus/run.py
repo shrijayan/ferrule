@@ -589,9 +589,17 @@ def checkout_sdk(compare: Compare) -> Path:
 
 
 def endpoints_of(tree: Path) -> set[str]:
-    """Return the endpoints the tree's ``api.md`` lists (none without one)."""
-    api_md = tree / "api.md"
-    return api_endpoints(api_md.read_text()) if api_md.is_file() else set[str]()
+    """Return the endpoints the tree's ``api.md`` files list.
+
+    That is the root one and, in SDKs that split it per resource (cloudflare-python), each
+    ``src/**/api.md``.
+    """
+    files = [tree / "api.md", *sorted((tree / "src").glob("**/api.md"))]
+    found: set[str] = set()
+    for api_md in files:
+        if api_md.is_file():
+            found |= api_endpoints(api_md.read_text())
+    return found
 
 
 def compare_stage(spec: Spec, compare: Compare) -> dict[str, object]:
@@ -658,6 +666,19 @@ def run_spec(name: str, fmt: str, compare: Compare | None) -> dict[str, object]:
     return report
 
 
+def recompare(name: str, fmt: str, compare: Compare) -> None:
+    """Rerun the compare stage on the work tree a full run left, and update its report."""
+    path = REPORTS / f"{name}.json"
+    report = cast("dict[str, object]", json.loads(path.read_text()))
+    spec = Spec(name, fmt, compare)
+    spec.config = cast("dict[str, object]", json.loads((spec.work / "stainless.yml").read_text()))
+    spec.extra["skipped"] = report.get("skipped", [])
+    if not spec.stage("compare", lambda: compare_stage(spec, compare)):
+        log(f"{name}: compare failed: {spec.stages['compare'].get('error')}")
+    cast("dict[str, object]", report["stages"])["compare"] = spec.stages["compare"]
+    path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")
+
+
 def main(argv: list[str] | None = None) -> int:
     """Run the corpus; exit 0 when every selected spec passes every stage."""
     parser = argparse.ArgumentParser(
@@ -665,6 +686,11 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--tier", type=int, choices=[1], default=1)
     parser.add_argument("--spec", action="append", default=[], help="spec id (repeatable)")
+    parser.add_argument(
+        "--stage",
+        choices=["compare"],
+        help="rerun only this stage on each spec's existing work tree and update its report",
+    )
     args = parser.parse_args(argv)
     manifest = parse_manifest(MANIFEST.read_text())
     wanted = cast("list[str]", args.spec)
@@ -674,6 +700,11 @@ def main(argv: list[str] | None = None) -> int:
         sys.stderr.write(f"corpus: unknown spec ids: {', '.join(sorted(unknown))}\n")
         return 2
     REPORTS.mkdir(parents=True, exist_ok=True)
+    if args.stage == "compare":
+        for s in specs:
+            if s.compare is not None:
+                recompare(s.name, s.format, s.compare)
+        return 0
     for s in specs:
         report = run_spec(s.name, s.format, s.compare)
         (REPORTS / f"{s.name}.json").write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")

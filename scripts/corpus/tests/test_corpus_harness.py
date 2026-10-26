@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: Apache-2.0
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import pytest
 
 from scripts.corpus.harness import (
@@ -30,6 +32,10 @@ from scripts.corpus.harness import (
     synthesize,
     top_causes,
 )
+from scripts.corpus.run import endpoints_of
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 SPEC: dict[str, object] = {
     "servers": [{"url": "/relative"}, {"url": "https://api.acme.test/v1"}],
@@ -303,3 +309,11 @@ def test_count_external_refs() -> None:
         },
     }
     assert count_external_refs(spec) == 2
+
+
+def test_endpoints_of_reads_split_api_md(tmp_path: Path) -> None:
+    (tmp_path / "src/pkg/resources/a").mkdir(parents=True)
+    (tmp_path / "api.md").write_text('<code title="get /x">x</code>\n')
+    (tmp_path / "src/pkg/resources/a/api.md").write_text('<code title="post /a/{id}">a</code>\n')
+    assert endpoints_of(tmp_path) == {"get /x", "post /a/{}"}
+    assert endpoints_of(tmp_path / "missing") == set()
