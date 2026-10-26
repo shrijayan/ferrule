@@ -4,7 +4,7 @@
 //! `examples/agent/` and a test that runs them against a mock. Pure: [`SdkClient`] in, path -> text
 //! out. Not part of the Stainless output.
 
-use super::common::{method_params, py_string, sort_fields, stainless_method_order, stream_switch};
+use super::common::{method_args, py_string, sort_fields, stainless_method_order, stream_switch};
 use super::files::api_tests::{Uses, example_value};
 use super::files_input::ProjectMeta;
 use crate::model::{SdkClient, SdkClientOpt, SdkMethod, SdkResource};
@@ -47,7 +47,7 @@ fn all_resources(resources: &[SdkResource]) -> Vec<&SdkResource> {
 
 /// Keyword arguments for the required parameters, path parameters first.
 fn call_args(method: &SdkMethod, uses: &mut Uses) -> Vec<String> {
-    let params = method_params(method);
+    let params = method_args(method);
     let required = sort_fields(params.into_iter().filter(|p| p.required));
     method
         .path_params
@@ -147,7 +147,7 @@ fn example_method(r: &SdkResource) -> Option<&SdkMethod> {
     methods
         .iter()
         .copied()
-        .find(|m| m.path_params.is_empty() && method_params(m).iter().all(|p| !p.required))
+        .find(|m| m.path_params.is_empty() && method_args(m).iter().all(|p| !p.required))
         .or_else(|| methods.first().copied())
 }
 

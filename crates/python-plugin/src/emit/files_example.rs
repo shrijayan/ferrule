@@ -5,7 +5,7 @@
 
 use serde_json::Value;
 
-use super::common::{method_params, py_string, return_model, stainless_method_order};
+use super::common::{method_args, py_string, return_model, stainless_method_order};
 use super::files::api_tests::{EXAMPLE_DATE, EXAMPLE_DATETIME, Uses, example_value};
 use super::files::input::{ExampleArg, ExampleRequest};
 use super::files_input::ReadmeRequest;
@@ -269,7 +269,7 @@ fn required_args(m: &SdkMethod) -> Vec<ExampleArg> {
         let v = test_value(p, false);
         args.push(path_arg(m, p, v.clone(), v));
     }
-    let mut kwargs: Vec<&SdkParam> = method_params(m).into_iter().filter(|p| p.required).collect();
+    let mut kwargs: Vec<&SdkParam> = method_args(m).into_iter().filter(|p| p.required).collect();
     kwargs.sort_by(|a, b| js::cmp(&a.py_name, &b.py_name));
     for p in kwargs {
         let query = m.query_params.iter().any(|q| std::ptr::eq(q, p));
@@ -296,7 +296,7 @@ fn from_config<'a>(
             args.push(path_arg(m, p, py_literal(v, false), py_literal(v, true)));
         }
     }
-    for p in method_params(m) {
+    for p in method_args(m) {
         if let Some(v) = req.params.get(&p.wire_name).or_else(|| req.params.get(&p.py_name)) {
             args.push(arg(p, py_literal(v, false), py_literal(v, true)));
         }
@@ -312,7 +312,7 @@ fn fallback(client: &SdkClient) -> Option<(&SdkResource, &SdkMethod, Vec<Example
     walk(&client.resources, &mut all);
     if let Some(&(r, m)) = all
         .iter()
-        .find(|(_, m)| m.path_params.is_empty() && method_params(m).iter().all(|p| !p.required))
+        .find(|(_, m)| m.path_params.is_empty() && method_args(m).iter().all(|p| !p.required))
     {
         return Some((r, m, Vec::new(), m.path.clone()));
     }
