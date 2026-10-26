@@ -8,6 +8,7 @@ use super::format::{call, format_expr};
 use super::params::{Decl, Named, name_params};
 use crate::js;
 use crate::model::{SdkField, SdkObject, SdkRef, SdkType};
+use crate::naming::model_attribute;
 use crate::printer::{LINE_LENGTH, PythonPrinter};
 use crate::type_mapper::{AnnotationContext, alias_expr, inline_union_alias_expr, is_nullable, to_annotation};
 
@@ -104,26 +105,8 @@ impl AnnotationContext for ModelContext<'_, '_> {
     }
 }
 
-/// Field names that would shadow an attribute of Pydantic's `BaseModel`: Stainless appends `_`
-/// and keeps the wire name as the alias (`schema_`: knock-mgmt, imagekit, ogx, perplexity). The
-/// oracles keep other names that `BaseModel` v1 also has, such as `fields`.
-const SHADOWS_BASE_MODEL: [&str; 1] = ["schema"];
-
-/// The attribute name of a model field. A name Pydantic keeps for itself, private (a wire name
-/// with a leading `_`) or protected (`model_`), is prefixed `api_` (knock `api_typename` from
-/// `__typename`; ogx and opencode `api_model_id`).
-fn model_py_name(field: &SdkField) -> String {
-    if SHADOWS_BASE_MODEL.contains(&field.py_name.as_str()) {
-        format!("{}_", field.py_name)
-    } else if field.wire_name.starts_with('_') || field.py_name.starts_with("model_") {
-        format!("api_{}", field.py_name)
-    } else {
-        field.py_name.clone()
-    }
-}
-
 fn field_lines(p: &mut PythonPrinter, field: &SdkField, ctx: &dyn AnnotationContext, indent: &str) -> Vec<String> {
-    let py_name = model_py_name(field);
+    let py_name = model_attribute(&field.wire_name, &field.py_name);
     let mut ann = to_annotation(&field.ty, p, ctx);
     if !field.required && !is_nullable(&field.ty) {
         // A plain union takes `None` as one more member: `Union[A, B, None]`.

@@ -12,7 +12,7 @@ use crate::model::{
     HttpVerb, SdkBodyVariant, SdkClient, SdkClientSettings, SdkField, SdkLiteral, SdkMethod, SdkModelDecl, SdkObject,
     SdkPackage, SdkPagination, SdkParam, SdkPrimitive, SdkRef, SdkResource, SdkStreaming, SdkStyle, SdkType,
 };
-use crate::naming::{Casing, class_segment_with, pascal_case, singular, snake_case, split_words};
+use crate::naming::{Casing, class_segment_with, model_attribute, pascal_case, singular, snake_case, split_words};
 
 /// The reserved resource name of methods on the client class itself (ADR 0003).
 pub const CLIENT_RESOURCE: &str = "$client";
@@ -169,6 +169,11 @@ impl Context<'_> {
                         };
                         self.decls.push((schema.to_owned(), decl));
                         let body = self.read_type(model.ty())?;
+                        if let Some(clash) = attribute_clash(&body) {
+                            let pointer =
+                                format!("#/components/schemas/{}", schema.replace('~', "~0").replace('/', "~1"));
+                            return Err(clash_error(&pointer, &clash));
+                        }
                         if let Some((_, slot)) = self.decls.iter_mut().find(|(k, _)| k == schema) {
                             match body {
                                 SdkType::Object(o) => slot.ty = o,
@@ -378,6 +383,9 @@ impl Context<'_> {
             .find_map(forge::Response::json)
             .map(forge::Content::ty);
         let response = response_type.map(|t| self.read_type(t)).transpose()?;
+        if let Some(clash) = response.as_ref().and_then(attribute_clash) {
+            return Err(clash_error(self.pointer, &clash));
+        }
         let header_params = match method.headers() {
             None => Vec::new(),
             Some(h) => h.fields().map(|f| self.read_param(f)).collect::<Result<_, _>>()?,
@@ -440,6 +448,44 @@ impl Context<'_> {
 
 /// The paths of the binary fields of a multipart body's object, by Python name: `["file"]`, or
 /// `["files", "<array>"]` for an array of them.
+/// The first two properties of a model class that would be one attribute ([`model_attribute`]):
+/// their wire names and the attribute. Inline objects are looked into; named models are checked
+/// where they are declared.
+fn attribute_clash(ty: &SdkType) -> Option<(String, String, String)> {
+    match ty {
+        SdkType::Object(o) => {
+            let mut seen: Vec<(String, &str)> = Vec::new();
+            for f in &o.fields {
+                let attr = model_attribute(&f.wire_name, &f.py_name);
+                if let Some((_, other)) = seen.iter().find(|(a, _)| *a == attr) {
+                    return Some(((*other).to_owned(), f.wire_name.clone(), attr));
+                }
+                seen.push((attr, &f.wire_name));
+            }
+            o.fields
+                .iter()
+                .map(|f| &f.ty)
+                .chain(o.extra.as_deref())
+                .find_map(attribute_clash)
+        }
+        SdkType::Array(t) | SdkType::Map(t) => attribute_clash(t),
+        SdkType::Union { variants, .. } => variants.iter().find_map(attribute_clash),
+        SdkType::Ref(_) | SdkType::Primitive(_) | SdkType::Unknown | SdkType::Literal(_) => None,
+    }
+}
+
+/// FER201 for an [`attribute_clash`] in the schema at `pointer`.
+fn clash_error(pointer: &str, (a, b, attr): &(String, String, String)) -> FerruleError {
+    FerruleError::new(
+        FerCode::Fer201,
+        pointer,
+        format!(
+            "a model with the properties \"{a}\" and \"{b}\", which would both be the attribute `{attr}`, is not generated yet"
+        ),
+        "rename one of the properties with an openapi transform in stainless.yml",
+    )
+}
+
 fn file_paths(ty: Type<'_>) -> Vec<Vec<String>> {
     let obj = match ty {
         Type::Object(o) => o,
