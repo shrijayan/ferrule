@@ -4,10 +4,11 @@
 use std::fmt::Write as _;
 
 use ferrule_sdk_model::model::OptType;
+use serde_json::Value;
 
 use super::Gen;
 use crate::naming::{exported, words};
-use crate::printer::{ALIGN, comment, go_file};
+use crate::printer::{ALIGN, comment, go_file, quote};
 use crate::types::Pkg;
 
 /// The generic request methods after `NewClient`; text from Stainless's Go v1 client (OneBusAway
@@ -32,6 +33,16 @@ fn env_vars(g: &Gen<'_>) -> Vec<String> {
         out.push(format!("{}_BASE_URL", s.env_prefix));
     }
     out
+}
+
+/// A client setting's `default` as a Go literal; `None` for a null or structured default.
+fn default_literal(value: &Value) -> Option<String> {
+    match value {
+        Value::String(s) => Some(quote(s)),
+        Value::Number(n) => Some(n.to_string()),
+        Value::Bool(b) => Some(b.to_string()),
+        _ => None,
+    }
 }
 
 /// `option.WithEnvironment<Name>()` for the default environment, if any.
@@ -93,6 +104,25 @@ pub fn client_file(g: &Gen<'_>) -> (String, String) {
             "\tif o, ok := os.LookupEnv(\"{}_BASE_URL\"); ok {{\n\t\tdefaults = append(defaults, option.WithBaseURL(o))\n\t}}",
             s.env_prefix
         );
+        // Configured defaults, before the environment and the caller's options (imagekit-go's
+        // `option.WithPassword("do_not_set")`); default headers after them (no oracle has one).
+        for o in &s.opts {
+            if let Some(value) = o.default.as_ref().and_then(default_literal) {
+                let _ = writeln!(
+                    out,
+                    "\tdefaults = append(defaults, option.With{}({value}))",
+                    exported(&words(&o.name), g.casings)
+                );
+            }
+        }
+        for h in &s.default_headers {
+            let _ = writeln!(
+                out,
+                "\tdefaults = append(defaults, option.WithHeader({}, {}))",
+                quote(&h.name),
+                quote(&h.value)
+            );
+        }
         for o in &s.opts {
             if let Some(env) = &o.read_env
                 && o.ty == OptType::String
