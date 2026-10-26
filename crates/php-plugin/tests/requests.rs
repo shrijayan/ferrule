@@ -92,3 +92,18 @@ fn an_integer_enum_takes_and_stores_an_int() {
     assert!(response.contains("Priority|int $priority"), "{response}");
     assert!(f["src/Things/ThingListResponse/Priority.php"].contains("enum Priority: int"));
 }
+
+/// A model whose required field lists the model itself ends its test example with an empty list
+/// instead of nesting it forever.
+#[test]
+fn a_required_recursive_field_ends_the_test_example() {
+    let f = files(
+        "  /things:\n    post:\n      requestBody:\n        required: true\n        content:\n          application/json:\n            schema:\n              type: object\n              required: [root]\n              properties:\n                root:\n                  $ref: '#/components/schemas/Node'\n      responses:\n        '204':\n          description: Done.\n",
+        &format!(
+            "{BEARER}  schemas:\n    Node:\n      type: object\n      required: [children]\n      properties:\n        children:\n          type: array\n          items:\n            $ref: '#/components/schemas/Node'\n"
+        ),
+        "      create: post /things\n    models:\n      node: Node\n",
+    );
+    let test =&f["tests/Services/ThingsTest.php"];
+    assert!(test.contains("'children' => []"), "{test}");
+}
