@@ -73,9 +73,8 @@ gap G18 (parameter `example` and `maximum` are not in the model): `arrivalanddep
 `arrivalsanddeparturesforlocation_test.go` (`maxCount`'s maximum). Its runtime slots match the
 oracle's `requestconfig.go` and `requestoption.go`.
 
-knock-go is a 2025 generation (`json:"x,required"` tags), so only its page types are compared;
-`MsTeamsPagination` differs because the converter writes `x-ferrule-pagination`'s keys sorted,
-not in stainless.yml's order. knock-go and knock-mgmt-go are measured only once the adapter
+knock-go is a 2025 generation (`json:"x,required"` tags), so only its page types are compared,
+and all of them match. knock-go and knock-mgmt-go are measured only once the adapter
 reads their pagination (the converter's items fix, PR #16, and `$` in request param names);
 until then their tests skip.
 
