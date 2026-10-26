@@ -197,7 +197,7 @@ checksum = "da7c62ceae207dd37ea5b845da6a0696c799f85e97da1ab5b7910be3c1c80223"
 
 [[package]]
 name = "ferrule-converter"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "indexmap",
  "proptest",
@@ -209,7 +209,7 @@ dependencies = [
 
 [[package]]
 name = "ferrule-csharp-plugin"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "ferrule-converter",
  "ferrule-sdk-model",
@@ -219,7 +219,7 @@ dependencies = [
 
 [[package]]
 name = "ferrule-gen"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "ferrule-converter",
  "ferrule-csharp-plugin",
@@ -238,7 +238,7 @@ dependencies = [
 
 [[package]]
 name = "ferrule-go-plugin"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "ferrule-converter",
  "ferrule-sdk-model",
@@ -248,7 +248,7 @@ dependencies = [
 
 [[package]]
 name = "ferrule-jvm-plugin"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "ferrule-converter",
  "ferrule-sdk-model",
@@ -258,7 +258,7 @@ dependencies = [
 
 [[package]]
 name = "ferrule-php-plugin"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "ferrule-converter",
  "ferrule-sdk-model",
@@ -268,7 +268,7 @@ dependencies = [
 
 [[package]]
 name = "ferrule-python-plugin"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "forge",
  "serde_json",
@@ -276,7 +276,7 @@ dependencies = [
 
 [[package]]
 name = "ferrule-ruby-plugin"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "ferrule-converter",
  "ferrule-sdk-model",
@@ -286,7 +286,7 @@ dependencies = [
 
 [[package]]
 name = "ferrule-rust-plugin"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "ferrule-converter",
  "ferrule-sdk-model",
@@ -296,7 +296,7 @@ dependencies = [
 
 [[package]]
 name = "ferrule-sdk-model"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "ferrule-converter",
  "ferrule-python-plugin",
@@ -307,7 +307,7 @@ dependencies = [
 
 [[package]]
 name = "ferrule-ts-plugin"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "ferrule-converter",
  "ferrule-sdk-model",
