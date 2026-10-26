@@ -134,11 +134,8 @@ fn onebusaway_fills_the_runtime_slots_as_the_oracle_has_them() {
 }
 
 /// Page types of knock-go's `pagination.go` that differ, with the reason.
-const KNOCK_PAGINATION_KNOWN: &[(&str, &str)] = &[(
-    "MsTeamsPagination",
-    "converter gap: x-ferrule-pagination's response keys are sorted, so `ms_teams_teams` comes \
-     before `skip_token`; stainless.yml lists them the other way round",
-)];
+/// None since the converter writes `x-ferrule-pagination`'s keys in stainless.yml's order.
+const KNOCK_PAGINATION_KNOWN: &[(&str, &str)] = &[];
 
 /// The top-level declarations of a Go file by exported type, each up to the next exported
 /// `type` line (its JSON metadata and methods with it); the text before the first is keyed `""`.
