@@ -43,6 +43,29 @@ query_settings:
   array_format: repeat
   nested_format: brackets
 
+pagination:
+  # `{data: [...], cursor: {next, previous}}`: message.list and session.list.
+  - name: cursor_page
+    type: cursor
+    request:
+      cursor:
+        type: string
+        x-stainless-pagination-property:
+          purpose: next_cursor_param
+    response:
+      data:
+        type: array
+        items: {}
+        x-stainless-pagination-property:
+          purpose: items
+      cursor:
+        type: object
+        properties:
+          next:
+            type: string
+            x-stainless-pagination-property:
+              purpose: next_cursor_field
+
 targets:
   python:
     package_name: opencode
@@ -77,6 +100,8 @@ targets:
       - scripts/lint
       - scripts/mock
       - scripts/test
+      # The version comes from the git tag (hatch-vcs), not from release-please.
+      - src/opencode/_version.py
 
 # <ferrule:casings> written by scripts/opencode/config_models.py
 custom_casings:
