@@ -98,7 +98,8 @@ Sources:
     npm publishing by OIDC (the %%if mcp%% / %%if oidc%% branches in project/).
   - OneBusAway/js-sdk @ f3ca3f47613e2522ead33f4398984cdb47423622 (Apache-2.0, Copyright 2026
     Onebusaway SDK): scripts/mock and the mock-server lines of scripts/test and CONTRIBUTING.md
-    (the %%if mock%% branches in project/).
+    (the %%if mock%% branches in project/), and the publish-npm.yml lines of a release by npm
+    token without an MCP server package.
 Modified: names replaced by %%TOKEN%% placeholders and %%if%% directives; the marks are kept
           in crates/ts-plugin/src/emit/client.rs, not in the templates, so rendered output
           stays byte-identical.
