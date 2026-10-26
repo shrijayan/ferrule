@@ -1,9 +1,9 @@
 //! `src/Client.php` (the client options, the top-level services, the default headers and the
-//! authentication headers) and `src/Version.php`.
+//! credentials, in the headers or the query) and `src/Version.php`.
 
 use std::fmt::Write as _;
 
-use ferrule_sdk_model::model::{AuthRole, ClientOpt, HttpAuthScheme, OptType, SecurityScheme};
+use ferrule_sdk_model::model::{ApiKeyLocation, AuthRole, ClientOpt, HttpAuthScheme, OptType, SecurityScheme};
 
 use super::Gen;
 use super::file::{docblock, php_file};
@@ -65,9 +65,18 @@ fn default_literal(v: &serde_json::Value) -> Option<String> {
     }
 }
 
-/// The body of `authHeaders()`, from the client's security schemes and the options that fill
-/// them.
-fn auth_headers(g: &Gen<'_>, opts: &[(String, &ClientOpt)]) -> Option<String> {
+/// Where the client's credentials go: `authHeaders()` merged into the headers, or `authQuery()`
+/// into the query (an API key `in: query`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum AuthIn {
+    Headers,
+    Query,
+}
+
+/// Where the credentials go and the body of the method returning them, from the client's
+/// security schemes and the options that fill them. An API key in a cookie is not sent, as the
+/// Python plugin does not send it.
+fn auth(g: &Gen<'_>, opts: &[(String, &ClientOpt)]) -> Option<(AuthIn, String)> {
     let s = g.client.settings.as_ref()?;
     let names: Vec<&String> = s.security.iter().flatten().collect();
     let scheme = s.security_schemes.iter().find(|n| names.contains(&&n.name))?;
@@ -89,8 +98,11 @@ fn auth_headers(g: &Gen<'_>, opts: &[(String, &ClientOpt)]) -> Option<String> {
         } => {
             let user = of(AuthRole::Username)?;
             let pass = of(AuthRole::Password)?;
-            Some(format!(
-                "{ind2}if (!$this->{user} && !$this->{pass}) {{\n{ind3}return [];\n{ind2}}}\n\n{ind2}$base64_credentials = base64_encode(\n{ind3}\"{{$this->{user}}}:{{$this->{pass}}}\"\n{ind2});\n\n{ind2}return ['Authorization' => \"Basic {{$base64_credentials}}\"];\n"
+            Some((
+                AuthIn::Headers,
+                format!(
+                    "{ind2}if (!$this->{user} && !$this->{pass}) {{\n{ind3}return [];\n{ind2}}}\n\n{ind2}$base64_credentials = base64_encode(\n{ind3}\"{{$this->{user}}}:{{$this->{pass}}}\"\n{ind2});\n\n{ind2}return ['Authorization' => \"Basic {{$base64_credentials}}\"];\n"
+                ),
             ))
         }
         SecurityScheme::Http {
@@ -98,14 +110,34 @@ fn auth_headers(g: &Gen<'_>, opts: &[(String, &ClientOpt)]) -> Option<String> {
             ..
         } => {
             let token = of(AuthRole::Value)?;
-            Some(format!(
-                "{ind2}if (!$this->{token}) {{\n{ind3}return [];\n{ind2}}}\n\n{ind2}return ['Authorization' => \"Bearer {{$this->{token}}}\"];\n"
+            Some((
+                AuthIn::Headers,
+                format!(
+                    "{ind2}if (!$this->{token}) {{\n{ind3}return [];\n{ind2}}}\n\n{ind2}return ['Authorization' => \"Bearer {{$this->{token}}}\"];\n"
+                ),
             ))
         }
-        SecurityScheme::ApiKey { name, .. } => {
+        SecurityScheme::ApiKey {
+            location: ApiKeyLocation::Header,
+            name,
+        } => {
             let key = of(AuthRole::Value)?;
-            Some(format!(
-                "{ind2}if (!$this->{key}) {{\n{ind3}return [];\n{ind2}}}\n\n{ind2}return ['{name}' => $this->{key}];\n"
+            Some((
+                AuthIn::Headers,
+                format!(
+                    "{ind2}if (!$this->{key}) {{\n{ind3}return [];\n{ind2}}}\n\n{ind2}return ['{name}' => $this->{key}];\n"
+                ),
+            ))
+        }
+        // `authQuery()` as Stainless's PHP SDKs write it (nps-php, hubspot-sdk-php).
+        SecurityScheme::ApiKey {
+            location: ApiKeyLocation::Query,
+            name,
+        } => {
+            let key = of(AuthRole::Value)?;
+            Some((
+                AuthIn::Query,
+                format!("{ind2}return $this->{key} ? ['{name}' => $this->{key}] : [];\n"),
             ))
         }
         _ => None,
@@ -192,12 +224,16 @@ fn client(g: &Gen<'_>) -> String {
     }
     ctor.push_str("    }\n");
     members.push(ctor);
-    if let Some(body) = auth_headers(g, &opts) {
+    if let Some((into, body)) = auth(g, &opts) {
+        let (func, query, headers) = match into {
+            AuthIn::Headers => ("authHeaders", "$query", "[...$this->authHeaders(), ...$headers]"),
+            AuthIn::Query => ("authQuery", "[...$this->authQuery(), ...$query]", "$headers"),
+        };
         members.push(format!(
-            "    /** @return array<string,string> */\n    protected function authHeaders(): array\n    {{\n{body}    }}\n"
+            "    /** @return array<string,string> */\n    protected function {func}(): array\n    {{\n{body}    }}\n"
         ));
         members.push(format!(
-            "    /**\n     * @internal\n     *\n     * @param string|list<string> $path\n     * @param array<string,mixed> $query\n     * @param array<string,string|int|list<string|int>|null> $headers\n     * @param RequestOpts|null $opts\n     *\n     * @return array{{NormalizedRequest, {request_options}}}\n     */\n    protected function buildRequest(\n        string $method,\n        string|array $path,\n        array $query,\n        array $headers,\n        mixed $body,\n        {request_options}|array|null $opts,\n    ): array {{\n        return parent::buildRequest(\n            method: $method,\n            path: $path,\n            query: $query,\n            headers: [...$this->authHeaders(), ...$headers],\n            body: $body,\n            opts: $opts,\n        );\n    }}\n"
+            "    /**\n     * @internal\n     *\n     * @param string|list<string> $path\n     * @param array<string,mixed> $query\n     * @param array<string,string|int|list<string|int>|null> $headers\n     * @param RequestOpts|null $opts\n     *\n     * @return array{{NormalizedRequest, {request_options}}}\n     */\n    protected function buildRequest(\n        string $method,\n        string|array $path,\n        array $query,\n        array $headers,\n        mixed $body,\n        {request_options}|array|null $opts,\n    ): array {{\n        return parent::buildRequest(\n            method: $method,\n            path: $path,\n            query: {query},\n            headers: {headers},\n            body: $body,\n            opts: $opts,\n        );\n    }}\n"
         ));
     }
     let head = vec![
