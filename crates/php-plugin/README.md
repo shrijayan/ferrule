@@ -36,11 +36,12 @@ annotated spec --sdk-model adapter--> model::Client --for_target("php")--> namer
 
 `tools/composer.json` pins php-cs-fixer 3.92.5, the version imagekit-php's `composer.lock` pins
 (its dependencies at current releases, `tools/composer.lock`). Install it once, with the PHP that
-`mise.toml` pins (8.3, as imagekit-php's CI and composer platform):
+`tools/env.sh` pins (8.3, as imagekit-php's CI and composer platform). PHP is not in `mise.toml`'s
+tools, since mise builds it from source; the task installs it the first time:
 
 ```bash
-mise install php           # builds PHP; needs autoconf, bison, re2c, libxml2, ... (Homebrew)
-mise run php:tools         # composer install into .cache/php-tools (gitignored); network once
+mise run php:tools         # builds PHP 8.3.36 (needs autoconf, bison, re2c, libxml2, ... from
+                           # Homebrew), then composer install into .cache/php-tools (gitignored)
 ```
 
 `tools/bin/php-cs-fixer` runs it with no environment set up; `ferrule generate --target php` and
@@ -50,7 +51,7 @@ saying so. To start over, delete `.cache/php-tools` and run the task again.
 
 On macOS, building PHP can fail with `C compiler cannot create executables` when the Command Line
 Tools' newest SDK is newer than their linker; point `SDKROOT` at a matching SDK for the install
-(`SDKROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk mise install php`).
+(`SDKROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk mise run php:tools`).
 
 ## Proof
 
