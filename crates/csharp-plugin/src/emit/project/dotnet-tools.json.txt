@@ -1,0 +1,14 @@
+From imagekit-developer/imagekit-dotnet @ 265ab207 (Apache-2.0), .config/dotnet-tools.json. Modified by The Ferrule Authors: names, version, licence and URLs replaced by tokens. This line is not emitted.
+{
+  "version": 1,
+  "isRoot": true,
+  "tools": {
+    "csharpier": {
+      "version": "1.1.2",
+      "commands": [
+        "csharpier"
+      ],
+      "rollForward": false
+    }
+  }
+}

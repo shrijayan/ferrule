@@ -1,0 +1,11 @@
+From imagekit-developer/imagekit-dotnet @ 265ab207 (Apache-2.0), .vscode/extensions.json. Modified by The Ferrule Authors: names, version, licence and URLs replaced by tokens. This line is not emitted.
+{
+    "recommendations": [
+        "ms-dotnettools.csharp",
+        "editorconfig.editorconfig",
+        "github.vscode-github-actions",
+        "ms-dotnettools.vscode-dotnet-runtime",
+        "ms-dotnettools.csdevkit"
+    ],
+    "unwantedRecommendations": []
+}

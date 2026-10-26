@@ -1,0 +1,21 @@
+From imagekit-developer/imagekit-dotnet @ 265ab207 (Apache-2.0), src/Imagekit/Imagekit.csproj. Modified by The Ferrule Authors: names, version, licence and URLs replaced by tokens. This line is not emitted.
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <!-- Metadata -->
+    <AssemblyTitle>__TITLE__ C#</AssemblyTitle>
+    <AssemblyName>__NS__</AssemblyName>
+    <VersionPrefix>__VERSION__</VersionPrefix>
+    <Description>The official .NET library for the __TITLE__ API.</Description>
+    <OutputType>Library</OutputType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="__NS__.Tests"/>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\"/>
+    <PackageReference Include="System.Text.Json" Version="9.0.9"/>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All"/>
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="System.Collections.Immutable" Version="8.0.0"/>
+  </ItemGroup>
+</Project>

@@ -211,6 +211,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "ferrule-csharp-plugin"
+version = "0.0.0"
+dependencies = [
+ "ferrule-converter",
+ "ferrule-sdk-model",
+ "forge",
+ "serde_json",
+]
+
+[[package]]
 name = "ferrule-gen"
 version = "0.0.0"
 dependencies = [
