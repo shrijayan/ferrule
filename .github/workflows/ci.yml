@@ -59,6 +59,9 @@ jobs:
       - run: mise run lint:rs
       # The Ruby plugin's golden checks format with the gem's pinned stree and rubocop.
       - run: mise run ruby:tools
+      # The PHP plugin's golden checks format with the package's pinned php-cs-fixer (the runner's
+      # PHP 8.3, so mise does not build one).
+      - run: mise run php:tools
       - run: mise run test:rs
 
   gates:
