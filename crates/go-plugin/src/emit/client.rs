@@ -87,8 +87,40 @@ pub fn client_file(g: &Gen<'_>) -> (String, String) {
     out.push_str("}\n\n");
 
     let vars = env_vars(g).join(", ");
+    default_client_options(g, &mut out, &vars);
+
     comment(
         &mut out,
+        0,
+        &format!(
+            "NewClient generates a new client with the default option read from the environment ({vars}). The \
+             option passed in as arguments are applied after these default arguments, and all option will be \
+             passed down to the services and requests that this client makes."
+        ),
+    );
+    let amp = if g.target.v2() { "" } else { "&" };
+    let _ = write!(
+        out,
+        "func NewClient(opts ...option.RequestOption) (r {ptr}Client) {{\n\topts = append(DefaultClientOptions(), opts...)\n\n\tr = {amp}Client{{Options: opts}}\n\n"
+    );
+    for s in &top {
+        let _ = writeln!(out, "\tr.{} = New{}(opts...)", s.field, s.service);
+    }
+    out.push_str("\n\treturn\n}\n\n");
+    // v2 spells `interface{}` as `any`.
+    if g.target.v2() {
+        out.push_str(&request_methods().replace("interface{}", "any"));
+    } else {
+        out.push_str(request_methods());
+    }
+    let imports: Vec<String> = ctx.imports.into_iter().collect();
+    ("client.go".to_owned(), go_file(&g.target.package_name, &imports, &out))
+}
+
+/// `DefaultClientOptions`, documented with the environment variables it reads (`vars`).
+fn default_client_options(g: &Gen<'_>, out: &mut String, vars: &str) {
+    comment(
+        out,
         0,
         &format!(
             "DefaultClientOptions read from the environment ({vars}). This should be used to initialize new clients."
@@ -143,31 +175,4 @@ pub fn client_file(g: &Gen<'_>) -> (String, String) {
         );
     }
     out.push_str("\treturn defaults\n}\n\n");
-
-    comment(
-        &mut out,
-        0,
-        &format!(
-            "NewClient generates a new client with the default option read from the environment ({vars}). The \
-             option passed in as arguments are applied after these default arguments, and all option will be \
-             passed down to the services and requests that this client makes."
-        ),
-    );
-    let amp = if g.target.v2() { "" } else { "&" };
-    let _ = write!(
-        out,
-        "func NewClient(opts ...option.RequestOption) (r {ptr}Client) {{\n\topts = append(DefaultClientOptions(), opts...)\n\n\tr = {amp}Client{{Options: opts}}\n\n"
-    );
-    for s in &top {
-        let _ = writeln!(out, "\tr.{} = New{}(opts...)", s.field, s.service);
-    }
-    out.push_str("\n\treturn\n}\n\n");
-    // v2 spells `interface{}` as `any`.
-    if g.target.v2() {
-        out.push_str(&request_methods().replace("interface{}", "any"));
-    } else {
-        out.push_str(request_methods());
-    }
-    let imports: Vec<String> = ctx.imports.into_iter().collect();
-    ("client.go".to_owned(), go_file(&g.target.package_name, &imports, &out))
 }
