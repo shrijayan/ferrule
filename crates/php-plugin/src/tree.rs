@@ -256,7 +256,7 @@ impl<'a> Builder<'a> {
             Some(Type::Map { values }) => {
                 let mut scratch = self.scratch();
                 let parent = ClassPath::new(c.namespace().to_vec());
-                PType::Map(Box::new(scratch.ty(&parent, &[], "", values)))
+                PType::Map(Box::new(scratch.ty(&parent, &item_words(&c), "", values)))
             }
             Some(Type::Scalar { .. }) | None => PType::Mixed,
             _ => PType::Model(c),
@@ -439,11 +439,11 @@ impl<'a> Builder<'a> {
             }
             Type::Enum { members } => Decl::Enum(enum_decl(path, members, d.description.clone())),
             Type::Union(u) => Decl::Union(self.union(path, u, d.description.clone())),
-            // A list model is not a class; an inline item of it is (`Extensions` ->
-            // `ExtensionItem`).
-            Type::Array { items } => {
+            // A list or map model is not a class; an inline item of it is (`Extensions` ->
+            // `ExtensionItem`, `Labels` -> `LabelItem`).
+            Type::Array { items: inner } | Type::Map { values: inner } => {
                 let parent = ClassPath::new(path.namespace().to_vec());
-                self.ty(&parent, &item_words(&path), "", items);
+                self.ty(&parent, &item_words(&path), "", inner);
                 return;
             }
             _ => return,

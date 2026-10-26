@@ -51,7 +51,7 @@ fn synthetic_is_deterministic_and_formats() {
     assert_eq!(common::format(&formatted), Some(formatted));
 }
 
-/// Every assertion of a service test is narrowed already for PHPStan, so each one is preceded by
+/// Every assertion of a service test is narrowed already for `PHPStan`, so each one is preceded by
 /// the ignore comment imagekit-php's tests carry (a union response's `assertNotNull` too).
 #[test]
 fn every_test_assertion_ignores_the_narrowed_type() {
