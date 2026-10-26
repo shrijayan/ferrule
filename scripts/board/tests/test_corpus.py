@@ -21,6 +21,7 @@ SHA = "a" * 40
 GAPS_MD = (
     "| # | Need | Interface today | Workaround | Upstream |\n"
     "|---|------|-----------------|------------|----------|\n"
+    "| G21 | Multipart / binary request bodies | x | y | z |\n"
     "| G24 | Read Swagger 2.0 specs | x | y | z |\n"
     "| G29 | Bundle `$ref`s into other files | x | y | z |\n"
 )
@@ -51,7 +52,21 @@ OK: dict[str, object] = {"ok": True, "seconds": 1.0}
 
 
 def test_gap_titles() -> None:
-    assert TITLES == {"G24": "Read Swagger 2.0 specs", "G29": "Bundle `$ref`s into other files"}
+    assert TITLES["G24"] == "Read Swagger 2.0 specs"
+    assert len(TITLES) == 3
+
+
+def test_skipped_non_object_bodies_point_at_g21() -> None:
+    raw = report(fetch=OK)
+    raw["skipped"] = [
+        {
+            "endpoint": "post /x",
+            "code": "FER201",
+            "detail": "a request body that is not an object is not generated yet",
+        }
+    ]
+    gaps = cast("list[dict[str, object]]", build_row(spec(), raw, TITLES)["gaps"])
+    assert {"id": "G21", "title": "Multipart / binary request bodies", "blocking": False} in gaps
 
 
 def test_first_line_drops_local_paths() -> None:

@@ -56,6 +56,8 @@ GAP_CODES = {
     "FER1609": "G30",
     "FER1608": "G31",
 }
+# Gaps behind operations generation skipped, by the refusal's detail.
+GAP_SKIPS = ((re.compile(r"request body that is not an object"), "G21"),)
 GAP_TEXT = ((re.compile(r"is to another document"), "G29"),)
 # Local checkout paths in tool output: dropped, so the data names files relative to the SDK.
 _LOCAL_RE = re.compile(r"/\S*?/\.cache/corpus/[^/\s]+/(?:sdk/)?")
@@ -119,7 +121,7 @@ def stage_rows(stages: dict[str, object]) -> list[dict[str, object]]:
 
 
 def gaps_of(report: dict[str, object], titles: dict[str, str]) -> list[dict[str, object]]:
-    """Gaps the run hit: worked around (by FER code) or blocking (by the failing stage)."""
+    """Gaps the run hit: worked around (by FER code or skipped operations) or blocking."""
     codes = _obj(report.get("fer_codes"))
     found: dict[str, bool] = {}
     for code, gap in GAP_CODES.items():
@@ -131,6 +133,11 @@ def gaps_of(report: dict[str, object], titles: dict[str, str]) -> list[dict[str,
     for pattern, gap in GAP_TEXT:
         if pattern.search(error):
             found[gap] = True
+    for skip in cast("list[object]", report.get("skipped") or []):
+        detail = str(_obj(skip).get("detail", ""))
+        for pattern, gap in GAP_SKIPS:
+            if pattern.search(detail):
+                found.setdefault(gap, False)
     return [
         {"id": gap, "title": titles.get(gap, ""), "blocking": blocking}
         for gap, blocking in sorted(found.items(), key=lambda kv: int(kv[0][1:]))
