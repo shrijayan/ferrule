@@ -4,7 +4,7 @@ description: Every ferrule command, its flags and its exit codes.
 ---
 
 `ferrule` is a Python CLI. Until the 0.1 release, run it from a Ferrule checkout with
-`uv run ferrule …` (see the [quickstart](/ferrule/docs/quickstart/)).
+`uv run ferrule …` (see the [quickstart](/docs/quickstart/)).
 
 `adopt` and `generate` run the `ferrule-gen` binary, which holds the converter, Forge and the
 Ferrule plugin. Build it with `cargo build --release -p ferrule-gen`. Pass it as `--gen PATH`,

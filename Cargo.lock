@@ -228,6 +228,7 @@ dependencies = [
  "ferrule-php-plugin",
  "ferrule-python-plugin",
  "ferrule-ruby-plugin",
+ "ferrule-rust-plugin",
  "ferrule-sdk-model",
  "ferrule-ts-plugin",
  "forge",
@@ -274,6 +275,16 @@ dependencies = [
 
 [[package]]
 name = "ferrule-ruby-plugin"
+version = "0.0.0"
+dependencies = [
+ "ferrule-converter",
+ "ferrule-sdk-model",
+ "forge",
+ "serde_json",
+]
+
+[[package]]
+name = "ferrule-rust-plugin"
 version = "0.0.0"
 dependencies = [
  "ferrule-converter",

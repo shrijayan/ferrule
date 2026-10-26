@@ -231,6 +231,14 @@ Used in: crates/go-plugin/src/emit/ (the v2 text of services, response and param
          Modified by The Ferrule Authors: written over the SDK's names and types.
 
 ------------------------------------------------------------------------
+OneBusAway API spec and SDK config (Apache-2.0)
+------------------------------------------------------------------------
+Source: https://github.com/OneBusAway/sdk-config @ 27cdbb11faf296d3eed63aa19148dd006e05b934
+        (openapi.yml and stainless-config.yml; the onebusaway-config oracle)
+Used in: crates/rust-plugin/tests/onebusaway/ (openapi.yml, and stainless.yml, which is
+         stainless-config.yml renamed; both unchanged), the input of the Rust golden crate.
+
+------------------------------------------------------------------------
 Fern (Apache-2.0 / MIT), https://github.com/fern-api/fern
 ------------------------------------------------------------------------
 Used in: corpus/ fixtures

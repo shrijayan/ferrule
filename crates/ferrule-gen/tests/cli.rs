@@ -290,6 +290,63 @@ fn reports_model_errors_with_exit_code_1() {
 }
 
 #[test]
+fn generates_a_rust_crate_with_its_runtime() {
+    let dir = scratch("target-rust");
+    let config = dir.join("ferrule.yml");
+    fs::write(&config, "targets:\n  rust:\n    crate_name: oba\n    version: 2.1.0\n").expect("config");
+    let out = dir.join("sdk");
+    let status = bin()
+        .arg("generate")
+        .arg(plugin_dir().join("tests/fixtures/onebusaway.json"))
+        .args(["--target", "rust", "--out"])
+        .arg(&out)
+        .arg("--ferrule-config")
+        .arg(&config)
+        .status()
+        .expect("runs");
+    assert!(status.success());
+    let names: Vec<String> = files(&out).into_iter().map(|(p, _)| p).collect();
+    for expected in [
+        "Cargo.toml",
+        "src/lib.rs",
+        "src/client.rs",
+        "src/resources/agency.rs",
+        "src/rt/http.rs",
+        "src/testing/routes.rs",
+        "tests/api.rs",
+    ] {
+        assert!(names.iter().any(|n| n == expected), "{expected} not in {names:?}");
+    }
+    let manifest = fs::read_to_string(out.join("Cargo.toml")).expect("manifest");
+    assert!(
+        manifest.starts_with("[package]\nname = \"oba\"\nversion = \"2.1.0\"\n"),
+        "{manifest}"
+    );
+}
+
+#[test]
+fn reports_bad_rust_settings_as_fer101() {
+    let dir = scratch("target-rust-bad");
+    let config = dir.join("ferrule.yml");
+    fs::write(&config, "targets:\n  rust:\n    edition: '2021'\n").expect("config");
+    let output = bin()
+        .arg("generate")
+        .arg(plugin_dir().join("tests/fixtures/onebusaway.json"))
+        .args(["--target", "rust", "--out"])
+        .arg(dir.join("sdk"))
+        .arg("--ferrule-config")
+        .arg(&config)
+        .output()
+        .expect("runs");
+    assert_eq!(output.status.code(), Some(1));
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.starts_with("ferrule-gen: FER101 at /targets/rust/edition"),
+        "{stderr}"
+    );
+}
+
+#[test]
 fn generates_go_with_the_runtime_options() {
     let out = scratch("target-go");
     let status = bin()

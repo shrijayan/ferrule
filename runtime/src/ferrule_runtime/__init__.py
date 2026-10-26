@@ -19,6 +19,7 @@ from ferrule_runtime._render import (
 )
 from ferrule_runtime._retry import retry_delay, should_retry
 from ferrule_runtime._ruby import RubyArrayFormat, RubyAuthIn, RubyOptions, render_ruby_files
+from ferrule_runtime._rust import render_rust_files
 from ferrule_runtime._typescript import (
     QueryArrayFormat,
     TypeScriptOptions,
@@ -67,6 +68,7 @@ __all__ = [
     "render_pagination",
     "render_php_files",
     "render_ruby_files",
+    "render_rust_files",
     "render_tree",
     "render_typescript_files",
     "render_typescript_node_files",

@@ -15,6 +15,7 @@ per-SDK names replaced by tokens; rendering is pure and byte-identical to the or
 | Ruby | `ruby/template/` | `render_ruby_files` | `OneBusAway/ruby-sdk` @ `46a574dd` |
 | PHP | `php/template/` | `render_php_files` | `imagekit-developer/imagekit-php` @ `9f9309d5` |
 | C# (`csharp` target) | `csharp/template/` | `render_csharp_files` | `imagekit-developer/imagekit-dotnet` @ `265ab207` |
+| Rust (Ferrule-original, ADR 0019) | `rust/template/` | `render_rust_files` | none: Ferrule's own code, written from scratch |
 
 - Templates are third-party code: not linted or formatted by our rules (excluded in the root
   `pyproject.toml` and `biome.json`).

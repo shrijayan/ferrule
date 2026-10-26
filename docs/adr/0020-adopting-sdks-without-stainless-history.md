@@ -4,7 +4,7 @@ date: 2026-10-26
 deciders: Ferrule maintainers (made on the user's behalf while they were away)
 ---
 
-# 0019. Adopting an SDK that Stainless never generated
+# 0020. Adopting an SDK that Stainless never generated
 
 ## Context and problem statement
 

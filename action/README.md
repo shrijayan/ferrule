@@ -36,122 +36,6 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-## Bring your own App token
-
-`secrets.GITHUB_TOKEN` is enough when the spec lives in the SDK repository and a person merges
-the PR. It falls short in two cases:
-
-- **CI on the PR.** Events caused by `GITHUB_TOKEN` start no workflow runs, so the PR the action
-  opens gets no checks.
-- **Another repository.** `GITHUB_TOKEN` is scoped to the repository its workflow runs in, so an
-  API repository can't use it to tell the SDK repository its spec changed.
-
-Use a token from a GitHub App you own instead. Create the App with **Contents: read & write** and
-**Pull requests: read & write** on the SDK repository (add **Contents** on the API repository for
-the cross-repository flow below), install it on both, and store its ID and private key as the
-`SDK_APP_ID` variable and `SDK_APP_PRIVATE_KEY` secret. Then mint a short-lived token in the job:
-
-```yaml
-    steps:
-      - uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
-        id: app-token
-        with:
-          app-id: ${{ vars.SDK_APP_ID }}
-          private-key: ${{ secrets.SDK_APP_PRIVATE_KEY }}
-      # ... checkout as above ...
-      - uses: shrijayan/ferrule/action@<sha>
-        with:
-          spec: openapi.json
-          config: stainless.yml
-          open-pr: true
-          github-token: ${{ steps.app-token.outputs.token }}
-```
-
-### Regenerate when another repository changes its spec
-
-When the spec is published by a separate API repository, that repository sends a
-`repository_dispatch` event to the SDK repository; the SDK repository copies the spec in and
-commits it, and that push runs the regeneration workflow above (its `on: push: paths:` matches
-the spec). Each side checks what it receives and moves no secrets between repositories.
-
-In the API repository:
-
-```yaml
-# .github/workflows/notify-sdk.yml
-name: notify-sdk
-on:
-  push:
-    branches: [main]
-    paths: [openapi.json]
-
-permissions: {}
-
-jobs:
-  dispatch:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
-        id: app-token
-        with:
-          app-id: ${{ vars.SDK_APP_ID }}
-          private-key: ${{ secrets.SDK_APP_PRIVATE_KEY }}
-          owner: acme
-          repositories: acme-python
-      - name: Tell the SDK repository the spec changed
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-        run: >-
-          gh api repos/acme/acme-python/dispatches
-          -f event_type=spec-updated
-          -f "client_payload[sha]=$GITHUB_SHA"
-```
-
-In the SDK repository:
-
-```yaml
-# .github/workflows/sync-spec.yml
-name: sync-spec
-on:
-  repository_dispatch:
-    types: [spec-updated]
-  workflow_dispatch:
-
-permissions: {}
-
-jobs:
-  sync:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
-        id: app-token
-        with:
-          app-id: ${{ vars.SDK_APP_ID }}
-          private-key: ${{ secrets.SDK_APP_PRIVATE_KEY }}
-          owner: acme
-          repositories: acme-api,acme-python
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          token: ${{ steps.app-token.outputs.token }} # its push starts sdk.yml; GITHUB_TOKEN's would not
-      - name: Copy the spec from the API repository
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-          SHA: ${{ github.event.client_payload.sha || 'main' }}
-        run: |
-          # The payload is input: accept a full commit SHA (or main for a manual run), nothing else.
-          [[ "$SHA" =~ ^([0-9a-f]{40}|main)$ ]] || { echo "::error::bad sha $SHA"; exit 1; }
-          gh api "repos/acme/acme-api/contents/openapi.json?ref=$SHA" \
-            -H "Accept: application/vnd.github.raw" > openapi.json
-          git diff --quiet -- openapi.json && { echo "spec unchanged"; exit 0; }
-          git -c user.name="acme-sdk[bot]" -c user.email="sdk-bot@acme.invalid" \
-            commit -s -m "chore: sync openapi.json from acme-api@${SHA:0:12}" -- openapi.json
-          git push origin HEAD:main
-```
-
-The push to `main` needs the App to be allowed past branch protection; to review the spec first,
-push to a branch and open a PR instead, and regeneration runs when it is merged. The `sdk.yml`
-job then opens or updates the `ferrule/regenerate` PR with the verify result, and because the
-App's token opened it, the SDK's own CI runs on it.
-
 ## Inputs
 
 | Input | Default | Meaning |
@@ -188,6 +72,137 @@ newest trailer). Push `generated` along with the adopt branch, keep `fetch-depth
 so the action sees it, and keep the trailer when you merge the PR (a squash merge keeps it in
 the message body). A change that conflicts with custom code opens the PR with the conflict
 markers, and the job fails until someone resolves them.
+
+## Bring your own GitHub App token
+
+Ferrule runs no bot of its own. The action runs in your repository, and `GITHUB_TOKEN` is enough
+to push the branch and open the PR. Two limits of `GITHUB_TOKEN` make a GitHub App token worth it:
+
+- **CI does not run on the regenerate PR.** GitHub does not start other workflows for pushes and
+  PRs made with `GITHUB_TOKEN`, so the PR arrives with no test results.
+- **It cannot reach another repository.** When the spec lives in your API repo and the SDK in its
+  own repo, `GITHUB_TOKEN` in one cannot write to the other.
+
+Create a GitHub App in your own organization (Settings, Developer settings, GitHub Apps). It
+needs no webhook. Give it the repository permissions **Contents: read and write** and **Pull
+requests: read and write**, then install it on the SDK repo (and the API repo, for the cross-repo
+setup below). Store its client ID as the variable `SDK_BOT_CLIENT_ID` and its private key as
+the secret `SDK_BOT_PRIVATE_KEY`. Then mint a token in the job and pass it as `github-token`:
+
+```yaml
+    steps:
+      - uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        id: app-token
+        with:
+          client-id: ${{ vars.SDK_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.SDK_BOT_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+      # checkout as in Usage, then:
+      - uses: shrijayan/ferrule/action@<sha>
+        with:
+          spec: openapi.json
+          config: stainless.yml
+          open-pr: true
+          github-token: ${{ steps.app-token.outputs.token }}
+```
+
+The PR is now opened by `<your-app>[bot]`, and your CI runs on it. The token expires when the job
+ends. Commits are still authored as `github-actions[bot]` and signed off.
+
+### Spec in one repo, SDK in another
+
+The API repo tells the SDK repo that the spec changed, with a `repository_dispatch` event. The SDK
+repo checks out the spec at that commit and runs the action. In the API repo:
+
+```yaml
+# acme-api: .github/workflows/sdk-dispatch.yml
+name: sdk-dispatch
+on:
+  push:
+    branches: [main]
+    paths: [openapi.json, stainless.yml]
+
+permissions: {}
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        id: app-token
+        with:
+          client-id: ${{ vars.SDK_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.SDK_BOT_PRIVATE_KEY }}
+          repositories: acme-python
+          permission-contents: write   # repository_dispatch needs contents: write
+      - env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          SHA: ${{ github.sha }}
+        run: |
+          gh api repos/acme/acme-python/dispatches \
+            -f event_type=spec-updated -f "client_payload[sha]=$SHA"
+```
+
+In the SDK repo:
+
+```yaml
+# acme-python: .github/workflows/sdk.yml
+name: sdk
+on:
+  repository_dispatch:
+    types: [spec-updated]
+  pull_request:            # re-runs verify when a maintainer adds ferrule:allow-breaking
+    types: [opened, synchronize, labeled]
+    branches: [main]
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  regenerate:
+    if: github.event_name != 'pull_request' || github.head_ref == 'ferrule/regenerate'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        id: spec-token
+        with:
+          client-id: ${{ vars.SDK_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.SDK_BOT_PRIVATE_KEY }}
+          repositories: acme-api
+          permission-contents: read
+      - uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        id: sdk-token
+        with:
+          client-id: ${{ vars.SDK_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.SDK_BOT_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: acme/acme-api
+          ref: ${{ github.event.client_payload.sha || 'main' }}
+          path: .api
+          token: ${{ steps.spec-token.outputs.token }}
+          persist-credentials: false
+      # Keep the spec checkout out of the commit: the action refuses files it did not generate.
+      - run: echo ".api/" >> .git/info/exclude
+      - uses: shrijayan/ferrule/action@<sha>
+        with:
+          spec: .api/openapi.json
+          config: .api/stainless.yml
+          verify: true
+          open-pr: true
+          github-token: ${{ steps.sdk-token.outputs.token }}
+```
+
+One token per repository keeps each to least privilege: read on the API repo, write on the SDK
+repo. A fine-grained personal access token also works in place of the App, but it acts as a
+person and outlives the job, so prefer the App.
 
 ## Breaking changes
 
