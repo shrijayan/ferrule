@@ -453,6 +453,7 @@ impl Context<'_> {
                 status: r.status().to_owned(),
                 media_type: c.media_type().to_owned(),
                 ty: self.read_type(c.ty())?,
+                unwrap: self.ext.unwrap.clone(),
             }),
         };
         // An event model the JSON response does not name (an always-streaming endpoint): declare

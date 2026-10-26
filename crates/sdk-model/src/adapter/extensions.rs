@@ -88,6 +88,8 @@ pub struct MethodExtensions {
     pub model_only: HashMap<String, Vec<String>>,
     pub pagination: Option<RawPagination>,
     pub streaming: Option<RawStreaming>,
+    /// The response envelope field the method returns (`unwrap_response`), if any.
+    pub unwrap: Option<String>,
     /// Mirrored from the root (Forge gap G2): `custom_casings`; empty without.
     pub casings: Vec<CustomCasing>,
     /// Mirrored from the root (Forge gap G2): every `standalone_api` resource, including ones
@@ -102,7 +104,7 @@ pub struct MethodExtensions {
 }
 
 /// Operation-level extensions the adapter reads. Root and schema ones never reach it.
-const KNOWN: [&str; 13] = [
+const KNOWN: [&str; 14] = [
     "x-ferrule-resource",
     "x-ferrule-method-name",
     "x-ferrule-method-order",
@@ -116,6 +118,7 @@ const KNOWN: [&str; 13] = [
     "x-ferrule-style",
     "x-ferrule-targets",
     "x-ferrule-targets-only",
+    "x-ferrule-unwrap",
 ];
 
 /// The member `key` of `v` if `v` is an object, else `None` (`undefined`).
@@ -358,6 +361,11 @@ pub fn read_method_extensions(extensions: &[(&str, &Json)], pointer: &str) -> Re
         .map(|raw| read_pagination(raw).ok_or_else(|| bad("x-ferrule-pagination", PAGINATION_SHAPE)))
         .transpose()?;
 
+    let unwrap = match get("x-ferrule-unwrap") {
+        None | Some(Json::Null) => None,
+        Some(Json::String(field)) => Some(field.clone()),
+        Some(_) => return Err(bad("x-ferrule-unwrap", "a response property name")),
+    };
     let streaming = get("x-ferrule-streaming")
         .map(|raw| read_streaming(raw).ok_or_else(|| bad("x-ferrule-streaming", STREAMING_SHAPE)))
         .transpose()?;
@@ -400,6 +408,7 @@ pub fn read_method_extensions(extensions: &[(&str, &Json)], pointer: &str) -> Re
         model_only,
         pagination,
         streaming,
+        unwrap,
         casings,
         standalone,
         style,

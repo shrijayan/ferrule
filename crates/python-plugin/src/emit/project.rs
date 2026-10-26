@@ -12,13 +12,15 @@ use super::common::{
 use super::cycles::Cycles;
 use super::files::emit_project_files;
 use super::files_input::{ProjectMeta, to_project_files_input};
+use super::models::all_list;
 use super::models::{AliasFile, ModelFile, emit_alias_model_file, emit_model_file};
 use super::package_init::{emit_package_init_with, emit_version};
 use super::params::emit_params_file;
-use super::resources::{Mode, class_name, emit_resource_file};
+use super::resources::{Mode, class_name, emit_resource_file, wrapper_class};
 use crate::diagnostics::FerruleError;
 use crate::js;
 use crate::model::{SdkClient, SdkMethod, SdkObject, SdkResource, SdkType};
+use crate::naming::{snake_case, split_words};
 use crate::printer::PythonPrinter;
 
 /// Output tree: relative path -> file contents, sorted by path.
@@ -322,6 +324,45 @@ fn sorted(files: OrderedMap<String>) -> FileTree {
     out
 }
 
+/// `_wrappers.py`, one generic wrapper per unwrapped envelope field (ogx-client-python's
+/// `DataWrapper`), when a method unwraps one.
+fn emit_wrappers_file(client: &SdkClient) -> Option<String> {
+    let mut fields: Vec<&str> = all_resources(&client.resources)
+        .iter()
+        .flat_map(|r| &r.methods)
+        .chain(&client.client_methods)
+        .filter_map(|m| m.unwrap.as_deref())
+        .collect();
+    fields.sort_unstable();
+    fields.dedup();
+    if fields.is_empty() {
+        return None;
+    }
+    let names: Vec<String> = fields.iter().map(|f| wrapper_class(f)).collect();
+    let mut p = PythonPrinter::new(&[HEADER]);
+    p.import_from("typing", "Generic");
+    p.import_from("typing", "TypeVar");
+    p.import_from("._models", "GenericModel");
+    for l in all_list(&names) {
+        p.line(&l);
+    }
+    p.blank();
+    p.line("_T = TypeVar(\"_T\")");
+    for (field, name) in fields.iter().zip(&names) {
+        let attr = snake_case(&split_words(field));
+        p.blank().blank();
+        p.block(&format!("class {name}(GenericModel, Generic[_T]):"), |p| {
+            p.line(&format!("{attr}: _T"));
+            p.blank();
+            p.line("@staticmethod");
+            p.block(&format!("def _unwrapper(obj: \"{name}[_T]\") -> _T:"), |p| {
+                p.line(&format!("return obj.{attr}"));
+            });
+        });
+    }
+    Some(p.render())
+}
+
 /// Every code file of the SDK (`src/<pkg>/**`) but the agent context, sorted by path.
 ///
 /// # Errors
@@ -378,6 +419,9 @@ pub fn emit_code_files(client: &SdkClient, meta: Option<&ProjectMeta>) -> Result
     }
 
     out.types_inits();
+    if let Some(wrappers) = emit_wrappers_file(client) {
+        out.files.set_value(&module_path(&pkg, "_wrappers"), wrappers);
+    }
 
     if let Some(settings) = &client.settings {
         out.files
