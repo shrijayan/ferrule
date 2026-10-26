@@ -212,6 +212,22 @@ def count_schemas(spec: Mapping[str, object]) -> int:
     )
 
 
+def count_external_refs(node: object) -> int:
+    """Count the ``$ref`` values that point into another document (not ``#...``)."""
+    stack = [node]
+    found = 0
+    while stack:
+        item = stack.pop()
+        if isinstance(item, dict):
+            ref = cast("dict[str, object]", item).get("$ref")
+            if isinstance(ref, str) and not ref.startswith("#"):
+                found += 1
+            stack.extend(cast("dict[str, object]", item).values())
+        elif isinstance(item, list):
+            stack.extend(cast("list[object]", item))
+    return found
+
+
 @dataclass(frozen=True)
 class Refusal:
     """An operation generation refused: its code, pointer, endpoint and detail."""

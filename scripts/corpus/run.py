@@ -62,6 +62,7 @@ from ferrule.verify import verify
 from scripts.corpus.harness import (
     add_model,
     api_endpoints,
+    count_external_refs,
     count_schemas,
     drop_endpoint,
     endpoint_key,
@@ -262,6 +263,7 @@ def fetch(spec: Spec) -> dict[str, object]:
     spec.counts.update(
         operations=result.operations,
         schemas=count_schemas(tree),
+        external_refs=count_external_refs(tree),
         resources=result.resources,
         methods=result.methods,
         renamed_methods=len(result.renamed),

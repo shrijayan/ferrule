@@ -10,6 +10,7 @@ from scripts.corpus.harness import (
     add_model,
     api_endpoints,
     base_url,
+    count_external_refs,
     count_schemas,
     drop_endpoint,
     endpoint_key,
@@ -292,3 +293,13 @@ def test_top_causes() -> None:
         "SyntaxError: duplicate argument 'timeout'": 2
     }
     assert top_causes(pytest_out, "tests")["ValueError: line N"] == 1
+
+
+def test_count_external_refs() -> None:
+    spec = {
+        "paths": {"/a": {"get": {"$ref": "resources/a_get.yml"}}},
+        "components": {
+            "schemas": {"A": {"$ref": "#/components/schemas/B"}, "C": [{"$ref": "x.json#/D"}]}
+        },
+    }
+    assert count_external_refs(spec) == 2
