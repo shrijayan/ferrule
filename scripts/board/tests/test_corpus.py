@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 import json
 from pathlib import Path
+from typing import cast
 
 import pytest
 
@@ -100,7 +101,7 @@ def test_row_with_checks_tests_and_compare() -> None:
             "ok": False,
             "error": "pyright exited 1 with 7 errors:\nx",
             "errors": 7,
-            "causes": {"reportRedeclaration": 7},
+            "causes": {"a-rule": 1, "reportRedeclaration": 6},
         },
         tests={
             "ok": False,
@@ -123,8 +124,10 @@ def test_row_with_checks_tests_and_compare() -> None:
         "name": "pyright",
         "status": "fail",
         "detail": "pyright exited 1 with 7 errors: x",
-        "causes": {"reportRedeclaration": 7},
+        "causes": {"reportRedeclaration": 6, "a-rule": 1},
     } in stages
+    pyright = cast("dict[str, dict[str, int]]", stages[6])
+    assert list(pyright["causes"]) == ["reportRedeclaration", "a-rule"]
     assert row["deterministic"] is True
     assert row["generation_seconds"] == 1.0
     compared = row["compare"]

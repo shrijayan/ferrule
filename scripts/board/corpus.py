@@ -108,7 +108,9 @@ def stage_rows(stages: dict[str, object]) -> list[dict[str, object]]:
             row["detail"] = first_line(error)
         causes = _obj(record.get("causes"))
         if status == "fail" and causes:
-            row["causes"] = {_LOCAL_RE.sub("", k)[:DETAIL]: v for k, v in causes.items()}
+            # Reports store keys sorted; rank by count again (most frequent first).
+            ranked = sorted(causes.items(), key=lambda kv: (-(_int(kv[1]) or 0), kv[0]))
+            row["causes"] = {_LOCAL_RE.sub("", k)[:DETAIL]: v for k, v in ranked}
         seconds = record.get("seconds")
         if isinstance(seconds, int | float) and not isinstance(seconds, bool):
             row["seconds"] = seconds
