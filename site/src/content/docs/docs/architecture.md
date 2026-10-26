@@ -5,20 +5,43 @@ description: Five stages; Forge is stage two.
 ---
 
 **Inputs:** OpenAPI spec · `stainless.yml` · `.ferrule/patches/` · previous release
-**Outputs:** Python SDK · `api.md` · `.stats.yml` · agent context · `ferrule.lock` · verify report
+**Outputs:** an SDK per language · `api.md` · `.stats.yml` · agent context · `ferrule.lock` · verify report
 
-| Stage      | What happens                                                                                                              | Part                   |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
-| 01 Convert | Validate `stainless.yml`, apply editions and `openapi.transforms`, write an annotated spec with `x-ferrule-*` extensions. | converter (Rust)       |
-| 02 Forge   | Forge, a Cargo dependency pinned to one commit, parses the annotated spec and runs the plugin in the same process.       | dependency             |
-| 03 Emit    | Adapter maps Forge data to our model; emitters write the SDK files.                                                       | python-plugin (Rust)   |
-| 04 Finish  | Copy runtime, format with ruff, merge custom code onto the generated branch.                                              | migrate (Python)       |
-| 05 Verify  | API diff, type-check, tests against the mock, semver verdict.                                                             | migrate (Python)       |
+| Stage      | What happens                                                                                                              | Part                          |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
+| 01 Convert | Validate `stainless.yml`, apply editions and `openapi.transforms`, write an annotated spec with `x-ferrule-*` extensions. | converter (Rust)              |
+| 02 Forge   | Forge, a Cargo dependency pinned to one commit, parses the annotated spec and runs the plugin in the same process.       | dependency                    |
+| 03 Emit    | An adapter maps Forge data to our model; the language's emitters write the SDK files.                                     | a plugin per language (Rust)  |
+| 04 Finish  | Copy runtime, format (ruff for Python), merge custom code onto the generated branch.                                      | migrate (Python)              |
+| 05 Verify  | API diff, type-check, tests against the mock, semver verdict.                                                             | migrate (Python)              |
 
-Stages 01 to 03 are one native binary, `ferrule-gen` (`crates/ferrule-gen`): `ferrule-gen
-convert` writes the annotated spec and `ferrule-gen generate` runs Forge with the plugin. The
-`ferrule` CLI calls it for `generate` and `adopt`; no Node or WebAssembly build is involved
-(ADR 0014).
+Stages 01 to 03 are one native Rust binary, `ferrule-gen` (`crates/ferrule-gen`), 4.4 MB with
+Forge built in: `ferrule-gen convert` writes the annotated spec and `ferrule-gen generate` runs
+Forge with the plugin. The `ferrule` CLI calls it for `generate` and `adopt`; no Node or
+WebAssembly build is involved (ADR 0014). On an Apple M4 Pro, a release build at `8924b55`
+converts the OneBusAway spec (30 operations) in about 15 ms and generates its 196 files in about
+25 ms, about 40 ms in all; ruff formatting runs separately. The output is byte-identical on every
+run.
+
+## One model, one plugin per language
+
+Python's plugin, `crates/python-plugin`, is on `main`. The other languages are open pull requests
+in review, built on ADR 0017:
+
+- `crates/sdk-model` holds the language-neutral model and the only adapter from Forge
+  ([#17](https://github.com/shrijayan/ferrule/pull/17)). Names are word lists, never a language's
+  spelling.
+- One plugin crate per language: `ts-plugin` ([#27](https://github.com/shrijayan/ferrule/pull/27),
+  [#29](https://github.com/shrijayan/ferrule/pull/29), [#34](https://github.com/shrijayan/ferrule/pull/34)),
+  `go-plugin` ([#23](https://github.com/shrijayan/ferrule/pull/23), [#37](https://github.com/shrijayan/ferrule/pull/37)),
+  `jvm-plugin` for Java and Kotlin ([#32](https://github.com/shrijayan/ferrule/pull/32)),
+  `ruby-plugin` ([#35](https://github.com/shrijayan/ferrule/pull/35)),
+  `php-plugin` ([#38](https://github.com/shrijayan/ferrule/pull/38)) and
+  `csharp-plugin` ([#39](https://github.com/shrijayan/ferrule/pull/39)).
+  `ferrule-gen --target <lang>` picks one.
+- Each language's runtime is copied from Apache-2.0 Stainless SDKs.
+
+Python keeps its own adapter for now and moves onto the shared model later, as ADR 0017 plans.
 
 ```rust
 // crates/python-plugin/src/plugin.rs: the plugin entry, a native forge::Plugin.
