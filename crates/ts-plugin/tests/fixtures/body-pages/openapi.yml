@@ -1,0 +1,130 @@
+openapi: 3.1.0
+info:
+  title: Acme
+  version: 1.0.0
+servers:
+  - url: https://api.acme.test
+security:
+  - BearerAuth: []
+paths:
+  /notes/search:
+    post:
+      operationId: searchNotes
+      summary: Search notes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                after:
+                  type: string
+                before:
+                  type: string
+                limit:
+                  type: integer
+      responses:
+        '200':
+          description: A page of notes.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Note'
+  /tags/search:
+    post:
+      operationId: searchTags
+      summary: Search tags
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                offset:
+                  type: integer
+                limit:
+                  type: integer
+      responses:
+        '200':
+          description: A page of tags.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, total]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Note'
+                  total:
+                    type: integer
+  /links:
+    get:
+      operationId: listLinks
+      summary: List links
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: A page of links.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Note'
+                  next:
+                    type: string
+  /archive:
+    get:
+      operationId: listArchive
+      summary: List the archive
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: A page of archived notes.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Note'
+                  next:
+                    type: string
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    Note:
+      type: object
+      description: A note.
+      required: [id]
+      properties:
+        id:
+          type: string
