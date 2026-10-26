@@ -109,6 +109,24 @@ Already on main: rescue/adopt, three-way merge, GitHub Action, Forge-parse norma
 3. Pick five targets with 0 breaking and run the Phase 4 gate:
    `mise run check && mise run adopt:gate`. Record the result here.
 
+### Phase 4 gate: passed (2026-10-26)
+
+`mise run adopt:gate` — OK on all five targets (adopt exit 0, custom code changed 0):
+
+| SDK | Own tests |
+| --- | --- |
+| onebusaway | 1110 passed, 0 failed |
+| isaacus | 472 passed, 0 failed |
+| lumaai | 728 passed, 0 failed |
+| honcho | 1241 passed, 0 failed |
+| knock-mgmt | 468 passed, 0 failed |
+
+Side branches checked: every unmerged commit is superseded on main (TypeScript-era converter
+and plugin work reimplemented in the Rust crates; fake-server and agent-context ADRs landed as
+0016 and 0013; `ferrule merge`/`gitio.py` and `runtime/template/` already present).
+`mise run check`: green (after deleting stale untracked Astro output in `docs/site/`; the site
+lives in `site/`).
+
 ## Rust move (ADR 0014): done (2026-10-25)
 
 The converter and the plugin are Rust: `crates/converter`, `crates/python-plugin` (a native
