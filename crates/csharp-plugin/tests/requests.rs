@@ -79,6 +79,26 @@ fn a_query_api_key_is_sent_in_the_query() {
     assert!(!out.runtime.to_json().contains("auth_query"));
 }
 
+/// A model no C# method reaches (only a method left out for C# returns it) is still declared, as
+/// Stainless declares every model the config names, and its reference to a model left out for C#
+/// is inlined as `for_target` inlines it, not a `JsonElement`.
+#[test]
+fn an_unreached_model_keeps_the_inlined_shape_of_a_model_left_out() {
+    let f = files(
+        "  /things:\n    get:\n      responses:\n        '204':\n          description: Done.\n  /holders:\n    get:\n      responses:\n        '200':\n          description: The holder.\n          content:\n            application/json:\n              schema:\n                $ref: '#/components/schemas/Holder'\n",
+        &format!(
+            "{BEARER}  schemas:\n    Holder:\n      type: object\n      required: [inner]\n      properties:\n        inner:\n          $ref: '#/components/schemas/Inner'\n    Inner:\n      type: object\n      properties:\n        note:\n          type: string\n"
+        ),
+        "      list: get /things\n      holder:\n        endpoint: get /holders\n        skip: [csharp]\n    models:\n      holder: Holder\n      inner:\n        openapi_uri: '#/components/schemas/Inner'\n        skip: [csharp]\n",
+    );
+    let (path, holder) = f
+        .iter()
+        .find(|(p, _)| p.ends_with("/Holder.cs"))
+        .unwrap_or_else(|| panic!("no Holder.cs in {:?}", f.keys().collect::<Vec<_>>()));
+    assert!(!holder.contains("JsonElement Inner"), "{path}:\n{holder}");
+    assert!(holder.contains("Note"), "{path}:\n{holder}");
+}
+
 /// A method whose required argument the test cannot build (here a dictionary of enum values) has
 /// no service test, rather than one that does not compile; the others keep theirs.
 #[test]
