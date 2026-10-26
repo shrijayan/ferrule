@@ -101,7 +101,7 @@ pub fn example_value(
                 .map(|f| {
                     format!(
                         "{inner}{}: {},",
-                        py_string(&f.wire_name),
+                        py_string(&f.py_name),
                         example_value(&f.ty, uses, &inner, None, "string", None)
                     )
                 })
