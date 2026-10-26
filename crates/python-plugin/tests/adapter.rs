@@ -356,3 +356,40 @@ fn builds_nested_resources_and_returns_none_without_operations() {
     let group = f.groups().next().expect("a group");
     assert!(group_to_model(group).expect("converts").is_some());
 }
+
+/// Two properties of a model that `api_`/`_` renaming would give the same attribute (ogx's
+/// `model_id` is `api_model_id`, knock's `__typename` is `api_typename`) are FER201 at the operation
+/// or the named schema, not one attribute that overwrites the other. A params `TypedDict` keeps
+/// the names as they are, so a request body with both is generated.
+#[test]
+fn rejects_model_properties_that_would_be_one_attribute() {
+    let clash = json!({
+        "type": "object",
+        "properties": { "model_id": { "type": "string" }, "api_model_id": { "type": "string" } },
+    });
+    let inline = model(&doc(&json!({ "responses": ok_response(&clash) }), &json!({}))).expect_err("a clash");
+    assert_eq!(inline.code.to_string(), "FER201");
+    assert_eq!(inline.pointer, "#/paths/~1things~1{id}/get");
+    assert!(inline.detail.contains("`api_model_id`"), "{}", inline.detail);
+
+    let named = model(&doc(
+        &json!({
+            "x-ferrule-models": { "Thing": { "name": "Thing" } },
+            "responses": ok_response(&json!({ "$ref": "#/components/schemas/Thing" })),
+        }),
+        &json!({ "Thing": {
+            "type": "object",
+            "properties": { "__typename": { "type": "string" }, "api_typename": { "type": "string" } },
+        } }),
+    ))
+    .expect_err("a clash");
+    assert_eq!(named.code.to_string(), "FER201");
+    assert_eq!(named.pointer, "#/components/schemas/Thing");
+    assert!(named.detail.contains("`api_typename`"), "{}", named.detail);
+
+    let body = doc(
+        &json!({ "requestBody": { "content": { "application/json": { "schema": clash } } } }),
+        &json!({}),
+    );
+    assert!(model(&body).is_ok());
+}
