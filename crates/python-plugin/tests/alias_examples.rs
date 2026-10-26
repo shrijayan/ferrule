@@ -47,6 +47,6 @@ fn a_named_type_parameter_gets_an_example_of_that_type() {
         "{module}"
     );
     assert!(!module.contains("{},"), "{module}");
-    // A named object model lists its fields, as lithic-python's tests write `address`.
-    assert!(module.contains("\"providerID\": \"string\","), "{module}");
+    // A named object model lists its fields by Python name, the keys of its params TypedDict.
+    assert!(module.contains("\"provider_id\": \"string\","), "{module}");
 }
