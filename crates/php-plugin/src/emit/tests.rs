@@ -153,7 +153,7 @@ fn assertion(m: &Meth<'_>, imp: &mut Imports) -> String {
             imp.class(c)
         ),
         Some(PType::List(_)) => format!("{ignore}{ind}$this->assertIsList($result);\n"),
-        Some(_) => format!("{ind}$this->assertNotNull($result);\n"),
+        Some(_) => format!("{ignore}{ind}$this->assertNotNull($result);\n"),
     }
 }
 
