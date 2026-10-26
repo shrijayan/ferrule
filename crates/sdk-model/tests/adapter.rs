@@ -358,6 +358,38 @@ fn handles_a_body_only_request_and_no_json_response() {
     assert_eq!(method.response, None);
 }
 
+/// An always-streaming endpoint whose event model only its `text/event-stream` response names:
+/// the event reference must resolve to a declared model.
+#[test]
+fn declares_the_event_model_only_an_event_stream_response_names() {
+    let d = doc(
+        &json!({
+            "x-ferrule-models": { "Event": { "name": "Event" } },
+            "x-ferrule-streaming": { "format": "sse", "eventSchema": "Event" },
+            "responses": { "200": { "description": "events", "content": {
+                "text/event-stream": { "schema": { "$ref": "#/components/schemas/Event" } },
+            } } },
+        }),
+        &json!({
+            "Event": { "type": "object", "properties": { "delta": { "type": "string" } } },
+        }),
+    );
+    let (client, method) = only(&d);
+    let streaming = method.streaming.as_ref().expect("streaming");
+    let Some(Type::Ref(event)) = &streaming.event else {
+        panic!("a named event, got {:?}", streaming.event)
+    };
+    let decl = client.model(event).expect("the event model is declared");
+    let fields: Vec<&str> = client
+        .object_of(&decl.ty)
+        .expect("an object")
+        .fields
+        .iter()
+        .map(|f| f.wire_name.as_str())
+        .collect();
+    assert_eq!(fields, ["delta"]);
+}
+
 #[test]
 fn names_models_flattens_all_of_and_keeps_self_references_finite() {
     let d = doc(
