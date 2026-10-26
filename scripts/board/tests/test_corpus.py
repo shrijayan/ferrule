@@ -191,3 +191,15 @@ def test_main(tmp_path: Path) -> None:
     assert main([*argv, "--gaps", str(gaps), "--out", str(out)]) == 0
     assert json.loads(out.read_text())["specs"][0]["reached"] == "fetch"
     assert main([*argv[:1], "bad", *argv[2:], "--gaps", str(gaps), "--out", str(out)]) == 1
+
+
+def test_caveat_and_external_refs() -> None:
+    raw = report("digitalocean", fetch=OK)
+    row = build_row(spec("digitalocean"), raw, TITLES)
+    assert isinstance(row["caveat"], str)
+    gaps = cast("list[dict[str, object]]", row["gaps"])
+    assert [g["id"] for g in gaps] == ["G24", "G29", "G32"]
+    raw = report(fetch=OK)
+    raw["counts"] = {"external_refs": 3}
+    gaps = cast("list[dict[str, object]]", build_row(spec(), raw, TITLES)["gaps"])
+    assert "G29" in [g["id"] for g in gaps]

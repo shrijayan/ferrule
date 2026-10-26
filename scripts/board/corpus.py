@@ -43,6 +43,16 @@ NO_COMPARE = {
     "jira": "Atlassian publishes no official Python SDK for Jira Cloud.",
 }
 
+# What a reader must know to read a spec's numbers, beyond what its stages show.
+CAVEATS = {
+    "digitalocean": "All 858 operations are $refs into sibling files, which are not fetched "
+    "(G29); Forge reads each as an operation with no parameters or responses (G32), so the "
+    "methods are generated empty and the mock server cannot answer them.",
+}
+
+# Gaps behind a caveat, for runs whose reports predate the count that detects them.
+CAVEAT_GAPS = {"digitalocean": ("G29", "G32")}
+
 # Gaps a run hits, by the FER code a workaround reports or by text in the failing stage.
 GAP_CODES = {
     "FER1601": "G22",
@@ -133,6 +143,10 @@ def gaps_of(report: dict[str, object], titles: dict[str, str]) -> list[dict[str,
     for pattern, gap in GAP_TEXT:
         if pattern.search(error):
             found[gap] = True
+    if (_int(_obj(report.get("counts")).get("external_refs")) or 0) > 0:
+        found.setdefault("G29", False)
+    for gap in CAVEAT_GAPS.get(str(report.get("spec")), ()):
+        found.setdefault(gap, False)
     for skip in cast("list[object]", report.get("skipped") or []):
         detail = str(_obj(skip).get("detail", ""))
         for pattern, gap in GAP_SKIPS:
@@ -211,6 +225,7 @@ def build_row(spec: Spec, raw: object, titles: dict[str, str]) -> dict[str, obje
                 "generated_methods",
                 "skipped",
                 "files",
+                "external_refs",
             )
         },
         "skipped_by_code": _obj(counts.get("skipped_by_code")),
@@ -225,6 +240,7 @@ def build_row(spec: Spec, raw: object, titles: dict[str, str]) -> dict[str, obje
         "digest": render.get("digest"),
         "compare": compare_of(spec, stages),
         "gaps": gaps_of(report, titles),
+        "caveat": CAVEATS.get(spec.name),
     }
 
 
