@@ -83,6 +83,83 @@ const flows = [120, 165, 210, 255, 300, 345, 390].map((y, k) => {
   };
 });
 
+// Status per language. Python is on main; the rest are open pull requests in review. Proof is
+// identical files out of the total, against real public Stainless SDKs.
+interface LangRow {
+  name: string;
+  status: 'main' | 'review' | 'none';
+  best: [number, number] | null;
+  proof: string;
+  prs: number[];
+}
+// biome-ignore lint/correctness/noUnusedVariables: used by the template below
+const languages: LangRow[] = [
+  {
+    name: 'Python',
+    status: 'main',
+    best: [80, 80],
+    proof:
+      'onebusaway: 0 breaking, 1,110 of its own tests pass. With #30, five real SDKs adopt with 0 breaking and every test passing.',
+    prs: [],
+  },
+  {
+    name: 'TypeScript',
+    status: 'review',
+    best: [84, 84],
+    proof:
+      'isaacus-typescript, and its lint and 216 jest tests pass. onebusaway-typescript (node layout) 108/109.',
+    prs: [27, 29, 34],
+  },
+  {
+    name: 'Go',
+    status: 'review',
+    best: [65, 69],
+    proof:
+      'onebusaway-go: runtime 25/25, builds and tests pass. v2 layout, imagekit-go: runtime 54/54, generated 17/45.',
+    prs: [23, 37],
+  },
+  {
+    name: 'Java',
+    status: 'review',
+    best: [328, 343],
+    proof: 'onebusaway-java. imagekit-java 186/291.',
+    prs: [32],
+  },
+  { name: 'Kotlin', status: 'review', best: [282, 338], proof: 'onebusaway-kotlin.', prs: [32] },
+  {
+    name: 'Ruby',
+    status: 'review',
+    best: [326, 329],
+    proof: "onebusaway-ruby. imagekit-ruby 348/432. Both gems' own tests pass.",
+    prs: [35],
+  },
+  {
+    name: 'PHP',
+    status: 'review',
+    best: [268, 336],
+    proof: "imagekit-php, shared files: runtime 48/48, and the package's 87 pest tests pass.",
+    prs: [38],
+  },
+  {
+    name: 'C#',
+    status: 'review',
+    best: [109, 184],
+    proof:
+      "imagekit-dotnet: runtime 38/38, 38 more files differ only in doc wrapping, builds with dotnet. The synthetic SDK's 89 tests pass.",
+    prs: [39],
+  },
+  {
+    name: 'CLI, Terraform',
+    status: 'none',
+    best: null,
+    proof:
+      'No public Stainless-generated CLI or provider pairs with a public config, so there is no oracle to prove against.',
+    prs: [],
+  },
+];
+// biome-ignore lint/correctness/noUnusedVariables: used by the template below
+const statusLabel = { main: 'on main', review: 'in review', none: 'not started' } as const;
+
 interface BoardRow {
   name: string;
   repo: string | null;
@@ -120,7 +197,7 @@ const testsLabel = (r: BoardRow): string => {
     <title>Ferrule · Change the engine, not the SDK</title>
     <meta
       name="description"
-      content="Ferrule regenerates the exact Python SDK your users already import, from the same OpenAPI spec and stainless.yml, and proves nothing public changed. Open source, Apache-2.0."
+      content="Ferrule regenerates the exact SDKs your users already import, in Python, TypeScript, Go, Java, Kotlin, Ruby, PHP and C#, from the same OpenAPI spec and stainless.yml, and proves nothing public changed. One Rust binary. Open source, Apache-2.0."
     />
     <meta name="color-scheme" content="dark" />
     <link rel="icon" href={`${base}/favicon.svg`} type="image/svg+xml" />
@@ -152,6 +229,7 @@ const testsLabel = (r: BoardRow): string => {
         <nav class="nav-links">
           <a href="#why">Why</a>
           <a href="#proof">Proof</a>
+          <a href="#languages">Languages</a>
           <a href="#how">How it works</a>
           <a href="#compare">Compare</a>
           <a href="#board">Fidelity board</a>
@@ -176,9 +254,9 @@ const testsLabel = (r: BoardRow): string => {
         <div class="eyebrow reveal"><span class="pill">Open source</span> For teams leaving Stainless</div>
         <h1 class="display reveal d1">Change the engine.<br /><em>Not the SDK.</em></h1>
         <p class="lede reveal d2">
-          Ferrule regenerates the <strong>exact Python SDK your users already import</strong>, from the same
-          OpenAPI spec and <code>stainless.yml</code>, then proves that nothing public changed. Apache-2.0. Runs on
-          your laptop and in CI. No account.
+          Ferrule regenerates the <strong>exact SDKs your users already import</strong>, in Python, TypeScript, Go,
+          Java, Kotlin, Ruby, PHP and C#, from the same OpenAPI spec and <code>stainless.yml</code>, then proves that
+          nothing public changed. One Rust binary. Apache-2.0. Runs on your laptop and in CI. No account.
         </p>
         <div class="hero-actions reveal d3">
           <button type="button" class="cmd" data-copy="uvx ferrule adopt ." aria-label="Copy command">
@@ -198,7 +276,8 @@ const testsLabel = (r: BoardRow): string => {
           </a>
         </div>
         <p class="hero-note reveal d3">
-          Pre-alpha · <code>uvx</code> lands with 0.1 · <a href={`${docs}quickstart/`}>run it from source today →</a>
+          Pre-alpha · Python on main, seven languages <a href="#languages">in review</a> · <code>uvx</code> lands with
+          0.1 · <a href={`${docs}quickstart/`}>run it from source today →</a>
         </p>
 
         <div class="stage reveal" id="stage">
@@ -253,8 +332,8 @@ const testsLabel = (r: BoardRow): string => {
 
         <div class="stage-foot reveal">
           <span>OpenAPI 3.x + stainless.yml in</span>
-          <span>Stainless-identical Python out</span>
-          <span>Built on Forge, Cloudflare's open engine</span>
+          <span>Stainless-identical SDKs out, in 8 languages</span>
+          <span>One Rust binary, Forge built in</span>
         </div>
       </div>
 
@@ -274,6 +353,14 @@ const testsLabel = (r: BoardRow): string => {
                 <div class="marquee-item">
                   <b>80 / 80</b>
                   <span>generated code files identical</span>
+                </div>
+                <div class="marquee-item">
+                  <b>8</b>
+                  <span>SDK languages, Python on main and 7 in review</span>
+                </div>
+                <div class="marquee-item">
+                  <b>~40 ms</b>
+                  <span>to generate the whole OneBusAway SDK</span>
                 </div>
                 <div class="marquee-item">
                   <b>byte-for-byte</b>
@@ -327,8 +414,8 @@ const testsLabel = (r: BoardRow): string => {
             <span class="n">Option 03 · Ferrule</span>
             <h3>Keep the SDK. Swap the engine.</h3>
             <p>
-              Same spec, same <code>stainless.yml</code>, same Python, regenerated on an open engine you control. A
-              public API diff proves it before you merge.
+              Same spec, same <code>stainless.yml</code>, the same SDK in every language, regenerated on an open
+              engine you control. A public API diff proves it before you merge.
             </p>
             <span class="verdict">Nobody notices. That's the point.</span>
           </div>
@@ -406,6 +493,92 @@ const testsLabel = (r: BoardRow): string => {
       </div>
     </section>
 
+    <section class="sec flush" id="languages">
+      <div class="wrap">
+        <div class="sec-head">
+          <div class="kicker reveal">Languages</div>
+          <h2 class="h2 reveal d1">Every major Stainless language. <em>One model.</em></h2>
+          <p class="sub reveal d2">
+            Each language is proven the way Python was: regenerate a real public Stainless SDK from its own spec and
+            config, count the files that come out identical, and run the SDK's own tests. Python is on main. The
+            other seven are open pull requests in review.
+          </p>
+        </div>
+        <div class="board langs reveal">
+          <div class="board-head">
+            <span>Language</span><span>Status</span><span>Files identical</span><span>Proof</span><span>Pull requests</span>
+          </div>
+          <div id="langRows">
+            {
+              languages.map((l) => (
+                <div class:list={['brow', { 'hero-row': l.status === 'main' }]}>
+                  <span class="nm">{l.name}</span>
+                  <span class:list={['lg-st', l.status]}>{statusLabel[l.status]}</span>
+                  <span class="bar-wrap">
+                    <span class="bar">
+                      <i data-w={l.best ? ((l.best[0] / l.best[1]) * 100).toFixed(1) : 0} />
+                    </span>
+                    <span>{l.best ? `${l.best[0]}/${l.best[1]}` : 'n/a'}</span>
+                  </span>
+                  <span class="lg-pf">{l.proof}</span>
+                  <span class="lg-pr">
+                    {l.status === 'main' ? (
+                      <span>main</span>
+                    ) : l.prs.length === 0 ? (
+                      <span>—</span>
+                    ) : (
+                      l.prs.map((n) => <a href={`${repo}/pull/${n}`}>#{n}</a>)
+                    )}
+                  </span>
+                </div>
+              ))
+            }
+          </div>
+          <div class="board-foot">
+            <span>Identical files out of the total, best real SDK per language</span>
+            <a href={`${repo}/blob/main/docs/adr/0017-multi-language-targets.md`}>One language-neutral model: ADR 0017 →</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec flush" id="rust">
+      <div class="wrap">
+        <div class="sec-head">
+          <div class="kicker reveal">Built in Rust</div>
+          <h2 class="h2 reveal d1">One binary. <em>No Node, no WebAssembly.</em></h2>
+          <p class="sub reveal d2">
+            The converter, the model and every language plugin are Rust. <code>ferrule-gen</code> is a single binary
+            with Forge built in natively, and it is optimised: the whole OneBusAway SDK generates in about 40 ms.
+          </p>
+        </div>
+        <div class="board perf reveal">
+          <div class="diff-foot">
+            <div class="stat">
+              <div class="v">4.4<small>MB</small></div>
+              <div class="l">one binary, Forge built in</div>
+            </div>
+            <div class="stat">
+              <div class="v">~<span data-count="15">0</span><small>ms</small></div>
+              <div class="l">to convert stainless.yml</div>
+            </div>
+            <div class="stat">
+              <div class="v">~<span data-count="25">0</span><small>ms</small></div>
+              <div class="l">to generate the SDK</div>
+            </div>
+            <div class="stat">
+              <div class="v g">~<span data-count="40">0</span><small>ms</small></div>
+              <div class="l">for the whole SDK, 196 files</div>
+            </div>
+          </div>
+          <div class="board-foot">
+            <span>OneBusAway, 30 operations · Apple M4 Pro, release build, main at 8924b55 · ruff runs separately</span>
+            <span>Byte-identical on every run</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section class="sec flush" id="how">
       <div class="wrap">
         <div class="sec-head">
@@ -413,7 +586,8 @@ const testsLabel = (r: BoardRow): string => {
           <h2 class="h2 reveal d1">Five stages. <em>One of them borrowed.</em></h2>
           <p class="sub reveal d2">
             We didn't build another generator. Forge, Cloudflare's Apache-2.0 engine, parses the spec. Ferrule adds
-            everything it doesn't do: reading your config, writing Stainless-shaped Python, and proving it.
+            everything it doesn't do: reading your config, a language-neutral model, one plugin per language that
+            writes Stainless-shaped code, and the proof.
           </p>
         </div>
         <div class="pipe reveal">
@@ -424,7 +598,7 @@ const testsLabel = (r: BoardRow): string => {
               ><span class="chip">last release</span>
             </div>
             <div>
-              <b>Out</b><span class="chip">Python SDK</span><span class="chip">api.md</span><span class="chip"
+              <b>Out</b><span class="chip">an SDK per language</span><span class="chip">api.md</span><span class="chip"
                 >.stats.yml</span
               ><span class="chip">ferrule.lock</span><span class="chip">verify report</span>
             </div>
@@ -440,19 +614,19 @@ const testsLabel = (r: BoardRow): string => {
             <div class="st forge">
               <div class="dot">02</div>
               <h4>Forge</h4>
-              <p>A pinned Forge commit parses the annotated spec and runs our native plugin in the same process.</p>
+              <p>A pinned Forge commit, built into the binary, parses the spec and runs the language plugin in process.</p>
               <div class="own">dependency · never forked</div>
             </div>
             <div class="st">
               <div class="dot">03</div>
               <h4>Emit</h4>
-              <p>An adapter maps Forge data into our own model; pure emitters write every SDK file.</p>
-              <div class="own">python-plugin · Rust</div>
+              <p>An adapter maps Forge data into one language-neutral model; a plugin per language writes every file.</p>
+              <div class="own">sdk-model + plugins · Rust</div>
             </div>
             <div class="st">
               <div class="dot">04</div>
               <h4>Finish</h4>
-              <p>Copy the runtime from your repo, format with ruff, re-apply your custom code.</p>
+              <p>Copy the runtime from your repo, format it (ruff for Python), re-apply your custom code.</p>
               <div class="own">migrate · Python</div>
             </div>
             <div class="st">
@@ -698,7 +872,7 @@ const testsLabel = (r: BoardRow): string => {
                   ><td class="m">Partly</td><td>n/a</td>
                 </tr>
                 <tr>
-                  <th>Same Python your users import</th><td class="us y">Identical, by design</td><td class="n"
+                  <th>Same SDK your users import, in each language</th><td class="us y">Identical, proven per language</td><td class="n"
                     >Its own style</td
                   ><td class="m">Close</td><td class="y">Until the spec changes</td>
                 </tr>
@@ -779,7 +953,8 @@ const testsLabel = (r: BoardRow): string => {
           <h2 class="h2 reveal d1">We publish the scoreboard. <em>Even the red.</em></h2>
           <p class="sub reveal d2">
             {board.length} real Stainless Python SDKs, pinned at their last Stainless commit and regenerated by Ferrule.
-            Ferrule is pre-alpha: this board is how you'll know when yours is ready.
+            The other languages report in their pull requests until they land. Ferrule is pre-alpha: this board is how
+            you'll know when yours is ready.
           </p>
         </div>
         <div class="board reveal">
@@ -857,8 +1032,9 @@ const testsLabel = (r: BoardRow): string => {
           <details>
             <summary>How ready is it?<span class="pm"></span></summary>
             <div class="ans">
-              Pre-alpha. The converter, plugin and runtime are done, and the OneBusAway SDK regenerates with zero
-              breaking changes and all 1,110 of its own tests passing. It isn't on PyPI yet: the
+              Pre-alpha. Python is on main: the OneBusAway SDK regenerates with zero breaking changes and all 1,110
+              of its own tests passing. Seven more languages are in review, with their numbers in the
+              <a href="#languages">languages table</a>. It isn't on PyPI yet: the
               <a href={`${docs}quickstart/`}>quickstart</a> shows how to run it from source. Watch the fidelity board
               for your kind of SDK.
             </div>
@@ -866,8 +1042,11 @@ const testsLabel = (r: BoardRow): string => {
           <details>
             <summary>Only Python?<span class="pm"></span></summary>
             <div class="ans">
-              For now, on purpose. One language done perfectly beats four done approximately. TypeScript comes after
-              Python is proven, and only if teams ask for it.
+              No. Ferrule covers every major Stainless SDK language: Python, TypeScript, Go, Java, Kotlin, Ruby, PHP
+              and C#. Python is on main; the other seven are in review, each proven against real Stainless SDKs. They
+              are generated from one language-neutral model, with one plugin per language and runtimes copied from
+              Apache-2.0 Stainless SDKs. CLI and Terraform have not started: no public Stainless-generated CLI or
+              provider pairs with a public config, so there is nothing to prove them against yet.
             </div>
           </details>
           <details>
