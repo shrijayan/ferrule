@@ -1,0 +1,93 @@
+// From imagekit-developer/imagekit-dotnet @ 265ab207 (Apache-2.0), src/Imagekit/Core/ClientOptions.cs. Modified by The Ferrule Authors: names, environment, retries and timeout replaced by tokens. This line is not emitted.
+using System;
+using System.Net.Http;
+using __NS__.Exceptions;
+
+namespace __NS__.Core;
+
+/// <summary>
+/// A class representing the SDK client configuration.
+/// </summary>
+public record struct ClientOptions()
+{
+    /// <summary>
+    /// The default value used for <see cref="MaxRetries"/>.
+    /// </summary>
+    public static readonly int DefaultMaxRetries = __MAX_RETRIES__;
+
+    /// <summary>
+    /// The default value used for <see cref="Timeout"/>.
+    /// </summary>
+    public static readonly TimeSpan DefaultTimeout = __TIMEOUT__;
+
+    /// <summary>
+    /// The HTTP client to use for making requests in the SDK.
+    ///
+    /// <para>Note: The HttpClient has a built-in timeout, which defaults to 100 seconds.
+    /// When passing a custom HttpClient, this timeout may conflict with the SDK's
+    /// own timeout handler and cause premature cancellation.</para>
+    /// </summary>
+    public HttpClient HttpClient { get; set; } =
+        new(new HttpClientHandler() { AutomaticDecompression = DecompressionMethods.Available })
+        {
+            Timeout = global::System.Threading.Timeout.InfiniteTimeSpan,
+        };
+
+    Lazy<string> _baseUrl = new(() =>
+        Environment.GetEnvironmentVariable("__ENV___BASE_URL") ?? EnvironmentUrl.__DEFAULT_ENV__
+    );
+
+    /// <summary>
+    /// The base URL to use for every request.
+    ///
+    /// <para>Defaults to the __DEFAULT_ENV_WORDS__ environment: <see cref="EnvironmentUrl.__DEFAULT_ENV__"/></para>
+    /// </summary>
+    public string BaseUrl
+    {
+        readonly get { return _baseUrl.Value; }
+        set { _baseUrl = new(() => value); }
+    }
+
+    /// <summary>
+    /// Whether to validate response bodies before returning them.
+    ///
+    /// <para>Defaults to false, which means the shape of the response body will not be validated upfront.
+    /// Instead, validation will only occur for the parts of the response body that are accessed.</para>
+    ///
+    /// <para>Note that when set to true, the response body is only validated if the response is
+    /// deserialized. Methods that don't eagerly deserialize the response, such as those on
+    /// <see cref="I__CLIENT__Client.WithRawResponse"/>, don't perform validation until deserialization
+    /// is triggered.</para>
+    /// </summary>
+    public bool ResponseValidation { get; set; } = false;
+
+    /// <summary>
+    /// The maximum number of times to retry failed requests, with a short exponential backoff between requests.
+    ///
+    /// <para>
+    /// Only the following error types are retried:
+    /// <list type="bullet">
+    ///   <item>Connection errors (for example, due to a network connectivity problem)</item>
+    ///   <item>408 Request Timeout</item>
+    ///   <item>409 Conflict</item>
+    ///   <item>429 Rate Limit</item>
+    ///   <item>5xx Internal</item>
+    /// </list>
+    /// </para>
+    ///
+    /// <para>The API may also explicitly instruct the SDK to retry or not retry a request.</para>
+    ///
+    /// <para>Defaults to __MAX_RETRIES__ when null. Set to 0 to
+    /// disable retries, which also ignores API instructions to retry.</para>
+    /// </summary>
+    public int? MaxRetries { get; set; } = null;
+
+    /// <summary>
+    /// Sets the maximum time allowed for a complete HTTP call, not including retries.
+    ///
+    /// <para>This includes resolving DNS, connecting, writing the request body, server processing, as
+    /// well as reading the response body.</para>
+    ///
+    /// <para>Defaults to <c>__TIMEOUT__</c> when null.</para>
+    /// </summary>
+    public TimeSpan? Timeout { get; set; } = null;

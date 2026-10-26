@@ -1,0 +1,35 @@
+From imagekit-developer/imagekit-dotnet @ 265ab207 (Apache-2.0), src/Directory.Build.props. Modified by The Ferrule Authors: names, version, licence and URLs replaced by tokens. This line is not emitted.
+<Project>
+  <PropertyGroup>
+    <Authors>__TITLE__</Authors>
+    <Company>__TITLE__</Company>
+    <PackageTags>sdk;api;http;library</PackageTags>
+    <PackageLicenseExpression>__LICENSE__</PackageLicenseExpression>
+    <Copyright>Copyright __YEAR__ __TITLE__</Copyright>
+    <PackageProjectUrl>__DOCS__</PackageProjectUrl>
+    <RepositoryUrl>https://www.github.com/__REPO__</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+
+    <!-- Documentation-->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- Disable missing XML documentation warnings. -->
+    <NoWarn>$(NoWarn),1573,1591</NoWarn>
+
+    <!-- Source link -->
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <DebugType>embedded</DebugType>
+
+    <TargetFrameworks>net8.0;netstandard2.0</TargetFrameworks>
+    <LangVersion>12</LangVersion>
+    <Configurations>Debug;Release</Configurations>
+    <BuildPackage>true</BuildPackage>
+    <Deterministic>true</Deterministic>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <!-- Disable deprecation warnings since we may reference our own deprecated symbols. -->
+    <NoWarn>$(NoWarn),0618</NoWarn>
+  </PropertyGroup>
+</Project>
