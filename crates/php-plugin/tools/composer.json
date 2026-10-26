@@ -1,0 +1,13 @@
+{
+  "description": "The formatter a Stainless PHP SDK's scripts/format runs (php-cs-fixer), at the version imagekit-php's composer.lock pins (9f9309d5); its dependencies at current releases (composer.lock). `mise run php:tools` installs it into .cache/php-tools; bin/php-cs-fixer runs it.",
+  "license": "Apache-2.0",
+  "require": {
+    "friendsofphp/php-cs-fixer": "3.92.5"
+  },
+  "config": {
+    "platform": {
+      "php": "8.3"
+    },
+    "sort-packages": true
+  }
+}
