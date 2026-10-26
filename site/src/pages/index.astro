@@ -5,7 +5,6 @@
 // src/scripts/landing.ts only runs the animations.
 import '../styles/landing.css';
 import fidelity from '../data/fidelity.json';
-// biome-ignore lint/correctness/noUnusedImports: LOGOS is used by the template below
 import { LOGOS, type Logo } from '../data/logos';
 import currentTime from '../data/onebusaway-current-time.py.txt?raw';
 import { highlightPython, highlightYaml } from '../lib/highlight';
@@ -31,25 +30,32 @@ const agentPrompt = `Set up Ferrule in this project so it generates our SDK from
 
 When you are done, tell me the commands you ran, what was generated and where, and anything you could not resolve.`;
 
-// Formats the converter reads, and the SDK languages the plugins write.
+// Formats the converter reads (left of the hero) and the SDK languages it writes (right), floating
+// in the hero's side gutters. x and y are percentages of the gutter; each drifts on its own clock.
+type Float = { logo: Logo; label: string; x: number; y: number };
 // biome-ignore lint/correctness/noUnusedVariables: used by the template below
-const inputs: [Logo, string][] = [
-  ['openapi', 'OpenAPI 3.x'],
-  ['swagger', 'Swagger 2.0'],
-  ['yaml', 'stainless.yml'],
+const inputs: Float[] = [
+  { logo: 'openapi', label: 'OpenAPI 3.x', x: 62, y: 10 },
+  { logo: 'swagger', label: 'Swagger 2.0', x: 18, y: 42 },
+  { logo: 'yaml', label: 'stainless.yml', x: 58, y: 74 },
 ];
 // biome-ignore lint/correctness/noUnusedVariables: used by the template below
-const outputs: [Logo, string][] = [
-  ['python', 'Python'],
-  ['typescript', 'TypeScript'],
-  ['go', 'Go'],
-  ['java', 'Java'],
-  ['kotlin', 'Kotlin'],
-  ['ruby', 'Ruby'],
-  ['php', 'PHP'],
-  ['csharp', 'C#'],
-  ['rust', 'Rust'],
+const outputs: Float[] = [
+  { logo: 'python', label: 'Python', x: 8, y: 6 },
+  { logo: 'typescript', label: 'TypeScript', x: 48, y: 0 },
+  { logo: 'go', label: 'Go', x: 86, y: 12 },
+  { logo: 'java', label: 'Java', x: 20, y: 38 },
+  { logo: 'kotlin', label: 'Kotlin', x: 58, y: 32 },
+  { logo: 'ruby', label: 'Ruby', x: 92, y: 46 },
+  { logo: 'php', label: 'PHP', x: 6, y: 72 },
+  { logo: 'csharp', label: 'C#', x: 46, y: 66 },
+  { logo: 'rust', label: 'Rust', x: 82, y: 80 },
 ];
+// A slow, different drift per logo: duration, delay and direction from its index.
+// biome-ignore lint/correctness/noUnusedVariables: used by the template below
+const drift = (f: Float, i: number) =>
+  `--x:${f.x};--y:${f.y};--brand:${LOGOS[f.logo].color ?? 'var(--text)'};` +
+  `--dur:${9 + ((i * 7) % 6)}s;--delay:-${(i * 13) % 9}s;--dx:${i % 2 ? 8 : -8}px;--dy:${i % 3 ? -12 : 10}px`;
 
 // Real OneBusAway config (OneBusAway/sdk-config) and README usage (OneBusAway/python-sdk).
 // biome-ignore lint/correctness/noUnusedVariables: used by the template below
@@ -302,6 +308,32 @@ const testsLabel = (r: BoardRow): string => {
     </header>
 
     <section class="hero" id="top">
+      <div class="hfloat hfloat-in" aria-hidden="true">
+        <span class="hfloat-label">Reads</span>
+        {
+          inputs.map((f, i) => (
+            <span class="hf" style={drift(f, i)}>
+              <span class="hf-well">
+                <svg viewBox="0 0 24 24"><path d={LOGOS[f.logo].path} /></svg>
+              </span>
+              <span class="hf-name">{f.label}</span>
+            </span>
+          ))
+        }
+      </div>
+      <div class="hfloat hfloat-out" aria-hidden="true">
+        <span class="hfloat-label">Writes</span>
+        {
+          outputs.map((f, i) => (
+            <span class="hf" style={drift(f, i + 3)}>
+              <span class="hf-well">
+                <svg viewBox="0 0 24 24"><path d={LOGOS[f.logo].path} /></svg>
+              </span>
+              <span class="hf-name">{f.label}</span>
+            </span>
+          ))
+        }
+      </div>
       <div class="wrap">
         <div class="eyebrow reveal"><span class="pill">Open source</span> Eight languages, one config</div>
         <h1 class="display reveal d1">Generate the SDKs.<br /><em>From the spec.</em></h1>
@@ -330,6 +362,20 @@ const testsLabel = (r: BoardRow): string => {
         <p class="hero-note reveal d3">
           Pre-alpha · then <code>ferrule-gen generate</code> · or let your coding agent set it up from{' '}
           <a href="/llms.txt">llms.txt</a>
+        </p>
+        <p class="hero-langs reveal d3">
+          <span class="sr-only">Reads OpenAPI 3.x, Swagger 2.0 and stainless.yml; writes Python, TypeScript, Go, Java, Kotlin, Ruby, PHP, C# and Rust.</span>
+          {
+            inputs.map((f) => (
+              <svg viewBox="0 0 24 24" aria-hidden="true" style={`--brand:${LOGOS[f.logo].color ?? 'var(--text)'}`}><path d={LOGOS[f.logo].path} /></svg>
+            ))
+          }
+          <span class="hl-arrow" aria-hidden="true">→</span>
+          {
+            outputs.map((f) => (
+              <svg viewBox="0 0 24 24" aria-hidden="true" style={`--brand:${LOGOS[f.logo].color ?? 'var(--text)'}`}><path d={LOGOS[f.logo].path} /></svg>
+            ))
+          }
         </p>
 
         <div class="stage reveal" id="stage">
@@ -382,40 +428,10 @@ const testsLabel = (r: BoardRow): string => {
           </div>
         </div>
 
-        <div class="lwall reveal" aria-label="What Ferrule reads and writes">
-          <div class="lw-side lw-in">
-            <div class="lw-head"><span>Reads</span><i></i></div>
-            <ul class="lw-grid">
-              {
-                inputs.map(([logo, label]) => (
-                  <li class="lw-tile" style={`--brand: ${LOGOS[logo].color ?? 'var(--text)'}`}>
-                    <span class="lw-well">
-                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d={LOGOS[logo].path} /></svg>
-                    </span>
-                    <span class="lw-name">{label}</span>
-                  </li>
-                ))
-              }
-            </ul>
-          </div>
-          <div class="lw-core" aria-hidden="true">
-            <span class="lw-ring"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14M13 6l6 6-6 6" /></svg></span>
-          </div>
-          <div class="lw-side lw-out">
-            <div class="lw-head"><span>Writes · {outputs.length} languages</span><i></i></div>
-            <ul class="lw-grid">
-              {
-                outputs.map(([logo, label]) => (
-                  <li class="lw-tile" style={`--brand: ${LOGOS[logo].color ?? 'var(--text)'}`}>
-                    <span class="lw-well">
-                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d={LOGOS[logo].path} /></svg>
-                    </span>
-                    <span class="lw-name">{label}</span>
-                  </li>
-                ))
-              }
-            </ul>
-          </div>
+        <div class="stage-foot reveal">
+          <span>OpenAPI 3.x and stainless.yml in</span>
+          <span>SDKs out, in eight languages</span>
+          <span>One Rust binary, Forge built in</span>
         </div>
       </div>
 
