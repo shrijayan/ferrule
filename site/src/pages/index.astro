@@ -366,7 +366,7 @@ const testsLabel = (r: BoardRow): string => {
                   <span>SDK languages, all on main</span>
                 </div>
                 <div class="marquee-item">
-                  <b>~40 ms</b>
+                  <b>~30 ms</b>
                   <span>to generate the whole OneBusAway SDK</span>
                 </div>
                 <div class="marquee-item">
@@ -549,30 +549,30 @@ const testsLabel = (r: BoardRow): string => {
           <h2 class="h2 reveal d1">One binary. <em>No Node, no WebAssembly.</em></h2>
           <p class="sub reveal d2">
             The converter, the model and every language plugin are Rust. <code>ferrule-gen</code> is a single binary
-            with Forge built in natively, and it is optimised: the whole OneBusAway SDK generates in about 40 ms.
+            with Forge built in natively, and it is optimised: the whole OneBusAway SDK generates in about 30 ms.
           </p>
         </div>
         <div class="board perf reveal">
           <div class="diff-foot">
             <div class="stat">
-              <div class="v">4.4<small>MB</small></div>
+              <div class="v">8<small>MB</small></div>
               <div class="l">one binary, Forge built in</div>
             </div>
             <div class="stat">
-              <div class="v">~<span data-count="15">0</span><small>ms</small></div>
+              <div class="v">~<span data-count="10">0</span><small>ms</small></div>
               <div class="l">to convert stainless.yml</div>
             </div>
             <div class="stat">
-              <div class="v">~<span data-count="25">0</span><small>ms</small></div>
+              <div class="v">~<span data-count="20">0</span><small>ms</small></div>
               <div class="l">to generate the SDK</div>
             </div>
             <div class="stat">
-              <div class="v g">~<span data-count="40">0</span><small>ms</small></div>
+              <div class="v g">~<span data-count="30">0</span><small>ms</small></div>
               <div class="l">for the whole SDK, 196 files</div>
             </div>
           </div>
           <div class="board-foot">
-            <span>OneBusAway, 30 operations · Apple M4 Pro, release build, main at 8924b55 · ruff runs separately</span>
+            <span>OneBusAway, 30 operations · Apple M4 Pro, release build, main at 72dd3df · ruff runs separately</span>
             <span>Byte-identical on every run</span>
           </div>
         </div>

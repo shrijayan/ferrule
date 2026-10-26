@@ -15,7 +15,7 @@
 <p align="center">
   <b>Python</b> · <b>TypeScript</b> · <b>Go</b> · <b>Java</b> · <b>Kotlin</b> · <b>Ruby</b> · <b>PHP</b> · <b>C#</b><br>
   Every major Stainless SDK language, all eight on <code>main</code>.<br>
-  One Rust binary, 4.4 MB, with Forge built in. No Node, no WebAssembly.
+  One Rust binary, 8 MB, with Forge built in. No Node, no WebAssembly.
 </p>
 
 <p align="center">
@@ -104,12 +104,12 @@ The converter, the model and every language plugin are Rust
 ([ADR 0014](./docs/adr/0014-rust-for-converter-and-plugin.md)). The TypeScript and WebAssembly
 toolchain is gone.
 
-| **1 binary** | **~15 ms** | **~25 ms** | **~40 ms** |
+| **1 binary** | **~10 ms** | **~20 ms** | **~30 ms** |
 | :-: | :-: | :-: | :-: |
-| `ferrule-gen`, 4.4 MB, Forge built in natively | to convert `stainless.yml` | to generate the SDK | for the whole onebusaway SDK |
+| `ferrule-gen`, 8 MB with all eight plugins, Forge built in natively | to convert `stainless.yml` | to generate the SDK | for the whole onebusaway SDK |
 
 Measured on onebusaway (30 operations, 196 files) on an Apple M4 Pro, release build, `main` at
-`8924b55`. Formatting with ruff runs separately. Generation needs no Node and no WebAssembly, and
+`72dd3df`. Formatting with ruff runs separately. Generation needs no Node and no WebAssembly, and
 the output is byte-identical on every run.
 
 ## How it works

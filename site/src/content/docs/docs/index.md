@@ -8,7 +8,7 @@ Ferrule is an open-source toolkit for teams leaving Stainless. It turns an OpenA
 language, then proves that nothing public changed. Forge, Cloudflare's Apache-2.0 generator
 engine, does the parsing; Ferrule adds the config converter, a language-neutral model, one plugin
 per language that writes Stainless-shaped code, and the migration tools. The core is Rust: one
-`ferrule-gen` binary of 4.4 MB with Forge built in, so generation needs no Node and no
+`ferrule-gen` binary of 8 MB with Forge built in, so generation needs no Node and no
 WebAssembly. Everything runs on your machine and in your CI. There is no hosted service and no
 account.
 
