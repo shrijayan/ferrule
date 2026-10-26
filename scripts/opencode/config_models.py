@@ -173,7 +173,7 @@ def casings_block(spec: Json) -> str:
     lines = [CASINGS_BEGIN, "custom_casings:"]
     for word, casing in casings(spec).items():
         (field, value), *_ = casing.items()
-        lines.append(f"  {word}: {{{field}: {json.dumps(value)}}}")
+        lines.append(f"  {word}: {{ {field}: {json.dumps(value)} }}")
     return "\n".join([*lines, CASINGS_END])
 
 
