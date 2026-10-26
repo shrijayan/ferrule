@@ -238,14 +238,65 @@ impl Out {
     }
 }
 
+/// How `types/__init__.py` reaches each class (`module.Class`, dotted under `types`): the
+/// `(from, import, reference)` of each. A module in `types/` or one directory down is reached
+/// through its first directory, whose `__init__.py` loads it (`from . import shared`,
+/// `shared.src_options.SrcOptions`). A deeper one is imported itself, since the directories above
+/// it may be empty and load nothing (`types/extractions/` above a standalone `qa/`):
+/// `from .extractions.qa import answer_extraction_response`, under its whole path joined by `_`
+/// should its name be taken.
+fn rebuild_refs(classes: &[String]) -> Vec<(String, String, String)> {
+    let split = |c: &String| {
+        c.rsplit_once('.')
+            .map_or((String::new(), c.clone()), |(m, k)| (m.to_owned(), k.to_owned()))
+    };
+    let shallow: Vec<String> = classes
+        .iter()
+        .map(split)
+        .filter(|(m, _)| m.split('.').count() <= 2)
+        .map(|(m, _)| m.split('.').next().unwrap_or_default().to_owned())
+        .collect();
+    let deep: Vec<String> = classes
+        .iter()
+        .map(split)
+        .filter(|(m, _)| m.split('.').count() > 2)
+        .map(|(m, _)| m)
+        .collect();
+    classes
+        .iter()
+        .map(|c| {
+            let (module, class) = split(c);
+            let Some((parent, leaf)) = module.rsplit_once('.').filter(|_| module.split('.').count() > 2) else {
+                let first = module.split('.').next().unwrap_or_default();
+                return (".".to_owned(), first.to_owned(), c.clone());
+            };
+            let taken = shallow.iter().any(|s| s == leaf)
+                || deep
+                    .iter()
+                    .any(|d| *d != module && d.rsplit_once('.').is_some_and(|(_, l)| l == leaf));
+            if taken {
+                let alias = module.replace('.', "_");
+                (
+                    format!(".{parent}"),
+                    format!("{leaf} as {alias}"),
+                    format!("{alias}.{class}"),
+                )
+            } else {
+                (format!(".{parent}"), leaf.to_owned(), format!("{leaf}.{class}"))
+            }
+        })
+        .collect()
+}
+
 /// Rebuilds the classes that refer to models in reference cycles once every module is imported,
 /// as Stainless does (see [`Cycles`]).
 fn rebuild_block(p: &mut PythonPrinter, classes: &[String]) {
     if classes.is_empty() {
         return;
     }
-    for c in classes {
-        p.import_from(".", c.split('.').next().unwrap_or(c));
+    let refs = rebuild_refs(classes);
+    for (from, import, _) in &refs {
+        p.import_from(from, import);
     }
     p.import_from("..", "_compat");
     p.line("# Rebuild cyclical models only after all modules are imported.");
@@ -253,12 +304,12 @@ fn rebuild_block(p: &mut PythonPrinter, classes: &[String]) {
     p.line("# Pydantic can resolve the necessary references.");
     p.line("# See: https://github.com/pydantic/pydantic/issues/11250 for more context.");
     p.block("if _compat.PYDANTIC_V1:", |p| {
-        for c in classes {
+        for (_, _, c) in &refs {
             p.line(&format!("{c}.update_forward_refs()  # type: ignore"));
         }
     });
     p.block("else:", |p| {
-        for c in classes {
+        for (_, _, c) in &refs {
             p.line(&format!("{c}.model_rebuild(_parent_namespace_depth=0)"));
         }
     });
