@@ -740,3 +740,27 @@ fn writes_each_scheme_into_the_tests_and_readme() {
         )
     );
 }
+
+/// A bearer client whose `api_key` reads no environment variable.
+fn without_read_env() -> SdkClient {
+    let mut opts = settings().opts;
+    opts[0].read_env = None;
+    authed(opts, settings().security_schemes)
+}
+
+#[test]
+fn unsets_no_variable_for_a_credential_without_read_env() {
+    let tests = project_file(&without_read_env(), "tests/test_client.py");
+    assert!(!tests.contains("**{,}"), "invalid Python");
+    assert!(tests.contains("            with update_env(**{}):\n"));
+}
+
+#[test]
+fn shows_a_placeholder_for_a_credential_without_read_env() {
+    let readme = project_file(&without_read_env(), "README.md");
+    assert!(!readme.contains("os.environ"), "{readme}");
+    assert!(readme.contains("```python\nfrom acme import Acme\n\nclient = Acme(\n    api_key=\"My API Key\",\n)\n"));
+    assert!(readme.contains("client = AsyncAcme(\n    api_key=\"My API Key\",\n)\n"));
+    assert!(readme.contains("    async with AsyncAcme(\n        api_key=\"My API Key\",\n        http_client="));
+    assert!(!readme.contains("python-dotenv"));
+}
