@@ -163,3 +163,30 @@ fn switches_streaming_on_by_the_python_name() {
     assert!(body.contains("stream_response=True"), "{body}");
     assert!(!body.contains("streamResponse"), "{body}");
 }
+
+/// A required header parameter is a required keyword argument, so a recipe passes it like any
+/// other required argument (ogx `models.list` with `anthropic-version` required).
+#[test]
+fn passes_required_header_params_in_recipes() {
+    let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/headers/params/annotated.json");
+    let forge: forge::Forge = serde_json::from_slice(&fs::read(path).expect("fixture")).expect("a document");
+    let mut client = to_model(&forge).expect("converts").expect("has operations");
+    let models = client
+        .resources
+        .iter_mut()
+        .find(|r| r.path == ["models"])
+        .expect("models");
+    for m in &mut models.methods {
+        for h in &mut m.header_params {
+            h.required |= h.wire_name == "anthropic-version";
+        }
+    }
+    let c = agent_context(&client, None).expect("a context");
+    let snippet = c
+        .resources
+        .iter()
+        .find(|s| s.body.iter().any(|l| l.contains("client.models.")))
+        .expect("a models snippet");
+    let body = snippet.body.join("\n");
+    assert!(body.contains("anthropic_version="), "{body}");
+}
