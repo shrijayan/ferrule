@@ -75,9 +75,14 @@ pub fn bracket(open: &str, items: Vec<Expr>, magic: bool, close: &str) -> Bracke
     }
 }
 
+/// The separator of an atom's trailing comment (`x,  # why`): the comment keeps its bracket
+/// split, and a suffix such as the item comma goes before it.
+const COMMENT: &str = "  # ";
+
 fn has_magic(e: &Expr) -> bool {
     match e {
-        Expr::Atom(_) | Expr::Cond(_) => false,
+        Expr::Atom(s) => s.contains(COMMENT),
+        Expr::Cond(_) => false,
         Expr::Bracket(b) => b.magic || b.items.iter().any(has_magic),
     }
 }
@@ -105,7 +110,12 @@ fn fits(line: &str) -> bool {
 #[must_use]
 pub fn format_expr(e: &Expr, indent: &str, prefix: &str, suffix: &str) -> Vec<String> {
     let b = match e {
-        Expr::Atom(s) => return vec![format!("{indent}{prefix}{s}{suffix}")],
+        Expr::Atom(s) => {
+            return vec![match s.split_once(COMMENT) {
+                Some((code, comment)) => format!("{indent}{prefix}{code}{suffix}{COMMENT}{comment}"),
+                None => format!("{indent}{prefix}{s}{suffix}"),
+            }];
+        }
         Expr::Cond(c) => {
             let one = format!("{indent}{prefix}{}{suffix}", flat(e));
             if fits(&one) {
