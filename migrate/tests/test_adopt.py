@@ -393,6 +393,9 @@ def test_keep_files() -> None:
         "c:\n  keep_files:\nd: 1\n"
     )
     assert keep_files(text) == {"README.md", "src/x.py", "api.md", "y.py"}
+    # Comment and blank lines inside the list do not end it (the opencode config).
+    commented = "t:\n  keep_files:\n    - LICENSE\n\n    # from git tags\n    - _version.py\n"
+    assert keep_files(commented) == {"LICENSE", "_version.py"}
 
 
 def test_names() -> None:
