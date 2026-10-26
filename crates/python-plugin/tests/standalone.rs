@@ -192,3 +192,23 @@ fn rejects_a_casing_that_is_not_an_identifier_fragment() {
     assert_eq!(err.code.as_str(), "FER101");
     assert!(err.pointer.ends_with("/x-ferrule-casings"), "{}", err.pointer);
 }
+
+/// A spelling would start `QAResource` as `123Resource`; only a word led by a digit (`3ds`) may
+/// keep a digit first, as it cannot start a class name either way.
+#[test]
+fn rejects_a_casing_that_puts_a_digit_first() {
+    let with_casings = |casings: Value| {
+        let mut doc = annotated();
+        for op in ["/paths/~1enrichments/post", "/paths/~1extractions~1qa/post"] {
+            doc.pointer_mut(op)
+                .and_then(Value::as_object_mut)
+                .expect("operation")
+                .insert("x-ferrule-casings".into(), casings.clone());
+        }
+        to_model(&forge_of(&doc))
+    };
+    let err = with_casings(serde_json::json!({ "qa": { "pascal": "123" } })).expect_err("rejected");
+    assert_eq!(err.code.as_str(), "FER101");
+    assert!(err.pointer.ends_with("/x-ferrule-casings"), "{}", err.pointer);
+    assert!(with_casings(serde_json::json!({ "3ds": { "pascal": "3DS" } })).is_ok());
+}
