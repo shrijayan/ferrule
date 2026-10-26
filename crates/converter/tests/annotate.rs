@@ -475,6 +475,58 @@ openapi:
             "{\n  \"a\": {\n    \"c\": null,\n    \"d\": [\n      {\n        \"y\": 2,\n        \"z\": 1\n      }\n    ]\n  },\n  \"b\": 1\n}\n"
         );
     }
+
+    /// Reduced from knock's `ms_teams_pagination`: Stainless declares a page's fields in the
+    /// order stainless.yml lists them (knock-go `MsTeamsPagination` has `SkipToken`, then
+    /// `MsTeamsTeams`), so the field maps keep config order in the written output.
+    #[test]
+    fn writes_pagination_field_maps_in_config_order() {
+        let spec = r#"{"paths": {"/teams": {"get": {
+            "parameters": [
+                {"name": "top", "in": "query", "schema": {"type": "integer"}},
+                {"name": "skiptoken", "in": "query", "schema": {"type": "string"}}
+            ],
+            "responses": {"200": {"content": {"application/json": {"schema": {"properties": {
+                "ms_teams_teams": {"type": "array", "items": {}},
+                "skip_token": {"type": "string"}
+            }}}}}}
+        }}}}"#;
+        let config = VALID_CONFIG.replace(
+            "resources: {}",
+            "resources:
+  teams:
+    methods:
+      list: get /teams
+pagination:
+  - name: ms_teams_pagination
+    type: cursor
+    request:
+      top: { type: integer }
+      skiptoken: { type: string, x-stainless-pagination-property: { purpose: next_cursor_param } }
+    response:
+      skip_token: { type: string, x-stainless-pagination-property: { purpose: next_cursor_field } }
+      ms_teams_teams: { type: array, items: { type: object } }
+      total: { type: integer, x-stainless-pagination-property: { purpose: total_count, from_header: X-Total } }
+      next: { type: string, x-stainless-pagination-property: { purpose: next_cursor_url, from_header: Link } }",
+        );
+        let r = convert_text(spec, &config).expect("convert");
+        assert_eq!(r.diagnostics, none());
+        let out = parse_json(&r.output).expect("output");
+        let page = op(&out, "/teams", "get")
+            .get("x-ferrule-pagination")
+            .expect("paginated");
+        let keys = |field: &str| -> Vec<String> {
+            page.get(field)
+                .and_then(Value::as_object)
+                .expect("field map")
+                .keys()
+                .cloned()
+                .collect()
+        };
+        assert_eq!(keys("request"), ["top", "skiptoken"]);
+        assert_eq!(keys("response"), ["skip_token", "ms_teams_teams"]);
+        assert_eq!(keys("headers"), ["X-Total", "Link"]);
+    }
 }
 
 fn config_strategy() -> impl Strategy<Value = serde_json::Value> {
