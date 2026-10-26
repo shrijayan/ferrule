@@ -14,7 +14,7 @@ use serde_json::Value;
 use super::method::{Site, TestCase};
 use super::resource::{Collected, accessors, methods};
 use crate::context::{Gen, Module};
-use crate::doc::doc;
+use crate::doc::{doc, inline};
 use crate::naming::{field as field_name, pascal};
 
 /// Option names the builder declares itself.
@@ -172,7 +172,7 @@ fn environments(g: &Gen<'_>) -> Environments {
         "/// The servers the API runs on.\n#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash)]\npub enum Environment {\n",
     );
     for (i, (e, name)) in envs.iter().zip(&names).enumerate() {
-        let _ = writeln!(item, "    /// `{}`", e.url);
+        let _ = writeln!(item, "    /// `{}`", inline(&e.url));
         if i == default {
             item.push_str("    #[default]\n");
         }
@@ -215,7 +215,7 @@ fn builder(g: &Gen<'_>, settings: Option<&ClientSettings>, env: &Environments) -
             .unwrap_or_else(|| format!("Sets `{}`.", o.config.name.written));
         setters.push_str(&doc(&description, "    "));
         if let Some(var) = &o.config.read_env {
-            let _ = writeln!(setters, "    ///\n    /// Read from `{var}` when not set.");
+            let _ = writeln!(setters, "    ///\n    /// Read from `{}` when not set.", inline(var));
         }
         let (arg, value) = if o.ty == "String" {
             ("impl Into<String>", "value.into()")
@@ -279,10 +279,8 @@ fn core_fn(
             format!("{given}.unwrap_or({})", default_expr(default, o.ty))
         } else if o.required() {
             let hint = var.map_or_else(String::new, |v| format!(" or set {v}"));
-            format!(
-                "{given}.ok_or_else(|| Error::Config(\"missing {}: call `{ident}`{hint}\".to_owned()))?",
-                o.config.name.written
-            )
+            let message = format!("missing {}: call `{ident}`{hint}", o.config.name.written);
+            format!("{given}.ok_or_else(|| Error::Config({message:?}.to_owned()))?")
         } else {
             given
         };
@@ -453,6 +451,7 @@ fn send(
         ) => None,
         (Some(SecurityScheme::Http { keyword, .. }), AuthRole::Value) => {
             let keyword = keyword.clone().unwrap_or_else(|| "Bearer".to_owned());
+            token(&keyword, &o.config.name.written)?;
             header("authorization", format!("format!(\"{keyword} {{{text}}}\")"))
         }
         (
@@ -478,9 +477,30 @@ fn send(
                 name,
             }),
             _,
-        ) => header("cookie", format!("format!(\"{name}={{{text}}}\")")),
+        ) => {
+            token(name, &o.config.name.written)?;
+            header("cookie", format!("format!(\"{name}={{{text}}}\")"))
+        }
         _ => None,
     })
+}
+
+/// Checks that `text`, written into a generated string, is an HTTP token (RFC 9110): letters,
+/// digits and ``!#$%&'*+-.^_`|~``, so it needs no escaping.
+fn token(text: &str, opt: &str) -> Result<(), FerruleError> {
+    let ok = !text.is_empty()
+        && text
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || "!#$%&'*+-.^_`|~".contains(c));
+    if ok {
+        return Ok(());
+    }
+    Err(FerruleError::new(
+        FerCode::Fer101,
+        format!("/x-ferrule-client/opts/{opt}"),
+        format!("{text:?} is not an HTTP token"),
+        "use an auth scheme keyword or cookie name of letters, digits and !#$%&'*+-.^_`|~",
+    ))
 }
 
 /// `src/blocking.rs`: the blocking client, with the same accessors in the blocking mode.

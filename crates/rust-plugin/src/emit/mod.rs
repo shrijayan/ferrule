@@ -74,7 +74,7 @@ fn module_doc(g: &Gen<'_>, path: &[String]) -> String {
     }
     find(&g.client.resources, path).map_or_else(
         || format!("/// The `{}` models.\n", path.last().map_or("", String::as_str)),
-        |r| format!("/// The `{}` resource.\n", r.name.written),
+        |r| format!("/// The `{}` resource.\n", crate::doc::inline(&r.name.written)),
     )
 }
 

@@ -6,6 +6,7 @@ use ferrule_sdk_model::model::{Method, Pagination, Resource};
 
 use super::method::{self, Route, Site, TestCase};
 use crate::context::{Gen, Module, has_content, resource_module};
+use crate::doc::inline;
 use crate::naming::{item, pascal};
 use crate::types::Cx;
 
@@ -48,7 +49,7 @@ pub fn accessors(resources: &[Resource], prefix: &str, site: Site<'_>) -> Vec<St
             let path = format!("{prefix}{}::{}", accessor(r), resource_type(r));
             format!(
                 "    /// The `{}` resource.\n    pub fn {}(&self) -> {path}<{}{}> {{\n        {path}::new({}, {})\n    }}\n",
-                r.name.written,
+                inline(&r.name.written),
                 accessor(r),
                 site.lifetime,
                 site.mode_ty,
@@ -122,7 +123,7 @@ pub fn emit(
     module.rt.extend(["Async", "Core"]);
     let header = format!(
         "/// The `{}` resource.\n#[derive(Debug, Clone, Copy)]\npub struct {ty}<'a, M = Async> {{\n    core: &'a Core,\n    mode: M,\n}}\n",
-        r.name.written
+        inline(&r.name.written)
     );
     let mut body = format!(
         "impl<'a, M: Copy> {ty}<'a, M> {{\n    #[doc(hidden)]\n    pub fn new(core: &'a Core, mode: M) -> Self {{\n        Self {{ core, mode }}\n    }}\n"
