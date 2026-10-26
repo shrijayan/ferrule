@@ -14,6 +14,8 @@ use ferrule_sdk_model::model as n;
 struct Python<'a> {
     client: &'a n::Client,
     casings: Vec<(String, PyCasing)>,
+    /// `client.models` mapped, for the body shapes that look into a named model.
+    models: Vec<py::SdkModelDecl>,
 }
 
 /// `/^[a-z_][a-z0-9_]*$/`: a segment Python keeps as its module name.
@@ -61,6 +63,82 @@ fn py_null() -> py::SdkType {
     py::SdkType::Primitive(py::SdkPrimitive::Null)
 }
 
+/// A body field as a keyword argument; Python's body params never carry `deprecated`.
+fn field_param(f: &py::SdkField) -> py::SdkParam {
+    py::SdkParam {
+        wire_name: f.wire_name.clone(),
+        py_name: f.py_name.clone(),
+        required: f.required,
+        description: f.description.clone(),
+        ty: f.ty.clone(),
+        deprecated: false,
+        example: None,
+        minimum: None,
+        maximum: None,
+    }
+}
+
+/// The fields of every variant once, in the order they first appear: required where every
+/// variant requires them, typed as the first variant that has them types them.
+fn merge_variants(variants: &[py::SdkBodyVariant]) -> Vec<py::SdkParam> {
+    let mut out: Vec<py::SdkParam> = Vec::new();
+    for v in variants {
+        for p in &v.params {
+            if !out.iter().any(|q| q.wire_name == p.wire_name) {
+                let mut merged = p.clone();
+                merged.required = variants
+                    .iter()
+                    .all(|w| w.params.iter().any(|q| q.wire_name == p.wire_name && q.required));
+                out.push(merged);
+            }
+        }
+    }
+    out
+}
+
+/// The paths of the binary fields of a multipart body's object, by Python name: `["file"]`, or
+/// `["files", "<array>"]` for an array of them.
+fn file_paths(client: &n::Client, ty: &n::Type) -> Vec<Vec<String>> {
+    let binary = |t: &n::Type| {
+        matches!(
+            t,
+            n::Type::Scalar {
+                scalar: n::Scalar::Binary
+            }
+        )
+    };
+    let Some(o) = client.object_of(ty) else {
+        return Vec::new();
+    };
+    o.fields
+        .iter()
+        .filter_map(|f| {
+            let name = snake_case(&f.name.words);
+            match &f.ty {
+                t if binary(t) => Some(vec![name]),
+                n::Type::Array { items } if binary(items) => Some(vec![name, "<array>".to_owned()]),
+                _ => None,
+            }
+        })
+        .collect()
+}
+
+/// `client.style`'s Python switches over today's style; the other targets' are not Python's.
+fn py_style(client: &n::Client) -> py::SdkStyle {
+    let mut style = py::SdkStyle::default();
+    for s in client.style.iter().filter(|s| s.target == "python") {
+        let (slot, today) = match s.key.as_str() {
+            "sentinel" => (&mut style.omit, "omit"),
+            "resources" => (&mut style.lazy_resources, "lazy"),
+            "paths" => (&mut style.path_template, "path_template"),
+            "multipart" => (&mut style.deepcopy_with_paths, "deepcopy_with_paths"),
+            other => panic!("Python has no style switch {other}"),
+        };
+        *slot = s.value == today;
+    }
+    style
+}
+
 impl Python<'_> {
     fn sdk_ref(r: &n::TypeRef) -> py::SdkRef {
         py::SdkRef {
@@ -75,7 +153,21 @@ impl Python<'_> {
             fields: o.fields.iter().map(|f| self.field(f)).collect(),
             description: o.description.clone(),
             hint: o.origin.clone(),
+            extra: o.extra.as_ref().map(|e| Box::new(self.ty(e))),
         }
+    }
+
+    /// Union members as Python variants: a member that is itself a union is spliced in, its
+    /// discriminator dropped, as Stainless does.
+    fn flat<'t>(&self, members: impl Iterator<Item = &'t n::Type>) -> Vec<py::SdkType> {
+        let mut out = Vec::new();
+        for m in members {
+            match self.ty(m) {
+                py::SdkType::Union { variants, .. } => out.extend(variants),
+                other => out.push(other),
+            }
+        }
+        out
     }
 
     fn ty(&self, t: &n::Type) -> py::SdkType {
@@ -88,24 +180,75 @@ impl Python<'_> {
             n::Type::Object(o) if o.fields.is_empty() && o.bases.is_empty() => py::SdkType::Unknown,
             n::Type::Object(o) => py::SdkType::Object(self.object(o)),
             n::Type::Union(u) => py::SdkType::Union {
-                variants: u.variants.iter().map(|v| self.ty(&v.ty)).collect(),
+                variants: self.flat(u.variants.iter().map(|v| &v.ty)),
                 discriminator: u.discriminator.as_ref().map(|d| d.wire_name.clone()),
             },
             n::Type::Ref(r) => py::SdkType::Ref(Self::sdk_ref(r)),
-            // `T | null` is a union with null last; a discriminated union stays one member.
+            // `T | null` is a union with null last, `T` spliced in if it is a union itself.
             n::Type::Nullable { inner } => {
-                let variants = match &**inner {
-                    n::Type::Union(u) if u.discriminator.is_none() => {
-                        u.variants.iter().map(|v| self.ty(&v.ty)).chain([py_null()]).collect()
-                    }
-                    other => vec![self.ty(other), py_null()],
-                };
+                let mut variants = self.flat(std::iter::once(&**inner));
+                variants.push(py_null());
                 py::SdkType::Union {
                     variants,
                     discriminator: None,
                 }
             }
         }
+    }
+
+    fn decl(&self, r: &py::SdkRef) -> Option<&py::SdkModelDecl> {
+        self.models.iter().find(|d| d.r#ref == *r)
+    }
+
+    /// The object whose fields are the body params: an object, the object of `T | null`, or a
+    /// named class.
+    fn object_of<'t>(&'t self, ty: &'t py::SdkType) -> Option<&'t py::SdkObject> {
+        match ty {
+            py::SdkType::Object(o) => Some(o),
+            py::SdkType::Union { variants, .. } => {
+                let mut rest = variants.iter().filter(|v| **v != py_null());
+                match (rest.next(), rest.next()) {
+                    (Some(only), None) if variants.len() == 2 => self.object_of(only),
+                    _ => None,
+                }
+            }
+            py::SdkType::Ref(r) => self.decl(r).filter(|d| d.alias.is_none()).map(|d| &d.ty),
+            _ => None,
+        }
+    }
+
+    /// The object variants of a union body, written inline or as a named model whose type is the
+    /// union, with its discriminator; empty for any other body.
+    fn body_variants(&self, body: &py::SdkType) -> (Vec<py::SdkBodyVariant>, Option<String>) {
+        let union = match body {
+            py::SdkType::Ref(r) => self.decl(r).and_then(|d| d.alias.as_ref()),
+            other => Some(other),
+        };
+        let Some(py::SdkType::Union {
+            variants,
+            discriminator,
+        }) = union
+        else {
+            return (Vec::new(), None);
+        };
+        let objects: Vec<&py::SdkObject> = variants
+            .iter()
+            .filter_map(|v| match v {
+                py::SdkType::Object(o) => Some(o),
+                _ => None,
+            })
+            .collect();
+        if objects.len() < 2 || objects.len() != variants.len() {
+            return (Vec::new(), None);
+        }
+        let out = objects
+            .into_iter()
+            .map(|o| py::SdkBodyVariant {
+                object: o.clone(),
+                params: o.fields.iter().map(field_param).collect(),
+            })
+            .collect();
+        (out, discriminator.clone())
     }
 
     fn field(&self, f: &n::Field) -> py::SdkField {
@@ -165,12 +308,38 @@ impl Python<'_> {
     }
 
     fn method(&self, m: &n::Method) -> py::SdkMethod {
-        let body_params = m
+        let body = m.body.as_ref().map(|b| self.ty(&b.ty));
+        let (body_variants, body_discriminator) = body.as_ref().map(|b| self.body_variants(b)).unwrap_or_default();
+        let body_params = if body_variants.is_empty() {
+            body.as_ref()
+                .and_then(|b| self.object_of(b))
+                .map(|o| o.fields.iter().map(field_param).collect())
+                .unwrap_or_default()
+        } else {
+            merge_variants(&body_variants)
+        };
+        // A map or array body is one `body` argument, described by the body's schema.
+        let whole = match (&body, &m.body) {
+            (Some(ty @ (py::SdkType::Map(_) | py::SdkType::Array(_))), Some(b)) => Some(py::SdkParam {
+                wire_name: "body".to_owned(),
+                py_name: "body".to_owned(),
+                required: b.required,
+                description: b.schema_description.clone(),
+                ty: ty.clone(),
+                deprecated: false,
+                example: None,
+                minimum: None,
+                maximum: None,
+            }),
+            _ => None,
+        };
+        let body_whole = whole.is_some();
+        let body_params = whole.map_or(body_params, |p| vec![p]);
+        let body_file_paths = m
             .body
             .as_ref()
-            .and_then(|b| self.client.object_of(&b.ty))
-            // Python's body params never carry `deprecated` (see the Python adapter).
-            .map(|o| o.fields.iter().map(|f| self.param(f, false)).collect())
+            .filter(|b| b.media_type.eq_ignore_ascii_case("multipart/form-data"))
+            .map(|b| file_paths(self.client, &b.ty))
             .unwrap_or_default();
         py::SdkMethod {
             name: m.name.written.clone(),
@@ -191,9 +360,13 @@ impl Python<'_> {
             path_params: self.params(&m.path_params),
             query_params: self.params(&m.query_params),
             header_params: self.params(&m.header_params),
-            body: m.body.as_ref().map(|b| self.ty(&b.ty)),
+            body,
             body_params,
             body_media_type: m.body.as_ref().map(|b| b.media_type.clone()),
+            body_whole,
+            body_variants,
+            body_discriminator,
+            body_file_paths,
             response: m.response.as_ref().map(|r| self.ty(&r.ty)),
             pagination: m.pagination.as_ref().map(|p| self.pagination(p)),
             streaming: m.streaming.as_ref().map(|s| py::SdkStreaming {
@@ -280,7 +453,7 @@ impl Python<'_> {
 
 fn py_opt(o: &n::ClientOpt) -> py::SdkClientOpt {
     py::SdkClientOpt {
-        name: o.name.written.clone(),
+        name: snake_case(&naming::split_words(&o.name.written)),
         ty: match o.ty {
             n::OptType::String => py::OptType::String,
             n::OptType::Number => py::OptType::Number,
@@ -351,8 +524,9 @@ fn with_methods(tree: &[py::SdkResource]) -> Vec<py::SdkResource> {
 
 /// The Python plugin's `SdkClient`, derived from the neutral model alone.
 fn to_python(client: &n::Client) -> py::SdkClient {
-    let p = Python {
+    let mut p = Python {
         client,
+        models: Vec::new(),
         casings: client
             .casings
             .iter()
@@ -365,9 +539,12 @@ fn to_python(client: &n::Client) -> py::SdkClient {
             })
             .collect(),
     };
+    // Declarations need no other declaration; methods look into them.
+    p.models = client.models.iter().map(|d| p.model(d)).collect();
     let settings = client.settings.as_ref().map(|s| p.settings(s));
     let resource_tree: Vec<py::SdkResource> = client.resources.iter().map(|r| p.resource(r)).collect();
-    let mut models: Vec<py::SdkModelDecl> = client.models.iter().map(|d| p.model(d)).collect();
+    let client_methods = client.client_methods.iter().map(|m| p.method(m)).collect();
+    let mut models = p.models;
     models.sort_by(|a, b| ferrule_python_plugin::js::cmp(&a.r#ref.module, &b.r#ref.module));
     py::SdkClient {
         package: py::SdkPackage {
@@ -379,9 +556,10 @@ fn to_python(client: &n::Client) -> py::SdkClient {
         env_prefix: settings.as_ref().map(|s| s.env_prefix.clone()),
         settings,
         resources: with_methods(&resource_tree),
-        client_methods: client.client_methods.iter().map(|m| p.method(m)).collect(),
+        client_methods,
         models,
         resource_tree,
+        style: py_style(client),
     }
 }
 
@@ -401,9 +579,49 @@ fn cross_check(name: &str, json: &str) -> bool {
     let derived = neutral.as_ref().map(to_python);
     assert!(
         derived == expected,
-        "{name}: the Python model derived from the neutral one differs"
+        "{name}: the Python model derived from the neutral one differs: {}",
+        derived
+            .as_ref()
+            .zip(expected.as_ref())
+            .map_or_else(|| "one is None".to_owned(), |(d, e)| first_difference(d, e))
     );
     true
+}
+
+/// Every method of `c`, client methods first, then the resource tree depth first.
+fn methods(c: &py::SdkClient) -> Vec<&py::SdkMethod> {
+    fn walk<'a>(rs: &'a [py::SdkResource], out: &mut Vec<&'a py::SdkMethod>) {
+        for r in rs {
+            out.extend(&r.methods);
+            walk(&r.subresources, out);
+        }
+    }
+    let mut out: Vec<&py::SdkMethod> = c.client_methods.iter().collect();
+    walk(&c.resource_tree, &mut out);
+    out
+}
+
+/// Where `derived` first differs from `expected`, for the failure message.
+fn first_difference(derived: &py::SdkClient, expected: &py::SdkClient) -> String {
+    for (d, e) in derived.models.iter().zip(&expected.models) {
+        if d != e {
+            return format!("model {}.{}:\n{d:#?}\nexpected:\n{e:#?}", e.r#ref.module, e.r#ref.name);
+        }
+    }
+    for (d, e) in methods(derived).into_iter().zip(methods(expected)) {
+        if d != e {
+            return format!("method {}:\n{d:#?}\nexpected:\n{e:#?}", e.pointer);
+        }
+    }
+    let parts = [
+        ("models", derived.models.len() == expected.models.len()),
+        ("settings", derived.settings == expected.settings),
+        ("style", derived.style == expected.style),
+        ("resources", derived.resources == expected.resources),
+        ("resource_tree", derived.resource_tree == expected.resource_tree),
+    ];
+    let differ: Vec<&str> = parts.iter().filter(|(_, same)| !same).map(|(p, _)| *p).collect();
+    format!("in {}", differ.join(", "))
 }
 
 #[test]
@@ -417,6 +635,31 @@ fn derives_the_python_model_of_onebusaway() {
 fn derives_the_python_model_of_every_python_fixture() {
     for (name, json) in common::python_fixtures() {
         assert!(cross_check(&name, &json), "{name}: the Python adapter rejects it");
+    }
+}
+
+/// The generator-era fixture with each `x-ferrule-style` an adopted runtime can select, on every
+/// operation as the converter mirrors it: the Python style is derived from the target's switches.
+#[test]
+fn derives_the_python_style_of_every_older_runtime() {
+    let fixtures = common::python_fixtures();
+    let (_, eras) = fixtures.iter().find(|(n, _)| n == "generator_eras").expect("fixture");
+    let styles = [
+        serde_json::json!({ "sentinel": "omit", "resources": "lazy", "paths": "path_template" }),
+        serde_json::json!({ "resources": "eager", "paths": "fstring" }),
+        serde_json::json!({ "sentinel": "NOT_GIVEN" }),
+        serde_json::json!({
+            "multipart": "deepcopy_minimal", "paths": "fstring", "resources": "eager", "sentinel": "NOT_GIVEN",
+        }),
+    ];
+    for style in styles {
+        let mut doc: serde_json::Value = serde_json::from_str(eras).expect("JSON");
+        for item in doc["paths"].as_object_mut().expect("paths").values_mut() {
+            for op in item.as_object_mut().expect("path item").values_mut() {
+                op["x-ferrule-style"] = style.clone();
+            }
+        }
+        assert!(cross_check(&format!("generator_eras {style}"), &doc.to_string()));
     }
 }
 
