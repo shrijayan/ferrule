@@ -75,3 +75,20 @@ fn a_nested_date_time_is_converted_by_its_class_name() {
     assert!(response.contains("map: \\DateTimeInterface::class"), "{response}");
     assert!(!response.contains("'\\DateTimeInterface'"), "{response}");
 }
+
+/// An integer enum is `int`-backed, and its properties and parameters take its value as an
+/// `int`.
+#[test]
+fn an_integer_enum_takes_and_stores_an_int() {
+    let f = files(
+        "  /things:\n    get:\n      parameters:\n        - name: level\n          in: query\n          required: true\n          schema:\n            type: integer\n            enum: [1, 2]\n      responses:\n        '200':\n          description: Done.\n          content:\n            application/json:\n              schema:\n                type: object\n                required: [priority]\n                properties:\n                  priority:\n                    type: integer\n                    enum: [1, 2, 3]\n",
+        BEARER,
+        "      list: get /things\n",
+    );
+    let service = &f["src/Services/ThingsService.php"];
+    assert!(service.contains("Level|int $level"), "{service}");
+    let response = &f["src/Things/ThingListResponse.php"];
+    assert!(response.contains("public int $priority;"), "{response}");
+    assert!(response.contains("Priority|int $priority"), "{response}");
+    assert!(f["src/Things/ThingListResponse/Priority.php"].contains("enum Priority: int"));
+}
