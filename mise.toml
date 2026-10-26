@@ -16,6 +16,9 @@ java = "temurin-21.0.13+9.0.LTS"
 # The Ruby plugin's formatters (crates/ruby-plugin/tools/Gemfile) and the generated gems' tests;
 # the gems need Ruby >= 3.2.
 ruby = "3.4.12"
+# The C# plugin's formatter (csharpier, crates/csharp-plugin/tools/dotnet-tools.json) and the
+# generated SDKs' builds and tests; the SDKs target net8.0, as the oracles' CI does.
+dotnet = "8.0.426"
 
 [tasks."forge:setup"]
 description = "Check out the pinned Forge commit into .cache/forge (for the canary)"
@@ -49,6 +52,10 @@ run = "bash crates/ruby-plugin/tools/install.sh"
 [tasks."php:tools"]
 description = "Install PHP and the PHP plugin's formatter (crates/php-plugin/tools/composer.lock) into .cache/php-tools"
 run = "bash crates/php-plugin/tools/install.sh"
+
+[tasks."csharp:tools"]
+description = "Install the C# plugin's formatter (csharpier, crates/csharp-plugin/tools/dotnet-tools.json) into .cache/csharp-tools"
+run = "bash crates/csharp-plugin/tools/install.sh"
 
 [tasks.check]
 description = "Everything ci.yml runs"
