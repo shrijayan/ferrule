@@ -192,3 +192,38 @@ fn an_api_key_in_a_cookie_is_reported() {
     assert_eq!(err.code, ferrule_sdk_model::FerCode::Fer201, "{err}");
     assert_eq!(err.pointer, "#/components/securitySchemes/BearerAuth", "{err}");
 }
+
+#[test]
+fn default_client_options_carry_configured_defaults() {
+    let settings = format!(
+        "{API_KEY}
+    region:
+      type: string
+      default: us
+      read_env: ACME_REGION
+      send_in_header: X-Region
+    page_size:
+      type: integer
+      default: 5
+      send_as_query_param: page_size
+  default_headers:
+    X-Api-Version: '2024-01-01'"
+    );
+    let out = go(&spec(OBJECT, BEARER), &config(&settings));
+    let client = file(&out, "client.go");
+    // As imagekit-go writes its password default: after the base URL, before the environment.
+    let expected = "\tif o, ok := os.LookupEnv(\"ACME_BASE_URL\"); ok {
+\t\tdefaults = append(defaults, option.WithBaseURL(o))
+\t}
+\tdefaults = append(defaults, option.WithRegion(\"us\"))
+\tdefaults = append(defaults, option.WithPageSize(5))
+\tdefaults = append(defaults, option.WithHeader(\"X-Api-Version\", \"2024-01-01\"))
+\tif o, ok := os.LookupEnv(\"ACME_API_KEY\"); ok {
+\t\tdefaults = append(defaults, option.WithAPIKey(o))
+\t}
+\tif o, ok := os.LookupEnv(\"ACME_REGION\"); ok {
+\t\tdefaults = append(defaults, option.WithRegion(o))
+\t}
+";
+    assert!(client.contains(expected), "{client}");
+}
