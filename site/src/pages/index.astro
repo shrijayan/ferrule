@@ -5,6 +5,7 @@
 // src/scripts/landing.ts only runs the animations.
 import '../styles/landing.css';
 import fidelity from '../data/fidelity.json';
+import { LOGOS, type Logo } from '../data/logos';
 import currentTime from '../data/onebusaway-current-time.py.txt?raw';
 import { highlightPython, highlightYaml } from '../lib/highlight';
 
@@ -13,6 +14,48 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const docs = `${base}/docs/`;
 // biome-ignore lint/correctness/noUnusedVariables: used by the template below
 const repo = 'https://github.com/shrijayan/ferrule';
+const site = Astro.site?.href.replace(/\/$/, '') ?? '';
+const install = `curl -LsSf ${site}/install.sh | sh`;
+
+// What the hero's "Copy agent prompt" puts on the clipboard: pasted into a coding agent in the
+// user's project, it reads the docs and does the setup the install command starts.
+// biome-ignore lint/correctness/noUnusedVariables: used by the template below
+const agentPrompt = `Set up Ferrule in this project so it generates our SDK from our OpenAPI spec.
+
+1. Read ${site}/llms.txt and the docs it links to. The quickstart is the source of truth; follow it over anything here.
+2. Install the generator with \`${install}\`. For a Python SDK, also install ruff if it is missing.
+3. Find our OpenAPI spec (OpenAPI 3.x or Swagger 2.0, YAML or JSON) and our stainless.yml. If there is no stainless.yml, stop and ask me.
+4. If this repository is an SDK Stainless generated, follow the quickstart's adopt steps and show me the verify report before you change anything. Otherwise run \`ferrule-gen generate --spec <spec> --config <stainless.yml> --out <dir>\`.
+5. If a command fails with a FER error, apply the fix it suggests and run it again.
+
+When you are done, tell me the commands you ran, what was generated and where, and anything you could not resolve.`;
+
+// Formats the converter reads (left of the hero) and the SDK languages it writes (right), floating
+// in the hero's side gutters. x and y are percentages of the gutter; each drifts on its own clock.
+type Float = { logo: Logo; label: string; x: number; y: number };
+// biome-ignore lint/correctness/noUnusedVariables: used by the template below
+const inputs: Float[] = [
+  { logo: 'openapi', label: 'OpenAPI 3.x', x: 62, y: 10 },
+  { logo: 'swagger', label: 'Swagger 2.0', x: 18, y: 42 },
+  { logo: 'yaml', label: 'stainless.yml', x: 58, y: 74 },
+];
+// biome-ignore lint/correctness/noUnusedVariables: used by the template below
+const outputs: Float[] = [
+  { logo: 'python', label: 'Python', x: 8, y: 6 },
+  { logo: 'typescript', label: 'TypeScript', x: 48, y: 0 },
+  { logo: 'go', label: 'Go', x: 86, y: 12 },
+  { logo: 'java', label: 'Java', x: 20, y: 38 },
+  { logo: 'kotlin', label: 'Kotlin', x: 58, y: 32 },
+  { logo: 'ruby', label: 'Ruby', x: 92, y: 46 },
+  { logo: 'php', label: 'PHP', x: 6, y: 72 },
+  { logo: 'csharp', label: 'C#', x: 46, y: 66 },
+  { logo: 'rust', label: 'Rust', x: 82, y: 80 },
+];
+// A slow, different drift per logo: duration, delay and direction from its index.
+// biome-ignore lint/correctness/noUnusedVariables: used by the template below
+const drift = (f: Float, i: number) =>
+  `--x:${f.x};--y:${f.y};--brand:${LOGOS[f.logo].color ?? 'var(--text)'};` +
+  `--dur:${9 + ((i * 7) % 6)}s;--delay:-${(i * 13) % 9}s;--dx:${i % 2 ? 8 : -8}px;--dy:${i % 3 ? -12 : 10}px`;
 
 // Real OneBusAway config (OneBusAway/sdk-config) and README usage (OneBusAway/python-sdk).
 // biome-ignore lint/correctness/noUnusedVariables: used by the template below
@@ -265,6 +308,32 @@ const testsLabel = (r: BoardRow): string => {
     </header>
 
     <section class="hero" id="top">
+      <div class="hfloat hfloat-in" aria-hidden="true">
+        <span class="hfloat-label">Reads</span>
+        {
+          inputs.map((f, i) => (
+            <span class="hf" style={drift(f, i)}>
+              <span class="hf-well">
+                <svg viewBox="0 0 24 24"><path d={LOGOS[f.logo].path} /></svg>
+              </span>
+              <span class="hf-name">{f.label}</span>
+            </span>
+          ))
+        }
+      </div>
+      <div class="hfloat hfloat-out" aria-hidden="true">
+        <span class="hfloat-label">Writes</span>
+        {
+          outputs.map((f, i) => (
+            <span class="hf" style={drift(f, i + 3)}>
+              <span class="hf-well">
+                <svg viewBox="0 0 24 24"><path d={LOGOS[f.logo].path} /></svg>
+              </span>
+              <span class="hf-name">{f.label}</span>
+            </span>
+          ))
+        }
+      </div>
       <div class="wrap">
         <div class="eyebrow reveal"><span class="pill">Open source</span> Eight languages, one config</div>
         <h1 class="display reveal d1">Generate the SDKs.<br /><em>From the spec.</em></h1>
@@ -272,15 +341,8 @@ const testsLabel = (r: BoardRow): string => {
           Ferrule reads an OpenAPI spec and a <code>stainless.yml</code>, then writes the <strong>SDKs your users import</strong>. Deterministic, one Rust binary, Apache-2.0, on your laptop and in CI, with no account.
         </p>
         <div class="hero-actions reveal d3">
-          <button
-            type="button"
-            class="cmd"
-            data-copy="uvx ferrule generate --spec openapi.yml --config stainless.yml --out sdk"
-            aria-label="Copy generate command"
-          >
-            <span class="cmd-text"
-              ><span class="p">$</span> uvx ferrule generate <span class="nw">--spec openapi.yml</span> <span class="nw">--config stainless.yml</span> <span class="nw">--out sdk</span></span
-            >
+          <button type="button" class="cmd" data-copy={install} aria-label="Copy install command">
+            <span class="cmd-text"><span class="p">$</span> curl -LsSf <span class="nw">{site.replace('https://', '')}/install.sh</span> <span class="nw">| sh</span></span>
             <span class="copy"
               ><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 ><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"
@@ -288,11 +350,32 @@ const testsLabel = (r: BoardRow): string => {
               ></span
             >
           </button>
+          <button type="button" class="btn btn-lg btn-prompt" data-copy={agentPrompt} aria-label="Copy a setup prompt for your coding agent">
+            <span class="copy"
+              ><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                ><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"></path><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"></path></svg
+              ></span
+            >Copy agent prompt
+          </button>
           <a class="btn btn-brass btn-lg" href={`${docs}quickstart/`}>Get started</a>
         </div>
         <p class="hero-note reveal d3">
-          Pre-alpha · <a href="#languages">eight languages</a> · <code>uvx</code> lands with 0.1 ·
-          <a href={`${docs}quickstart/`}>run it from source today</a>
+          Pre-alpha · then <code>ferrule-gen generate</code> · or let your coding agent set it up from{' '}
+          <a href="/llms.txt">llms.txt</a>
+        </p>
+        <p class="hero-langs reveal d3">
+          <span class="sr-only">Reads OpenAPI 3.x, Swagger 2.0 and stainless.yml; writes Python, TypeScript, Go, Java, Kotlin, Ruby, PHP, C# and Rust.</span>
+          {
+            inputs.map((f) => (
+              <svg viewBox="0 0 24 24" aria-hidden="true" style={`--brand:${LOGOS[f.logo].color ?? 'var(--text)'}`}><path d={LOGOS[f.logo].path} /></svg>
+            ))
+          }
+          <span class="hl-arrow" aria-hidden="true">→</span>
+          {
+            outputs.map((f) => (
+              <svg viewBox="0 0 24 24" aria-hidden="true" style={`--brand:${LOGOS[f.logo].color ?? 'var(--text)'}`}><path d={LOGOS[f.logo].path} /></svg>
+            ))
+          }
         </p>
 
         <div class="stage reveal" id="stage">

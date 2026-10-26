@@ -147,9 +147,9 @@ function runDiff(): void {
   tick();
 }
 
-/* terminal: a real `ferrule generate` run on the OneBusAway spec and config, twice */
+/* terminal: a real `ferrule-gen generate` run on the OneBusAway spec and config, twice */
 type TermLine = { cmd: string } | { out: string };
-const GENERATE = 'uv run ferrule generate --spec openapi.yml --config stainless.yml --out sdk';
+const GENERATE = 'ferrule-gen generate --spec openapi.yml --config stainless.yml --out sdk';
 const GENERATED =
   'generated <span class="hl">onebusaway</span>: 222 files <span class="o">(26 runtime)</span> sha256 <span class="o">1f9d988f…88d96a</span>';
 const TERMINAL: TermLine[] = [

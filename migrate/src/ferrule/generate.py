@@ -130,9 +130,16 @@ def resolve_tools(
     root: Path = REPO_ROOT,
     gen: Path | None = None,
 ) -> Tools:
-    """Pick tool paths: explicit argument, then ``FERRULE_*`` env var, then repo default."""
+    """Pick tool paths: explicit argument, then ``FERRULE_*`` env var, then repo default.
+
+    ``ferrule-gen`` falls back to the one on ``PATH`` (an installed release, ADR 0020) when the
+    repo has no build; the repo path is kept when neither exists, so the error names it.
+    """
+    built = root / "target/release/ferrule-gen"
+    installed = shutil.which("ferrule-gen", path=env["PATH"]) if env.get("PATH") else None
+    default = built if built.is_file() or installed is None else Path(installed)
     return Tools(
-        gen=gen or Path(env.get("FERRULE_GEN") or root / "target/release/ferrule-gen"),
+        gen=gen or Path(env.get("FERRULE_GEN") or default),
         ruff=env.get("FERRULE_RUFF", "ruff"),
     )
 
@@ -313,7 +320,9 @@ def _check_inputs(request: GenerateRequest) -> None:
         )
 
 
-_BUILD_GEN = "run `cargo build --release -p ferrule-gen`, or set FERRULE_GEN"
+_BUILD_GEN = (
+    "install ferrule-gen on PATH, run `cargo build --release -p ferrule-gen`, or set FERRULE_GEN"
+)
 
 
 def _check_gen(tools: Tools) -> None:

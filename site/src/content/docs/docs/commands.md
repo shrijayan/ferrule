@@ -3,12 +3,15 @@ title: Commands
 description: Every ferrule command, its flags and its exit codes.
 ---
 
-`ferrule` is a Python CLI. Until the 0.1 release, run it from a Ferrule checkout with
-`uv run ferrule …` (see the [quickstart](/docs/quickstart/)).
+Ferrule has two entry points while it moves to one binary (ADR 0021). `ferrule-gen`, installed
+with `curl -LsSf https://ferrule.cpluz.com/install.sh | sh`, generates Python SDKs on its own
+(see [Without Python](#without-python)). `ferrule` is a Python CLI for everything else; run it
+from a Ferrule checkout with `uv run ferrule …` (see the [quickstart](/docs/quickstart/)).
 
 `adopt` and `generate` run the `ferrule-gen` binary, which holds the converter, Forge and the
 Ferrule plugin. Build it with `cargo build --release -p ferrule-gen`. Pass it as `--gen PATH`,
-or set `FERRULE_GEN`; the default is `target/release/ferrule-gen` in the Ferrule checkout.
+or set `FERRULE_GEN`; the default is `target/release/ferrule-gen` in the Ferrule checkout, then
+the `ferrule-gen` on your `PATH`.
 
 ## adopt
 
@@ -53,6 +56,18 @@ ferrule generate --spec SPEC --config STAINLESS_YML --out DIR [--runtime-from SD
 `--out` must be new or empty. `--runtime-from` copies the runtime (`_base_client.py` and
 friends) from an existing SDK, which is what adopt mode does. The command prints the package
 name, the file count and a sha256 of the whole tree: the same inputs always give the same digest.
+
+### Without Python
+
+For a Python SDK, `ferrule-gen` runs the same pipeline on its own: no Python environment, only
+the binary and [ruff](https://docs.astral.sh/ruff/) on `PATH` (or `FERRULE_RUFF`).
+
+```bash
+ferrule-gen generate --spec SPEC --config STAINLESS_YML --out DIR
+```
+
+It writes the same files and prints the same line, digest included, as `ferrule generate`.
+Other targets and `--runtime-from` still need `ferrule generate`.
 
 ## verify
 
