@@ -172,7 +172,6 @@ mod resources_and_methods {
     /// on every operation, so Forge grouped operations the config leaves out and the plugin
     /// refused them (FER103, no `x-ferrule-resource`). Stainless generates configured endpoints only.
     #[test]
-    #[should_panic(expected = "unconfigured operation keeps")]
     fn drops_fern_grouping_from_operations_not_in_the_config() {
         let mut spec = make_spec_json();
         spec["paths"]["/unconfigured"]["get"]["x-fern-sdk-group-name"] = json!("accounts.billing");
