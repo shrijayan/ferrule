@@ -34,7 +34,7 @@ const IMAGEKIT: Oracle = Oracle {
     ),
     version: "2.5.0",
     example: (&["files"], "upload"),
-    floor: 15,
+    floor: 17,
 };
 
 const KNOCK_MGMT: Oracle = Oracle {
@@ -46,7 +46,7 @@ const KNOCK_MGMT: Oracle = Oracle {
     ),
     version: "0.2.0",
     example: (&["workflows"], "list"),
-    floor: 7,
+    floor: 8,
 };
 
 fn generated(o: &Oracle) -> Option<(std::path::PathBuf, GoOutput)> {

@@ -110,6 +110,25 @@ fn params_v2(out: &mut String, name: &str, fields: &[GoField], bases: &[String],
             "func (r {name}) MarshalJSON() (data []byte, err error) {{\n\ttype shadow {name}\n\treturn param.MarshalObject(r, (*shadow)(&r))\n}}\nfunc (r *{name}) UnmarshalJSON(data []byte) error {{\n\treturn apijson.UnmarshalRoot(data, r)\n}}\n\n"
         );
     }
+    // An enum taken as its underlying type is validated when decoding (knock-mgmt-go's
+    // `TranslationUpsertParamsTranslation.Format`).
+    let validated: Vec<&GoField> = fields
+        .iter()
+        .filter(|f| !f.enum_values.is_empty() && opt_scalar(&f.ty))
+        .collect();
+    if !validated.is_empty() {
+        ctx.import_module("internal/apijson");
+        out.push_str("func init() {\n");
+        for f in validated {
+            let _ = write!(
+                out,
+                "\tapijson.RegisterFieldValidator[{name}](\n\t\t{}, {},\n\t)\n",
+                crate::printer::quote(&f.wire),
+                f.enum_values.join(", ")
+            );
+        }
+        out.push_str("}\n\n");
+    }
     if query {
         ctx.import("net/url");
         ctx.import_module("internal/apiquery");

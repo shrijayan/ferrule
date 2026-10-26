@@ -10,7 +10,7 @@ use ferrule_sdk_model::model::{ModelDecl, Type};
 
 use super::resource::{Returns, returns};
 use super::{Gen, Service, method_order};
-use crate::types::{Pkg, has_param_variant, model_name, model_pkg};
+use crate::types::{Pkg, model_name, model_pkg, v2_model_names};
 
 fn link(module: &str, pkg: &str, rel: Option<&str>, name: &str) -> String {
     let base = rel.map_or_else(
@@ -44,14 +44,15 @@ fn model_lists(g: &Gen<'_>, models: &[&ModelDecl]) -> (Vec<String>, Vec<String>)
     let mut params = Vec::new();
     let mut responses = Vec::new();
     for d in models {
-        let name = model_name(&d.r#ref, g.casings);
+        let (name, param) = if g.target.v2() {
+            v2_model_names(g.client, &d.r#ref, g.casings)
+        } else {
+            let name = model_name(&d.r#ref, g.casings);
+            (name.clone(), name)
+        };
         let in_params = g.param_models.contains(&d.r#ref.schema);
         if g.target.v2() && in_params {
-            if has_param_variant(g.client, &d.r#ref) {
-                params.push(format!("{name}Param"));
-            } else {
-                params.push(name.clone());
-            }
+            params.push(param);
         }
         if !g.target.v2() || g.response_models.contains(&d.r#ref.schema) || !in_params {
             responses.push(name);

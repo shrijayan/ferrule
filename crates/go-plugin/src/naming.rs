@@ -99,8 +99,12 @@ fn exported_word(w: &str, casings: Casings<'_>) -> String {
         (*spelled).to_owned()
     } else if !INITIALISMS.contains(&lower.as_str()) {
         capitalize(w)
-    } else if lower.ends_with('s') && lower != "https" {
-        format!("{}s", lower[..lower.len() - 1].to_ascii_uppercase())
+    } else if let Some(stem) = lower.strip_suffix('s')
+        && lower != "https"
+        && INITIALISMS.contains(&stem)
+    {
+        // A plural of an initialism (`IDs`); `sms` is one word (`SMS`).
+        format!("{}s", stem.to_ascii_uppercase())
     } else {
         lower.to_ascii_uppercase()
     }
@@ -250,6 +254,7 @@ mod tests {
         assert_eq!(exported(&split_words("nullSafeShortName"), NONE), "NullSafeShortName");
         assert_eq!(exported(&split_words("https"), NONE), "HTTPS");
         assert_eq!(exported(&split_words("json_schema"), NONE), "JsonSchema");
+        assert_eq!(exported(&split_words("sms"), NONE), "SMS");
         assert_eq!(exported(&split_words("2fa"), NONE), "_2fa");
     }
 

@@ -53,6 +53,10 @@ pub fn returns(g: &Gen<'_>, s: &Service<'_>, m: &Method, ctx: &mut Ctx<'_>) -> (
         return (Returns::Pointer(name), decls);
     }
     let mapped = map_type(&resp.ty, &Position::exact(&name), &doc(&resp.ty), Mode::Response, ctx);
+    // v2 returns nothing for a response of any value (knock-mgmt-go's `ChannelGroupService.Delete`).
+    if g.target.v2() && mapped.ty == "any" {
+        return (Returns::None, Vec::new());
+    }
     (Returns::Pointer(mapped.ty), mapped.decls)
 }
 
