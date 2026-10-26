@@ -42,6 +42,7 @@ _GO_KEYWORDS = frozenset(
         "package", "range", "return", "select", "struct", "switch", "type", "var",
     }
 )  # fmt: skip
+_IMPORT_SPEC = re.compile(r'^\t(?:[A-Za-z_.][A-Za-z0-9_]* )?"([^"]+)"(?: //.*)?$')
 _SLOTS = ("config_fields", "config_clone", "client_options")
 _REQUEST_CONFIG = "internal/requestconfig/requestconfig.go"
 # The runtime lines ending the runs `config_fields` and `config_clone` extend.
@@ -154,6 +155,40 @@ def _realign_run(text: str, anchor: str, *, path: str) -> str:
     return "\n".join(lines)
 
 
+def _sort_import_groups(text: str) -> str:
+    """Sort each blank-line-separated group of ``import ( ... )`` blocks by path, as gofmt does.
+
+    The template's groups are in order for its own module path; the module's packages move
+    within a group when another module path sorts differently against the group's other
+    imports. A group with anything but import specs (a comment line) is left as it is.
+    """
+    lines = text.split("\n")
+    out: list[str] = []
+    group: list[str] = []
+
+    def flush() -> None:
+        paths = [m.group(1) for m in map(_IMPORT_SPEC.match, group) if m is not None]
+        if len(paths) == len(group):
+            out.extend(line for _, line in sorted(zip(paths, group, strict=True)))
+        else:
+            out.extend(group)
+        group.clear()
+
+    inside = False
+    for line in lines:
+        if inside and line in {"", ")"}:
+            flush()
+            inside = line == ""
+            out.append(line)
+        elif inside:
+            group.append(line)
+        else:
+            inside = line == "import ("
+            out.append(line)
+    flush()
+    return "\n".join(out)
+
+
 def render_go_files(options: GoOptions) -> dict[str, str]:
     """Render the Go runtime (pure): ``{path from the module root: exact text}``."""
     _check(options)
@@ -175,7 +210,7 @@ def render_go_files(options: GoOptions) -> dict[str, str]:
             PKG_PLACEHOLDER: options.package_name,
         },
         # gofmt sorts the imports of a group by path; these two groups mix the module's own
-        # packages with another import.
+        # packages with another import (every other group is sorted after rendering).
         flags={
             "module_before_io": param < "io",
             "module_before_sjson": f"{module}/internal/requestconfig" < "github.com/tidwall/sjson",
@@ -189,4 +224,7 @@ def render_go_files(options: GoOptions) -> dict[str, str]:
     for anchor in _REALIGNED:
         config = _realign_run(config, anchor, path=_REQUEST_CONFIG)
     files[_REQUEST_CONFIG] = config
-    return files
+    return {
+        path: _sort_import_groups(text) if path.endswith(".go") else text
+        for path, text in files.items()
+    }
