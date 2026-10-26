@@ -6,11 +6,21 @@ mod common;
 
 use std::collections::HashMap;
 
-use ferrule_php_plugin::{PhpMeta, generate};
+use ferrule_php_plugin::{PhpMeta, PhpOutput, generate};
+use ferrule_sdk_model::{FerCode, FerruleError};
 
 /// The files generated for `paths` and `schemes` (OpenAPI YAML fragments) with the resource
 /// `things` binding `methods` and the client option `api_key` authenticating with `Key`.
 fn files(paths: &str, schemes: &str, methods: &str) -> HashMap<String, String> {
+    generated(paths, schemes, methods)
+        .expect("generates")
+        .files
+        .into_iter()
+        .collect()
+}
+
+/// What generating [`files`]'s inputs returns.
+fn generated(paths: &str, schemes: &str, methods: &str) -> Result<PhpOutput, FerruleError> {
     let openapi = format!(
         "openapi: 3.1.0\ninfo:\n  title: Acme\n  version: 1.0.0\nservers:\n  - url: https://api.acme.test\nsecurity:\n  - Key: []\npaths:\n{paths}components:\n  securitySchemes:\n    Key:\n{schemes}"
     );
@@ -20,10 +30,6 @@ fn files(paths: &str, schemes: &str, methods: &str) -> HashMap<String, String> {
     let converted = ferrule_converter::convert_text(&openapi, &stainless).expect("converts");
     assert!(!converted.output.is_empty(), "{:?}", converted.diagnostics);
     generate(&common::model(&converted.output), &PhpMeta::default())
-        .expect("generates")
-        .files
-        .into_iter()
-        .collect()
 }
 
 const BEARER: &str = "      type: http\n      scheme: bearer\n";
@@ -104,6 +110,27 @@ fn a_required_recursive_field_ends_the_test_example() {
         ),
         "      create: post /things\n    models:\n      node: Node\n",
     );
-    let test =&f["tests/Services/ThingsTest.php"];
+    let test = &f["tests/Services/ThingsTest.php"];
     assert!(test.contains("'children' => []"), "{test}");
+}
+
+/// A request body that is not an object (or a union of objects) has no parameters to spread, so
+/// it is reported, as the Python plugin reports it, rather than dropped from the request.
+#[test]
+fn a_body_that_is_not_an_object_is_reported() {
+    let body = |schema: &str| {
+        format!(
+            "  /things:\n    post:\n      requestBody:\n        required: true\n        content:\n          application/json:\n            schema:\n{schema}      responses:\n        '204':\n          description: Done.\n"
+        )
+    };
+    for schema in [
+        "              type: array\n              items:\n                type: string\n",
+        "              type: string\n",
+    ] {
+        let Err(err) = generated(&body(schema), BEARER, "      create: post /things\n") else {
+            panic!("generated a create() that drops the body:\n{schema}");
+        };
+        assert_eq!(err.code, FerCode::Fer201, "{err:?}");
+        assert_eq!(err.pointer, "#/paths/~1things/post", "{err:?}");
+    }
 }
