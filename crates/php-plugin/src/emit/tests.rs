@@ -72,10 +72,19 @@ fn find_enum_first(g: &Gen<'_>, c: &ClassPath) -> Option<Literal> {
     })
 }
 
+/// How deep an example nests a model's optional fields; below it, only required ones.
+const MAX_DEPTH: usize = 4;
+
 /// An example value of a parameter, as the generated tests pass it (the spec's examples are not
-/// in the model, Forge gap G18: a string is its wire name, a number 0).
+/// in the model, Forge gap G18: a string is its wire name, a number 0). Below [`MAX_DEPTH`] a
+/// model on a reference cycle ends the example, so a required recursive field cannot nest
+/// forever: a list or map of it is empty, and one level deeper it is `[]` itself (its type is
+/// `mixed`).
 fn example(g: &Gen<'_>, ty: &PType, wire: &str, all: bool, imp: &mut Imports, depth: usize) -> Doc {
+    let deep = depth >= MAX_DEPTH;
     match ty {
+        PType::List(t) | PType::Map(t) if deep && matches!(**t, PType::Rec(_)) => text("[]"),
+        PType::Rec(_) if depth > MAX_DEPTH => text("[]"),
         PType::String => text(literal(&Literal::String(wire.to_owned()))),
         PType::Date => text("'2019-12-27'"),
         PType::Int | PType::Float => text("0"),
@@ -105,7 +114,7 @@ fn example(g: &Gen<'_>, ty: &PType, wire: &str, all: bool, imp: &mut Imports, de
                 k.fields
                     .iter()
                     .filter(|f| if all { true } else { f.required })
-                    .filter(|f| depth < 4 || f.required)
+                    .filter(|f| !deep || f.required)
                     .map(|f| {
                         cat(vec![
                             text(format!("'{}' => ", f.name)),
