@@ -597,9 +597,16 @@ pub fn to_value(j: &Json) -> serde_json::Value {
     }
 }
 
+/// A config key whose words, joined by `_`, are an identifier: languages spell an option from its
+/// words, so the key itself may be `BROWSERBASE_API_KEY` or `X-Session-Token`.
+fn spelled_name(written: &str) -> Option<Name> {
+    let n = name(written);
+    identifier(&n.words.join("_")).then_some(n)
+}
+
 fn read_opt(v: &Json) -> Result<ClientOpt, Malformed> {
     let m = Some(v);
-    let opt_name = as_str(member(m, "name")).filter(|n| identifier(n)).ok_or(Malformed)?;
+    let opt_name = as_str(member(m, "name")).and_then(spelled_name).ok_or(Malformed)?;
     let ty = match as_str(member(m, "type")) {
         Some("string") => OptType::String,
         Some("number") => OptType::Number,
@@ -646,7 +653,7 @@ fn read_opt(v: &Json) -> Result<ClientOpt, Malformed> {
         }
     };
     Ok(ClientOpt {
-        name: name(opt_name),
+        name: opt_name,
         ty,
         nullable,
         default: member(m, "default").map(to_value),
