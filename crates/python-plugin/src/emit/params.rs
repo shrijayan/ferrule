@@ -192,6 +192,15 @@ impl<'a> Named<'a> {
                     let segment = variant_segment(v, discriminator.as_deref()).unwrap_or_else(|| format!("Variant{i}"));
                     self.visit_object(v, &format!("{base}{segment}"));
                 }
+                // The inline objects under an array member are named `List` after it, as ogx
+                // names the array member of `InterleavedContent`; other members, `Item`.
+                for v in variants {
+                    match v {
+                        SdkType::Object(_) => {}
+                        SdkType::Array(items) => self.visit_type(items, &format!("{base}List")),
+                        other => self.visit_type(other, &format!("{base}Item")),
+                    }
+                }
                 self.postorder.push((base.to_owned(), Node::Alias(t)));
             }
             _ => {}
