@@ -1,0 +1,22 @@
+openapi: 3.1.0
+info: {title: fx, version: '1'}
+servers: [{url: 'https://api.example.com'}]
+paths:
+  /compactions:
+    post:
+      operationId: createCompaction
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  payload: {$ref: '#/components/schemas/Payload'}
+                  empty: {$ref: '#/components/schemas/Empty'}
+                required: [payload, empty]
+components:
+  schemas:
+    Payload: {not: {type: 'null'}}
+    Empty: {type: object}
