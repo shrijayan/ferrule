@@ -9,7 +9,7 @@ use ferrule_sdk_model::model::{ClientOpt, Field, Method, OptType, Scalar, Type};
 use super::resource::params_decls;
 use super::{Gen, Service, method_order, params_arg};
 use crate::naming::{exported, local, singular, split_words, words};
-use crate::printer::{ALIGN, BREAK, go_file};
+use crate::printer::{ALIGN, BREAK, go_file, quote};
 use crate::types::{Ctx, Decl, Pkg};
 
 /// `client_test.go` after its imports; text from Stainless's Go v1 tests (OneBusAway go-sdk,
@@ -295,6 +295,14 @@ pub fn client_test_file(g: &Gen<'_>, client_name: &str) -> Option<(String, Strin
         .replace("{{CALL}}", &format!("{}.{}", s.accessor, g.method_name(m)))
         .replace("{{USER_AGENT}}", client_name)
         .replace("{{ARGS}}", &args);
+    // The retry tests count one attempt more than the configured retries (oracles: 2 -> 3).
+    let attempts = g.client.settings.as_ref().map_or(2, |s| s.max_retries) + 1;
+    let counts = |count: fn(u32) -> String| (0..attempts).map(|i| quote(&count(i))).collect::<Vec<_>>().join(", ");
+    let body = body
+        .replace("{{ATTEMPTS}}", &attempts.to_string())
+        .replace("{{RETRY_COUNTS}}", &counts(|i| i.to_string()))
+        .replace("{{EMPTY_COUNTS}}", &counts(|_| String::new()))
+        .replace("{{OVERWRITTEN_COUNTS}}", &counts(|_| "42".to_owned()));
     let imports: Vec<String> = ctx.imports.into_iter().collect();
     Some((
         "client_test.go".to_owned(),
