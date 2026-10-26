@@ -89,9 +89,14 @@ fn apply(g: &Gen<'_>, o: &ClientOpt, field: &str) -> Option<String> {
         .iter()
         .find(|s| s.name == auth.security_scheme)?;
     match (&scheme.scheme, auth.role) {
-        (SecurityScheme::Http { .. }, AuthRole::Value) => Some(format!(
-            "WithHeader(\"authorization\", fmt.Sprintf(\"Bearer %s\", {value}))"
-        )),
+        // `x-stainless-auth.scheme_keyword` replaces `Bearer`.
+        (SecurityScheme::Http { keyword, .. }, AuthRole::Value) => {
+            let keyword = keyword.as_deref().unwrap_or("Bearer").replace('%', "%%");
+            Some(format!(
+                "WithHeader(\"authorization\", fmt.Sprintf({}, {value}))",
+                quote(&format!("{keyword} %s"))
+            ))
+        }
         (SecurityScheme::ApiKey { name, .. }, _) => Some(format!("WithHeader({}, {value})", quote(name))),
         _ => None,
     }
