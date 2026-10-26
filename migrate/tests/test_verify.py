@@ -226,3 +226,17 @@ def test_runtime_spellings_are_not_breaking(tmp_path: Path) -> None:
     ]
     assert report.to_json()["normalized_count"] == 4
     assert "4 runtime spellings" in report.summary()
+
+
+def test_runtime_spellings_of_a_client_that_moved_module(tmp_path: Path) -> None:
+    # The opencode SDK's custom client lives in acme.lib._client after adoption; acme.Client is
+    # the same public name, so its members are compared with the old acme._client.Client's.
+    old = make(tmp_path / "old", OLD, FOREIGN_CLIENT)
+    new = make(tmp_path / "new", OLD.replace("acme._client", "acme.lib._client"), "")
+    lib = new / "src/acme/lib"
+    lib.mkdir()
+    (lib / "__init__.py").write_text("")
+    (lib / "_client.py").write_text(FERRULE_CLIENT)
+    report = verify(old, new)
+    assert [c.path for c in report.breaking] == ["acme.lib._client.Client.list"]
+    assert len(report.normalized) == 4
