@@ -129,6 +129,31 @@ fn query_and_body_parameters_are_split() {
     assert!(raw.contains("body: (object) array_diff_key($parsed, $query_params),"), "{raw}");
 }
 
+/// A header parameter is a parameter of the method, and the raw service sends it as a header,
+/// apart from the query and the body.
+#[test]
+fn header_parameters_are_sent_as_headers() {
+    let header = "        - name: X-Trace-Id\n          in: header\n          required: true\n          schema:\n            type: string\n";
+    let f = files(
+        &format!(
+            "  /things:\n    get:\n      parameters:\n{header}        - name: limit\n          in: query\n          schema:\n            type: integer\n      responses:\n        '204':\n          description: Done.\n    post:\n      parameters:\n{header}      requestBody:\n        required: true\n        content:\n          application/json:\n            schema:\n              type: object\n              properties:\n                name:\n                  type: string\n      responses:\n        '204':\n          description: Done.\n"
+        ),
+        BEARER,
+        "      list: get /things\n      create: post /things\n",
+    );
+    for params in ["ThingListParams", "ThingCreateParams"] {
+        let class = &f[&format!("src/Things/{params}.php")];
+        assert!(class.contains("#[Required('X-Trace-Id')]"), "{class}");
+    }
+    let service = &f["src/Services/ThingsService.php"];
+    assert!(service.contains("string $xTraceID"), "{service}");
+    let raw = &f["src/Services/ThingsRawService.php"];
+    assert_eq!(raw.matches("$header_params = array_flip(['X-Trace-Id']);").count(), 2, "{raw}");
+    assert_eq!(raw.matches("headers: array_intersect_key($parsed, $header_params),").count(), 2, "{raw}");
+    assert!(raw.contains("query: array_intersect_key($parsed, $query_params),"), "{raw}");
+    assert!(raw.contains("body: (object) array_diff_key($parsed, $header_params),"), "{raw}");
+}
+
 /// A request body that is not an object (or a union of objects) has no parameters to spread, so
 /// it is reported, as the Python plugin reports it, rather than dropped from the request.
 #[test]
