@@ -326,7 +326,7 @@ def check_adopted(name: str) -> dict[str, object]:
         check=False,
         cwd=ROOT,
     )
-    counts = json.loads(verify_json.read_text()) if verify_json.is_file() else {}
+    counts: dict[str, object] = json.loads(verify_json.read_text()) if verify_json.is_file() else {}
     breaking = counts.get("breaking_count")
     report["verify"] = {
         "exit": verify.returncode,
