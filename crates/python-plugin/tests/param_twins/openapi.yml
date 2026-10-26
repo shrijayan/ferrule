@@ -1,0 +1,39 @@
+openapi: 3.1.0
+info: {title: fx, version: '1'}
+servers: [{url: 'https://api.example.com'}]
+
+paths:
+  /sessions:
+    post:
+      operationId: createSession
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                model: {$ref: '#/components/schemas/ModelRef'}
+                template: {$ref: '#/components/schemas/ChatTemplate'}
+              required: [model]
+      responses:
+        '200': {description: ok, content: {application/json: {schema: {$ref: '#/components/schemas/ModelRef'}}}}
+components:
+  schemas:
+    ModelRef:
+      type: object
+      description: A model, by provider.
+      properties:
+        id: {type: string}
+        providerID: {type: string}
+      required: [id, providerID]
+    ChatTemplate:
+      type: object
+      properties:
+        markdown_body: {type: string}
+        settings:
+          type: object
+          description: How the template renders.
+          properties: {compact: {type: boolean}}
+        model: {$ref: '#/components/schemas/ModelRef'}
+      required: [markdown_body]
