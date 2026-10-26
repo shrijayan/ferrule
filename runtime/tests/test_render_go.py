@@ -4,13 +4,17 @@
 
 from __future__ import annotations
 
+import re
 import shutil
 import subprocess
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import pytest
 
 from ferrule_runtime import GoOptions, RenderError, render_go_files, template_root
+
+if TYPE_CHECKING:
+    from ferrule_runtime._go import GoLayout
 
 GO = GoOptions(module_path="github.com/acme/acme-go", package_name="acme", client_name="Acme")
 
@@ -135,6 +139,44 @@ def test_go_requestoption_imports_follow_gofmt_order() -> None:
 V2 = GoOptions(
     module_path="github.com/acme/acme-go/v3", package_name="acme", client_name="Acme", layout="v2"
 )
+
+
+_IMPORT_PATH = re.compile(r'^\t(?:[A-Za-z_.][A-Za-z0-9_]* )?"([^"]+)"$')
+
+
+def _import_groups(text: str) -> list[list[str]]:
+    """The import paths of each blank-line-separated group in ``import ( ... )`` blocks."""
+    groups: list[list[str]] = []
+    inside = False
+    for line in text.splitlines():
+        if line == "import (":
+            inside = True
+            groups.append([])
+        elif inside and line == ")":
+            inside = False
+        elif inside and not line:
+            groups.append([])
+        elif inside and (match := _IMPORT_PATH.match(line)) is not None:
+            groups[-1].append(match.group(1))
+    return groups
+
+
+@pytest.mark.parametrize("layout", ["v1", "v2"])
+@pytest.mark.parametrize(
+    "module",
+    ["github.com/acme/acme-go", "sdk.acme.test/client", "zeta.dev/sdk", "acme.dev/sdk"],
+)
+def test_go_every_import_group_follows_gofmt_order(module: str, layout: GoLayout) -> None:
+    # gofmt sorts each group by path, wherever the module path sorts among the others.
+    files = render_go_files(
+        GoOptions(module_path=module, package_name="acme", client_name="Acme", layout=layout)
+    )
+    unsorted = [
+        path
+        for path, text in files.items()
+        if path.endswith(".go") and any(g != sorted(g) for g in _import_groups(text))
+    ]
+    assert unsorted == []
 
 
 def test_go_v2_template_root_exists() -> None:
