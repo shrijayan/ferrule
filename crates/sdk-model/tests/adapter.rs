@@ -229,6 +229,51 @@ fn names_union_variants_and_their_discriminator_values() {
     assert_eq!(o.origin.as_deref(), Some("Dog"));
 }
 
+/// A mapping may send several values to one variant; the model keeps every one, so a language
+/// that dispatches on the value can register each.
+#[test]
+fn keeps_every_discriminator_value_a_mapping_gives_one_variant() {
+    let r = |schema: &str| json!({ "$ref": format!("#/components/schemas/{schema}") });
+    let d = doc(
+        &json!({
+            "x-ferrule-models": { "Cat": { "name": "Cat" }, "Dog": { "name": "Dog" } },
+            "responses": ok_response(&json!({
+                "oneOf": [r("Cat"), r("Dog")],
+                "discriminator": { "propertyName": "kind", "mapping": {
+                    "cat": "#/components/schemas/Cat",
+                    "kitten": "#/components/schemas/Cat",
+                    "dog": "#/components/schemas/Dog",
+                } },
+            })),
+        }),
+        &json!({
+            "Cat": { "type": "object", "required": ["kind"], "properties": { "kind": { "type": "string" } } },
+            "Dog": { "type": "object", "required": ["kind"], "properties": { "kind": { "type": "string" } } },
+        }),
+    );
+    let (_, method) = only(&d);
+    let response = serde_json::to_value(method.response.as_ref().map(|r| &r.ty)).expect("serializes");
+    let variant = |i: usize| response["variants"][i]["name"]["written"].clone();
+    let mut mapping: Vec<(String, Value)> = response["discriminator"]["mapping"]
+        .as_array()
+        .unwrap_or_else(|| panic!("a mapping on the discriminator: {}", response["discriminator"]))
+        .iter()
+        .map(|c| {
+            let i = usize::try_from(c["variant"].as_u64().expect("an index")).expect("fits");
+            (c["value"].as_str().expect("a value").to_owned(), variant(i))
+        })
+        .collect();
+    mapping.sort_by(|a, b| a.0.cmp(&b.0));
+    assert_eq!(
+        mapping,
+        [
+            ("cat".to_owned(), json!("Cat")),
+            ("dog".to_owned(), json!("Dog")),
+            ("kitten".to_owned(), json!("Cat")),
+        ]
+    );
+}
+
 #[test]
 fn splits_path_query_and_header_parameters_and_carries_the_body() {
     let (client, method) = only(&doc(
