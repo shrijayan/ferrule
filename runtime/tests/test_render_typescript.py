@@ -64,3 +64,29 @@ def test_typescript_options() -> None:
 def test_typescript_rejects_bad_options(kwargs: dict[str, Any], match: str) -> None:
     with pytest.raises(RenderError, match=match):
         render_typescript_files(TypeScriptOptions(**kwargs))
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "match"),
+    [
+        # The default error name APIError would declare a second APIError in core/error.ts.
+        ({"client_name": "API"}, "error_name 'APIError' is a name the runtime already uses"),
+        (
+            {"client_name": "Acme", "error_name": "APIError"},
+            "error_name 'APIError' is a name the runtime already uses",
+        ),
+        # `class Error extends Error {}` shadows the native Error it extends.
+        (
+            {"client_name": "Acme", "error_name": "Error"},
+            "error_name 'Error' is a name the runtime already uses",
+        ),
+        ({"client_name": "Headers"}, "client_name 'Headers' is a name the runtime already uses"),
+        ({"client_name": "Acme", "error_name": "class"}, "error_name 'class' is a reserved word"),
+        ({"client_name": "enum"}, "client_name 'enum' is a reserved word"),
+        ({"client_name": "any"}, "client_name 'any' is a reserved word"),
+        ({"client_name": "Acme", "error_name": "Acme"}, "error_name must differ from client_name"),
+    ],
+)
+def test_typescript_rejects_names_that_clash(kwargs: dict[str, Any], match: str) -> None:
+    with pytest.raises(RenderError, match=match):
+        render_typescript_files(TypeScriptOptions(**kwargs))
