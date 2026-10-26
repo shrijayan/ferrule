@@ -1145,3 +1145,36 @@ fn reports_fer1005_for_a_model_whose_schema_is_not_in_the_spec() {
     assert_eq!(r.spec, spec);
     assert!(r.diagnostics.iter().all(|d| d.severity == Severity::Warning));
 }
+
+mod skip_test_reason {
+    use super::*;
+
+    /// Stainless's `skip_test_reason`: a reason for every language, or per language, of which
+    /// only Python's is kept (knock-python skips its callback tests this way).
+    #[test]
+    fn marks_the_operations_whose_tests_are_skipped() {
+        let ok = json!({"200": {"description": "ok"}});
+        let spec = v(&json!({
+            "openapi": "3.1.0",
+            "paths": {
+                "/all": {"get": {"responses": ok}},
+                "/python": {"get": {"responses": ok}},
+                "/ruby": {"get": {"responses": ok}},
+                "/none": {"get": {"responses": ok}}
+            }
+        }));
+        let methods = json!({
+            "all": {"endpoint": "get /all", "skip_test_reason": "the mock rejects it"},
+            "python": {"endpoint": "get /python", "skip_test_reason": {"python": "not in Python", "ruby": "x"}},
+            "ruby": {"endpoint": "get /ruby", "skip_test_reason": {"ruby": "only Ruby"}},
+            "none": "get /none"
+        });
+        let r = convert(&spec, &v(&json!({"resources": {"things": {"methods": methods}}})));
+        assert_eq!(r.diagnostics, none());
+        let skip = |path: &str| op(&r.spec, path, "get").get("x-ferrule-skip-test").cloned();
+        assert_eq!(skip("/all"), Some(v(&json!("the mock rejects it"))));
+        assert_eq!(skip("/python"), Some(v(&json!("not in Python"))));
+        assert_eq!(skip("/ruby"), None);
+        assert_eq!(skip("/none"), None);
+    }
+}
