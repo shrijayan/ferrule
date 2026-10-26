@@ -201,9 +201,7 @@ def build_row(spec: Spec, raw: object, titles: dict[str, str]) -> dict[str, obje
     tests = _obj(stages.get("tests"))
     determinism = _obj(stages.get("determinism"))
     checks = {
-        t: _int(_obj(stages.get(t)).get("errors"))
-        for t in ("ruff", "pyright", "mypy")
-        if stages.get(t)
+        t: _check_errors(_obj(stages.get(t))) for t in ("ruff", "pyright", "mypy") if stages.get(t)
     }
     return {
         "name": spec.name,
@@ -242,6 +240,12 @@ def build_row(spec: Spec, raw: object, titles: dict[str, str]) -> dict[str, obje
         "gaps": gaps_of(report, titles),
         "caveat": CAVEATS.get(spec.name),
     }
+
+
+def _check_errors(record: dict[str, object]) -> int | None:
+    """Return a checker's error count, None when it failed without reporting any (a crash)."""
+    errors = _int(record.get("errors"))
+    return None if record.get("ok") is False and not errors else errors
 
 
 def build(

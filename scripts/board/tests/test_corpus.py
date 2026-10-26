@@ -112,6 +112,7 @@ def test_row_with_checks_tests_and_compare() -> None:
         "acme",
         render={**OK, "digest": "d1", "files": 4},
         ruff={**OK, "errors": 0},
+        mypy={"ok": False, "error": "mypy exited 250", "errors": 0},
         pyright={
             "ok": False,
             "error": "pyright exited 1 with 7 errors:\nx",
@@ -131,7 +132,7 @@ def test_row_with_checks_tests_and_compare() -> None:
         compare={**OK, "breaking": 2, "additive": 1, "closeness": 12.5},
     )
     row = build_row(spec("acme", compare), raw, TITLES)
-    assert row["check_errors"] == {"ruff": 0, "pyright": 7}
+    assert row["check_errors"] == {"ruff": 0, "pyright": 7, "mypy": None}
     assert row["tests"] == {"passed": 5, "failed": 1, "errors": 0, "skipped": 0, "total": 6}
     stages = row["stages"]
     assert isinstance(stages, list)
