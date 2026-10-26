@@ -13,6 +13,7 @@ per-SDK names replaced by tokens; rendering is pure and byte-identical to the or
 | JVM (`java` and `kotlin` targets) | `java/template/` | `render_java_files` | `OneBusAway/java-sdk` @ `c29c48ad`, `OneBusAway/kotlin-sdk` @ `69234467`, `OkHttpClient.kt` and the webhook files from `imagekit-developer/imagekit-java` @ `f96c35e8` |
 | Ruby | `ruby/template/` | `render_ruby_files` | `OneBusAway/ruby-sdk` @ `46a574dd` |
 | PHP | `php/template/` | `render_php_files` | `imagekit-developer/imagekit-php` @ `9f9309d5` |
+| C# (`csharp` target) | `csharp/template/` | `render_csharp_files` | `imagekit-developer/imagekit-dotnet` @ `265ab207` |
 
 - Templates are third-party code: not linted or formatted by our rules (excluded in the root
   `pyproject.toml` and `biome.json`).
@@ -517,6 +518,33 @@ Tokens: `__FerruleNs__`, `__FerruleName__` (also in the base exception's file na
 file's `use` lines, so another namespace sorts differently against `Psr\` and `PHPUnit\`: the
 renderer sorts every block of top-level `use` lines by that rule (identity for imagekit).
 
+## C#
+
+```python
+from ferrule_runtime import CSharpOptions, render_csharp_files
+
+files = render_csharp_files(
+    CSharpOptions(namespace="Imagekit", client_name="ImageKit", env_prefix="IMAGE_KIT")
+)
+# {"src/Imagekit/Core/ParamsBase.cs": "...", "src/Imagekit.Tests/RetriesTest.cs": "...", ...}
+```
+
+`CSharpOptions(namespace, client_name, env_prefix, *, auth_headers="")`:
+
+- `namespace`: the root namespace and the `src/<Ns>` and `src/<Ns>.Tests` projects
+  (`targets.csharp.package_name`).
+- `client_name`: the prefix of `<Client>Client` and the exception classes (`ImageKit`).
+- `env_prefix`: `<PREFIX>_CUSTOM_HEADERS`, read by `ParamsBase`.
+- `auth_headers`: the slot in `ParamsBase.AddDefaultHeaders` that sends the credentials, which
+  the plugin generates from the client options and security schemes; empty without auth.
+
+Tokens: `__FerruleNs__`, `__FerruleClient__`, `__FERRULE_ENV__`. Flag: `ns_before_moq`, the
+order csharpier sorts `RetriesTest.cs`'s usings in (the SDK's namespace before or after `Moq`).
+The template is stored with LF; `.cs` files render with CRLF, as the SDK's `.editorconfig` asks
+and the oracles ship. No `fits` blocks: the files are laid out for the oracles' names, and
+`ferrule generate` runs csharpier over the whole SDK, as its `scripts/format` does, so a name
+that makes a line longer than 100 columns wraps as csharpier wraps it.
+
 ### File classification
 
 | Files | Class | Notes |
@@ -527,6 +555,13 @@ renderer sorts every block of top-level `use` lines by that rule (identity for i
 | `src/Services/**`, `src/ServiceContracts/**`, the model directories | generated | per resource |
 | `tests/ClientTest.php`, `tests/UnsupportedMockTests.php`, `tests/Services/**` | generated | `disable_mock_tests`, the example request |
 | `composer.json`, `.php-cs-fixer.dist.php`, `phpstan.dist.neon`, `phpunit.xml.dist`, `scripts/` | not runtime | project files |
+| `src/<Ns>/Core/*.cs` (18), `Exceptions/*.cs` (14), `IPageExtensions.cs`, `Shims.cs` | runtime | `ParamsBase.cs`: credentials slot |
+| `src/<Ns>.Tests/Core/*.cs` (3), `RetriesTest.cs` | runtime | tests of the runtime |
+| `Core/ClientOptions.cs`, `Core/EnvironmentUrl.cs`, `Core/ModelBase.cs` | generated | client options, environments, the JSON options listing every enum converter |
+| `<Client>Client.cs`, `I<Client>Client.cs`, `Models/**`, `Services/**`, `TestBase.cs` and the model and service tests | generated | the plugin |
+| `Core/Sse.cs`, `<Client>SseException.cs`, `SseTest.cs` | not yet | streaming; only in stagehand-net (MIT), so not copied |
+| imagekit's `Helper/**`, stagehand's `ClientOptionsTest.cs` | not generated | hand-written in the oracles |
+| `*.sln`, `*.csproj`, `Directory.Build.props`, `scripts/`, `.editorconfig`, `.config/` | not runtime | project files |
 
 ### Oracles
 
@@ -538,6 +573,8 @@ imagekit-php is the only Apache-2.0 PHP oracle (stagehand-php is MIT and not use
 Unverified, with one oracle: whether `WebhookException` is emitted for an SDK without webhooks,
 whether a non-default timeout keeps the integer form, and lines whose wrapping depends on the
 name's length (none of the template's lines that name it is near the generator's width).
+| imagekit-csharp | `265ab207ce4c7d30a820ed540c0422834f05583e` (6.3.0, 2026-07-24) | basic auth slot | 38/38 |
+| stagehand-csharp (MIT, compared only) | `06de8bf30afa35ffead7969df2083c3d3ab36450` (3.22.0, 2026-07-25) | two API-key headers; `Moq` first | 38/38 |
 
 ## Adding a language
 
@@ -599,6 +636,10 @@ rendered output, so the mark lives here and in `NOTICE` (ADR 0004 amendment):
   slots);
 - all files under `php/template/` (namespace, name and client settings replaced by
   placeholders, also in the base exception's file name; the renderer re-sorts `use` lines).
+- all files under `csharp/template/` (namespace, client name and env prefix replaced by
+  placeholders, also in directory and file names; LF instead of CRLF; the credentials block of
+  `ParamsBase.cs` replaced by a slot; `RetriesTest.cs` gained a `//ferrule:if ns_before_moq`
+  block).
 
-MIT-licensed oracles (opencode-sdk-js, opencode-sdk-go) are compared by the tests but never
-copied; stagehand and ogx (MIT) are not used.
+MIT-licensed oracles (opencode-sdk-js, opencode-sdk-go, stagehand-net) are compared by the
+tests but never copied; ogx (MIT) is not used.
