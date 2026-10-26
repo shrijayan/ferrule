@@ -291,6 +291,17 @@ impl Context<'_> {
                         },
                         ..o
                     }),
+                    // The items of an array schema were inlined from it too, and Stainless names
+                    // them after it (knock-mgmt `HeadersRequestTemplateHeadersArray`).
+                    Type::Array { items } => match *items {
+                        Type::Object(o) if o.origin.is_none() => Type::Array {
+                            items: Box::new(Type::Object(Object {
+                                origin: Some(schema.to_owned()),
+                                ..o
+                            })),
+                        },
+                        other => Type::Array { items: Box::new(other) },
+                    },
                     other => other,
                 }
             }
