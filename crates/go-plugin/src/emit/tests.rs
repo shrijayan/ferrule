@@ -359,30 +359,42 @@ pub fn pagination_test_files(g: &Gen<'_>) -> Vec<(String, String)> {
     let field = exported(&words(&id.name), g.casings);
     let pkg = &g.target.package_name;
     let var = local(&singular(&split_words(&s.resource.name.written)), g.casings);
-    let mut args = String::from("context.TODO()");
-    if g.params_arg(m).is_some() {
-        let _ = write!(args, ", {pkg}.{}{}Params{{}}", s.prefix, g.method_name(m));
-    }
     let target = format!("{}.{}", s.accessor, g.method_name(m));
+    let mut ctx = g.ctx(Pkg::Root);
+    test_imports(g, &mut ctx);
+    // An empty params struct (knock-go, ogx-go) after the path params; when v2 sends some path
+    // params in the params struct, the method test's arguments, which fill them.
+    let args = if g.path_fields(m).is_empty() {
+        let mut args = String::from("(context.TODO()");
+        for p in &m.path_params {
+            let _ = write!(args, ", {}", path_example(p));
+        }
+        if g.params_arg(m).is_some() {
+            let _ = write!(args, ", {pkg}.{}{}Params{{}}", s.prefix, g.method_name(m));
+        }
+        args.push(')');
+        args
+    } else {
+        let (call, _) = call(g, s, m, "context.TODO()", &mut ctx);
+        call[target.len()..].to_owned()
+    };
     let mock = "// The mock server isn't going to give us real pagination";
     let preamble = preamble(g);
     let fatal = "t.Fatalf(\"err should be nil: %s\", err.Error())";
     let auto = format!(
-        "func TestAutoPagination(t *testing.T) {{\n{preamble}{}\titer := {target}AutoPaging({args})\n\t{mock}\n\
+        "func TestAutoPagination(t *testing.T) {{\n{preamble}{}\titer := {target}AutoPaging{args}\n\t{mock}\n\
          \tfor i := 0; i < 3 && iter.Next(); i++ {{\n\t\t{var} := iter.Current()\n\t\tt.Logf(\"%+v\\n\", {var}.{field})\n\t}}\n\
          \tif err := iter.Err(); err != nil {{\n\t\t{fatal}\n\t}}\n}}\n",
         new_client(g)
     );
     let items = &page.items;
     let manual = format!(
-        "func TestManualPagination(t *testing.T) {{\n{preamble}{}\tpage, err := {target}({args})\n\tif err != nil {{\n\t\t{fatal}\n\t}}\n\
+        "func TestManualPagination(t *testing.T) {{\n{preamble}{}\tpage, err := {target}{args}\n\tif err != nil {{\n\t\t{fatal}\n\t}}\n\
          \tfor _, {var} := range page.{items} {{\n\t\tt.Logf(\"%+v\\n\", {var}.{field})\n\t}}\n\t{mock}\n\
          \tpage, err = page.GetNextPage()\n\tif err != nil {{\n\t\t{fatal}\n\t}}\n\tif page != nil {{\n\
          \t\tfor _, {var} := range page.{items} {{\n\t\t\tt.Logf(\"%+v\\n\", {var}.{field})\n\t\t}}\n\t}}\n}}\n",
         new_client(g)
     );
-    let mut ctx = g.ctx(Pkg::Root);
-    test_imports(g, &mut ctx);
     let imports: Vec<String> = ctx.imports.into_iter().collect();
     let file = |body: &str| go_file(&format!("{pkg}_test"), &imports, body);
     vec![
