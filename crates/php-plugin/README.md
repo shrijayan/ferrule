@@ -57,9 +57,9 @@ Tools' newest SDK is newer than their linker; point `SDKROOT` at a matching SDK 
 
 ## Proof
 
-`tests/oracle.rs` compares the formatted package with imagekit-php (`9f9309d5`, Apache-2.0): 268
-of the 336 generated files the oracle also has are byte-identical (with the 48 runtime files, 316
-of 384), and the other 86 files the plugin writes are the oracle's under other names. Every
+`tests/oracle.rs` compares the formatted package with imagekit-php (`9f9309d5`, Apache-2.0): 271
+of the 340 generated files the oracle also has are byte-identical (with the 48 runtime files, 319
+of 388), and the other 82 files the plugin writes are the oracle's under other names. Every
 difference is listed with its reason:
 
 - model gap: a union variant is named after its schema title (`GoogleCloudStorageGcs`, `Mixed_`,
