@@ -113,7 +113,7 @@ TIMEOUTS = {
     "pyright": 2400,
     "mypy": 2400,
     "import": 300,
-    "tests": 1800,
+    "tests": 3600,
     "wheel": 900,
     "clone": 900,
 }
