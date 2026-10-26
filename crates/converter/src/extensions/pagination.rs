@@ -2,8 +2,8 @@
 //! matches them against operations.
 
 use super::json::{
-    arr, bool_, deref, is_array_schema, items_schema, obj, obj_of, property_names, property_schema, str_,
-    success_response,
+    arr, bool_, deref, is_array_schema, items_schema, json_schema_of, obj, obj_of, property_names, property_schema,
+    str_, success_response,
 };
 use crate::Diagnostic;
 use crate::diagnostic::{Seg, to_json_pointer};
@@ -299,10 +299,6 @@ pub struct OperationShape<'a> {
     pub response_schema: Option<&'a Value>,
 }
 
-fn json_schema(content: &Map) -> Option<&Value> {
-    obj(content, "application/json").get("schema")
-}
-
 /// The query params, JSON body properties and 2xx JSON response schema of an operation.
 #[must_use]
 pub fn operation_shape<'a>(spec: &'a Value, path_item: &'a Map, op: &'a Map) -> OperationShape<'a> {
@@ -318,10 +314,10 @@ pub fn operation_shape<'a>(spec: &'a Value, path_item: &'a Map, op: &'a Map) -> 
         }
     }
     let body = match deref(spec, op.get("requestBody")) {
-        Some(Value::Object(rb)) => property_names(spec, json_schema(obj(rb, "content")), 0),
+        Some(Value::Object(rb)) => property_names(spec, json_schema_of(obj(rb, "content")), 0),
         _ => Vec::new(),
     };
-    let response_schema = success_response(spec, op).and_then(|r| json_schema(obj(r, "content")));
+    let response_schema = success_response(spec, op).and_then(|r| json_schema_of(obj(r, "content")));
     OperationShape {
         query,
         body,
