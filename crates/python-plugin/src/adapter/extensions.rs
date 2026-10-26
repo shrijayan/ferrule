@@ -388,7 +388,8 @@ fn read_standalone(raw: Option<&Json>) -> Result<Vec<ResourcePosition>, Malforme
 }
 
 /// `x-ferrule-casings`. A `pascal` spelling is spliced into class names, so it must be
-/// identifier characters (FER101 otherwise); words are lowercase alphanumeric.
+/// identifier characters, led by a digit only when its word is (`3ds` -> `3DS`, never `qa` ->
+/// `123`); FER101 otherwise. Words are lowercase alphanumeric.
 fn read_casings(raw: Option<&Json>) -> Result<Vec<(String, Casing)>, Malformed> {
     let Some(raw) = raw else { return Ok(Vec::new()) };
     let Json::Object(members) = raw else {
@@ -403,7 +404,8 @@ fn read_casings(raw: Option<&Json>) -> Result<Vec<(String, Casing)>, Malformed> 
             let casing = match (member(Some(v), "initialism"), member(Some(v), "pascal")) {
                 (Some(Json::Bool(b)), None) => Casing::Initialism(*b),
                 (None, Some(Json::String(p)))
-                    if !p.is_empty() && p.chars().all(|c| c.is_ascii_alphanumeric() || c == '_') =>
+                    if py_ident(p)
+                        || (word.starts_with(|c: char| c.is_ascii_digit()) && py_ident(&format!("_{p}"))) =>
                 {
                     Casing::Pascal(p.clone())
                 }
