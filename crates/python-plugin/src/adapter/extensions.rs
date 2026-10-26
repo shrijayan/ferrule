@@ -94,6 +94,8 @@ pub struct MethodExtensions {
     pub streaming: Option<RawStreaming>,
     /// The response envelope field the method returns (`unwrap_response`), if any.
     pub unwrap: Option<String>,
+    /// Why the method's generated tests are skipped (`skip_test_reason`), if they are.
+    pub skip_test: Option<String>,
     /// Mirrored from the root (Forge gap G2): `custom_casings` by lowercase word; empty without.
     pub casings: Vec<(String, Casing)>,
     /// Mirrored from the root (Forge gap G2): every `standalone_api` resource, including ones
@@ -106,7 +108,7 @@ pub struct MethodExtensions {
 /// Operation-level extensions this plugin accepts. Root and schema ones never reach a plugin.
 /// `x-ferrule-targets` and `x-ferrule-targets-only` (ADR 0003, per-target amendment) are for
 /// other languages: Python reads neither, except to leave out models not generated for it.
-const KNOWN: [&str; 14] = [
+const KNOWN: [&str; 15] = [
     "x-ferrule-resource",
     "x-ferrule-method-name",
     "x-ferrule-method-order",
@@ -121,6 +123,7 @@ const KNOWN: [&str; 14] = [
     "x-ferrule-targets",
     "x-ferrule-targets-only",
     "x-ferrule-unwrap",
+    "x-ferrule-skip-test",
 ];
 
 /// The member `key` of `v` if `v` is an object (`members(v).key`), else `None` (`undefined`).
@@ -350,11 +353,13 @@ pub fn read_method_extensions(extensions: &[(&str, &Json)], pointer: &str) -> Re
         .map(|raw| read_pagination(raw).ok_or_else(|| bad("x-ferrule-pagination", PAGINATION_SHAPE)))
         .transpose()?;
 
-    let unwrap = match get("x-ferrule-unwrap") {
-        None | Some(Json::Null) => None,
-        Some(Json::String(field)) => Some(field.clone()),
-        Some(_) => return Err(bad("x-ferrule-unwrap", "a response property name")),
+    let string = |key: &str, expected: &str| match get(key) {
+        None | Some(Json::Null) => Ok(None),
+        Some(Json::String(s)) => Ok(Some(s.clone())),
+        Some(_) => Err(bad(key, expected)),
     };
+    let unwrap = string("x-ferrule-unwrap", "a response property name")?;
+    let skip_test = string("x-ferrule-skip-test", "a reason")?;
     let streaming = get("x-ferrule-streaming")
         .map(|raw| read_streaming(raw).ok_or_else(|| bad("x-ferrule-streaming", STREAMING_SHAPE)))
         .transpose()?;
@@ -385,6 +390,7 @@ pub fn read_method_extensions(extensions: &[(&str, &Json)], pointer: &str) -> Re
         pagination,
         streaming,
         unwrap,
+        skip_test,
         casings,
         standalone,
         style,

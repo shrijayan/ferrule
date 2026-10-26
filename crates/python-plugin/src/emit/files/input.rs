@@ -105,6 +105,8 @@ pub struct FilesMethod {
     pub page: Option<String>,
     /// Whether the method always returns a stream, which its tests close instead of checking.
     pub streaming: bool,
+    /// Why its tests are skipped (`skip_test_reason`), if they are.
+    pub skip_test: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq)]

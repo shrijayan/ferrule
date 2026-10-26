@@ -83,6 +83,7 @@ fn method(response: Option<SdkType>) -> SdkMethod {
         body_file_paths: Vec::new(),
         response,
         unwrap: None,
+        skip_test: None,
         pagination: None,
         streaming: None,
     }

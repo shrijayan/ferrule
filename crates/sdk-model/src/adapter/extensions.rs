@@ -104,7 +104,7 @@ pub struct MethodExtensions {
 }
 
 /// Operation-level extensions the adapter reads. Root and schema ones never reach it.
-const KNOWN: [&str; 14] = [
+const KNOWN: [&str; 15] = [
     "x-ferrule-resource",
     "x-ferrule-method-name",
     "x-ferrule-method-order",
@@ -119,6 +119,7 @@ const KNOWN: [&str; 14] = [
     "x-ferrule-targets",
     "x-ferrule-targets-only",
     "x-ferrule-unwrap",
+    "x-ferrule-skip-test",
 ];
 
 /// The member `key` of `v` if `v` is an object, else `None` (`undefined`).

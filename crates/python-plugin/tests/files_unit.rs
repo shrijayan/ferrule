@@ -286,6 +286,7 @@ fn wraps_a_long_assert_matches_type_call() {
         stream_switch: None,
         page: None,
         streaming: false,
+        skip_test: None,
     }];
     let tests = emit_api_tests(&input);
     let text = file(&tests, "tests/api_resources/test_cases.py");
@@ -551,6 +552,7 @@ fn checks_the_page_a_paginated_method_returns() {
         stream_switch: None,
         page: Some("CursorPage".to_owned()),
         streaming: false,
+        skip_test: None,
     }];
     let tests = emit_api_tests(&input);
     let text = file(&tests, "tests/api_resources/test_cases.py");
@@ -588,6 +590,7 @@ fn closes_the_stream_an_always_streaming_method_returns() {
         stream_switch: None,
         page: None,
         streaming: true,
+        skip_test: None,
     }];
     let tests = emit_api_tests(&input);
     let text = file(&tests, "tests/api_resources/test_cases.py");

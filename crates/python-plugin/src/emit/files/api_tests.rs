@@ -213,6 +213,17 @@ fn assertion(m: &FilesMethod, mode: Mode, variable: &str, indent: &str) -> Strin
     }
 }
 
+/// `@pytest.mark.skip(reason=...)` for a method's `skip_test_reason`, split the way ruff splits
+/// it past 120 columns (knock-python's `users.bulk.set_preferences`).
+fn skip_decorator(reason: &str) -> String {
+    let line = format!("    @pytest.mark.skip(reason={})", py_string(reason));
+    if js::len(&line) <= 120 {
+        format!("{line}\n")
+    } else {
+        format!("    @pytest.mark.skip(\n        reason={}\n    )\n", py_string(reason))
+    }
+}
+
 fn page_prefix(mode: Mode) -> &'static str {
     match mode {
         Mode::Sync => "Sync",
@@ -298,10 +309,10 @@ fn call_tests(
     } else {
         ctx.client.to_owned()
     };
-    let skip = if ctx.skip {
-        "    @pytest.mark.skip(reason=\"Mock server tests are disabled\")\n"
-    } else {
-        ""
+    let skip = match &m.skip_test {
+        Some(reason) => skip_decorator(reason),
+        None if ctx.skip => "    @pytest.mark.skip(reason=\"Mock server tests are disabled\")\n".to_owned(),
+        None => String::new(),
     };
     let sig = |name: &str| format!("{skip}    @parametrize\n    {def} {name}{suffix}(self, {cl}: {ty}) -> None:");
     let target = format!("{cl}.{}", ctx.accessor);

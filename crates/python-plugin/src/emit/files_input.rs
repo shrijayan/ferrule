@@ -203,6 +203,7 @@ fn files_method(models: &[SdkModelDecl], resource: &SdkResource, m: &SdkMethod) 
         stream_switch: stream_switch(m).map(|q| q.py_name.clone()),
         page: m.pagination.as_ref().map(|p| p.page.clone()),
         streaming: m.streaming.is_some() && stream_switch(m).is_none(),
+        skip_test: m.skip_test.clone(),
     }
 }
 
