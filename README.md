@@ -14,7 +14,7 @@
 
 <p align="center">
   <b>Python</b> · <b>TypeScript</b> · <b>Go</b> · <b>Java</b> · <b>Kotlin</b> · <b>Ruby</b> · <b>PHP</b> · <b>C#</b><br>
-  Every major Stainless SDK language. Python is on <code>main</code>; the other seven are in review.<br>
+  Every major Stainless SDK language, all eight on <code>main</code>.<br>
   One Rust binary, 4.4 MB, with Forge built in. No Node, no WebAssembly.
 </p>
 
@@ -23,7 +23,7 @@
   <a href="https://github.com/shrijayan/ferrule/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/shrijayan/ferrule/ci.yml?branch=main&style=flat-square&labelColor=0b0b0d&label=ci"></a>
   <a href="./LICENSE"><img alt="Apache-2.0" src="https://img.shields.io/badge/licence-Apache--2.0-d6a660?style=flat-square&labelColor=0b0b0d"></a>
   <img alt="Pre-alpha" src="https://img.shields.io/badge/status-pre--alpha-8a5c2c?style=flat-square&labelColor=0b0b0d">
-  <a href="#every-major-stainless-language"><img alt="Languages: Python on main, 7 in review" src="https://img.shields.io/badge/languages-python%20on%20main%20%C2%B7%207%20in%20review-d6a660?style=flat-square&labelColor=0b0b0d"></a>
+  <a href="#every-major-stainless-language"><img alt="Languages: 8 on main" src="https://img.shields.io/badge/languages-8%20on%20main-d6a660?style=flat-square&labelColor=0b0b0d"></a>
   <a href="#built-in-rust"><img alt="Core in Rust" src="https://img.shields.io/badge/core-rust-d6a660?style=flat-square&labelColor=0b0b0d"></a>
   <a href="./CONTRIBUTING.md"><img alt="DCO, no CLA" src="https://img.shields.io/badge/DCO-never%20a%20CLA-d6a660?style=flat-square&labelColor=0b0b0d"></a>
 </p>
@@ -80,20 +80,20 @@ Each language is proven the way Python was: regenerate a real public Stainless S
 spec and config, count the files that come out identical, and run the SDK's own tests. Numbers are
 identical files out of the total.
 
-| Language | Status | Proof against real Stainless SDKs | Where |
+| Language | Status | Proof against real Stainless SDKs | Plugin |
 | --- | --- | --- | --- |
-| **Python** | ✓ on `main` | onebusaway: 0 breaking, 1,110 of its own tests pass, 80/80 generated code files identical. With [#30](https://github.com/shrijayan/ferrule/pull/30), the Phase 4 gate adopts five real SDKs with 0 breaking and every test passing: onebusaway 1,110, lumaai 728, isaacus 472, honcho 1,241, knock-mgmt 468. | `main` |
-| **TypeScript** | in review | isaacus-typescript 84/84, and its lint and 216 jest tests pass. onebusaway-typescript (node layout) 108/109. | [#27](https://github.com/shrijayan/ferrule/pull/27), [#29](https://github.com/shrijayan/ferrule/pull/29), [#34](https://github.com/shrijayan/ferrule/pull/34) |
-| **Go** | in review | onebusaway-go: runtime 25/25, generated 65/69, builds and tests pass. v2 layout, imagekit-go: runtime 54/54, generated 17/45. | [#23](https://github.com/shrijayan/ferrule/pull/23), [#37](https://github.com/shrijayan/ferrule/pull/37) |
-| **Java** | in review | onebusaway-java 328/343, imagekit-java 186/291. | [#32](https://github.com/shrijayan/ferrule/pull/32) |
-| **Kotlin** | in review | onebusaway-kotlin 282/338. | [#32](https://github.com/shrijayan/ferrule/pull/32) |
-| **Ruby** | in review | onebusaway-ruby 326/329, imagekit-ruby 348/432; both gems' own tests pass. | [#35](https://github.com/shrijayan/ferrule/pull/35) |
-| **PHP** | in review | imagekit-php: runtime 48/48, generated 268 of 336 shared files; the package's 87 pest tests pass. | [#38](https://github.com/shrijayan/ferrule/pull/38) |
-| **C#** | in review | imagekit-dotnet: runtime 38/38, generated 109/184 (38 more differ only in doc wrapping); builds with dotnet; the synthetic SDK's 89 tests pass. | [#39](https://github.com/shrijayan/ferrule/pull/39) |
+| **Python** | ✓ on `main` | onebusaway: 0 breaking, 1,110 of its own tests pass, 80/80 generated code files identical. The Phase 4 gate adopts five real SDKs with 0 breaking, every test passing and custom code unchanged: onebusaway 1,110, lumaai 728, isaacus 472, honcho 1,241, knock-mgmt 468. | [`python-plugin`](./crates/python-plugin) |
+| **TypeScript** | ✓ on `main` | isaacus-typescript 84/84, and its lint and 216 jest tests pass. onebusaway-typescript (node layout) 108/109. | [`ts-plugin`](./crates/ts-plugin) |
+| **Go** | ✓ on `main` | onebusaway-go: runtime 25/25, generated 65/69, builds and tests pass. v2 layout, imagekit-go: runtime 54/54, generated 17/45. | [`go-plugin`](./crates/go-plugin) |
+| **Java** | ✓ on `main` | onebusaway-java 328/343, imagekit-java 186/291. | [`jvm-plugin`](./crates/jvm-plugin) |
+| **Kotlin** | ✓ on `main` | onebusaway-kotlin 282/338. | [`jvm-plugin`](./crates/jvm-plugin) |
+| **Ruby** | ✓ on `main` | onebusaway-ruby 326/329, imagekit-ruby 349/432; both gems' own tests pass. | [`ruby-plugin`](./crates/ruby-plugin) |
+| **PHP** | ✓ on `main` | imagekit-php: runtime 48/48, generated 271 of 340 shared files (319 of 388 with the runtime; 82 more under other names); the package's 87 pest tests pass. | [`php-plugin`](./crates/php-plugin) |
+| **C#** | ✓ on `main` | imagekit-dotnet: runtime 38/38, generated 109/184 (38 more differ only in doc wrapping); builds with dotnet; the synthetic SDK's 89 tests pass. | [`csharp-plugin`](./crates/csharp-plugin) |
 | CLI, Terraform | not started | No public Stainless-generated CLI or provider pairs with a public config, so there is no oracle to prove against yet. | |
 
-The new languages are generated from one language-neutral model
-([`crates/sdk-model`](https://github.com/shrijayan/ferrule/pull/17),
+The seven newer languages are generated from one language-neutral model
+([`crates/sdk-model`](./crates/sdk-model),
 [ADR 0017](./docs/adr/0017-multi-language-targets.md)), with one plugin crate per language and
 runtimes copied from Apache-2.0 Stainless SDKs. Python keeps its own adapter for now and moves
 onto the same model later, as the ADR plans.
@@ -133,9 +133,8 @@ flowchart LR
   class F forge
 ```
 
-Stages 01 to 04 run in one native binary, `ferrule-gen`. Each language has its own plugin: Python's
-is on `main`, and the TypeScript, Go, Java and Kotlin, Ruby, PHP and C# plugins are in review,
-where `ferrule-gen --target <lang>` picks one.
+Stages 01 to 04 run in one native binary, `ferrule-gen`. Each language has its own plugin, all of
+them on `main`, and `ferrule-gen --target <lang>` picks one.
 
 **In:** `openapi.yml`, `stainless.yml`, your hand edits, your last release.
 **Out:** the SDKs your users already import, plus `ferrule.lock` and a verify report.
@@ -228,8 +227,8 @@ us.
 | [`crates/converter/`](./crates/converter) | Rust: `stainless.yml` → annotated OpenAPI spec (overlays and `x-ferrule-*`) |
 | [`crates/python-plugin/`](./crates/python-plugin) | Rust: the Forge plugin that emits the Python SDK, run natively in Forge |
 | [`crates/ferrule-gen/`](./crates/ferrule-gen) | Rust: the `ferrule-gen` binary that runs the converter, then Forge with the plugin |
-| `crates/sdk-model/` | In review ([#17](https://github.com/shrijayan/ferrule/pull/17)). Rust: the language-neutral model and the only adapter from Forge |
-| `crates/ts-plugin/`, `go-plugin/`, `jvm-plugin/`, `ruby-plugin/`, `php-plugin/`, `csharp-plugin/` | In review ([#27](https://github.com/shrijayan/ferrule/pull/27), [#23](https://github.com/shrijayan/ferrule/pull/23), [#32](https://github.com/shrijayan/ferrule/pull/32), [#35](https://github.com/shrijayan/ferrule/pull/35), [#38](https://github.com/shrijayan/ferrule/pull/38), [#39](https://github.com/shrijayan/ferrule/pull/39)). Rust: one plugin per language; `jvm-plugin` writes Java and Kotlin |
+| [`crates/sdk-model/`](./crates/sdk-model) | Rust: the language-neutral model and its adapter from Forge, read by every plugin except Python's |
+| [`crates/ts-plugin/`](./crates/ts-plugin), [`go-plugin/`](./crates/go-plugin), [`jvm-plugin/`](./crates/jvm-plugin), [`ruby-plugin/`](./crates/ruby-plugin), [`php-plugin/`](./crates/php-plugin), [`csharp-plugin/`](./crates/csharp-plugin) | Rust: one plugin per language; `jvm-plugin` writes Java and Kotlin |
 | [`runtime/`](./runtime) | The Python runtime copied into every generated SDK |
 | [`migrate/`](./migrate) | The `ferrule` CLI: `generate`, `adopt`, `rescue`, `verify`, `merge` |
 | [`action/`](./action) | The GitHub Action that keeps adopted SDKs regenerating |
