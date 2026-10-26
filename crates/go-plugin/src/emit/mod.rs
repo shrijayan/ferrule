@@ -1,6 +1,7 @@
-//! The Go emitters (Stainless Go v1 layout): one file per resource at the module root,
-//! `client.go`, `aliases.go`, `shared/shared.go`, `api.md`, the tests, `internal/version.go`, and
-//! the text for the runtime template's slots.
+//! The Go emitters, one pass for both layouts (`GoTarget::layout`): one file per resource at
+//! the module root, `client.go`, `aliases.go`, `shared/shared.go`, `api.md`, the tests,
+//! `packages/pagination/pagination.go`, `internal/version.go`, and the text for the runtime
+//! template's slots.
 
 pub mod api_md;
 pub mod client;
