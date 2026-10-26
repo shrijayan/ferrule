@@ -9,7 +9,8 @@
 //! methods, knocklabs/knock-mgmt-node@ca88fdba; the `node` templates (`templates/node/index_*`)
 //! of OneBusAway/js-sdk@f3ca3f47 (Apache-2.0, see `NOTICE`). Modified by The Ferrule Authors:
 //! per-SDK names and values replaced by `%%TOKEN%%`s, pagination behind `%%if pagination%%`, an
-//! API key sent in the query behind `%%if query_auth%%`.
+//! API key sent in the query behind `%%if query_auth%%` (left out of the query when a nullable
+//! key is absent, as `authHeaders` leaves out its header).
 
 use ferrule_sdk_model::model::{ClientOpt, SecurityScheme, SendLocation};
 

@@ -11,6 +11,11 @@
 
   protected override defaultQuery(): Core.DefaultQuery | undefined {
 %%if query_auth%%
+%%if nullable%%
+    if (this.%%OPT%% == null) {
+      return this._options.defaultQuery;
+    }
+%%endif%%
     return {
       %%QUERY_KEY%%: this.%%OPT%%,
       ...this._options.defaultQuery,
