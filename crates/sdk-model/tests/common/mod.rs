@@ -15,22 +15,39 @@ pub fn forge(json: &str) -> forge::Forge {
     serde_json::from_str(json).expect("a document Forge reads")
 }
 
-/// The annotated fixtures committed with the Python plugin, by name.
+/// Every `annotated.json` below `dir`, by its directory relative to `base`.
+fn annotated_below(base: &Path, dir: &Path, out: &mut Vec<(String, PathBuf)>) {
+    let mut entries: Vec<PathBuf> = std::fs::read_dir(dir)
+        .unwrap_or_else(|e| panic!("{}: {e}", dir.display()))
+        .map(|e| e.expect("a directory entry").path())
+        .collect();
+    entries.sort();
+    for path in entries {
+        if path.is_dir() {
+            annotated_below(base, &path, out);
+        } else if path.file_name().is_some_and(|f| f == "annotated.json") {
+            let rel = dir.strip_prefix(base).expect("below the base");
+            out.push((rel.to_string_lossy().replace('\\', "/"), path));
+        }
+    }
+}
+
+/// Every annotated fixture committed with the Python plugin, by name: `fixtures/<name>.json`, and
+/// every `annotated.json` under its tests, named by its directory (`request_bodies/multipart`).
 pub fn python_fixtures() -> Vec<(String, String)> {
     let dir = root().join("crates/python-plugin/tests");
-    [
-        ("onebusaway", "fixtures/onebusaway.json"),
-        ("onebusaway-spike", "fixtures/onebusaway-spike.json"),
-        ("cursor-page", "fixtures/cursor-page.json"),
-        ("model-kinds", "model_kinds/annotated.json"),
-        ("standalone", "standalone/annotated.json"),
-    ]
-    .into_iter()
-    .map(|(name, path)| {
-        let text = std::fs::read_to_string(dir.join(path)).unwrap_or_else(|e| panic!("{path}: {e}"));
-        (name.to_owned(), text)
-    })
-    .collect()
+    let mut paths: Vec<(String, PathBuf)> = ["onebusaway", "onebusaway-spike", "cursor-page"]
+        .into_iter()
+        .map(|name| (name.to_owned(), dir.join(format!("fixtures/{name}.json"))))
+        .collect();
+    annotated_below(&dir, &dir, &mut paths);
+    paths
+        .into_iter()
+        .map(|(name, path)| {
+            let text = std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("{}: {e}", path.display()));
+            (name, text)
+        })
+        .collect()
 }
 
 /// A config oracle: its name, spec and stainless.yml in the cache.
