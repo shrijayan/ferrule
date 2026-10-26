@@ -412,3 +412,31 @@ fn generates_php_with_the_runtime_options() {
     assert_eq!(options["namespace"], "Onebusaway");
     assert_eq!(options["max_retries"], 2);
 }
+
+#[test]
+fn generates_csharp_with_the_runtime_options() {
+    let out = scratch("target-csharp");
+    let status = bin()
+        .arg("generate")
+        .arg(plugin_dir().join("tests/fixtures/onebusaway.json"))
+        .args(["--target", "csharp", "--out"])
+        .arg(&*out)
+        .status()
+        .expect("runs");
+    assert!(status.success());
+    // The fixture has no `x-ferrule-targets`, so the namespace is named after the client.
+    let names: Vec<String> = files(&out).into_iter().map(|(p, _)| p).collect();
+    for expected in [
+        "src/OnebusawaySdk/OnebusawaySdkClient.cs",
+        "src/OnebusawaySdk/Services/IAgencyService.cs",
+        "src/OnebusawaySdk.Tests/TestBase.cs",
+        "OnebusawaySdk.sln",
+        ".ferrule/csharp-runtime.json",
+    ] {
+        assert!(names.iter().any(|n| n == expected), "{expected} not in {names:?}");
+    }
+    let options: serde_json::Value =
+        serde_json::from_slice(&fs::read(out.join(".ferrule/csharp-runtime.json")).expect("options")).expect("JSON");
+    assert_eq!(options["namespace"], "OnebusawaySdk");
+    assert_eq!(options["client_name"], "OnebusawaySdk");
+}

@@ -10,6 +10,7 @@ publish.workspace = true
 ferrule-converter.workspace = true
 ferrule-go-plugin.workspace = true
 ferrule-jvm-plugin.workspace = true
+ferrule-csharp-plugin.workspace = true
 ferrule-python-plugin.workspace = true
 ferrule-ruby-plugin.workspace = true
 ferrule-php-plugin.workspace = true
