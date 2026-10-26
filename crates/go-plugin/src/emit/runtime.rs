@@ -4,7 +4,8 @@
 
 use std::fmt::Write as _;
 
-use ferrule_sdk_model::model::{AuthRole, ClientOpt, OptType, SecurityScheme, SendLocation};
+use ferrule_sdk_model::model::{ApiKeyLocation, AuthRole, ClientOpt, OptType, SecurityScheme, SendLocation};
+use ferrule_sdk_model::{FerCode, FerruleError};
 
 use super::Gen;
 use crate::naming::{exported, split_words, words};
@@ -68,27 +69,32 @@ fn go_param_type(o: &ClientOpt) -> &'static str {
 /// Where a client setting is sent, from its `send` or its security scheme. `WithHeader` and
 /// `WithQuery` take strings, so a number or boolean setting goes through `fmt.Sprint` (no
 /// oracle sends one).
-fn apply(g: &Gen<'_>, o: &ClientOpt, field: &str) -> Option<String> {
+///
+/// # Errors
+///
+/// FER201 for an API key sent in a cookie, which the Go runtime has no option for.
+fn apply(g: &Gen<'_>, o: &ClientOpt, field: &str) -> Result<Option<String>, FerruleError> {
     let value = if o.ty == OptType::String {
         format!("*r.{field}")
     } else {
         format!("fmt.Sprint(*r.{field})")
     };
     if let Some(send) = &o.send {
-        return Some(match send.location {
+        return Ok(Some(match send.location {
             SendLocation::Query => format!("WithQuery({}, {value})", quote(&send.name)),
             _ => format!("WithHeader({}, {value})", quote(&send.name)),
-        });
+        }));
     }
-    let auth = o.auth.as_ref()?;
-    let scheme = g
+    let Some(auth) = &o.auth else { return Ok(None) };
+    let Some(scheme) = g
         .client
         .settings
-        .as_ref()?
-        .security_schemes
-        .iter()
-        .find(|s| s.name == auth.security_scheme)?;
-    match (&scheme.scheme, auth.role) {
+        .as_ref()
+        .and_then(|s| s.security_schemes.iter().find(|s| s.name == auth.security_scheme))
+    else {
+        return Ok(None);
+    };
+    Ok(match (&scheme.scheme, auth.role) {
         // `x-stainless-auth.scheme_keyword` replaces `Bearer`.
         (SecurityScheme::Http { keyword, .. }, AuthRole::Value) => {
             let keyword = keyword.as_deref().unwrap_or("Bearer").replace('%', "%%");
@@ -97,14 +103,37 @@ fn apply(g: &Gen<'_>, o: &ClientOpt, field: &str) -> Option<String> {
                 quote(&format!("{keyword} %s"))
             ))
         }
-        (SecurityScheme::ApiKey { name, .. }, _) => Some(format!("WithHeader({}, {value})", quote(name))),
+        (SecurityScheme::ApiKey { location, name }, _) => match location {
+            ApiKeyLocation::Header => Some(format!("WithHeader({}, {value})", quote(name))),
+            ApiKeyLocation::Query => Some(format!("WithQuery({}, {value})", quote(name))),
+            ApiKeyLocation::Cookie => {
+                return Err(FerruleError::new(
+                    FerCode::Fer201,
+                    format!(
+                        "#/components/securitySchemes/{}",
+                        scheme.name.replace('~', "~0").replace('/', "~1")
+                    ),
+                    format!(
+                        "the Go SDK cannot send the API key of client setting {} in a cookie",
+                        quote(&o.name.written)
+                    ),
+                    format!(
+                        "send it with send_in_header or send_as_query_param on client_settings.opts.{}",
+                        o.name.written
+                    ),
+                ));
+            }
+        },
         _ => None,
-    }
+    })
 }
 
 /// The runtime options and slot texts for this SDK.
-#[must_use]
-pub fn runtime_options(g: &Gen<'_>, client_name: &str) -> RuntimeOptions {
+///
+/// # Errors
+///
+/// FER201 for a client setting the Go runtime cannot send (see [`apply`]).
+pub fn runtime_options(g: &Gen<'_>, client_name: &str) -> Result<RuntimeOptions, FerruleError> {
     let mut fields = String::new();
     let mut clone = String::new();
     let mut options = String::new();
@@ -145,7 +174,7 @@ pub fn runtime_options(g: &Gen<'_>, client_name: &str) -> RuntimeOptions {
                 options.push_str("\t\tif value == \"\" {\n\t\t\treturn fmt.Errorf(\"default param cannot be empty string\")\n\t\t}\n");
             }
             let _ = writeln!(options, "\t\tr.{field} = &value");
-            match apply(g, o, &field) {
+            match apply(g, o, &field)? {
                 Some(call) => {
                     let _ = writeln!(options, "\t\treturn r.Apply({call})");
                 }
@@ -154,7 +183,7 @@ pub fn runtime_options(g: &Gen<'_>, client_name: &str) -> RuntimeOptions {
             options.push_str("\t})\n}\n");
         }
     }
-    RuntimeOptions {
+    Ok(RuntimeOptions {
         module_path: g.target.module_path.clone(),
         package_name: g.target.package_name.clone(),
         client_name: client_name.to_owned(),
@@ -163,7 +192,7 @@ pub fn runtime_options(g: &Gen<'_>, client_name: &str) -> RuntimeOptions {
         config_fields: fields,
         config_clone: clone,
         client_options: options,
-    }
+    })
 }
 
 /// `internal/version.go`.

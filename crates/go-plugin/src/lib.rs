@@ -50,7 +50,7 @@ pub fn client_name(client: &Client, target: &GoTarget) -> String {
 ///
 /// # Errors
 ///
-/// A FER diagnostic when the Go settings are invalid.
+/// A FER diagnostic when the Go settings are invalid or a client setting cannot be sent.
 pub fn generate(client: &Client, meta: &GoMeta) -> Result<GoOutput, FerruleError> {
     let target = go_target(client, meta)?;
     // Only what stainless.yml generates for Go (`skip`/`only`).
@@ -74,6 +74,6 @@ pub fn generate(client: &Client, meta: &GoMeta) -> Result<GoOutput, FerruleError
     files.sort_by(|a, b| a.0.cmp(&b.0));
     Ok(GoOutput {
         files,
-        runtime: emit::runtime::runtime_options(&g, &name),
+        runtime: emit::runtime::runtime_options(&g, &name)?,
     })
 }

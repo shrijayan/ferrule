@@ -129,11 +129,23 @@ fn non_string_client_settings_are_sent_as_strings() {
     );
     let out = go(&spec(OBJECT, BEARER), &config(&settings));
     let options = &out.runtime.client_options;
-    assert!(options.contains("r.Apply(WithHeader(\"X-Org\", fmt.Sprint(*r.OrgID)))"), "{options}");
-    assert!(options.contains("r.Apply(WithQuery(\"ratio\", fmt.Sprint(*r.Ratio)))"), "{options}");
-    assert!(options.contains("r.Apply(WithHeader(\"X-Beta\", fmt.Sprint(*r.Beta)))"), "{options}");
+    assert!(
+        options.contains("r.Apply(WithHeader(\"X-Org\", fmt.Sprint(*r.OrgID)))"),
+        "{options}"
+    );
+    assert!(
+        options.contains("r.Apply(WithQuery(\"ratio\", fmt.Sprint(*r.Ratio)))"),
+        "{options}"
+    );
+    assert!(
+        options.contains("r.Apply(WithHeader(\"X-Beta\", fmt.Sprint(*r.Beta)))"),
+        "{options}"
+    );
     // A string option is sent as it is.
-    assert!(options.contains("r.Apply(WithHeader(\"X-Region\", *r.Region))"), "{options}");
+    assert!(
+        options.contains("r.Apply(WithHeader(\"X-Region\", *r.Region))"),
+        "{options}"
+    );
 }
 
 #[test]
@@ -173,8 +185,7 @@ fn an_api_key_scheme_is_sent_where_it_says() {
 #[test]
 fn an_api_key_in_a_cookie_is_reported() {
     let converted =
-        ferrule_converter::convert_text(&spec(OBJECT, &api_key_scheme("cookie")), &config(API_KEY))
-            .expect("converts");
+        ferrule_converter::convert_text(&spec(OBJECT, &api_key_scheme("cookie")), &config(API_KEY)).expect("converts");
     let Err(err) = generate(&common::model(&converted.output), &GoMeta::default()) else {
         panic!("an API key in a cookie generates");
     };
