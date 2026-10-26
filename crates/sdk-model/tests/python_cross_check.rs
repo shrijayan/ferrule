@@ -67,7 +67,7 @@ fn py_null() -> py::SdkType {
 fn field_param(f: &py::SdkField) -> py::SdkParam {
     py::SdkParam {
         wire_name: f.wire_name.clone(),
-        py_name: f.py_name.clone(),
+        py_name: naming::param_name(&f.py_name),
         required: f.required,
         description: f.description.clone(),
         ty: f.ty.clone(),
@@ -265,7 +265,7 @@ impl Python<'_> {
         let field = self.field(f);
         py::SdkParam {
             wire_name: field.wire_name,
-            py_name: field.py_name,
+            py_name: naming::param_name(&field.py_name),
             required: field.required,
             description: field.description,
             ty: field.ty,

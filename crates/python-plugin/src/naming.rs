@@ -69,6 +69,20 @@ fn capitalize(w: &str) -> String {
         .map_or_else(String::new, |c| c.to_ascii_uppercase().to_string() + chars.as_str())
 }
 
+/// The request options every method takes as keyword arguments.
+pub const REQUEST_OPTIONS: [&str; 4] = ["extra_headers", "extra_query", "extra_body", "timeout"];
+
+/// A method parameter's Python name: `py_name`, prefixed `api_` when a request option has that
+/// name (browserbase-python `sessions.create(api_timeout=...)` sends `"timeout"`).
+#[must_use]
+pub fn param_name(py_name: &str) -> String {
+    if REQUEST_OPTIONS.contains(&py_name) {
+        format!("api_{py_name}")
+    } else {
+        py_name.to_owned()
+    }
+}
+
 /// `["list", "Users"]` -> `list_users`
 #[must_use]
 pub fn snake_case<S: AsRef<str>>(words: &[S]) -> String {

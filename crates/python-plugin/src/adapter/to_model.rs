@@ -12,7 +12,9 @@ use crate::model::{
     HttpVerb, SdkBodyVariant, SdkClient, SdkClientSettings, SdkField, SdkLiteral, SdkMethod, SdkModelDecl, SdkObject,
     SdkPackage, SdkPagination, SdkParam, SdkPrimitive, SdkRef, SdkResource, SdkStreaming, SdkStyle, SdkType,
 };
-use crate::naming::{Casing, class_segment_with, model_attribute, pascal_case, singular, snake_case, split_words};
+use crate::naming::{
+    Casing, class_segment_with, model_attribute, param_name, pascal_case, singular, snake_case, split_words,
+};
 
 /// The reserved resource name of methods on the client class itself (ADR 0003).
 pub const CLIENT_RESOURCE: &str = "$client";
@@ -90,7 +92,7 @@ impl Context<'_> {
         let f = self.read_field(field)?;
         Ok(SdkParam {
             wire_name: f.wire_name,
-            py_name: f.py_name,
+            py_name: param_name(&f.py_name),
             required: f.required,
             description: f.description,
             ty: f.ty,
@@ -544,7 +546,7 @@ fn file_paths(ty: Type<'_>) -> Vec<Vec<String>> {
 fn field_param(f: &SdkField) -> SdkParam {
     SdkParam {
         wire_name: f.wire_name.clone(),
-        py_name: f.py_name.clone(),
+        py_name: param_name(&f.py_name),
         required: f.required,
         description: f.description.clone(),
         ty: f.ty.clone(),

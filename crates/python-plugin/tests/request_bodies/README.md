@@ -54,4 +54,4 @@ and `stainless.yml` reduced from an oracle (phase 4 triage), and `annotated.json
   request options every method takes, from the opencode SDK's `shell.create`. Without a rename
   the method has two `timeout` arguments, a `SyntaxError`. Stainless prefixes such a name with
   `api_` (browserbase-python `sessions.create(api_timeout=...)` sends `"timeout"`); the params
-  `TypedDict` keeps the spec's name.
+  `TypedDict` declares it with the wire name as its alias.
