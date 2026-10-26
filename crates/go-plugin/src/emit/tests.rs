@@ -44,7 +44,8 @@ fn client_options(g: &Gen<'_>, indent: usize) -> String {
 }
 
 /// A test value for a field of type `go_ty` (the field's neutral type `ty`), for a line at
-/// `indent` tabs; an object is a multi-line literal.
+/// `indent` tabs, and whether an object literal in it sets an optional field; an object is a
+/// multi-line literal.
 fn example(
     g: &Gen<'_>,
     wire: &str,
@@ -53,12 +54,13 @@ fn example(
     go_ty: &str,
     indent: usize,
     ctx: &mut Ctx<'_>,
-) -> String {
+) -> (String, bool) {
     let pkg = &g.target.package_name;
     let v2 = g.target.v2();
+    let plain = |s: String| (s, false);
     match ty {
         Type::Nullable { inner } => example(g, wire, inner, decls, go_ty, indent, ctx),
-        Type::Scalar { scalar } => match scalar {
+        Type::Scalar { scalar } => plain(match scalar {
             Scalar::Boolean => "true".to_owned(),
             s if s.is_integer() => if v2 { "0" } else { "int64(0)" }.to_owned(),
             Scalar::Float | Scalar::Double => if v2 { "0" } else { "0.000000" }.to_owned(),
@@ -68,26 +70,30 @@ fn example(
             }
             Scalar::Uuid => "\"182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e\"".to_owned(),
             _ => crate::printer::quote(wire),
-        },
-        // v2 params take an inline enum as a plain value.
-        Type::Enum { members } if v2 => members.first().map_or_else(
-            || crate::printer::quote(wire),
-            |m| match &m.value {
-                ferrule_sdk_model::model::Literal::String(s) => crate::printer::quote(s),
-                ferrule_sdk_model::model::Literal::Boolean(b) => b.to_string(),
-                ferrule_sdk_model::model::Literal::Number(n) => n.to_string(),
-            },
+        }),
+        // A declared enum's first constant; v2's enums taken as their underlying type (deeper
+        // than the params struct) are their first value.
+        Type::Enum { members } => plain(
+            decls
+                .iter()
+                .find_map(|d| match d {
+                    Decl::Enum { name, members, .. } if name == go_ty => {
+                        members.first().map(|(c, _)| format!("{pkg}.{c}"))
+                    }
+                    _ => None,
+                })
+                .or_else(|| {
+                    members.first().filter(|_| v2).map(|m| match &m.value {
+                        ferrule_sdk_model::model::Literal::String(s) => crate::printer::quote(s),
+                        ferrule_sdk_model::model::Literal::Boolean(b) => b.to_string(),
+                        ferrule_sdk_model::model::Literal::Number(n) => n.to_string(),
+                    })
+                })
+                .unwrap_or_else(|| crate::printer::quote(wire)),
         ),
-        Type::Enum { .. } => decls
-            .iter()
-            .find_map(|d| match d {
-                Decl::Enum { name, members, .. } if name == go_ty => members.first().map(|(c, _)| format!("{pkg}.{c}")),
-                _ => None,
-            })
-            .unwrap_or_else(|| crate::printer::quote(wire)),
         Type::Array { items } => {
             let item_ty = go_ty.trim_start_matches("[]");
-            let inner = example(g, wire, items, decls, item_ty, indent, ctx);
+            let (inner, optional) = example(g, wire, items, decls, item_ty, indent, ctx);
             let qualified = if item_ty.starts_with(|c: char| c.is_ascii_uppercase()) {
                 format!("{pkg}.{item_ty}")
             } else {
@@ -97,16 +103,34 @@ fn example(
             let inner = inner
                 .strip_prefix(&format!("{qualified}{{"))
                 .map_or(inner.clone(), |rest| format!("{{{rest}"));
-            format!("[]{qualified}{{{inner}}}")
+            (format!("[]{qualified}{{{inner}}}"), optional)
         }
         _ => match (g.client.object_of(ty), decls.iter().find(|d| d.name() == go_ty)) {
             (Some(obj), Some(Decl::Struct { name, fields, .. })) => {
                 let sources: Vec<&Field> = obj.fields.iter().collect();
-                struct_literal(g, name, fields, &sources, decls, indent, ctx).0
+                struct_literal(g, name, fields, &sources, decls, indent, ctx)
             }
-            _ => crate::printer::quote(wire),
+            _ => plain(crate::printer::quote(wire)),
         },
     }
+}
+
+/// The order a literal sets fields in: the struct's in v1; in v2 its path fields, then the
+/// required fields, then the optional ones, each by wire name (knock-mgmt-go's tests list
+/// `Before`, `Include`, `Limit` although the struct declares `Include` last).
+fn literal_order(g: &Gen<'_>, fields: &[crate::types::GoField]) -> Vec<usize> {
+    let mut order: Vec<usize> = (0..fields.len()).collect();
+    if g.target.v2() {
+        order.sort_by(|&a, &b| {
+            let (a, b) = (&fields[a], &fields[b]);
+            (b.key == "path")
+                .cmp(&(a.key == "path"))
+                .then_with(|| b.required.cmp(&a.required))
+                .then_with(|| (b.wire == "id").cmp(&(a.wire == "id")))
+                .then_with(|| ferrule_sdk_model::js::cmp(&a.wire.to_lowercase(), &b.wire.to_lowercase()))
+        });
+    }
+    order
 }
 
 /// `pkg.Name{` and one `Field: pkg.F(value),` line per field at `indent + 1` tabs, closed at
@@ -125,12 +149,15 @@ fn struct_literal(
     let mut out = format!("{pkg}.{name}{{\n");
     let mut optional = false;
     let mut after_multiline = false;
-    for f in fields {
+    for f in literal_order(g, fields).into_iter().map(|i| &fields[i]) {
         let Some(src) = sources.iter().find(|x| x.wire_name == f.wire) else {
             continue;
         };
         optional |= !f.required;
-        let value = example(g, &src.wire_name, &src.ty, decls, &f.ty, indent + 1, ctx);
+        let (value, nested) = example(g, &src.wire_name, &src.ty, decls, &f.ty, indent + 1, ctx);
+        // An optional field of a nested object names the test too (knock-mgmt-go's
+        // `TestChannelGroupUpsertWithOptionalParams`).
+        optional |= nested && g.target.v2();
         let multiline = value.contains('\n');
         // gofmt aligns keys only across single-line elements.
         if multiline || after_multiline {
@@ -268,7 +295,11 @@ pub fn service_test_file(g: &Gen<'_>, s: &Service<'_>) -> Option<(String, String
     for m in method_order(&s.resource.methods) {
         let (call, optional) = call(g, s, m, "context.TODO()", &mut ctx);
         let suffix = if optional { "WithOptionalParams" } else { "" };
-        let results = if m.response.is_some() { "_, err" } else { "err" };
+        let returns_value = !matches!(
+            super::resource::returns(g, s, m, &mut g.ctx(Pkg::Root)).0,
+            super::resource::Returns::None
+        );
+        let results = if returns_value { "_, err" } else { "err" };
         let _ = write!(
             body,
             "func Test{}{}{suffix}(t *testing.T) {{\n{preamble}{}\t{results} := {call}\n\tif err != nil {{\n\t\tvar apierr *{pkg}.Error\n\t\tif errors.As(err, &apierr) {{\n\t\t\tt.Log(string(apierr.DumpRequest(true)))\n\t\t}}\n\t\tt.Fatalf(\"err should be nil: %s\", err.Error())\n\t}}\n}}\n\n",

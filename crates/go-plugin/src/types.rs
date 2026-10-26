@@ -220,12 +220,29 @@ pub fn model_ref(r: &TypeRef, ctx: &mut Ctx<'_>) -> String {
     model_ref_in(r, Mode::Response, ctx)
 }
 
+/// The Go names of a model in v2: its response type and its param variant. A union model is
+/// `<Name>Union` and `<Name>UnionParam` (imagekit-go's `shared.ExtensionConfigUnion`), an
+/// object or array model's variant is `<Name>Param` (`shared.ExtensionsParam`), and any other
+/// model is the same type in both.
+#[must_use]
+pub fn v2_model_names(client: &Client, r: &TypeRef, casings: Casings<'_>) -> (String, String) {
+    let name = model_name(r, casings);
+    match client.model(r).map(|d| &d.ty) {
+        Some(Type::Union(_)) => (format!("{name}Union"), format!("{name}UnionParam")),
+        Some(Type::Array { .. }) => (name.clone(), format!("{name}Param")),
+        Some(Type::Object(o)) if !(o.fields.is_empty() && o.bases.is_empty()) => (name.clone(), format!("{name}Param")),
+        _ => (name.clone(), name),
+    }
+}
+
 /// The Go name of a named model in `mode`: in v2 params, its param variant (`DurationParam`).
 pub fn model_ref_in(r: &TypeRef, mode: Mode, ctx: &mut Ctx<'_>) -> String {
-    let mut name = model_name(r, ctx.casings);
-    if ctx.v2 && mode != Mode::Response && has_param_variant(ctx.client, r) {
-        name.push_str("Param");
-    }
+    let name = if ctx.v2 {
+        let (response, param) = v2_model_names(ctx.client, r, ctx.casings);
+        if mode == Mode::Response { response } else { param }
+    } else {
+        model_name(r, ctx.casings)
+    };
     match (model_pkg(r), ctx.pkg) {
         (Pkg::Shared, Pkg::Root) => {
             ctx.import_module("shared");
@@ -272,7 +289,7 @@ fn scalar(s: Scalar, mode: Mode, ctx: &mut Ctx<'_>) -> Mapped {
 fn enum_values(ty: &Type, client: &Client) -> Vec<String> {
     match ty {
         Type::Enum { members } => members.iter().map(|m| literal(&m.value).1).collect(),
-        Type::Nullable { inner } => enum_values(inner, client),
+        Type::Nullable { inner } | Type::Array { items: inner } => enum_values(inner, client),
         Type::Ref(r) => client.model(r).map_or_else(Vec::new, |d| enum_values(&d.ty, client)),
         _ => Vec::new(),
     }
@@ -307,18 +324,19 @@ pub fn opt_scalar(ty: &str) -> bool {
     matches!(ty, "string" | "int64" | "float64" | "bool" | "time.Time")
 }
 
-/// v2 params order: required fields before optional ones; within each, nullable scalars,
-/// then the other scalars, then the rest (imagekit-go, knock-mgmt-go:
-/// `MessageTypeBooleanFieldParam` is `Label` (nullable), `Key`, `Type`), each group in
-/// [`sort_fields`] order.
+/// v2 params order, each group in [`sort_fields`] order (imagekit-go, knock-mgmt-go):
+/// required `param.Opt` fields (nullable scalars: `MessageTypeBooleanFieldParam.Label`), the
+/// other required fields (`Config`, `Description`, `Name`), then the optional `param.Opt`
+/// fields, nullable ones first, then the other optional fields.
 fn v2_param_rank(f: &GoField) -> u8 {
-    let group = if f.required { 0 } else { 3 };
-    let kind = if opt_scalar(&f.ty) && f.enum_values.is_empty() {
-        u8::from(!f.nullable)
-    } else {
-        2
-    };
-    group + kind
+    let scalar = opt_scalar(&f.ty) && f.enum_values.is_empty();
+    match (f.required, scalar, f.nullable) {
+        (true, true, true) => 0,
+        (true, _, _) => 1,
+        (false, true, true) => 2,
+        (false, true, false) => 3,
+        (false, false, _) => 4,
+    }
 }
 
 /// The tag key of a field mapped in `mode`.
@@ -328,13 +346,12 @@ fn key(mode: Mode) -> &'static str {
 
 /// The fields of `fields` (in [`sort_fields`] order) mapped at `pos`, their declarations
 /// appended to `nested`.
-fn go_fields(fields: &[Field], pos: &Position, mode: Mode, ctx: &mut Ctx<'_>, nested: &mut Vec<Decl>) -> Vec<GoField> {
+fn go_fields(fields: &[Field], pos: &Position, mode: Mode, ctx: &mut Ctx<'_>) -> Vec<(GoField, Vec<Decl>)> {
     let mut out = Vec::new();
     for f in sort_fields(fields) {
         let fpos = pos.field(&words(&f.name), ctx.casings);
         let mapped = map_type(&f.ty, &fpos, &f.description, mode, ctx);
-        nested.extend(mapped.decls);
-        out.push(GoField {
+        let field = GoField {
             name: exported(&words(&f.name), ctx.casings),
             wire: f.wire_name.clone(),
             ty: mapped.ty,
@@ -344,9 +361,21 @@ fn go_fields(fields: &[Field], pos: &Position, mode: Mode, ctx: &mut Ctx<'_>, ne
             doc: f.description.clone(),
             enum_values: enum_values(&f.ty, ctx.client),
             key: key(mode),
-        });
+        };
+        out.push((field, mapped.decls));
     }
     out
+}
+
+/// The fields and, after them, the declarations they introduce, in field order.
+fn split(pairs: Vec<(GoField, Vec<Decl>)>) -> (Vec<GoField>, Vec<Decl>) {
+    let mut fields = Vec::with_capacity(pairs.len());
+    let mut nested = Vec::new();
+    for (f, d) in pairs {
+        fields.push(f);
+        nested.extend(d);
+    }
+    (fields, nested)
 }
 
 /// A method's params struct named `name`: v2's path fields (`path:"..."`), then the query
@@ -355,8 +384,7 @@ fn go_fields(fields: &[Field], pos: &Position, mode: Mode, ctx: &mut Ctx<'_>, ne
 /// `WorkflowStepPreviewTemplateParams`). The struct is `Mode::Body` when it has body fields.
 pub fn params_decls(path: &[Field], query: &[Field], body: &[Field], name: &str, ctx: &mut Ctx<'_>) -> Vec<Decl> {
     let pos = Position::exact(name);
-    let mut nested = Vec::new();
-    let mut fields: Vec<GoField> = path
+    let mut pairs: Vec<(GoField, Vec<Decl>)> = path
         .iter()
         .map(|f| GoField {
             name: exported(&words(&f.name), ctx.casings),
@@ -370,12 +398,15 @@ pub fn params_decls(path: &[Field], query: &[Field], body: &[Field], name: &str,
             enum_values: Vec::new(),
             key: "path",
         })
+        .map(|f| (f, Vec::new()))
         .collect();
-    fields.extend(go_fields(query, &pos, Mode::Query, ctx, &mut nested));
-    fields.extend(go_fields(body, &pos, Mode::Body, ctx, &mut nested));
+    pairs.extend(go_fields(query, &pos, Mode::Query, ctx));
+    pairs.extend(go_fields(body, &pos, Mode::Body, ctx));
+    // v2 declares the types fields introduce in the struct's own field order.
     if ctx.v2 {
-        fields.sort_by_key(|f| if f.key == "path" { 0 } else { 1 + v2_param_rank(f) });
+        pairs.sort_by_key(|(f, _)| if f.key == "path" { 0 } else { 1 + v2_param_rank(f) });
     }
+    let (fields, nested) = split(pairs);
     let mode = if body.is_empty() { Mode::Query } else { Mode::Body };
     let mut out = vec![Decl::Struct {
         name: name.to_owned(),
@@ -390,11 +421,13 @@ pub fn params_decls(path: &[Field], query: &[Field], body: &[Field], name: &str,
 
 /// The struct for an object at `pos`, followed by the types its fields introduce.
 pub fn object_decls(obj: &Object, pos: &Position, doc: &str, mode: Mode, ctx: &mut Ctx<'_>) -> Vec<Decl> {
-    let mut nested = Vec::new();
-    let mut fields = go_fields(&obj.fields, pos, mode, ctx, &mut nested);
+    let mut pairs = go_fields(&obj.fields, pos, mode, ctx);
+    if ctx.v2 && mode != Mode::Response {
+        pairs.sort_by_key(|(f, _)| v2_param_rank(f));
+    }
+    let (fields, nested) = split(pairs);
     let mut doc = doc.trim_end().to_owned();
     if ctx.v2 && mode != Mode::Response {
-        fields.sort_by_key(v2_param_rank);
         // v2 names a param object's required properties in its doc (knock-mgmt-go).
         let mut required: Vec<&str> = fields.iter().filter(|f| f.required).map(|f| f.name.as_str()).collect();
         required.sort_unstable();
@@ -461,6 +494,14 @@ pub fn map_type(ty: &Type, pos: &Position, doc: &str, mode: Mode, ctx: &mut Ctx<
             }
         }
         Type::Array { items } => {
+            // v2 takes an array of an inline enum as its underlying type (knock-mgmt-go's
+            // `VisibleIn []string`), listing the values in the field's doc.
+            if ctx.v2
+                && let Type::Enum { members } = &**items
+            {
+                let underlying = members.first().map_or("string", |m| literal(&m.value).0);
+                return Mapped::plain(&format!("[]{underlying}"));
+            }
             let inner = map_type(items, &pos.as_item(), doc, mode, ctx);
             Mapped {
                 ty: format!("[]{}", inner.ty),
