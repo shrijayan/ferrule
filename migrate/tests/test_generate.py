@@ -258,7 +258,8 @@ def test_generate_with_renderer(inputs: tuple[GenerateRequest, Path]) -> None:
     request = replace(request, runtime_from=None)
     seen: list[tuple[str, Path]] = []
 
-    def render(package: str, package_dir: Path, /) -> None:
+    def render(package: str, package_dir: Path, /, *, client_name: str | None = None) -> None:
+        assert client_name is None  # the fake _client.py defines no SyncAPIClient
         seen.append((package, package_dir))
         write(package_dir / "_base_client.py", "x\n")
 
@@ -267,7 +268,6 @@ def test_generate_with_renderer(inputs: tuple[GenerateRequest, Path]) -> None:
     assert result.runtime_files == 1
 
 
-@pytest.mark.xfail(strict=True, reason="runtime is rendered for the package name, not the client")
 def test_generate_renders_runtime_for_the_generated_client(
     inputs: tuple[GenerateRequest, Path],
 ) -> None:
