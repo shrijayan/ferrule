@@ -52,6 +52,23 @@ def test_auth_headers_slot() -> None:
     )
 
 
+def test_auth_query_slot() -> None:
+    plain = render_csharp_files(ACME)[PARAMS_BASE]
+    auth = (
+        "        if (options.ApiKey != null)\n"
+        "        {\n"
+        '            collection.Add("key", options.ApiKey);\n'
+        "        }\n"
+    )
+    text = render_csharp_files(
+        CSharpOptions(namespace="Acme", client_name="Acme", env_prefix="ACME", auth_query=auth)
+    )[PARAMS_BASE]
+    # After the request's own query parameters, before the query string is built.
+    loop_end = "item.Key, item.Value);\r\n        }\r\n"
+    assert loop_end + auth.replace("\n", "\r\n") + "        StringBuilder sb = new();" in text
+    assert text.replace(auth.replace("\n", "\r\n"), "") == plain
+
+
 def files_between(text: str) -> str:
     """The body of `AddDefaultHeaders` up to the timeout header."""
     start = text.index("static void AddDefaultHeaders")
@@ -78,6 +95,7 @@ def test_usings_sort_around_moq(namespace: str, first: str) -> None:
         ({"client_name": "Acme Cloud"}, "client_name"),
         ({"env_prefix": "acme"}, "env_prefix"),
         ({"auth_headers": "if (x) {}"}, "auth_headers must be empty or end with"),
+        ({"auth_query": "if (x) {}"}, "auth_query must be empty or end with"),
     ],
 )
 def test_rejects_bad_options(kwargs: dict[str, Any], match: str) -> None:
