@@ -54,7 +54,7 @@ impl Endpoint for VehiclesForAgencyListParams {
             reqwest::Method::GET,
             format!(
                 "/api/where/vehicles-for-agency/{}.json",
-                path_param(&self.agency_id)
+                path_param(&self.agency_id)?
             ),
         );
         spec.query("time", &self.time)?;

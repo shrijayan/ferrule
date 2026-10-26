@@ -156,7 +156,7 @@ impl Endpoint for NotesUpdateParams {
     fn spec(&self) -> Result<RequestSpec> {
         let mut spec = RequestSpec::new(
             reqwest::Method::PUT,
-            format!("/v1/notes/{}", path_param(&self.note_id)),
+            format!("/v1/notes/{}", path_param(&self.note_id)?),
         );
         spec.json(&serde_json::Map::new())?;
         spec.header("X-Request-Source", &self.x_request_source)?;
@@ -188,7 +188,7 @@ impl Endpoint for NotesDeleteParams {
     fn spec(&self) -> Result<RequestSpec> {
         Ok(RequestSpec::new(
             reqwest::Method::DELETE,
-            format!("/v1/notes/{}", path_param(&self.note_id)),
+            format!("/v1/notes/{}", path_param(&self.note_id)?),
         ))
     }
 

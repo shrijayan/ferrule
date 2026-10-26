@@ -40,7 +40,7 @@ impl Endpoint for ShapeRetrieveParams {
     fn spec(&self) -> Result<RequestSpec> {
         Ok(RequestSpec::new(
             reqwest::Method::GET,
-            format!("/api/where/shape/{}.json", path_param(&self.shape_id)),
+            format!("/api/where/shape/{}.json", path_param(&self.shape_id)?),
         ))
     }
 

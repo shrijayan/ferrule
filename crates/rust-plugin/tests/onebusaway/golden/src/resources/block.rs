@@ -38,7 +38,7 @@ impl Endpoint for BlockRetrieveParams {
     fn spec(&self) -> Result<RequestSpec> {
         Ok(RequestSpec::new(
             reqwest::Method::GET,
-            format!("/api/where/block/{}.json", path_param(&self.block_id)),
+            format!("/api/where/block/{}.json", path_param(&self.block_id)?),
         ))
     }
 

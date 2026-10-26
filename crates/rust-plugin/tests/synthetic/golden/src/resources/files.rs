@@ -35,7 +35,7 @@ impl Endpoint for FilesUploadParams {
     fn spec(&self) -> Result<RequestSpec> {
         let mut spec = RequestSpec::new(
             reqwest::Method::POST,
-            format!("/v1/files/{}/content", path_param(&self.file_id)),
+            format!("/v1/files/{}/content", path_param(&self.file_id)?),
         );
         spec.bytes("application/octet-stream", self.body.clone());
         Ok(spec)

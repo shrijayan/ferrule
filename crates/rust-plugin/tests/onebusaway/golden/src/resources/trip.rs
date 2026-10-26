@@ -38,7 +38,7 @@ impl Endpoint for TripRetrieveParams {
     fn spec(&self) -> Result<RequestSpec> {
         Ok(RequestSpec::new(
             reqwest::Method::GET,
-            format!("/api/where/trip/{}.json", path_param(&self.trip_id)),
+            format!("/api/where/trip/{}.json", path_param(&self.trip_id)?),
         ))
     }
 

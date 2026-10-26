@@ -69,7 +69,7 @@ impl Endpoint for TripsForRouteListParams {
             reqwest::Method::GET,
             format!(
                 "/api/where/trips-for-route/{}.json",
-                path_param(&self.route_id)
+                path_param(&self.route_id)?
             ),
         );
         spec.query("includeStatus", &self.include_status)?;

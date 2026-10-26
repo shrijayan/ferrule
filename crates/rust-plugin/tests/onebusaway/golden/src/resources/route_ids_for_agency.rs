@@ -43,7 +43,7 @@ impl Endpoint for RouteIdsForAgencyListParams {
             reqwest::Method::GET,
             format!(
                 "/api/where/route-ids-for-agency/{}.json",
-                path_param(&self.agency_id)
+                path_param(&self.agency_id)?
             ),
         ))
     }

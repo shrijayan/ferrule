@@ -40,7 +40,7 @@ impl Endpoint for AgencyRetrieveParams {
     fn spec(&self) -> Result<RequestSpec> {
         Ok(RequestSpec::new(
             reqwest::Method::GET,
-            format!("/api/where/agency/{}.json", path_param(&self.agency_id)),
+            format!("/api/where/agency/{}.json", path_param(&self.agency_id)?),
         ))
     }
 

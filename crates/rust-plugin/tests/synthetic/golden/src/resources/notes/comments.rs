@@ -36,7 +36,7 @@ impl Endpoint for CommentsListParams {
     fn spec(&self) -> Result<RequestSpec> {
         Ok(RequestSpec::new(
             reqwest::Method::GET,
-            format!("/v1/notes/{}/comments", path_param(&self.note_id)),
+            format!("/v1/notes/{}/comments", path_param(&self.note_id)?),
         ))
     }
 

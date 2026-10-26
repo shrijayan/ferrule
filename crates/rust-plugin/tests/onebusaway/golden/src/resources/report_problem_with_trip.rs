@@ -135,7 +135,7 @@ impl Endpoint for ReportProblemWithTripRetrieveParams {
             reqwest::Method::GET,
             format!(
                 "/api/where/report-problem-with-trip/{}.json",
-                path_param(&self.trip_id)
+                path_param(&self.trip_id)?
             ),
         );
         spec.query("serviceDate", &self.service_date)?;

@@ -88,7 +88,10 @@ impl Endpoint for TripDetailsRetrieveParams {
     fn spec(&self) -> Result<RequestSpec> {
         let mut spec = RequestSpec::new(
             reqwest::Method::GET,
-            format!("/api/where/trip-details/{}.json", path_param(&self.trip_id)),
+            format!(
+                "/api/where/trip-details/{}.json",
+                path_param(&self.trip_id)?
+            ),
         );
         spec.query("serviceDate", &self.service_date)?;
         spec.query("includeTrip", &self.include_trip)?;

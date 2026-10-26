@@ -54,7 +54,7 @@ impl Endpoint for ScheduleForRouteRetrieveParams {
             reqwest::Method::GET,
             format!(
                 "/api/where/schedule-for-route/{}.json",
-                path_param(&self.route_id)
+                path_param(&self.route_id)?
             ),
         );
         spec.query("date", &self.date)?;
