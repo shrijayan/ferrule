@@ -2,8 +2,8 @@
 //!
 //! ```text
 //! ferrule-gen convert openapi.yml stainless.yml -o annotated.json
-//! ferrule-gen generate annotated.json --out sdk [--target python|typescript|node]
-//!     [--config stainless.yml] [--openapi openapi.yml]
+//! ferrule-gen generate annotated.json --out sdk [--target python|typescript|node|…|rust]
+//!     [--config stainless.yml] [--openapi openapi.yml] [--ferrule-config ferrule.yml]
 //! ferrule-gen model annotated.json
 //! ```
 //!
@@ -37,6 +37,11 @@
 //! [`PHP_RUNTIME_OPTIONS`] (`ferrule_runtime.render_php_files`) and the package's php-cs-fixer; C# too, with
 //! [`CSHARP_RUNTIME_OPTIONS`] (`ferrule_runtime.render_csharp_files`) and csharpier.
 //!
+//! For Rust (ADR 0019), a Ferrule-original target, the output is the whole crate, the runtime
+//! (`runtime/rust/template`) included, laid out by `rustfmt` when it is on `PATH`.
+//! `--ferrule-config` reads the target's settings from `targets.rust` of a `ferrule.yml`, as
+//! stainless.yml has no Rust target.
+//!
 //! `model` prints the language-neutral SDK model (`ferrule-sdk-model`) of an annotated spec as
 //! deterministic JSON, for debugging and for plugin tests.
 
@@ -50,6 +55,7 @@ use ferrule_sdk_model::{FerCode, FerruleError};
 
 const USAGE: &str = "Usage: ferrule-gen convert <SPEC> <CONFIG> -o <OUT>
        ferrule-gen generate <SPEC> --out <OUT> [--target <TARGET>] [--config <YML>] [--openapi <SPEC>]
+                            [--ferrule-config <YML>]
        ferrule-gen model <SPEC>
 
 Commands:
@@ -58,7 +64,8 @@ Commands:
   model     Print the language-neutral SDK model of an annotated spec as JSON
 
 Targets: python (default), typescript, node (the legacy TypeScript layout), go, java, kotlin,
-ruby, php, csharp; cli and terraform are planned and not supported yet";
+ruby, php, csharp, rust (Ferrule-original, configured by --ferrule-config); cli and terraform are
+planned and not supported yet";
 
 /// `ferrule-gen <crate version> forge <40-hex rev>`: the rev is the Forge commit pinned in the
 /// workspace `Cargo.lock` (read by `build.rs`). `ferrule.lock` records both parts.
@@ -71,7 +78,7 @@ const VERSION: &str = concat!(
 
 /// The SDK languages `--target` accepts, by their stainless.yml `targets` key; [`PLUGINS`] have a
 /// plugin.
-const TARGETS: [&str; 11] = [
+const TARGETS: [&str; 12] = [
     "python",
     "typescript",
     "node",
@@ -81,6 +88,7 @@ const TARGETS: [&str; 11] = [
     "ruby",
     "php",
     "csharp",
+    "rust",
     "cli",
     "terraform",
 ];
@@ -103,8 +111,22 @@ const PHP: &str = "php";
 
 const CSHARP: &str = "csharp";
 
+/// Not a stainless.yml target: Ferrule's own (ADR 0019).
+const RUST: &str = "rust";
+
 /// The targets with a plugin.
-const PLUGINS: [&str; 9] = [DEFAULT_TARGET, TYPESCRIPT, NODE, GO, JAVA, KOTLIN, RUBY, PHP, CSHARP];
+const PLUGINS: [&str; 10] = [
+    DEFAULT_TARGET,
+    TYPESCRIPT,
+    NODE,
+    GO,
+    JAVA,
+    KOTLIN,
+    RUBY,
+    PHP,
+    CSHARP,
+    RUST,
+];
 
 /// Where `generate --target go` writes the Go runtime's options (JSON), relative to `--out`.
 pub const GO_RUNTIME_OPTIONS: &str = ".ferrule/go-runtime.json";
@@ -172,6 +194,8 @@ struct GenerateArgs {
     config: Option<PathBuf>,
     /// `--openapi`: the original spec (TypeScript examples and property order).
     openapi: Option<PathBuf>,
+    /// `--ferrule-config`: the `ferrule.yml` with `targets.rust` (Rust settings).
+    ferrule_config: Option<PathBuf>,
 }
 
 /// The value of `--name <value>` or `--name=value` at `args[*i]`, advancing `i` past it.
@@ -202,6 +226,7 @@ fn parse_generate(args: &[String]) -> Result<GenerateArgs, String> {
     let mut target: Option<String> = None;
     let mut config: Option<PathBuf> = None;
     let mut openapi: Option<PathBuf> = None;
+    let mut ferrule_config: Option<PathBuf> = None;
     let mut i = 0;
     while i < args.len() {
         if let Some(value) = flag_value(args, &mut i, "--out", Some("-o"), "OUT") {
@@ -219,6 +244,8 @@ fn parse_generate(args: &[String]) -> Result<GenerateArgs, String> {
             config = Some(PathBuf::from(value?));
         } else if let Some(value) = flag_value(args, &mut i, "--openapi", None, "SPEC") {
             openapi = Some(PathBuf::from(value?));
+        } else if let Some(value) = flag_value(args, &mut i, "--ferrule-config", None, "YML") {
+            ferrule_config = Some(PathBuf::from(value?));
         } else if args[i].starts_with('-') && args[i] != "-" {
             return Err(format!("unexpected argument '{}' found", args[i]));
         } else if spec.is_none() {
@@ -235,6 +262,7 @@ fn parse_generate(args: &[String]) -> Result<GenerateArgs, String> {
             target: target.unwrap_or_else(|| DEFAULT_TARGET.to_owned()),
             config,
             openapi,
+            ferrule_config,
         }),
         (spec, out) => {
             let mut missing = Vec::new();
@@ -280,6 +308,7 @@ fn generate(args: &[String], stderr: &mut dyn Write) -> i32 {
         RUBY => write_ruby(&args),
         PHP => write_php(&args),
         CSHARP => write_csharp(&args),
+        RUST => write_rust(&args),
         other => return fail(stderr, &unsupported_target(other)),
     };
     match written {
@@ -500,6 +529,49 @@ fn write_php(args: &GenerateArgs) -> Result<(), forge::Err> {
     forge::write(&args.out, files)
 }
 
+/// Reads the annotated spec, maps it to the neutral model and writes the Rust crate, laid out
+/// by `rustfmt` when it is installed; nothing for a document without operations.
+fn write_rust(args: &GenerateArgs) -> Result<(), forge::Err> {
+    let forge = read(&args.spec)?;
+    let Some(client) = ferrule_sdk_model::forge_to_model(&forge)? else {
+        return forge::write(&args.out, Vec::<TextFile>::new());
+    };
+    let meta = match &args.ferrule_config {
+        Some(path) => ferrule_rust_plugin::RustMeta::from_config(&read_document(path)?)?,
+        None => ferrule_rust_plugin::RustMeta::default(),
+    };
+    let files = ferrule_rust_plugin::generate(&client, &meta)?;
+    let sources: Vec<PathBuf> = files
+        .iter()
+        .filter(|(p, _)| Path::new(p).extension().is_some_and(|e| e == "rs"))
+        .map(|(p, _)| args.out.join(p))
+        .collect();
+    let files = files
+        .into_iter()
+        .map(|(path, content)| TextFile { path, content })
+        .collect();
+    forge::write(&args.out, files)?;
+    rustfmt(&args.out.join("rustfmt.toml"), &sources)
+}
+
+/// Lays out `files` with `rustfmt` and the crate's `config`; a note on standard error when
+/// `rustfmt` is not installed, as the code builds either way.
+fn rustfmt(config: &Path, files: &[PathBuf]) -> Result<(), forge::Err> {
+    let status = std::process::Command::new("rustfmt")
+        .arg("--config-path")
+        .arg(config)
+        .args(files)
+        .status();
+    match status {
+        Ok(s) if s.success() => Ok(()),
+        Ok(s) => Err(format!("rustfmt failed ({s})").into()),
+        Err(err) => {
+            eprintln!("ferrule-gen: rustfmt not run ({err}); the crate is not laid out");
+            Ok(())
+        }
+    }
+}
+
 fn parse_model(args: &[String]) -> Result<PathBuf, String> {
     match args {
         [spec] if !spec.starts_with('-') || spec == "-" => Ok(PathBuf::from(spec)),
@@ -581,6 +653,20 @@ mod tests {
             (parsed.target.as_str(), parsed.config, parsed.openapi),
             ("typescript", Some(PathBuf::from("s.yml")), Some(PathBuf::from("o.yml")))
         );
+        let parsed = parse_generate(&strings(&[
+            "a.json",
+            "-o",
+            "sdk",
+            "--target",
+            "rust",
+            "--ferrule-config",
+            "f.yml",
+        ]))
+        .expect("valid");
+        assert_eq!(
+            (parsed.target.as_str(), parsed.ferrule_config),
+            ("rust", Some(PathBuf::from("f.yml")))
+        );
     }
 
     #[test]
@@ -589,7 +675,7 @@ mod tests {
         assert!(err.contains("possible values: python, typescript"), "{err}");
         let fix = unsupported_target("terraform").fix;
         assert!(
-            fix.contains("python or typescript or node or go or java or kotlin or ruby or php or csharp"),
+            fix.contains("python or typescript or node or go or java or kotlin or ruby or php or csharp or rust"),
             "{fix}"
         );
         let err = parse_generate(&strings(&["a.json", "--out", "sdk", "--target"])).expect_err("no value");

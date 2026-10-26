@@ -228,6 +228,7 @@ dependencies = [
  "ferrule-php-plugin",
  "ferrule-python-plugin",
  "ferrule-ruby-plugin",
+ "ferrule-rust-plugin",
  "ferrule-sdk-model",
  "ferrule-ts-plugin",
  "forge",
