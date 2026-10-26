@@ -414,6 +414,90 @@ mod pagination {
     }
 }
 
+mod unwrap_response {
+    use super::*;
+
+    fn spec() -> Value {
+        let envelope = |props: serde_json::Value| {
+            json!({"200": {"content": {"application/json": {"schema": {
+                "type": "object", "properties": props
+            }}}}})
+        };
+        v(&json!({
+            "openapi": "3.1.0",
+            "paths": {
+                "/one": {"get": {"responses": envelope(json!({"data": {"type": "string"}}))}},
+                "/two": {"get": {"responses": envelope(json!({"data": {"type": "string"}, "location": {"type": "string"}}))}},
+                "/ref": {"get": {"responses": {"200": {"content": {"application/json": {"schema": {
+                    "$ref": "#/components/schemas/Envelope"
+                }}}}}}}
+            },
+            "components": {"schemas": {"Envelope": {"type": "object", "properties": {
+                "data": {"type": "integer"}, "location": {"type": "string"}
+            }}}}
+        }))
+    }
+
+    fn unwrap_of(r: &ferrule_converter::ConvertResult, path: &str) -> Option<Value> {
+        op(&r.spec, path, "get").get("x-ferrule-unwrap").cloned()
+    }
+
+    /// Stainless's `unwrap_response`: a method names the envelope field it returns, or opts out
+    /// with `false`; `settings.unwrap_response_fields` unwraps a one-field envelope, and any
+    /// envelope with `unwrap_multiproperty_response_fields` (the opencode `{location, data}`).
+    #[test]
+    fn marks_the_envelope_field_an_operation_returns() {
+        let methods = json!({
+            "one": "get /one",
+            "two": "get /two",
+            "by_ref": {"endpoint": "get /ref", "unwrap_response": "data"}
+        });
+        let r = convert(
+            &spec(),
+            &v(&json!({
+                "settings": {"unwrap_response_fields": ["data"]},
+                "resources": {"things": {"methods": methods}}
+            })),
+        );
+        assert_eq!(r.diagnostics, none());
+        assert_eq!(unwrap_of(&r, "/one"), Some(v(&json!("data"))));
+        assert_eq!(unwrap_of(&r, "/two"), None);
+        assert_eq!(unwrap_of(&r, "/ref"), Some(v(&json!("data"))));
+
+        let multi = convert(
+            &spec(),
+            &v(&json!({
+                "settings": {"unwrap_response_fields": ["data"], "unwrap_multiproperty_response_fields": true},
+                "resources": {"things": {"methods": {
+                    "two": "get /two",
+                    "one": {"endpoint": "get /one", "unwrap_response": false}
+                }}}
+            })),
+        );
+        assert_eq!(unwrap_of(&multi, "/two"), Some(v(&json!("data"))));
+        assert_eq!(unwrap_of(&multi, "/one"), None);
+    }
+
+    #[test]
+    fn warns_when_the_named_field_is_not_in_the_response() {
+        let r = convert(
+            &spec(),
+            &v(&json!({"resources": {"things": {"methods": {
+                "one": {"endpoint": "get /one", "unwrap_response": "result"}
+            }}}})),
+        );
+        assert_eq!(unwrap_of(&r, "/one"), None);
+        assert_eq!(
+            codes(&r.diagnostics),
+            vec![(
+                "FER1007",
+                "warning".to_owned(),
+                "/resources/things/methods/one/unwrap_response"
+            )]
+        );
+    }
+}
+
 mod ferrule_config {
     use super::*;
 
