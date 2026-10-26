@@ -18,6 +18,9 @@ PROTECTED_DIRS = frozenset({"lib"})
 PROTECTED_ROOTS = frozenset({"examples"})
 """Top-level directories the generator leaves alone."""
 
+GENERATED_UNDER_PROTECTED = ("examples/agent/",)
+"""What Ferrule generates under them: the agent recipes (ADR 0013)."""
+
 
 def glob_to_regex(pattern: str) -> re.Pattern[str]:
     """Compile a ``keep_files`` glob: ``**`` spans directories, ``*`` and ``?`` do not."""
@@ -67,6 +70,8 @@ class KeepRules:
     def keeps(self, path: str) -> bool:
         """Whether ``path`` (POSIX, repo-relative) is custom code the merge must not touch."""
         parts = path.split("/")
+        if path.startswith(GENERATED_UNDER_PROTECTED):
+            return any(p.fullmatch(path) for p in self._patterns)
         if self.protect_lib and (
             parts[0] in PROTECTED_ROOTS or any(p in PROTECTED_DIRS for p in parts[:-1])
         ):
