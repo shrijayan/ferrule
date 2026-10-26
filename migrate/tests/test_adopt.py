@@ -76,6 +76,7 @@ def repo(tmp_path: Path) -> Path:
     write(root / "src/acme/__init__.py", "from acme._client import Acme\n")
     write(root / "src/acme/_client.py", "class Acme: ...\n")
     write(root / "src/acme/_types.py", "RUNTIME = 1\n")
+    write(root / "src/acme/_utils/__init__.py", "")
     write(root / "src/acme/resources/foo.py", BASE_FOO)
     commit(root, "codegen", "stainless-app[bot] <bot@stainless.example>")
     write(root / "src/acme/resources/foo.py", BASE_FOO.replace("line8", "custom8"))
@@ -118,10 +119,16 @@ def tools(tmp_path: Path) -> Tools:
     return Tools(gen=write(tmp_path / "tools/ferrule-gen"), ruff=sys.executable)
 
 
+def render(package: str, package_dir: Path, /) -> None:
+    write(package_dir / "_utils/__init__.py", f"# {package} runtime\n")
+
+
 def run_adopt(repo: Path, tools: Tools, **kwargs: object):  # noqa: ANN201
     lines: list[str] = []
     request = AdoptRequest(repo, tools, **kwargs)  # type: ignore[arg-type]
-    result = adopt(request, runner=fake_runner(), fetch=fetch, env=ENV, say=lines.append)
+    result = adopt(
+        request, runner=fake_runner(), renderer=render, fetch=fetch, env=ENV, say=lines.append
+    )
     return result, lines
 
 
@@ -272,6 +279,7 @@ def test_adopt_falls_back_to_stats_commit(tmp_path: Path, tools: Tools) -> None:
     sh(root, "config", "user.email", "dev@example.com")
     write(root / "stainless.yml", "{}\n")
     write(root / "src/acme/__init__.py", "")
+    write(root / "src/acme/_utils/__init__.py", "")
     commit(root, "init", "Dev <dev@example.com>")
     write(
         root / ".stats.yml", f"openapi_spec_url: https://x.dev/s.json\nopenapi_spec_hash: {MD5}\n"

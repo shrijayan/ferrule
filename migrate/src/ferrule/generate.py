@@ -19,7 +19,7 @@ import re
 import shutil
 import subprocess
 import tempfile
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path, PurePosixPath
 from typing import TYPE_CHECKING, Protocol, cast
 
@@ -391,6 +391,17 @@ def ensure_inside(root: Path, rel: PurePosixPath) -> Path:
     return path
 
 
+def is_stainless_runtime(source_root: Path) -> bool:
+    """Whether the SDK at ``source_root`` ships a Stainless-style runtime (it has ``_utils/``).
+
+    Generated resources call into that runtime (``_utils.maybe_transform``, ``_compat``); an SDK
+    another generator wrote (opencode-python-sdk) has its own runtime without them, so it gets
+    Ferrule's runtime instead and keeps its other modules (ADR 0011).
+    """
+    package = pick_package(_src_packages(source_root), "--runtime-from")
+    return any((source_root / "src" / package / d).is_dir() for d in RUNTIME_DIRS)
+
+
 def _copy_runtime(source_root: Path, out: Path) -> tuple[str, int]:
     package = pick_package(_src_packages(source_root), "--runtime-from")
     src_pkg = source_root / "src" / package
@@ -427,13 +438,20 @@ def generate(
     runner: Runner = run_subprocess,
     renderer: RuntimeRenderer | None = None,
 ) -> GenerateResult:
-    """Run the whole pipeline into ``request.out``."""
+    """Run the whole pipeline into ``request.out``.
+
+    With ``runtime_from``, a Stainless-style runtime is copied from that SDK (ADR 0004); any
+    other runtime is replaced by Ferrule's, and the SDK's other files are kept as they are.
+    """
     _check_inputs(request)
+    own = request.runtime_from is not None and is_stainless_runtime(request.runtime_from)
+    foreign = request.runtime_from if request.runtime_from is not None and not own else None
     request.out.mkdir(parents=True, exist_ok=True)
+    planned = request if foreign is None else replace(request, runtime_from=None)
     with tempfile.TemporaryDirectory(prefix="ferrule-") as tmp:
-        for step in plan_steps(request, Path(tmp)):
+        for step in plan_steps(planned, Path(tmp)):
             _run(step, runner)
-    if request.runtime_from is not None:
+    if request.runtime_from is not None and own:
         package, runtime_count = _copy_runtime(request.runtime_from, request.out)
     elif renderer is not None:
         package = pick_package(_src_packages(request.out), "--out")
@@ -441,6 +459,8 @@ def generate(
         before = len(relative_files(package_dir))
         renderer(package, package_dir)
         runtime_count = len(relative_files(package_dir)) - before
+        if foreign is not None:
+            _copy_runtime(foreign, request.out)
     else:
         raise fail(
             NO_RUNTIME,
