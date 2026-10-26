@@ -20,7 +20,7 @@ fn skips_each_test_of_a_method_with_a_reason() {
         .find(|(p, _)| p == "tests/api_resources/test_terminals.py")
         .map(|(_, t)| t.as_str())
         .expect("a test module");
-    let skip = "    @pytest.mark.skip(\n        reason=\"the mock server does not read integer query parameters through a $ref\"\n    )\n    @parametrize\n";
+    let skip = "    @pytest.mark.skip(reason=\"the mock server does not read integer query parameters through a $ref\")\n    @parametrize\n";
     // Method, with all params, raw and streaming response, sync and async; list is not skipped.
     assert_eq!(module.matches(skip).count(), 8, "{module}");
     assert!(

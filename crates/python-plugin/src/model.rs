@@ -239,6 +239,8 @@ pub struct SdkMethod {
     pub response: Option<SdkType>,
     /// The response envelope field the method returns (`unwrap_response`), by wire name.
     pub unwrap: Option<String>,
+    /// Why the method's generated tests are skipped (`skip_test_reason`), if they are.
+    pub skip_test: Option<String>,
     pub pagination: Option<SdkPagination>,
     pub streaming: Option<SdkStreaming>,
 }

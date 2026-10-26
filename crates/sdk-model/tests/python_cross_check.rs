@@ -392,6 +392,7 @@ impl Python<'_> {
             body_file_paths,
             response,
             unwrap,
+            skip_test: None,
             pagination: m.pagination.as_ref().map(|p| self.pagination(p)),
             streaming: m.streaming.as_ref().map(|s| py::SdkStreaming {
                 format: match s.format {

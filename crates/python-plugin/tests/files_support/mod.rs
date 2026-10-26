@@ -156,6 +156,7 @@ fn method(v: &Value) -> FilesMethod {
         stream_switch: opt_string(v, "streamSwitch"),
         page: None,
         streaming: false,
+        skip_test: None,
     }
 }
 

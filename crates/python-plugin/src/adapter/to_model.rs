@@ -499,6 +499,7 @@ impl Context<'_> {
                 .unwrap_or_default(),
             response,
             unwrap,
+            skip_test: self.ext.skip_test.clone(),
             pagination,
             streaming,
         })
