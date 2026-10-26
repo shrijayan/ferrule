@@ -1,0 +1,6 @@
+{
+  "namespace": "Acme",
+  "client_name": "Acme",
+  "env_prefix": "ACME",
+  "auth_headers": "        if (options.ApiKey != null)\n        {\n            request.Headers.Add(\"Authorization\", string.Format(\"Bearer {0}\", options.ApiKey));\n        }\n"
+}
