@@ -44,8 +44,11 @@ fn is_word(key: &str) -> bool {
     !key.is_empty() && key.chars().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit())
 }
 
-fn is_spelling(s: &str) -> bool {
-    !s.is_empty() && s.chars().all(|c| c.is_ascii_alphanumeric() || c == '_')
+/// A spelling of `word` that can stand in a class name: identifier characters, led by a digit
+/// only when the word is (`3ds` -> `3DS`), so it never starts one with a digit (`qa` -> `123`).
+fn is_spelling(word: &str, s: &str) -> bool {
+    let digit_first = |w: &str| w.starts_with(|c: char| c.is_ascii_digit());
+    !s.is_empty() && s.chars().all(|c| c.is_ascii_alphanumeric() || c == '_') && (!digit_first(s) || digit_first(word))
 }
 
 fn capitalize(w: &str) -> String {
@@ -101,16 +104,16 @@ pub fn read_casings(config: &Value) -> (Casings, Vec<Diagnostic>) {
                 format!("Give `{key}` its `pascal`, `camel`, `snake` and `capital` spellings, or `initialism: true`."),
             ));
         } else if let Some(Value::String(p)) = m.get("pascal") {
-            if is_spelling(p) {
+            if is_spelling(key, p) {
                 casings.words.push((key.clone(), Casing::Pascal(p.clone())));
             } else {
                 diagnostics.push(Diagnostic::warning(
                     "FER1703",
                     pointer(key, &["pascal"]),
                     format!(
-                        "The pascal spelling \"{p}\" of custom casing \"{key}\" is not letters, digits and underscores; it is ignored."
+                        "The pascal spelling \"{p}\" of custom casing \"{key}\" is not letters, digits and underscores led by a letter; it is ignored."
                     ),
-                    "Spell the word with ASCII letters and digits only, such as `LumaAI`.",
+                    "Spell the word with ASCII letters and digits only, starting with a letter, such as `LumaAI`.",
                 ));
             }
         } else {
