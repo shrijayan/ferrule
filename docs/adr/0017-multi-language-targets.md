@@ -61,10 +61,15 @@ Chosen option 2.
   adds them to the plan's reuse list.
 - Oracles: `oracles/manifest.yaml` gains a `language` (and `layout`) per SDK entry; pairing is
   proven by `.stats.yml` hashes as for Python (ADR 0009).
-- verify and adopt generalize per language: the same spec rescue and hand-edit handling, a
-  per-language public-API diff (TypeScript declarations, Go `apidiff`, japicmp and Kotlin's
-  binary-compatibility validator, Ruby signatures), and the SDK's own `scripts/test` against a
-  mock server. merge keeps libcst for Python and falls back to a three-way text merge elsewhere.
+- verify and adopt generalize per language: the same spec rescue and hand-edit handling, the
+  SDK's own `scripts/test` against a mock server, and a public-API diff run with each language's
+  own checker, never a port of it: griffe (Python), api-extractor or a declaration
+  assignability check (TypeScript), `apidiff`/`gorelease` (Go), japicmp (Java), Kotlin's
+  binary-compatibility validator (Kotlin), an RBS signature diff (Ruby),
+  roave/backward-compatibility-check (PHP), ApiCompat package validation (C#), the command and
+  flag tree (CLI) and `terraform providers schema -json` (Terraform). The table in the research
+  doc is the source of truth. merge keeps libcst for Python and falls back to a three-way text
+  merge elsewhere.
 
 Order, by oracle availability and demand:
 
