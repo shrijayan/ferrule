@@ -3,16 +3,55 @@ title: Quickstart
 description: Move an existing Stainless Python SDK to Ferrule, from the first command to the first regenerated release.
 ---
 
-This page takes a Stainless-generated Python SDK repository and switches its generator to
-Ferrule. Your users keep importing the same package, with the same names and arguments.
+This page installs Ferrule, generates an SDK from a spec, then takes a Stainless-generated
+Python SDK repository and switches its generator to Ferrule. Your users keep importing the same
+package, with the same names and arguments.
 
 :::caution[Pre-alpha]
-Ferrule is not on PyPI yet, so for now you build it from source (step 1). The 0.1 release is
-planned to bring this down to `uvx ferrule adopt .`. Check the
-[fidelity board](/docs/fidelity/) to see how close Ferrule gets on SDKs like yours.
+`generate` for Python ships as one binary. The other languages and `adopt`, `verify`, `merge`
+and `rescue` still run from a Ferrule checkout (step 1 below) until they move into the binary
+(ADR 0021). Check the [fidelity board](/docs/fidelity/) to see how close Ferrule gets on SDKs
+like yours.
 :::
 
-## What you need
+## Install
+
+```bash
+curl -LsSf https://ferrule.cpluz.com/install.sh | sh
+```
+
+The script downloads `ferrule-gen` for your OS and CPU from the latest GitHub release, checks
+its sha256 and installs it to `~/.local/bin`. Set `FERRULE_INSTALL_DIR` to put it elsewhere, or
+`FERRULE_VERSION=vX.Y.Z` to pin a release. Builds exist for Linux and macOS on x86_64 and
+arm64; on Windows, unzip `ferrule-gen-x86_64-pc-windows-msvc.zip` from the
+[releases page](https://github.com/shrijayan/ferrule/releases).
+
+Python SDKs are formatted with [ruff](https://docs.astral.sh/ruff/), so install it too if you
+don't have it: `curl -LsSf https://astral.sh/ruff/install.sh | sh`.
+
+## Generate an SDK
+
+```bash
+ferrule-gen generate --spec openapi.yml --config stainless.yml --out sdk
+```
+
+```text
+generated onebusaway: 222 files (26 runtime) sha256 1f9d988f…88d96a
+```
+
+The spec can be OpenAPI 3.x or Swagger 2.0, in YAML or JSON. The same inputs always give the
+same files and the same digest. Errors carry a `FER` code, where in the spec or config the
+problem is, and a fix.
+
+To set this up with a coding agent instead, paste the prompt from the "Copy agent prompt"
+button on the [home page](/) into the agent in your project; it reads
+[llms.txt](/llms.txt) and these docs and runs the steps.
+
+## Move an existing Stainless SDK
+
+The rest of this page switches an existing Stainless-generated Python SDK to Ferrule.
+
+### What you need
 
 - A clone of your SDK repository, with its git history. Ferrule looks for the last commit made
   by `stainless-app[bot]`, so a shallow clone is not enough.
@@ -21,7 +60,7 @@ planned to bring this down to `uvx ferrule adopt .`. Check the
 - [mise](https://mise.jdx.dev). It installs the pinned Rust toolchain, Python and uv. Node is
   not needed to generate an SDK.
 
-## 1. Build Ferrule
+### 1. Build Ferrule
 
 ```bash
 git clone https://github.com/shrijayan/ferrule
@@ -34,7 +73,7 @@ cargo build --release -p ferrule-gen          # converter, Forge and plugin in o
 `ferrule` finds the binary at `target/release/ferrule-gen` in the checkout. If you build it
 somewhere else, pass `--gen PATH` or set `FERRULE_GEN`.
 
-## 2. Do a dry run
+### 2. Do a dry run
 
 From the Ferrule checkout, point `adopt` at your SDK:
 
@@ -45,7 +84,7 @@ uv run ferrule adopt ~/code/acme-python --config ~/code/acme-config/stainless.ym
 The dry run rescues the spec, regenerates the SDK and finds your hand edits, all inside a
 temporary worktree, then stops. No lock file, workflow or branch is written.
 
-## 3. Adopt
+### 3. Adopt
 
 ```bash
 uv run ferrule adopt ~/code/acme-python --config ~/code/acme-config/stainless.yml
@@ -69,7 +108,7 @@ touched. It saves the spec your `.stats.yml` points to (checking its md5), regen
 re-applies your hand edits, then runs `verify` against your last Stainless commit. The command
 exits with status 1 if anything public would break.
 
-## 4. Review the branch
+### 4. Review the branch
 
 Everything lands as one commit on the local branch `ferrule/adopt`:
 
@@ -89,7 +128,7 @@ git diff main...ferrule/adopt --stat
 Breaking changes are listed under the `verify` summary, one per line. Additive changes are names
 the spec has gained since your last Stainless release; they break nobody.
 
-## 5. Push, test, merge
+### 5. Push, test, merge
 
 ```bash
 git push -u origin ferrule/adopt
@@ -99,7 +138,7 @@ gh pr create --fill
 Your existing CI runs your existing tests against the regenerated code. When it is green, merge.
 Your next release is an ordinary patch release: nothing your users import has changed.
 
-## 6. Keep it regenerating
+### 6. Keep it regenerating
 
 `adopt` adds `.github/workflows/sdk.yml`. On every change to the spec or config, and nightly, it
 regenerates the SDK, runs `verify`, and opens a pull request labelled `major`, `minor` or
