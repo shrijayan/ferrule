@@ -161,10 +161,14 @@ def test_real_manifest_config_entries() -> None:
     }
     by_name = {o.name: o for o in oracles}
     for config in configs:
-        assert config.paired in fetch.PAIRED
         assert config.config_path is not None
         assert config.spec is not None
-        sdk = by_name[cast("str", config.pairs_with)]
+        if config.pairs_with is None:  # no Python target: another language's SDK names it
+            assert config.paired is None
+            assert fetch.paired_sdks(oracles, config)
+            continue
+        assert config.paired in fetch.PAIRED
+        sdk = by_name[config.pairs_with]
         assert sdk.kind == "sdk"
         assert sdk.license in fetch.LICENSES
     assert all(o.kind == "sdk" for o in fetch.select(oracles, [], "sdk"))
@@ -496,13 +500,14 @@ def test_real_manifest_languages() -> None:
     oracles = fetch.parse_manifest(fetch.MANIFEST.read_text(encoding="utf-8"))
     by_name = {o.name: o for o in oracles}
     others = [o for o in oracles if o.kind == "sdk" and o.language != "python"]
-    assert len(others) == 23
+    assert len(others) == 25
     for sdk in others:
         assert sdk.name == f"{sdk.group}-{sdk.language}"
         assert sdk.license in fetch.LICENSES
         config = by_name[str(sdk.pairs_with)]
         assert config.kind == "config"
-        assert sdk.paired == config.paired  # nearest exactly where the Python pair is
+        # nearest exactly where the Python pair is; a config with no Python SDK has no paired.
+        assert sdk.paired == (config.paired or "proven")
     assert fetch.select(oracles, ["onebusaway"]) == [
         by_name["onebusaway-config"],
         by_name["onebusaway-python"],
@@ -515,8 +520,20 @@ def test_real_manifest_languages() -> None:
         "onebusaway-kotlin",
         "onebusaway-ruby",
     ]
-    python = [o.name for o in oracles if o.language in {None, "python"}]
+    python = [
+        o.name
+        for o in oracles
+        if o.language == "python" or (o.kind == "config" and o.pairs_with is not None)
+    ]
     assert [o.name for o in fetch.select(oracles, [])] == python
+    assert [o.name for o in fetch.select(oracles, ["imagekit"], None, "csharp")] == [
+        "imagekit-csharp-config",
+        "imagekit-csharp",
+    ]
+    assert [o.name for o in fetch.select(oracles, ["imagekit"])] == [
+        "imagekit-config",
+        "imagekit-python",
+    ]
 
 
 def test_checkout_refuses_non_https(tmp_path: Path) -> None:

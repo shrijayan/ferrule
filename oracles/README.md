@@ -127,6 +127,7 @@ config repos have no licence or a copyleft one).
 | stagehand-config | browserbase/stagehand | `stainless.yml` | `e0e5c3bc3c8f` | 2026-07-21 | stagehand-python `9fe6865a103f` 2026-07-22 | proven | MIT |
 | ogx-config | ogx-ai/ogx (ex llama-stack) | `client-sdks/stainless/config.yml` | `b7fc2751f009` | 2026-06-10 | ogx-client-python `e932a74d284f` 2026-06-11 | proven | MIT |
 | imagekit-config | imagekit-developer/sdk-generation | `stainless-config/main.yaml` | `28534c19366c` | 2026-05-17 | imagekit-python `e75f6267fe64` 2026-05-17 | proven (spec from URL) | Apache-2.0 |
+| imagekit-csharp-config | imagekit-developer/sdk-generation (branch `csharp`) | `stainless-config/main.yaml` | `315e53b788df` | 2026-07-14 | none: C# only, imagekit-csharp `265ab207ce4c` 2026-07-24 | proven | Apache-2.0 |
 | knock-config | knocklabs/docs | `data/specs/api/stainless.yml` | `f6eb88e11425` | 2025-06-04 | knock-python `248fa874915e` 2025-06-06 | proven (spec from URL) | Apache-2.0 |
 | knock-mgmt-config | knocklabs/docs | `data/specs/mapi/stainless.yml` | `2a646bdfd8ec` | 2026-07-08 | knock-mgmt-python `50e5904329fb` 2026-07-09 | nearest | Apache-2.0 |
 | papr-config | Papr-ai/memory-opensource | `openapi.stainless.yml` | `7871626834fa` | 2025-12-08 | papr-python `94759183da64` 2025-12-07 | nearest | Apache-2.0 |
@@ -204,6 +205,8 @@ group's config with `pairs_with`. All are Apache-2.0 or MIT.
 | imagekit-java | imagekit-developer/imagekit-java | java | `f96c35e8d1e5` | 2026-05-17 | codegen metadata | main | proven | Apache-2.0 |
 | imagekit-ruby | imagekit-developer/imagekit-ruby | ruby | `65401086b818` | 2026-05-17 | codegen metadata | main | proven | Apache-2.0 |
 | imagekit-php | imagekit-developer/imagekit-php | php | `9f9309d5b8a6` | 2026-05-17 | codegen metadata | next | proven | Apache-2.0 |
+| imagekit-csharp | imagekit-developer/imagekit-dotnet | csharp | `265ab207ce4c` | 2026-07-24 | release: 6.3.0 | main | proven (imagekit-csharp-config) | Apache-2.0 |
+| stagehand-csharp | browserbase/stagehand-net | csharp | `06de8bf30afa` | 2026-07-25 | release: 3.22.0 | release-please (`…--changes--next`) | proven | MIT |
 | knock-typescript | knocklabs/knock-node | typescript (`typescript`) | `e2c0f18ad312` | 2025-06-06 | release: 1.7.0 (#100) | main | proven | Apache-2.0 |
 | knock-go | knocklabs/knock-go | go (`v1`) | `4b86a0d68f0a` | 2025-06-06 | release: 1.5.0 (#49) | main | proven | Apache-2.0 |
 | knock-ruby | knocklabs/knock-ruby | ruby | `5bc0a747b8dc` | 2025-06-06 | release: 1.6.0 (#34) | main | proven | Apache-2.0 |
@@ -240,6 +243,23 @@ The method is the same for every language. Each target's `.stats.yml` records `c
    2.18.0, released 4 minutes later. Its later Stainless commits keep the hashes until
    2026-02-07.
 
+### A second config in a group
+
+A group can hold more than one config when an SDK was generated from inputs that no Python SDK
+used. imagekit's C# SDK is the case: its last Stainless release (6.3.0) came from a config on
+the config repo's `csharp` branch that lists only `targets.csharp`. That config is its own entry,
+`imagekit-csharp-config`, in the `imagekit` group, with `pairs_with: null` and no `paired`
+(it has no Python SDK). `imagekit-csharp` names it in `pairs_with`. SDK names stay
+`<group>-<language>`, and the group name keeps meaning the Python pair:
+
+```bash
+python3 oracles/fetch.py imagekit                     # imagekit-config + imagekit-python
+python3 oracles/fetch.py --language csharp imagekit   # imagekit-csharp-config + imagekit-csharp
+```
+
+`resolve_pair(oracles, "imagekit", language="csharp")` (scripts/parity) picks the same pair.
+A config with `pairs_with: null` that no SDK names is refused.
+
 Per-language notes:
 
 - **TypeScript has two layouts**, recorded as `layout`. `node` is the legacy layout from the
@@ -251,6 +271,11 @@ Per-language notes:
   `v2` adds `packages/param/` and `packages/respjson/`; imagekit's module path ends in `/v2`.
 - **Java and Kotlin** are separate targets. Both are written in Kotlin, with near-identical
   runtimes, and each has its own oracle.
+- **C#** (`csharp`, the .NET SDKs): found by hashing every commit of every config file in the
+  config repos, on all branches, not only the pinned one. imagekit-dotnet 6.3.0 matches the
+  `csharp`-branch config (above). stagehand-net 3.22.0 matches stagehand-config, the inputs of
+  stagehand-python, so it is the one C# SDK with the same inputs as a Python oracle; it is MIT,
+  archived, and on a release-please branch, so it is compared with, never copied.
 - **Same inputs, different counts**: imagekit's TypeScript, Java, Ruby and PHP SDKs report 47
   `configured_endpoints`; Python and Go report 48.
 - The OneBusAway pins come from the same codegen run as onebusaway-python 1.30.0 (2026-07-18).
@@ -263,9 +288,8 @@ Per-language notes:
 
 | Repo(s) | Licence | Why |
 |---------|---------|-----|
-| browserbase/stagehand-{go,java,kotlin,ruby,php,net} | MIT | Proven only on `next`. Their last generation was never merged to the default branch, which is deprecated, and java, kotlin, php and net are archived. No release to pin. They can be added from the `next` SHAs if stagehand becomes a target. Stagehand's TypeScript target has `production_repo: null`. |
+| browserbase/stagehand-{go,java,kotlin,ruby,php} | MIT | Proven only on `next`. Their last generation was never merged to the default branch, which is deprecated, and java, kotlin and php are archived. No release to pin. They can be added from the `next` SHAs if stagehand becomes a target. Stagehand's TypeScript target has `production_repo: null`. stagehand-net is pinned (stagehand-csharp): its release 3.22.0 sits on a release-please branch. |
 | anomalyco/opencode-sdk-js | MIT | Not proven. Six commits on main carry the pinned `config_hash`, with five different specs, but none has the pinned `openapi_spec_hash` 4ff9376c…. |
-| imagekit-developer/imagekit-dotnet | Apache-2.0 | Unpaired. Its `.stats.yml` hashes come from July 2026 configs that were never published. |
 | imagekit cli, terraform, kotlin targets | — | `production_repo: null` in the config, so no repo exists. |
 | groq, lithic, perplexity | — | No public config, so their other-language SDKs have nothing to pair with. |
 
