@@ -2,7 +2,8 @@
 
 use crate::js;
 use crate::model::{
-    SdkClient, SdkField, SdkLiteral, SdkMethod, SdkObject, SdkParam, SdkPrimitive, SdkRef, SdkResource, SdkType,
+    SdkClient, SdkField, SdkLiteral, SdkMethod, SdkModelDecl, SdkObject, SdkParam, SdkPrimitive, SdkRef, SdkResource,
+    SdkType,
 };
 use crate::naming::{class_segment, singular, snake_case, split_words};
 
@@ -343,6 +344,22 @@ pub fn with_bool_literal(ty: &SdkType, value: bool) -> SdkType {
         },
         other => other.clone(),
     }
+}
+
+/// The type a parameter's example is made from: a ref to a named alias (an ID string, an enum, a
+/// union) stands in for that alias's type, so the example is a value of it, not `{}`.
+#[must_use]
+pub fn example_type<'a>(ty: &'a SdkType, models: &'a [SdkModelDecl]) -> &'a SdkType {
+    let mut ty = ty;
+    // A bound, not a cycle check: aliases of aliases are short, and a cycle stops here as a ref.
+    for _ in 0..8 {
+        let SdkType::Ref(r) = ty else { break };
+        match models.iter().find(|m| m.r#ref == *r).and_then(|m| m.alias.as_ref()) {
+            Some(alias) => ty = alias,
+            None => break,
+        }
+    }
+    ty
 }
 
 fn typed_return<'a>(resource: Option<&SdkResource>, method: &SdkMethod, t: &'a SdkType) -> ReturnModel<'a> {

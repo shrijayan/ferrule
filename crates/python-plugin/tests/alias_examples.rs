@@ -6,7 +6,7 @@ use std::path::PathBuf;
 
 use ferrule_python_plugin::emit::agent::emit_agent_files;
 use ferrule_python_plugin::emit::files::api_tests::emit_api_tests;
-use ferrule_python_plugin::emit::files_input::{placeholder_meta, to_project_files_input};
+use ferrule_python_plugin::emit::files_input::{ReadmeRequest, placeholder_meta, to_project_files_input};
 use ferrule_python_plugin::model::SdkClient;
 use ferrule_python_plugin::plugin::to_model;
 
@@ -29,13 +29,21 @@ fn a_string_alias_parameter_gets_a_string_example() {
         recipe.contains("client.sessions.retrieve(session_id=\"sessionID\")"),
         "{recipe}"
     );
-    let input = to_project_files_input(&client, &placeholder_meta()).expect("project files");
+    let mut meta = placeholder_meta();
+    meta.readme_request = Some(ReadmeRequest {
+        endpoint: "get /sessions/{sessionID}".to_owned(),
+        params: serde_json::from_str(r#"{"sessionID": "ses_1"}"#).expect("params"),
+    });
+    let input = to_project_files_input(&client, &meta).expect("project files");
     let tests = emit_api_tests(&input);
     let module = tests
         .iter()
         .find(|(p, _)| p == "tests/api_resources/test_sessions.py")
         .map(|(_, t)| t.as_str())
         .expect("a test module");
-    assert!(module.contains("session_id=\"sessionID\","), "{module}");
-    assert!(!module.contains("session_id={}"), "{module}");
+    assert!(
+        module.contains("retrieve(\n            \"sessionID\",\n        )"),
+        "{module}"
+    );
+    assert!(!module.contains("{},"), "{module}");
 }
