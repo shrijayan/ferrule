@@ -584,6 +584,14 @@ fn maps_resources_params_and_the_api_key_query_auth() {
         .collect();
     assert_eq!(params, Vec::new());
     assert_eq!(input.resources[0].variable, "thing");
+    // The templates are today's: knock-python's `tests/test_transform.py` imports `NOT_GIVEN`
+    // and tests `PYDANTIC_V2`, so a `NOT_GIVEN` runtime gets no project files.
+    let mut not_given = free.clone();
+    not_given.style = SdkStyle {
+        omit: false,
+        ..SdkStyle::default()
+    };
+    assert!(to_project_files_input(&not_given, &meta).is_none());
     let mut no_settings = free;
     no_settings.settings = None;
     assert!(to_project_files_input(&no_settings, &meta).is_none());
