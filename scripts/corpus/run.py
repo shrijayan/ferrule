@@ -73,6 +73,7 @@ from scripts.corpus.harness import (
     spec_format,
     summarize,
     synthesize,
+    top_causes,
 )
 from scripts.parity.harness import (
     MOCK_HOST,
@@ -136,10 +137,11 @@ def log(msg: str) -> None:
 class StageError(Exception):
     """A stage failed; ``detail`` is recorded in the report."""
 
-    def __init__(self, detail: str) -> None:
-        """Keep the detail."""
+    def __init__(self, detail: str, extra: dict[str, object] | None = None) -> None:
+        """Keep the detail, and fields recorded with it (counts, causes)."""
         super().__init__(detail)
         self.detail = detail
+        self.extra = extra or {}
 
 
 def run(
@@ -190,6 +192,7 @@ class Spec:
         except StageError as exc:
             record["ok"] = False
             record["error"] = exc.detail[-TAIL:]
+            record.update(exc.extra)
         except FerruleError as exc:
             record["ok"] = False
             record["error"] = exc.diagnostic.render()
@@ -434,7 +437,7 @@ def check_stage(spec: Spec, tool: str) -> dict[str, object]:
     errors = count_errors(text, tool)
     if proc.returncode != 0:
         msg = f"{tool} exited {proc.returncode} with {errors} errors:\n{text.strip()[-1500:]}"
-        raise StageError(msg)
+        raise StageError(msg, {"errors": errors, "causes": top_causes(text, tool)})
     return {"errors": errors}
 
 
@@ -514,8 +517,8 @@ def tests_owned(spec: Spec) -> dict[str, object]:
     if proc.returncode != 0:
         tail = (proc.stdout + proc.stderr).strip()[-1500:]
         msg = f"pytest exit {proc.returncode}: {counts}\n{tail}"
-        spec.extra["tests"] = counts
-        raise StageError(msg)
+        causes = top_causes(proc.stdout + proc.stderr, "tests")
+        raise StageError(msg, {**counts, "causes": causes})
     return {"mock": "steady" if "steady" in cmd else "prism", **counts}
 
 

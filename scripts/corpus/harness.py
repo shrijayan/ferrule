@@ -297,6 +297,42 @@ def endpoint_key(endpoint: str) -> str:
     return _PARAM_RE.sub("{}", endpoint)
 
 
+_PYRIGHT_RULE_RE = re.compile(r" - error: .*?(?:\((report\w+)\))?$")
+_MYPY_CODE_RE = re.compile(r"  \[([a-z][a-z-]*)\]$")
+_RUFF_RE = re.compile(r"^\S+:\d+:\d+: (.*)$")
+_PYTEST_RE = re.compile(r"^E\s+((?:\w+\.)*\w*(?:Error|Exception)\b.*)$")
+_DIGITS_RE = re.compile(r"\d+")
+CAUSE_WIDTH = 160
+
+
+def top_causes(text: str, tool: str, top: int = 3) -> dict[str, int]:
+    """Return the most frequent error causes in a tool's output, digits as ``N``.
+
+    pyright: the rule (``reportRedeclaration``); mypy: the error code (``no-redef``); ruff: the
+    message; pytest: the exception line (``SyntaxError: duplicate argument 'timeout' ...``).
+    """
+    counts: dict[str, int] = {}
+    for raw in text.splitlines():
+        line = raw.rstrip()
+        cause: str | None = None
+        if tool == "pyright":
+            m = _PYRIGHT_RULE_RE.search(line)
+            cause = (m[1] or "error") if m else None
+        elif tool == "mypy":
+            m = _MYPY_CODE_RE.search(line)
+            cause = m[1] if m else None
+        elif tool == "ruff":
+            m = _RUFF_RE.match(line)
+            cause = _DIGITS_RE.sub("N", m[1]) if m else None
+        elif tool == "tests":
+            m = _PYTEST_RE.match(line)
+            cause = _DIGITS_RE.sub("N", m[1])[:CAUSE_WIDTH] if m else None
+        if cause:
+            counts[cause] = counts.get(cause, 0) + 1
+    ranked = sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))[:top]
+    return dict(ranked)
+
+
 def fer_codes(texts: Iterable[str]) -> dict[str, int]:
     """Histogram of FER codes mentioned in tool output, sorted by code."""
     counts: dict[str, int] = {}

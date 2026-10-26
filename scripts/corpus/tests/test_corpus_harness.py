@@ -27,6 +27,7 @@ from scripts.corpus.harness import (
     spec_format,
     summarize,
     synthesize,
+    top_causes,
 )
 
 SPEC: dict[str, object] = {
@@ -271,3 +272,23 @@ def test_api_endpoints() -> None:
     )
     assert api_endpoints(md) == {"get /v1/files/{}", "post /v1/files"}
     assert endpoint_key("get /v1/files/{id}") == "get /v1/files/{}"
+
+
+def test_top_causes() -> None:
+    pyright = (
+        '  /x/a.py:1:7 - error: Class declaration "A" is obscured (reportRedeclaration)\n'
+        '  /x/b.py:2:7 - error: Class declaration "B" is obscured (reportRedeclaration)\n'
+        "  /x/c.py:3:1 - error: Import cycle\n"
+        "  /x/d.py:4:1 - warning: unused (reportUnusedImport)\n"
+    )
+    assert top_causes(pyright, "pyright") == {"reportRedeclaration": 2, "error": 1}
+    mypy = 'src/a.py:1: error: Name "A" already defined on line 2  [no-redef]\n'
+    assert top_causes(mypy, "mypy") == {"no-redef": 1}
+    ruff = 'src/a.py:102:9: invalid-syntax: Duplicate parameter "timeout"\nFound 1 error.\n'
+    assert top_causes(ruff, "ruff") == {'invalid-syntax: Duplicate parameter "timeout"': 1}
+    dup = "E   SyntaxError: duplicate argument 'timeout'\n"
+    pytest_out = dup + dup + "E   assert 1 == 2\nE   ValueError: line 42\n"
+    assert top_causes(pytest_out, "tests", top=1) == {
+        "SyntaxError: duplicate argument 'timeout'": 2
+    }
+    assert top_causes(pytest_out, "tests")["ValueError: line N"] == 1
