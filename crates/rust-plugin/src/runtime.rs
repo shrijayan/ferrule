@@ -5,7 +5,7 @@
 //! the template directory.
 
 /// Every runtime file, by path from the crate root.
-pub const FILES: [(&str, &str); 9] = [
+pub const FILES: [(&str, &str); 10] = [
     (
         "src/rt/error.rs",
         include_str!("../../../runtime/rust/template/src/rt/error.rs"),
@@ -17,6 +17,10 @@ pub const FILES: [(&str, &str); 9] = [
     (
         "src/rt/mod.rs",
         include_str!("../../../runtime/rust/template/src/rt/mod.rs"),
+    ),
+    (
+        "src/rt/multipart.rs",
+        include_str!("../../../runtime/rust/template/src/rt/multipart.rs"),
     ),
     (
         "src/rt/pagination.rs",

@@ -39,6 +39,59 @@ impl Opt<'_> {
     fn required(&self) -> bool {
         !self.config.nullable && self.config.default.is_none()
     }
+
+    /// Whether the resolved value is an `Option`: no value is required and none is defaulted.
+    fn optional(&self) -> bool {
+        self.config.default.is_none() && !self.required()
+    }
+
+    /// The builder's value of the option, else its environment variable, else its default; `?`
+    /// on a missing required one. `take` reads it out of a `&mut self` builder.
+    fn value(&self, take: bool) -> String {
+        let ident = &self.ident;
+        let field = if take {
+            format!("self.{ident}.take()")
+        } else {
+            format!("self.{ident}")
+        };
+        let var = self.config.read_env.as_deref();
+        let given = match (self.ty, var) {
+            ("String", Some(var)) => format!("from_env({field}, {var:?})"),
+            (_, Some(var)) => format!("{field}.or_else(|| from_env(None, {var:?}).and_then(|v| v.parse().ok()))"),
+            (_, None) => field,
+        };
+        if let Some(default) = &self.config.default {
+            format!("{given}.unwrap_or({})", default_expr(default, self.ty))
+        } else if self.required() {
+            let hint = var.map_or_else(String::new, |v| format!(" or set {v}"));
+            let message = format!("missing {}: call `{ident}`{hint}", self.config.name.written);
+            format!("{given}.ok_or_else(|| Error::Config({message:?}.to_owned()))?")
+        } else {
+            given
+        }
+    }
+
+    /// The type the client keeps it as.
+    fn kept_type(&self) -> String {
+        if self.optional() {
+            format!("Option<{}>", self.ty)
+        } else {
+            self.ty.to_owned()
+        }
+    }
+}
+
+/// The options the client keeps for the caller rather than sends: no `send` and no auth the
+/// client applies (a basic-auth password goes with its username).
+fn kept<'o>(settings: Option<&ClientSettings>, opts: &'o [Opt<'o>]) -> Result<Vec<&'o Opt<'o>>, FerruleError> {
+    let mut out = Vec::new();
+    for o in opts {
+        let password = o.config.auth.as_ref().is_some_and(|a| a.role == AuthRole::Password);
+        if !password && send(settings, o, "value")?.is_none() {
+            out.push(o);
+        }
+    }
+    Ok(out)
 }
 
 fn opts(settings: Option<&ClientSettings>) -> Vec<Opt<'_>> {
@@ -123,9 +176,38 @@ pub fn client_module(g: &Gen<'_>, collected: &mut Collected) -> Result<(Module, 
     let mut functions = accessors(&g.client.resources, "crate::resources::", site);
     let (calls, tests) = methods(g, &mut module, client, &g.client.client_methods, site, "", collected)?;
     functions.extend(calls);
+    let all = opts(settings);
+    let kept = kept(settings, &all)?;
+    let fields = kept.iter().fold(String::new(), |mut out, o| {
+        let _ = writeln!(out, "    {}: {},", o.ident, o.kept_type());
+        out
+    });
     let mut item = format!(
-        "/// A client for the API. Cloning it is cheap: clones share one connection pool.\n#[derive(Debug, Clone)]\npub struct {client} {{\n    pub(crate) core: std::sync::Arc<Core>,\n}}\n\nimpl {client} {{\n"
+        "/// A client for the API. Cloning it is cheap: clones share one connection pool.\n#[derive(Debug, Clone)]\npub struct {client} {{\n    pub(crate) core: std::sync::Arc<Core>,\n{fields}}}\n\nimpl {client} {{\n"
     );
+    let resources: Vec<String> = g.client.resources.iter().map(super::resource::accessor).collect();
+    for o in &kept {
+        let ident = &o.ident;
+        let name = if resources.contains(ident) {
+            format!("{ident}_option")
+        } else {
+            ident.clone()
+        };
+        let (ty, value) = match (o.ty, o.optional()) {
+            ("String", true) => ("Option<&str>".to_owned(), format!("self.{ident}.as_deref()")),
+            ("String", false) => ("&str".to_owned(), format!("&self.{ident}")),
+            _ => (o.kept_type(), format!("self.{ident}")),
+        };
+        let description = o
+            .config
+            .description
+            .clone()
+            .unwrap_or_else(|| format!("The `{}` option.", o.config.name.written));
+        functions.push(format!(
+            "{}    #[must_use]\n    pub fn {name}(&self) -> {ty} {{\n        {value}\n    }}\n",
+            doc(&description, "    ")
+        ));
+    }
     let _ = write!(
         item,
         "    /// A client with every option read from the environment.\n    ///\n    /// # Errors\n    ///\n    /// [`Error::Config`] when a required option is not set.\n    pub fn new() -> Result<Self> {{\n        Self::builder().build()\n    }}\n\n    /// A builder, to set options before the environment is read.\n    pub fn builder() -> {client}Builder {{\n        {client}Builder::default()\n    }}\n"
@@ -242,9 +324,19 @@ fn builder(g: &Gen<'_>, settings: Option<&ClientSettings>, env: &Environments) -
         setters,
         "    /// How long to wait for a response; {timeout} seconds when not set.\n    pub fn timeout(mut self, timeout: std::time::Duration) -> Self {{\n        self.timeout = Some(timeout);\n        self\n    }}\n\n    /// How many times to retry a failed request; {retries} when not set.\n    pub fn max_retries(mut self, max_retries: u32) -> Self {{\n        self.max_retries = Some(max_retries);\n        self\n    }}\n\n    /// A header to send with every request.\n    pub fn header(mut self, name: impl Into<String>, value: impl Into<String>) -> Self {{\n        self.headers.push((name.into(), value.into()));\n        self\n    }}\n\n    /// The HTTP client to send requests with, instead of a new one.\n    pub fn http_client(mut self, http_client: reqwest::Client) -> Self {{\n        self.http_client = Some(http_client);\n        self\n    }}\n\n"
     );
+    let kept = kept(settings, &opts)?;
+    let resolve = kept.iter().fold(String::new(), |mut out, o| {
+        let _ = writeln!(out, "        let {} = {};", o.ident, o.value(true));
+        out
+    });
+    let store = kept.iter().fold(String::new(), |mut out, o| {
+        let _ = writeln!(out, "            {},", o.ident);
+        out
+    });
+    let receiver = if kept.is_empty() { "self" } else { "mut self" };
     let _ = write!(
         setters,
-        "    /// The client.\n    ///\n    /// # Errors\n    ///\n    /// [`Error::Config`] when a required option is not set, or both `base_url` and\n    /// `environment` are.\n    pub fn build(self) -> Result<{client}> {{\n        Ok({client} {{\n            core: std::sync::Arc::new(self.core()?),\n        }})\n    }}\n\n    /// The blocking client.\n    ///\n    /// # Errors\n    ///\n    /// As [`Self::build`], and [`Error::Config`] when its runtime cannot be started.\n    #[cfg(feature = \"blocking\")]\n    pub fn build_blocking(self) -> Result<crate::blocking::{client}> {{\n        crate::blocking::{client}::from_async(self.build()?)\n    }}\n\n"
+        "    /// The client.\n    ///\n    /// # Errors\n    ///\n    /// [`Error::Config`] when a required option is not set, or both `base_url` and\n    /// `environment` are.\n    pub fn build({receiver}) -> Result<{client}> {{\n{resolve}        Ok({client} {{\n            core: std::sync::Arc::new(self.core()?),\n{store}        }})\n    }}\n\n    /// The blocking client.\n    ///\n    /// # Errors\n    ///\n    /// As [`Self::build`], and [`Error::Config`] when its runtime cannot be started.\n    #[cfg(feature = \"blocking\")]\n    pub fn build_blocking(self) -> Result<crate::blocking::{client}> {{\n        crate::blocking::{client}::from_async(self.build()?)\n    }}\n\n"
     );
     setters.push_str(&core_fn(settings, &opts, &prefix, env)?);
     Ok(format!(
@@ -266,25 +358,9 @@ fn core_fn(
     let mut body = String::from(
         "        let mut headers: Vec<(String, String)> = Vec::new();\n        let mut query: Vec<(String, String)> = Vec::new();\n",
     );
-    for o in opts {
-        let ident = &o.ident;
-        let var = o.config.read_env.as_deref();
-        let given = match (o.ty, var) {
-            ("String", Some(var)) => format!("from_env(self.{ident}, {var:?})"),
-            (_, Some(var)) => format!("self.{ident}.or_else(|| from_env(None, {var:?}).and_then(|v| v.parse().ok()))"),
-            (_, None) => format!("self.{ident}"),
-        };
-        let local = ident.trim_start_matches("r#");
-        let value = if let Some(default) = &o.config.default {
-            format!("{given}.unwrap_or({})", default_expr(default, o.ty))
-        } else if o.required() {
-            let hint = var.map_or_else(String::new, |v| format!(" or set {v}"));
-            let message = format!("missing {}: call `{ident}`{hint}", o.config.name.written);
-            format!("{given}.ok_or_else(|| Error::Config({message:?}.to_owned()))?")
-        } else {
-            given
-        };
-        let _ = writeln!(body, "        let {local} = {value};");
+    let kept = kept(settings, opts)?;
+    for o in opts.iter().filter(|o| !kept.iter().any(|k| k.ident == o.ident)) {
+        let _ = writeln!(body, "        let {} = {};", o.ident, o.value(false));
     }
     let base = if env.item.is_empty() {
         format!(
@@ -306,7 +382,7 @@ fn core_fn(
         );
     }
     for o in opts {
-        let local = o.ident.trim_start_matches("r#");
+        let local = &o.ident;
         let text = if o.ty == "String" {
             local.to_owned()
         } else {
@@ -316,8 +392,7 @@ fn core_fn(
             continue;
         };
         sends_query |= location == SendLocation::Query;
-        let optional = o.config.default.is_none() && !o.required();
-        if optional {
+        if o.optional() {
             let _ = writeln!(
                 body,
                 "        if let Some({local}) = {local} {{\n    {statement}\n        }}"
@@ -431,16 +506,16 @@ fn send(
                             .is_some_and(|a| a.security_scheme == auth.security_scheme && a.role == AuthRole::Password)
                     })
                 })
-                .map(|p| field_name(&p.name.words));
-            password.and_then(|p| {
-                header(
-                    "authorization",
-                    format!(
-                        "crate::rt::basic_auth(&{text}, {}.as_deref().unwrap_or_default())",
-                        p.trim_start_matches("r#")
-                    ),
-                )
-            })
+                .map(|p| {
+                    let ident = field_name(&p.name.words);
+                    // An option with no value and no default is an `Option` in `core()`.
+                    if p.nullable && p.default.is_none() {
+                        format!("{ident}.as_deref().unwrap_or_default()")
+                    } else {
+                        format!("&{ident}")
+                    }
+                });
+            password.and_then(|p| header("authorization", format!("crate::rt::basic_auth(&{text}, {p})")))
         }
         (
             Some(SecurityScheme::Http {
@@ -530,7 +605,7 @@ pub fn blocking_module(g: &Gen<'_>) -> Result<String, FerruleError> {
     )?;
     functions.extend(calls);
     let mut out = format!(
-        "//! The blocking client (`blocking` feature): the same resources and requests, whose `send`\n//! blocks on a runtime the client owns.\n\nuse crate::rt::{{Blocking, Result, blocking_runtime}};\n\n/// A client whose calls block until they are done.\n#[derive(Debug)]\npub struct {client} {{\n    inner: crate::{client},\n    runtime: tokio::runtime::Runtime,\n}}\n\nimpl {client} {{\n    /// A client with every option read from the environment.\n    ///\n    /// # Errors\n    ///\n    /// [`crate::Error::Config`] when a required option is not set or the runtime cannot be\n    /// started.\n    pub fn new() -> Result<Self> {{\n        crate::{client}::builder().build_blocking()\n    }}\n\n    /// A blocking client that shares `inner`'s settings and connection pool.\n    ///\n    /// # Errors\n    ///\n    /// [`crate::Error::Config`] when the runtime cannot be started.\n    pub fn from_async(inner: crate::{client}) -> Result<Self> {{\n        Ok(Self {{\n            inner,\n            runtime: blocking_runtime()?,\n        }})\n    }}\n"
+        "//! The blocking client (`blocking` feature): the same resources and requests, whose `send`\n//! blocks on a runtime the client owns.\n\nuse crate::rt::{{Blocking, Result, blocking_runtime}};\n\n/// A client whose calls block until they are done.\n#[derive(Debug)]\npub struct {client} {{\n    inner: crate::{client},\n    runtime: tokio::runtime::Runtime,\n}}\n\nimpl {client} {{\n    /// A client with every option read from the environment.\n    ///\n    /// # Errors\n    ///\n    /// [`crate::Error::Config`] when a required option is not set or the runtime cannot be\n    /// started.\n    pub fn new() -> Result<Self> {{\n        crate::{client}::builder().build_blocking()\n    }}\n\n    /// A blocking client that shares `inner`'s settings and connection pool.\n    ///\n    /// # Errors\n    ///\n    /// [`crate::Error::Config`] when the runtime cannot be started.\n    pub fn from_async(inner: crate::{client}) -> Result<Self> {{\n        Ok(Self {{\n            inner,\n            runtime: blocking_runtime()?,\n        }})\n    }}\n\n    /// The async client this one wraps, with the same settings.\n    #[must_use]\n    pub fn as_async(&self) -> &crate::{client} {{\n        &self.inner\n    }}\n"
     );
     for f in &functions {
         out.push('\n');

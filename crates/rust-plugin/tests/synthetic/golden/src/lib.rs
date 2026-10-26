@@ -17,4 +17,6 @@ pub mod blocking;
 pub mod testing;
 
 pub use client::{AcmeNotes, AcmeNotesBuilder, Environment};
-pub use rt::{ApiError, Error, EventStream, Page, PageStream, Request, RequestOptions, Result};
+pub use rt::{
+    ApiError, Error, EventStream, FileUpload, Page, PageStream, Request, RequestOptions, Result,
+};

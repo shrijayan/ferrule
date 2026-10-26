@@ -23,6 +23,8 @@ pub struct RequestSpec {
     pub query: Vec<(String, Value)>,
     pub headers: Vec<(String, String)>,
     pub body: Option<RequestBody>,
+    /// The parts of a `multipart/form-data` body, encoded when the request is sent.
+    pub parts: Vec<super::multipart::Part>,
     pub accept: &'static str,
 }
 
@@ -44,6 +46,7 @@ impl RequestSpec {
             query: Vec::new(),
             headers: Vec::new(),
             body: None,
+            parts: Vec::new(),
             accept: "application/json",
         }
     }
@@ -115,6 +118,29 @@ impl RequestSpec {
             .unwrap_or_default();
         fields.insert(name.to_owned(), value);
         self.json(&fields)
+    }
+
+    /// Adds field `name` to the `multipart/form-data` body: one part per array item, objects as
+    /// JSON, nothing for `None`.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::Encode`] when the value cannot be serialized.
+    pub fn multipart_field(&mut self, name: &str, value: &impl Serialize) -> Result<()> {
+        let value = serde_json::to_value(value).map_err(Error::Encode)?;
+        super::multipart::field_parts(name, &value, &mut self.parts);
+        Ok(())
+    }
+
+    /// Adds each of `files` to the `multipart/form-data` body as field `name`.
+    pub fn multipart_files<'f>(
+        &mut self,
+        name: &str,
+        files: impl IntoIterator<Item = &'f super::multipart::FileUpload>,
+    ) {
+        for file in files {
+            self.parts.push(super::multipart::file_part(name, file));
+        }
     }
 
     /// Sends `bytes` as they are.
@@ -349,6 +375,24 @@ mod tests {
                 ("x-flag".to_owned(), "true".to_owned())
             ]
         );
+    }
+
+    #[test]
+    fn collects_multipart_parts() {
+        use super::super::multipart::FileUpload;
+        let mut spec = RequestSpec::new(reqwest::Method::POST, "/files".into());
+        spec.multipart_field("purpose", &"notes").expect("encodes");
+        spec.multipart_field("note", &None::<String>)
+            .expect("encodes");
+        let one = FileUpload::new("a.txt", b"a".to_vec());
+        spec.multipart_files("file", [&one]);
+        spec.multipart_files("extra", &None::<FileUpload>);
+        let names: Vec<(&str, Option<&str>)> = spec
+            .parts
+            .iter()
+            .map(|p| (p.name.as_str(), p.filename.as_deref()))
+            .collect();
+        assert_eq!(names, [("purpose", None), ("file", Some("a.txt"))]);
     }
 
     #[test]

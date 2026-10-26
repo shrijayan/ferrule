@@ -29,6 +29,22 @@ pub static ROUTES: &[Route] = &[
         streaming: None,
     },
     Route {
+        method: "POST",
+        path: "/v1/notes/archive",
+        status: 204,
+        content_type: "application/json",
+        body: r#""#,
+        streaming: None,
+    },
+    Route {
+        method: "POST",
+        path: "/v1/notes/{note_id}",
+        status: 200,
+        content_type: "application/json",
+        body: r#"{"pinned":true}"#,
+        streaming: None,
+    },
+    Route {
         method: "GET",
         path: "/v1/notes/{note_id}/comments",
         status: 200,
@@ -51,6 +67,14 @@ data: [DONE]
 
 "#,
         }),
+    },
+    Route {
+        method: "POST",
+        path: "/v1/files",
+        status: 200,
+        content_type: "application/json",
+        body: r#"{"id":"string"}"#,
+        streaming: None,
     },
     Route {
         method: "POST",

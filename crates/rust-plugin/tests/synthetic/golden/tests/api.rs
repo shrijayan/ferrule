@@ -73,6 +73,28 @@ mod notes {
         assert_eq!(request.path, "/v1/notes/string");
     }
 
+    #[tokio::test]
+    async fn archive() {
+        let server = FakeServer::start();
+        let client = client(&server);
+        let response = client.notes().archive().await;
+        assert!(response.is_ok(), "{response:?}");
+        let request = &server.requests()[0];
+        assert_eq!(request.method, "POST");
+        assert_eq!(request.path, "/v1/notes/archive");
+    }
+
+    #[tokio::test]
+    async fn pin() {
+        let server = FakeServer::start();
+        let client = client(&server);
+        let response = client.notes().pin("string").await;
+        assert!(response.is_ok(), "{response:?}");
+        let request = &server.requests()[0];
+        assert_eq!(request.method, "POST");
+        assert_eq!(request.path, "/v1/notes/string");
+    }
+
     mod comments {
         use super::*;
 
@@ -131,6 +153,23 @@ mod completions {
 
 mod files {
     use super::*;
+
+    #[tokio::test]
+    async fn create() {
+        let server = FakeServer::start();
+        let client = client(&server);
+        let response = client
+            .files()
+            .create(
+                acme_notes::rt::FileUpload::new("file.txt", Vec::<u8>::new()),
+                acme_notes::resources::files::FilesCreatePurpose::Notes,
+            )
+            .await;
+        assert!(response.is_ok(), "{response:?}");
+        let request = &server.requests()[0];
+        assert_eq!(request.method, "POST");
+        assert_eq!(request.path, "/v1/files");
+    }
 
     #[tokio::test]
     async fn upload() {
