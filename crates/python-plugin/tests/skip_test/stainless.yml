@@ -1,0 +1,16 @@
+organization: {name: fx}
+targets:
+  python: {package_name: fx, production_repo: fx/fx-python, publish: {pypi: false}}
+environments: {production: 'https://api.example.com'}
+
+resources:
+  terminals:
+    methods:
+      read:
+        endpoint: get /terminals/read
+        skip_test_reason: the mock server does not read integer query parameters through a $ref
+      list: get /terminals
+readme:
+  example_requests:
+    default: {type: request, endpoint: 'get /terminals', params: {}}
+    headline: {type: request, endpoint: 'get /terminals', params: {}}
