@@ -1,5 +1,6 @@
-//! Example calls for a parameter typed by a named string alias (`tests/alias_examples/`, reduced
-//! from the opencode SDK's IDs): the API tests and the agent recipe pass a string, not `{}`.
+//! Example calls: a parameter typed by a named string alias (`tests/alias_examples/`, reduced
+//! from the opencode SDK's IDs) gets a string, and one typed by a named object model its fields,
+//! not `{}`, in the API tests and the agent recipe.
 
 use std::fs;
 use std::path::PathBuf;
@@ -17,7 +18,7 @@ fn model() -> SdkClient {
 }
 
 #[test]
-fn a_string_alias_parameter_gets_a_string_example() {
+fn a_named_type_parameter_gets_an_example_of_that_type() {
     let client = model();
     let recipes = emit_agent_files(&client, Some(&placeholder_meta()));
     let recipe = recipes
@@ -46,4 +47,6 @@ fn a_string_alias_parameter_gets_a_string_example() {
         "{module}"
     );
     assert!(!module.contains("{},"), "{module}");
+    // A named object model lists its fields, as lithic-python's tests write `address`.
+    assert!(module.contains("\"providerID\": \"string\","), "{module}");
 }
