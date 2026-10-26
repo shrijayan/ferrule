@@ -77,7 +77,9 @@ empty `Object` in Python but as "any value" after the mapping. No fixture or ora
   `http_method` from `HttpMethod` (Python rejects anything but get, post, put, patch, delete with
   FER201); `path_params`, `query_params`, `header_params` from `Param.field` (with its
   `deprecated`); `body` and `body_media_type` from `Body.ty` (mapped) and `Body.media_type`;
-  `response` from `Response.ty`; `example`/`minimum`/`maximum` stay `None` (Forge gap G18).
+  `response` from `Response.ty`, or with `Response.unwrap` the type of that field of the
+  object of `Response.ty` (`unwrap` is the field's wire name; a missing field keeps the envelope
+  and no `unwrap`); `example`/`minimum`/`maximum` stay `None` (Forge gap G18).
 - The body shapes, read on the mapped body type `b` with the mapped declarations at hand:
   - `body_variants`, `body_discriminator`: when `b` (or, for `Ref`, the declaration's alias) is
     a `Union` of two or more variants that are all `Object`s, one `SdkBodyVariant { object,
@@ -88,6 +90,8 @@ empty `Object` in Python but as "any value" after the mapping. No fixture or ora
     declares). Body params carry `deprecated: false`, as the Python adapter has them.
   - `body_whole`: `b` is a `Map` or `Array`. `body_params` is then the one param `body`
     (`required: Body.required`, `description: Body.schema_description`, `ty: b`).
+  - `body_binary`: `Body.ty` is `Scalar { scalar: binary }`. `body_params` is then that same one param
+    `body` (its `ty` is `Unknown`), and `body_whole` is false.
   - `body_file_paths`: for a `multipart/form-data` body (any case), each field of
     `client.object_of(Body.ty)` that is `Scalar` `binary` (`[name]`) or an `Array` of it
     (`[name, "<array>"]`); empty otherwise.

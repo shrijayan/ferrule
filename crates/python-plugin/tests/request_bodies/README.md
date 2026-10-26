@@ -44,3 +44,14 @@ and `stainless.yml` reduced from an oracle (phase 4 triage), and `annotated.json
   out, `Content-Type: multipart/form-data` is set, and `files=files` is passed beside the body.
   Only the request is pinned (in `../request_bodies.rs`, no golden files): Stainless types the
   binary field `FileTypes`, which needs a type the project-file emitters know too.
+- `binary`: an `application/octet-stream` body beside a query parameter, from the opencode
+  SDK's `file.write` (`POST /api/experimental/fs/write`, spec from ADR 0015). No oracle SDK has
+  one, so the expected text follows the runtime: `post`/`put`/`patch` take raw bytes as
+  `content=` (bytes as `body=` are deprecated there) and `_files.read_file_content` reads a
+  path. The argument is the one required keyword `body`, as for a map or array body; it is not
+  in the params file.
+- `option_names`: a body field `timeout` and a query parameter `extra_query`, named like the
+  request options every method takes, from the opencode SDK's `shell.create`. Without a rename
+  the method has two `timeout` arguments, a `SyntaxError`. Stainless prefixes such a name with
+  `api_` (browserbase-python `sessions.create(api_timeout=...)` sends `"timeout"`); the params
+  `TypedDict` declares it with the wire name as its alias.

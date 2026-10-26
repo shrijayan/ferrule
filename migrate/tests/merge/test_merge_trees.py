@@ -60,6 +60,16 @@ def test_lib_and_examples_are_never_touched() -> None:
     assert not result.conflicts
 
 
+def test_the_agent_recipes_ferrule_generates_under_examples_are_updated() -> None:
+    recipe = "examples/agent/session_get.py"
+    base = {recipe: b"client.session.get(session_id={})\n", "examples/demo.py": b"y\n"}
+    ours = dict(base)
+    theirs = {recipe: b'client.session.get(session_id="sessionID")\n', "examples/demo.py": b"gen\n"}
+    result = merge_trees(base, ours, theirs, keep=KEEP)
+    assert result.files[recipe] == theirs[recipe]
+    assert result.files["examples/demo.py"] == b"y\n"
+
+
 def test_keep_files_glob() -> None:
     keep = KeepRules.from_config(
         {

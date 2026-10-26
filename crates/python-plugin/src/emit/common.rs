@@ -2,7 +2,8 @@
 
 use crate::js;
 use crate::model::{
-    SdkClient, SdkField, SdkLiteral, SdkMethod, SdkObject, SdkParam, SdkPrimitive, SdkRef, SdkResource, SdkType,
+    SdkClient, SdkField, SdkLiteral, SdkMethod, SdkModelDecl, SdkObject, SdkParam, SdkPrimitive, SdkRef, SdkResource,
+    SdkType,
 };
 use crate::naming::{class_segment, singular, snake_case, split_words};
 
@@ -345,6 +346,61 @@ pub fn with_bool_literal(ty: &SdkType, value: bool) -> SdkType {
     }
 }
 
+/// The type a parameter's example is made from: each ref to a named model stands in for its
+/// type (an alias's, or an object with its bases' fields first), so the example is a value of it
+/// rather than `{}`, as lithic-python's tests write its shared `address`. A ref back to a model
+/// being expanded stays a ref, which is `{}`.
+#[must_use]
+pub fn example_type(ty: &SdkType, models: &[SdkModelDecl]) -> SdkType {
+    expand_refs(ty, models, &mut Vec::new())
+}
+
+fn expand_refs(ty: &SdkType, models: &[SdkModelDecl], seen: &mut Vec<SdkRef>) -> SdkType {
+    match ty {
+        SdkType::Ref(r) => {
+            let Some(model) = models.iter().find(|m| m.r#ref == *r).filter(|_| !seen.contains(r)) else {
+                return ty.clone();
+            };
+            seen.push(r.clone());
+            let out = match &model.alias {
+                Some(alias) => expand_refs(alias, models, seen),
+                None => SdkType::Object(expand_object(&model.ty, models, seen)),
+            };
+            seen.pop();
+            out
+        }
+        SdkType::Array(items) => SdkType::Array(Box::new(expand_refs(items, models, seen))),
+        SdkType::Map(values) => SdkType::Map(Box::new(expand_refs(values, models, seen))),
+        SdkType::Union {
+            variants,
+            discriminator,
+        } => SdkType::Union {
+            variants: variants.iter().map(|v| expand_refs(v, models, seen)).collect(),
+            discriminator: discriminator.clone(),
+        },
+        SdkType::Object(object) => SdkType::Object(expand_object(object, models, seen)),
+        other => other.clone(),
+    }
+}
+
+fn expand_object(object: &SdkObject, models: &[SdkModelDecl], seen: &mut Vec<SdkRef>) -> SdkObject {
+    let mut fields = Vec::new();
+    for base in &object.bases {
+        if let SdkType::Object(o) = expand_refs(&SdkType::Ref(base.clone()), models, seen) {
+            fields.extend(o.fields);
+        }
+    }
+    fields.extend(object.fields.iter().map(|f| SdkField {
+        ty: expand_refs(&f.ty, models, seen),
+        ..f.clone()
+    }));
+    SdkObject {
+        bases: Vec::new(),
+        fields,
+        ..object.clone()
+    }
+}
+
 fn typed_return<'a>(resource: Option<&SdkResource>, method: &SdkMethod, t: &'a SdkType) -> ReturnModel<'a> {
     if let SdkType::Ref(r) = t {
         return ReturnModel {
@@ -367,9 +423,22 @@ pub fn keyword_path_params(method: &SdkMethod) -> &[SdkParam] {
     &method.path_params[..method.path_params.len().saturating_sub(1)]
 }
 
-/// The keyword arguments of a method (query and body), in the oracle order.
+/// The keyword arguments of a method (query and body), in the oracle order, without a raw-bytes
+/// body: the ones its params `TypedDict` declares.
 #[must_use]
 pub fn method_params(method: &SdkMethod) -> Vec<&SdkParam> {
+    let mut out = query_and_body(method);
+    out.retain(|q| !is_binary_body(method, q));
+    out
+}
+
+/// Whether `q` is the one argument of a raw-bytes body, which no params `TypedDict` declares.
+#[must_use]
+pub fn is_binary_body(method: &SdkMethod, q: &SdkParam) -> bool {
+    method.body_binary && method.body_params.iter().any(|b| std::ptr::eq(b, q))
+}
+
+fn query_and_body(method: &SdkMethod) -> Vec<&SdkParam> {
     sort_fields(method.query_params.iter().chain(&method.body_params))
 }
 
@@ -380,10 +449,11 @@ pub fn header_params(method: &SdkMethod) -> Vec<&SdkParam> {
     sort_fields(&method.header_params)
 }
 
-/// Every keyword argument of a method: [`method_params`], then [`header_params`].
+/// Every keyword argument of a method: [`method_params`] and a raw-bytes body, then
+/// [`header_params`].
 #[must_use]
 pub fn method_args(method: &SdkMethod) -> Vec<&SdkParam> {
-    let mut out = method_params(method);
+    let mut out = query_and_body(method);
     out.extend(header_params(method));
     out
 }

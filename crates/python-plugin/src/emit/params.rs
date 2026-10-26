@@ -5,8 +5,8 @@ use std::collections::{HashMap, HashSet};
 use std::ops::Range;
 
 use super::common::{
-    FieldLike, HEADER, header_params, keyword_path_params, method_args, method_ref, py_string, rel_import, sort_fields,
-    stream_switch, typed_extra, with_bool_literal,
+    FieldLike, HEADER, header_params, is_binary_body, keyword_path_params, method_args, method_ref, py_string,
+    rel_import, sort_fields, stream_switch, typed_extra, with_bool_literal,
 };
 use super::format::{bracket, print_expr};
 use super::models::{all_list, docstring};
@@ -360,15 +360,52 @@ pub struct ParamsContext<'n, 'a> {
     pub here: String,
     /// Names the file's fields use (`shadowed` in the TypeScript context).
     pub shadowed: HashSet<String>,
+    /// Shared models the file also returns: their `shared_params` twins are imported under a
+    /// `SharedParams` alias so both names fit.
+    pub outputs: HashSet<String>,
+}
+
+impl ParamsContext<'_, '_> {
+    /// The name a named model has where the file returns it (a response or stream event, never
+    /// its request twin); imports it.
+    pub fn output_ref(&self, p: &mut PythonPrinter, r: &SdkRef) -> String {
+        p.import_from(&rel_import(&self.here, &format!("types.{}", r.module)), &r.name);
+        r.name.clone()
+    }
+}
+
+/// The request twin of a named model, as Stainless writes it: `XParam` in `x_param.py`, or the
+/// same name in `shared_params/` for a `$shared` model (knock-mgmt-python
+/// `chat_template_param.py`, `shared_params/message_type_boolean_field.py`).
+#[must_use]
+pub fn twin(r: &SdkRef) -> SdkRef {
+    match r.module.strip_prefix("shared.") {
+        Some(rest) => SdkRef {
+            name: r.name.clone(),
+            module: format!("shared_params.{rest}"),
+        },
+        None => SdkRef {
+            name: format!("{}Param", r.name),
+            module: format!("{}_param", r.module),
+        },
+    }
 }
 
 impl AnnotationContext for ParamsContext<'_, '_> {
     fn object_name(&self, obj: &SdkObject) -> String {
         format!("{}{}", self.qualify, self.named.name_of(obj).unwrap_or("object"))
     }
+    /// A request takes a named model's twin.
     fn ref_name(&self, p: &mut PythonPrinter, r: &SdkRef) -> String {
-        p.import_from(&rel_import(&self.here, &format!("types.{}", r.module)), &r.name);
-        r.name.clone()
+        let t = twin(r);
+        let module = rel_import(&self.here, &format!("types.{}", t.module));
+        if t.module.starts_with("shared_params.") && self.outputs.contains(&t.name) {
+            let alias = format!("SharedParams{}", t.name);
+            p.import_from(&module, &format!("{} as {alias}", t.name));
+            return alias;
+        }
+        p.import_from(&module, &t.name);
+        t.name
     }
     fn runtime(&self, p: &mut PythonPrinter, module: &str, name: &str) {
         p.import_from(&rel_import(&self.here, module), name);
@@ -388,7 +425,7 @@ fn is_date(t: &SdkType) -> bool {
     matches!(t, SdkType::Primitive(SdkPrimitive::Datetime | SdkPrimitive::Date))
 }
 
-fn field_annotation<F: FieldLike>(p: &mut PythonPrinter, f: &F, ctx: &dyn AnnotationContext) -> String {
+pub(crate) fn field_annotation<F: FieldLike>(p: &mut PythonPrinter, f: &F, ctx: &dyn AnnotationContext) -> String {
     let mut ann = to_annotation(f.ty(), p, ctx);
     let mut info: Vec<String> = Vec::new();
     if f.py_name() != f.wire_name() {
@@ -438,7 +475,8 @@ pub fn emit_params_file(resource: Option<&SdkResource>, method: &SdkMethod) -> S
         emit_union_params(&mut p, &r.name, &body, here);
         return p.render();
     }
-    let params = method_args(method);
+    let mut params = method_args(method);
+    params.retain(|q| !is_binary_body(method, q));
     let named = name_params(&params, "");
     // The path parameters before the last lead the fields, in path order.
     let mut fields: Vec<&SdkParam> = keyword_path_params(method).iter().collect();
@@ -448,6 +486,7 @@ pub fn emit_params_file(resource: Option<&SdkResource>, method: &SdkMethod) -> S
         qualify: String::new(),
         here,
         shadowed: fields.iter().map(|q| q.py_name.clone()).collect(),
+        outputs: HashSet::new(),
     };
     let switch = stream_switch(method);
     let root = if switch.is_some() {
@@ -580,6 +619,7 @@ fn emit_union_params(p: &mut PythonPrinter, name: &str, body: &UnionBody<'_>, he
         qualify: String::new(),
         here,
         shadowed: body.args.iter().map(|q| q.py_name.clone()).collect(),
+        outputs: HashSet::new(),
     };
     let mut exported = vec![name.to_owned()];
     for (i, v) in body.variants.iter().enumerate() {

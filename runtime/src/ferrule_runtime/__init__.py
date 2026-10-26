@@ -32,6 +32,7 @@ from ferrule_runtime.pagination import (
     PageModel,
     PageScheme,
     PaginationError,
+    page_schemes,
     render_pagination,
 )
 
@@ -57,6 +58,7 @@ __all__ = [
     "TypeScriptNodeOptions",
     "TypeScriptOptions",
     "default_client_name",
+    "page_schemes",
     "render",
     "render_csharp_files",
     "render_files",

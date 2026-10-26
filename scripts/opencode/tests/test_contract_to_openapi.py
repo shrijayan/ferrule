@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import copy
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 import pytest
 
@@ -162,6 +162,20 @@ def test_fold_record_merges_struct_and_record() -> None:
     assert rewrite_refs(kept) == kept
 
 
+def test_fold_non_empty_array_drops_prefix_items() -> None:
+    # Effect's NonEmptyArray (`Form.Fields`): its first item repeats `items` in `prefixItems`.
+    # Forge does not read `prefixItems` and made the array an empty object.
+    item = {"$ref": "#/$defs/A"}
+    schema = {"type": "array", "prefixItems": [item], "minItems": 1, "items": item}
+    assert rewrite_refs(schema) == {
+        "type": "array",
+        "minItems": 1,
+        "items": {"$ref": "#/components/schemas/A"},
+    }
+    tuple_ = {"type": "array", "prefixItems": [item, {"type": "string"}], "items": item}
+    assert "prefixItems" in cast("dict[str, object]", rewrite_refs(tuple_))
+
+
 def test_document_shape() -> None:
     doc = convert(_contract())
     assert doc["openapi"] == "3.1.0"
@@ -174,6 +188,16 @@ def test_document_shape() -> None:
     ]
     assert list(doc["components"]["schemas"]) == ["Event", "NotFound", "Session"]
     assert doc["components"]["schemas"]["Event"] == {"type": "string"}
+
+
+def test_unwrap_data_is_marked() -> None:
+    # The SDK's own generator returned `data` for these: the config unwraps them the same way.
+    contract = _contract()
+    op = convert(contract)["paths"]["/api/session/{sessionID}"]["get"]
+    assert "x-opencode-unwrap-data" not in op
+    contract["groups"][0]["endpoints"][0]["success"]["unwrapData"] = True
+    op = convert(contract)["paths"]["/api/session/{sessionID}"]["get"]
+    assert op["x-opencode-unwrap-data"] is True
 
 
 def test_value_operation() -> None:
@@ -215,7 +239,11 @@ def test_binary_and_stream() -> None:
     assert read["parameters"][0]["in"] == "path"
     assert "application/octet-stream" in read["responses"]["200"]["content"]
     events = paths["/api/fs/events"]["put"]
-    assert "application/octet-stream" in events["requestBody"]["content"]
+    # A binary payload is bytes (`format: binary`), as generators read raw request content.
+    assert events["requestBody"]["content"]["application/octet-stream"]["schema"] == {
+        "type": "string",
+        "format": "binary",
+    }
     assert "text/event-stream" in events["responses"]["200"]["content"]
 
 

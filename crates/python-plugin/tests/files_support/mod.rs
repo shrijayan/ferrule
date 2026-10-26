@@ -138,6 +138,7 @@ fn param(v: &Value) -> FilesParam {
         example: v.get("example").cloned(),
         minimum: v.get("minimum").map(|n| n.as_f64().expect("a number")),
         maximum: v.get("maximum").map(|n| n.as_f64().expect("a number")),
+        binary: false,
     }
 }
 
@@ -153,6 +154,9 @@ fn method(v: &Value) -> FilesMethod {
             module: string(r, "module"),
         }),
         stream_switch: opt_string(v, "streamSwitch"),
+        page: None,
+        streaming: false,
+        skip_test: None,
     }
 }
 
@@ -239,6 +243,7 @@ pub(crate) fn input(v: &Value) -> ProjectFilesInput {
                 value: "My API Key".to_owned(),
                 label: "API Key".to_owned(),
                 has_default: false,
+                nullable: false,
             }],
         },
         query: QueryFormat {

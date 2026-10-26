@@ -1,0 +1,37 @@
+openapi: 3.1.0
+info: {title: fx, version: '1'}
+servers: [{url: 'https://api.example.com'}]
+
+paths:
+  /sessions/{sessionID}:
+    get:
+      operationId: getSession
+      parameters:
+        - {name: sessionID, in: path, required: true, schema: {$ref: '#/components/schemas/Session.ID'}}
+      responses:
+        '200': {description: ok, content: {application/json: {schema: {type: object, properties: {id: {type: string}}}}}}
+  /sessions/{sessionID}/model:
+    post:
+      operationId: switchModel
+      parameters:
+        - {name: sessionID, in: path, required: true, schema: {$ref: '#/components/schemas/Session.ID'}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                model: {$ref: '#/components/schemas/ModelRef'}
+              required: [model]
+      responses:
+        '200': {description: ok, content: {application/json: {schema: {type: boolean}}}}
+components:
+  schemas:
+    ModelRef:
+      type: object
+      properties:
+        id: {type: string}
+        providerID: {type: string}
+      required: [id, providerID]
+    Session.ID: {type: string, pattern: '^ses'}

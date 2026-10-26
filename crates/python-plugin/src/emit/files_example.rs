@@ -5,8 +5,8 @@
 
 use serde_json::Value;
 
-use super::common::{method_args, py_string, return_model, stainless_method_order};
-use super::files::api_tests::{EXAMPLE_DATE, EXAMPLE_DATETIME, Uses, example_value};
+use super::common::{is_binary_body, method_args, py_string, return_model, stainless_method_order};
+use super::files::api_tests::{BINARY_EXAMPLE, EXAMPLE_DATE, EXAMPLE_DATETIME, Uses, example_value};
 use super::files::input::{ExampleArg, ExampleRequest};
 use super::files_input::ReadmeRequest;
 use crate::js;
@@ -15,7 +15,7 @@ use crate::naming::{singular, snake_case, split_words};
 
 /// A JSON value as a one-line Python literal; `trailing` adds the trailing comma Stainless writes
 /// in a README dict (lists have none).
-fn py_literal(value: &Value, trailing: bool) -> String {
+pub(crate) fn py_literal(value: &Value, trailing: bool) -> String {
     match value {
         Value::Null => "None".to_owned(),
         Value::Bool(true) => "True".to_owned(),
@@ -273,7 +273,11 @@ fn required_args(m: &SdkMethod) -> Vec<ExampleArg> {
     kwargs.sort_by(|a, b| js::cmp(&a.py_name, &b.py_name));
     for p in kwargs {
         let query = m.query_params.iter().any(|q| std::ptr::eq(q, p));
-        let v = test_value(p, query);
+        let v = if is_binary_body(m, p) {
+            BINARY_EXAMPLE.to_owned()
+        } else {
+            test_value(p, query)
+        };
         args.push(arg(p, v.clone(), v));
     }
     args

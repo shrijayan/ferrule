@@ -27,7 +27,7 @@ source <(grep -E '^(label|breaking|additive)=' "$out")
 [[ "$status" -le 1 ]] || exit "$status"
 
 echo "--- PR plan"
-LABEL="$label" BREAKING="$breaking" ADDITIVE="$additive" WORKSPACE="$PWD" DRY_RUN=1 \
+LABEL="$label" BREAKING="$breaking" ADDITIVE="$additive" WORKSPACE="$PWD" CHANGED=true DRY_RUN=1 \
   bash "$here/open_pr.sh"
 
 if [[ "$status" -eq 1 ]]; then

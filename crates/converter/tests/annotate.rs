@@ -233,6 +233,86 @@ mod pagination {
         );
     }
 
+    /// The configured schemes go on the root too, for the runtime to render `pagination.py` from
+    /// when it is not copied from an adopted SDK: the fields as lists, in config order (the
+    /// annotated spec's objects are written sorted).
+    #[test]
+    fn writes_the_configured_schemes_on_the_root() {
+        let expected = v(&json!([{
+            "name": "cursor_page",
+            "kind": "cursor",
+            "request": [
+                {"name": "after", "type": "string", "purpose": "next_cursor_param"},
+                {"name": "limit", "type": "integer"}
+            ],
+            "response": [
+                {"name": "data", "type": "array", "purpose": "items"},
+                {"name": "next_cursor", "type": "string", "purpose": "next_cursor_field"}
+            ]
+        }]));
+        let r = convert(&make_spec(), &with_pagination(&json!({"list": "get /users"})));
+        assert_eq!(r.spec.get("x-ferrule-page-schemes"), Some(&expected));
+        let single = convert(
+            &make_spec(),
+            &v(&json!({"pagination": cursor_page(), "resources": {"users": {"methods": {"list": "get /users"}}}})),
+        );
+        assert_eq!(single.spec.get("x-ferrule-page-schemes"), Some(&expected));
+        let none = convert(
+            &make_spec(),
+            &v(&json!({"resources": {"users": {"methods": {"list": "get /users"}}}})),
+        );
+        assert!(none.spec.get("x-ferrule-page-schemes").is_none());
+    }
+
+    /// The knock shapes: an implicit items array (also one named `items`), nested fields and a
+    /// field written before the items.
+    #[test]
+    fn writes_nested_fields_and_implicit_items() {
+        let config = v(&json!({
+            "pagination": [
+                {
+                    "name": "openai_cursor_page",
+                    "type": "cursor",
+                    "request": {"after": {"type": "string", "x-stainless-pagination-property": {"purpose": "next_cursor_param"}}},
+                    "response": {
+                        "skip_token": {"type": "string"},
+                        "entries": {"type": "array", "items": {"type": "object"}},
+                        "page_info": {"type": "object", "properties": {
+                            "after": {"type": "string", "x-stainless-pagination-property": {"purpose": "next_cursor_field"}}
+                        }}
+                    }
+                }
+            ],
+            "resources": {"users": {"methods": {"list": "get /users"}}}
+        }));
+        let named_items = v(&json!({
+            "pagination": {"name": "p", "type": "cursor", "response": {"items": {"type": "array"}}},
+            "resources": {"users": {"methods": {"list": "get /users"}}}
+        }));
+        assert_eq!(
+            convert(&make_spec(), &named_items).spec.get("x-ferrule-page-schemes"),
+            Some(&v(&json!([{"name": "p", "kind": "cursor", "request": [], "response": [
+                {"name": "items", "type": "array", "purpose": "items"}
+            ]}])))
+        );
+        let r = convert(&make_spec(), &config);
+        assert_eq!(
+            r.spec.get("x-ferrule-page-schemes"),
+            Some(&v(&json!([{
+                "name": "openai_cursor_page",
+                "kind": "cursor",
+                "request": [{"name": "after", "type": "string", "purpose": "next_cursor_param"}],
+                "response": [
+                    {"name": "skip_token", "type": "string"},
+                    {"name": "entries", "type": "array", "purpose": "items"},
+                    {"name": "page_info", "type": "object", "fields": [
+                        {"name": "after", "type": "string", "purpose": "next_cursor_field"}
+                    ]}
+                ]
+            }])))
+        );
+    }
+
     #[test]
     fn matches_list_methods_and_all_of_responses() {
         let r = convert(
@@ -331,6 +411,90 @@ mod pagination {
         });
         let r = convert(&v(&spec), &with_pagination(&json!({"list": "get /users"})));
         assert!(op(&r.spec, "/users", "get").get("x-ferrule-pagination").is_none());
+    }
+}
+
+mod unwrap_response {
+    use super::*;
+
+    fn spec() -> Value {
+        let envelope = |props: serde_json::Value| {
+            json!({"200": {"content": {"application/json": {"schema": {
+                "type": "object", "properties": props
+            }}}}})
+        };
+        v(&json!({
+            "openapi": "3.1.0",
+            "paths": {
+                "/one": {"get": {"responses": envelope(json!({"data": {"type": "string"}}))}},
+                "/two": {"get": {"responses": envelope(json!({"data": {"type": "string"}, "location": {"type": "string"}}))}},
+                "/ref": {"get": {"responses": {"200": {"content": {"application/json": {"schema": {
+                    "$ref": "#/components/schemas/Envelope"
+                }}}}}}}
+            },
+            "components": {"schemas": {"Envelope": {"type": "object", "properties": {
+                "data": {"type": "integer"}, "location": {"type": "string"}
+            }}}}
+        }))
+    }
+
+    fn unwrap_of(r: &ferrule_converter::ConvertResult, path: &str) -> Option<Value> {
+        op(&r.spec, path, "get").get("x-ferrule-unwrap").cloned()
+    }
+
+    /// Stainless's `unwrap_response`: a method names the envelope field it returns, or opts out
+    /// with `false`; `settings.unwrap_response_fields` unwraps a one-field envelope, and any
+    /// envelope with `unwrap_multiproperty_response_fields` (the opencode `{location, data}`).
+    #[test]
+    fn marks_the_envelope_field_an_operation_returns() {
+        let methods = json!({
+            "one": "get /one",
+            "two": "get /two",
+            "by_ref": {"endpoint": "get /ref", "unwrap_response": "data"}
+        });
+        let r = convert(
+            &spec(),
+            &v(&json!({
+                "settings": {"unwrap_response_fields": ["data"]},
+                "resources": {"things": {"methods": methods}}
+            })),
+        );
+        assert_eq!(r.diagnostics, none());
+        assert_eq!(unwrap_of(&r, "/one"), Some(v(&json!("data"))));
+        assert_eq!(unwrap_of(&r, "/two"), None);
+        assert_eq!(unwrap_of(&r, "/ref"), Some(v(&json!("data"))));
+
+        let multi = convert(
+            &spec(),
+            &v(&json!({
+                "settings": {"unwrap_response_fields": ["data"], "unwrap_multiproperty_response_fields": true},
+                "resources": {"things": {"methods": {
+                    "two": "get /two",
+                    "one": {"endpoint": "get /one", "unwrap_response": false}
+                }}}
+            })),
+        );
+        assert_eq!(unwrap_of(&multi, "/two"), Some(v(&json!("data"))));
+        assert_eq!(unwrap_of(&multi, "/one"), None);
+    }
+
+    #[test]
+    fn warns_when_the_named_field_is_not_in_the_response() {
+        let r = convert(
+            &spec(),
+            &v(&json!({"resources": {"things": {"methods": {
+                "one": {"endpoint": "get /one", "unwrap_response": "result"}
+            }}}})),
+        );
+        assert_eq!(unwrap_of(&r, "/one"), None);
+        assert_eq!(
+            codes(&r.diagnostics),
+            vec![(
+                "FER1007",
+                "warning".to_owned(),
+                "/resources/things/methods/one/unwrap_response"
+            )]
+        );
     }
 }
 
@@ -980,4 +1144,37 @@ fn reports_fer1005_for_a_model_whose_schema_is_not_in_the_spec() {
     );
     assert_eq!(r.spec, spec);
     assert!(r.diagnostics.iter().all(|d| d.severity == Severity::Warning));
+}
+
+mod skip_test_reason {
+    use super::*;
+
+    /// Stainless's `skip_test_reason`: a reason for every language, or per language, of which
+    /// only Python's is kept (knock-python skips its callback tests this way).
+    #[test]
+    fn marks_the_operations_whose_tests_are_skipped() {
+        let ok = json!({"200": {"description": "ok"}});
+        let spec = v(&json!({
+            "openapi": "3.1.0",
+            "paths": {
+                "/all": {"get": {"responses": ok}},
+                "/python": {"get": {"responses": ok}},
+                "/ruby": {"get": {"responses": ok}},
+                "/none": {"get": {"responses": ok}}
+            }
+        }));
+        let methods = json!({
+            "all": {"endpoint": "get /all", "skip_test_reason": "the mock rejects it"},
+            "python": {"endpoint": "get /python", "skip_test_reason": {"python": "not in Python", "ruby": "x"}},
+            "ruby": {"endpoint": "get /ruby", "skip_test_reason": {"ruby": "only Ruby"}},
+            "none": "get /none"
+        });
+        let r = convert(&spec, &v(&json!({"resources": {"things": {"methods": methods}}})));
+        assert_eq!(r.diagnostics, none());
+        let skip = |path: &str| op(&r.spec, path, "get").get("x-ferrule-skip-test").cloned();
+        assert_eq!(skip("/all"), Some(v(&json!("the mock rejects it"))));
+        assert_eq!(skip("/python"), Some(v(&json!("not in Python"))));
+        assert_eq!(skip("/ruby"), None);
+        assert_eq!(skip("/none"), None);
+    }
 }

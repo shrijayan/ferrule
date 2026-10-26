@@ -5,8 +5,8 @@
 use serde_json::{Map, Value};
 
 use super::common::{
-    header_params, leaf, method_params, method_ref, resource_class_base, resource_module, resource_tree, return_model,
-    sort_fields, stainless_method_order, stream_switch, types_dir,
+    example_type, header_params, is_binary_body, leaf, method_params, method_ref, resource_class_base, resource_module,
+    resource_tree, return_model, sort_fields, stainless_method_order, stream_switch, types_dir,
 };
 use super::files::input::{
     Auth, AuthOpt, AuthScheme, ExampleRequest, FilesMethod, FilesParam, FilesResource, Organization, ParamLocation,
@@ -14,8 +14,8 @@ use super::files::input::{
 };
 use super::files_example::examples;
 use crate::model::{
-    ApiKeyLocation, HttpAuthScheme, SdkClient, SdkClientSettings, SdkMethod, SdkParam, SdkResource, SdkSecurityScheme,
-    SendLocation,
+    ApiKeyLocation, HttpAuthScheme, SdkClient, SdkClientSettings, SdkMethod, SdkModelDecl, SdkParam, SdkResource,
+    SdkSecurityScheme, SendLocation,
 };
 use crate::naming::{singular, snake_case, split_words};
 
@@ -106,6 +106,7 @@ fn auth(s: &SdkClientSettings) -> Auth {
                 value: format!("My {label}"),
                 label,
                 has_default: o.default.is_some(),
+                nullable: o.nullable,
             }
         })
         .collect();
@@ -142,24 +143,25 @@ fn auth(s: &SdkClientSettings) -> Auth {
     Auth { scheme, opts }
 }
 
-fn files_param(p: &SdkParam, location: ParamLocation) -> FilesParam {
+fn files_param(models: &[SdkModelDecl], p: &SdkParam, location: ParamLocation, binary: bool) -> FilesParam {
     FilesParam {
         py_name: p.py_name.clone(),
         wire_name: p.wire_name.clone(),
         required: p.required,
         location,
-        ty: p.ty.clone(),
+        ty: example_type(&p.ty, models),
         example: p.example.clone(),
         minimum: p.minimum,
         maximum: p.maximum,
+        binary,
     }
 }
 
-fn files_method(resource: &SdkResource, m: &SdkMethod) -> FilesMethod {
+fn files_method(models: &[SdkModelDecl], resource: &SdkResource, m: &SdkMethod) -> FilesMethod {
     let mut params: Vec<FilesParam> = m
         .path_params
         .iter()
-        .map(|p| files_param(p, ParamLocation::Path))
+        .map(|p| files_param(models, p, ParamLocation::Path, false))
         .collect();
     params.extend(
         sort_fields(m.query_params.iter().chain(&m.body_params))
@@ -167,19 +169,21 @@ fn files_method(resource: &SdkResource, m: &SdkMethod) -> FilesMethod {
             .map(|p| {
                 let in_query = m.query_params.iter().any(|q| std::ptr::eq(q, p));
                 files_param(
+                    models,
                     p,
                     if in_query {
                         ParamLocation::Query
                     } else {
                         ParamLocation::Body
                     },
+                    is_binary_body(m, p),
                 )
             }),
     );
     params.extend(
         header_params(m)
             .into_iter()
-            .map(|p| files_param(p, ParamLocation::Header)),
+            .map(|p| files_param(models, p, ParamLocation::Header, false)),
     );
     let ret = return_model(Some(resource), m);
     FilesMethod {
@@ -197,6 +201,9 @@ fn files_method(resource: &SdkResource, m: &SdkMethod) -> FilesMethod {
             module: format!("types.{}", r.r#ref.module),
         }),
         stream_switch: stream_switch(m).map(|q| q.py_name.clone()),
+        page: m.pagination.as_ref().map(|p| p.page.clone()),
+        streaming: m.streaming.is_some() && stream_switch(m).is_none(),
+        skip_test: m.skip_test.clone(),
     }
 }
 
@@ -238,7 +245,7 @@ fn files_resource(client: &SdkClient, r: &SdkResource, parent: Option<&SdkResour
         module: resource_module(r),
         types,
         types_module: types_module.join("."),
-        methods: methods.iter().map(|m| files_method(r, m)).collect(),
+        methods: methods.iter().map(|m| files_method(&client.models, r, m)).collect(),
         subresources: r
             .subresources
             .iter()

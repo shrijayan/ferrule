@@ -1,0 +1,16 @@
+openapi: 3.1.0
+info: {title: fx, version: '1'}
+servers: [{url: 'https://api.example.com'}]
+
+paths:
+  /fs/write:
+    post:
+      operationId: writeFile
+      parameters: [{name: path, in: query, required: true, schema: {type: string}, description: Where to write}]
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema: {type: string, format: binary}
+      responses:
+        '200': {description: ok, content: {application/json: {schema: {type: object, properties: {path: {type: string}}, required: [path]}}}}

@@ -1,5 +1,5 @@
 {
-  "sha256": "b12012d650480a054f434582a46ce91d968527136ec274ab549caf194079b91c",
+  "sha256": "d11612d71eea334226fca9d8c9a1da06828cdedc1f3622690ba8c22751ef972d",
   "root": {
     "x-ferrule-client": {
       "defaultEnvironment": "production",
@@ -54,6 +54,138 @@
       "pythonEdition": "python.2025-10-08",
       "version": 1
     },
+    "x-ferrule-page-schemes": [
+      {
+        "kind": "cursor",
+        "name": "entries_cursor",
+        "request": [
+          {
+            "name": "after",
+            "purpose": "next_cursor_param",
+            "type": "string"
+          },
+          {
+            "name": "before",
+            "purpose": "previous_cursor_param",
+            "type": "string"
+          },
+          {
+            "name": "page_size",
+            "type": "integer"
+          }
+        ],
+        "response": [
+          {
+            "name": "entries",
+            "purpose": "items",
+            "type": "array"
+          },
+          {
+            "fields": [
+              {
+                "name": "after",
+                "purpose": "next_cursor_field",
+                "type": "string"
+              }
+            ],
+            "name": "page_info",
+            "type": "object"
+          }
+        ]
+      },
+      {
+        "kind": "cursor",
+        "name": "items_cursor",
+        "request": [
+          {
+            "name": "after",
+            "purpose": "next_cursor_param",
+            "type": "string"
+          },
+          {
+            "name": "before",
+            "purpose": "previous_cursor_param",
+            "type": "string"
+          },
+          {
+            "name": "page_size",
+            "type": "integer"
+          }
+        ],
+        "response": [
+          {
+            "name": "items",
+            "purpose": "items",
+            "type": "array"
+          },
+          {
+            "fields": [
+              {
+                "name": "after",
+                "purpose": "next_cursor_field",
+                "type": "string"
+              }
+            ],
+            "name": "page_info",
+            "type": "object"
+          }
+        ]
+      },
+      {
+        "kind": "cursor",
+        "name": "slack_channels_cursor",
+        "request": [
+          {
+            "name": "query_options.cursor",
+            "purpose": "next_cursor_param",
+            "type": "string"
+          },
+          {
+            "name": "query_options.limit",
+            "type": "integer"
+          }
+        ],
+        "response": [
+          {
+            "name": "next_cursor",
+            "purpose": "next_cursor_field",
+            "type": "string"
+          },
+          {
+            "name": "slack_channels",
+            "purpose": "items",
+            "type": "array"
+          }
+        ]
+      },
+      {
+        "kind": "cursor",
+        "name": "ms_teams_pagination",
+        "request": [
+          {
+            "name": "query_options.$skiptoken",
+            "purpose": "next_cursor_param",
+            "type": "string"
+          },
+          {
+            "name": "query_options.$top",
+            "type": "integer"
+          }
+        ],
+        "response": [
+          {
+            "name": "skip_token",
+            "purpose": "next_cursor_field",
+            "type": "string"
+          },
+          {
+            "name": "ms_teams_teams",
+            "purpose": "items",
+            "type": "array"
+          }
+        ]
+      }
+    ],
     "x-ferrule-targets": {
       "go": {
         "edition": "go.2025-10-08",

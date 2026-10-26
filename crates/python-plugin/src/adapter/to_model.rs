@@ -12,7 +12,9 @@ use crate::model::{
     HttpVerb, SdkBodyVariant, SdkClient, SdkClientSettings, SdkField, SdkLiteral, SdkMethod, SdkModelDecl, SdkObject,
     SdkPackage, SdkPagination, SdkParam, SdkPrimitive, SdkRef, SdkResource, SdkStreaming, SdkStyle, SdkType,
 };
-use crate::naming::{Casing, class_segment_with, model_attribute, pascal_case, singular, snake_case, split_words};
+use crate::naming::{
+    Casing, class_segment_with, model_attribute, param_name, pascal_case, singular, snake_case, split_words,
+};
 
 /// The reserved resource name of methods on the client class itself (ADR 0003).
 pub const CLIENT_RESOURCE: &str = "$client";
@@ -90,7 +92,7 @@ impl Context<'_> {
         let f = self.read_field(field)?;
         Ok(SdkParam {
             wire_name: f.wire_name,
-            py_name: f.py_name,
+            py_name: param_name(&f.py_name),
             required: f.required,
             description: f.description,
             ty: f.ty,
@@ -179,6 +181,9 @@ impl Context<'_> {
                             alias: None,
                         };
                         self.decls.push((schema.to_owned(), decl));
+                        // No type at all (`{}`, `{not: ...}`) holds any value: an alias, not the
+                        // empty class an object without properties is.
+                        let any = matches!(model.ty(), Type::Scalar(Scalar::Unknown));
                         let body = self.read_type(model.ty())?;
                         if let Some(clash) = attribute_clash(&body) {
                             let pointer =
@@ -188,6 +193,7 @@ impl Context<'_> {
                         if let Some((_, slot)) = self.decls.iter_mut().find(|(k, _)| k == schema) {
                             match body {
                                 SdkType::Object(o) => slot.ty = o,
+                                SdkType::Unknown if any => slot.alias = Some(SdkType::Unknown),
                                 // An object without properties: an empty class, as Stainless prints it.
                                 SdkType::Unknown => {}
                                 other => slot.alias = Some(other),
@@ -395,6 +401,22 @@ impl Context<'_> {
         }))
     }
 
+    /// The envelope field the method returns instead of `envelope` (`x-ferrule-unwrap`), with
+    /// its wire name; `envelope` itself when there is none or the field is missing.
+    fn unwrap(&self, envelope: Option<SdkType>) -> (Option<SdkType>, Option<String>) {
+        let Some(field) = self.ext.unwrap.as_ref() else {
+            return (envelope, None);
+        };
+        let inner = self
+            .object_of(envelope.as_ref())
+            .and_then(|o| o.fields.iter().find(|f| f.wire_name == *field))
+            .map(|f| f.ty.clone());
+        match inner {
+            Some(ty) => (Some(ty), Some(field.clone())),
+            None => (envelope, None),
+        }
+    }
+
     fn read_method(&mut self, method: Method<'_>) -> Result<SdkMethod, FerruleError> {
         let http = method.http_method().as_str();
         let verb = match http.to_lowercase().as_str() {
@@ -412,7 +434,8 @@ impl Context<'_> {
             .responses()
             .find_map(forge::Response::json)
             .map(forge::Content::ty);
-        let response = response_type.map(|t| self.read_type(t)).transpose()?;
+        let envelope = response_type.map(|t| self.read_type(t)).transpose()?;
+        let (response, unwrap) = self.unwrap(envelope);
         if let Some(clash) = response.as_ref().and_then(attribute_clash) {
             return Err(clash_error(self.pointer, &clash));
         }
@@ -428,22 +451,26 @@ impl Context<'_> {
         } else {
             merge_variants(&body_variants)
         };
-        // A map or array body is one `body` argument, described by the body schema (Stainless).
+        // A map or array body is one `body` argument, described by the body schema (Stainless),
+        // and so is a raw-bytes body, sent as the request content.
+        let body_binary = content.is_some_and(|c| matches!(c.ty(), Type::Scalar(Scalar::Binary)));
         let whole = match (&body, content) {
-            (Some(ty @ (SdkType::Map(_) | SdkType::Array(_))), Some(c)) => Some(SdkParam {
-                wire_name: "body".to_owned(),
-                py_name: "body".to_owned(),
-                required: method.body().is_some_and(forge::Body::is_required),
-                description: c.description().to_owned(),
-                ty: ty.clone(),
-                deprecated: false,
-                example: None,
-                minimum: None,
-                maximum: None,
-            }),
+            (Some(ty @ (SdkType::Map(_) | SdkType::Array(_))), Some(c)) => Some((ty, c)),
+            (Some(ty), Some(c)) if body_binary => Some((ty, c)),
             _ => None,
-        };
-        let body_whole = whole.is_some();
+        }
+        .map(|(ty, c)| SdkParam {
+            wire_name: "body".to_owned(),
+            py_name: "body".to_owned(),
+            required: method.body().is_some_and(forge::Body::is_required),
+            description: c.description().to_owned(),
+            ty: ty.clone(),
+            deprecated: false,
+            example: None,
+            minimum: None,
+            maximum: None,
+        });
+        let body_whole = whole.is_some() && !body_binary;
         let body_params = whole.map_or(body_params, |p| vec![p]);
         let pagination = self.to_pagination(response.as_ref())?;
         let streaming = self.read_streaming(method, response.as_ref())?;
@@ -463,6 +490,7 @@ impl Context<'_> {
             body_params,
             body_media_type: content.map(|c| c.media_type().to_owned()),
             body_whole,
+            body_binary,
             body_variants,
             body_discriminator,
             body_file_paths: content
@@ -470,6 +498,8 @@ impl Context<'_> {
                 .map(|c| file_paths(c.ty()))
                 .unwrap_or_default(),
             response,
+            unwrap,
+            skip_test: self.ext.skip_test.clone(),
             pagination,
             streaming,
         })
@@ -539,7 +569,7 @@ fn file_paths(ty: Type<'_>) -> Vec<Vec<String>> {
 fn field_param(f: &SdkField) -> SdkParam {
     SdkParam {
         wire_name: f.wire_name.clone(),
-        py_name: f.py_name.clone(),
+        py_name: param_name(&f.py_name),
         required: f.required,
         description: f.description.clone(),
         ty: f.ty.clone(),

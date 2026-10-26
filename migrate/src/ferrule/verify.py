@@ -5,6 +5,12 @@
 Both packages are loaded statically with griffe (``allow_inspection=False``): nothing from
 either tree is imported or run. Breaking changes are griffe's breakage kinds; additive
 changes are public objects that only the new tree has, and new parameters with defaults.
+
+Some breakages are only two runtimes spelling the same API (an SDK another generator wrote,
+adopted onto Ferrule's runtime): a ``cached_property`` griffe reads as an attribute on one side
+and a decorated function on the other, a method and its alias swapping which name is the alias,
+or a default moving between omitted-argument sentinels (``NOT_GIVEN`` -> ``omit``). Callers see
+no difference, so these are listed as ``normalized``, not breaking.
 """
 
 from __future__ import annotations
@@ -34,6 +40,10 @@ REQUIRED_CAPABLE = frozenset(
     },
 )
 CONTAINERS = frozenset({griffe.Kind.MODULE, griffe.Kind.CLASS})
+# Defaults meaning "argument not given", in every runtime spelling (Stainless's older
+# `NOT_GIVEN`, today's `omit`/`not_given`); the request leaves the field out for all of them.
+OMITTED = frozenset({"NOT_GIVEN", "NotGiven()", "not_given", "omit", "Omit()"})
+PROPERTY_DECORATORS = frozenset({"property", "cached_property"})
 
 
 @dataclass(frozen=True)
@@ -61,13 +71,15 @@ class Report:
     package: str
     breaking: list[Change] = field(default_factory=list[Change])
     additive: list[Change] = field(default_factory=list[Change])
+    normalized: list[Change] = field(default_factory=list[Change])
     closeness: float = 0.0
     files: list[FileScore] = field(default_factory=list[FileScore])
 
     def summary(self) -> str:
         """Return the one-line verdict."""
+        same = f" ({len(self.normalized)} runtime spellings not counted)" if self.normalized else ""
         return (
-            f"public API: {len(self.breaking)} breaking · {len(self.additive)} additive\n"
+            f"public API: {len(self.breaking)} breaking · {len(self.additive)} additive{same}\n"
             f"text closeness: {self.closeness:.1f}%"
         )
 
@@ -77,9 +89,11 @@ class Report:
             "package": self.package,
             "breaking_count": len(self.breaking),
             "additive_count": len(self.additive),
+            "normalized_count": len(self.normalized),
             "closeness": round(self.closeness, 2),
             "breaking": [asdict(c) for c in self.breaking],
             "additive": [asdict(c) for c in self.additive],
+            "normalized": [asdict(c) for c in self.normalized],
             "files": [asdict(f) for f in self.files],
         }
 
@@ -136,15 +150,93 @@ def _value(value: object) -> str:
 
 def breaking_changes(old: griffe.Object, new: griffe.Object) -> list[Change]:
     """Return griffe's breakages as plain text, sorted for stable output."""
-    found = [
-        Change(
+    return classify(old, new)[0]
+
+
+def classify(old: griffe.Object, new: griffe.Object) -> tuple[list[Change], list[Change]]:
+    """Split griffe's breakages into breaking ones and runtime spellings of the same API."""
+    breaking: list[Change] = []
+    same: list[Change] = []
+    for b in griffe.find_breaking_changes(old, new):
+        change = Change(
             b.kind.name,
             b.obj.path,
             f"{b.obj.path}: {b.kind.value} ({_value(b.old_value)} -> {_value(b.new_value)})",
         )
-        for b in griffe.find_breaking_changes(old, new)
-    ]
-    return sorted(found, key=lambda c: (c.path, c.kind, c.detail))
+        (same if _same_api(b, old, new) else breaking).append(change)
+
+    def key(c: Change) -> tuple[str, str, str]:
+        return (c.path, c.kind, c.detail)
+
+    return sorted(breaking, key=key), sorted(same, key=key)
+
+
+def _member(root: griffe.Object, path: str) -> griffe.Object | None:
+    """Return the object at dotted ``path`` (starting with the package name) under ``root``."""
+    rel = path.removeprefix(f"{root.path}.")
+    try:
+        found = root[rel]
+    except (KeyError, griffe.AliasResolutionError, griffe.CyclicAliasError):
+        return None
+    return _target(found)
+
+
+def _counterpart(old: griffe.Object, new: griffe.Object, path: str) -> griffe.Object | None:
+    """Return the old object at ``path`` of the new tree, also when its class moved module.
+
+    ``acme.Client`` may be defined in ``acme._client`` before and ``acme.lib._client`` after (an
+    adopted SDK's custom client); griffe reports the new path, so it is mapped back through the
+    public name both trees export.
+    """
+    found = _member(old, path)
+    if found is not None:
+        return found
+    for name, member in new.members.items():
+        target = _target(member)
+        if target is None or not path.startswith(f"{target.path}."):
+            continue
+        before = _member(old, f"{old.path}.{name}")
+        if before is not None:
+            return _member(old, before.path + path.removeprefix(target.path))
+    return None
+
+
+def _is_property(obj: griffe.Object) -> bool:
+    if isinstance(obj, griffe.Attribute):
+        return "property" in obj.labels
+    return isinstance(obj, griffe.Function) and any(
+        str(d.value).rsplit(".", 1)[-1] in PROPERTY_DECORATORS for d in obj.decorators
+    )
+
+
+def _is_callable(obj: griffe.Object) -> bool:
+    """Tell whether ``obj`` is a method, or a class attribute naming one (``copy = f``)."""
+    if isinstance(obj, griffe.Function):
+        return not _is_property(obj)
+    parent = obj.parent
+    if not isinstance(obj, griffe.Attribute) or not isinstance(parent, griffe.Class):
+        return False
+    target = parent.members.get(str(obj.value)) if obj.value is not None else None
+    return isinstance(target, griffe.Function)
+
+
+def _same_api(b: griffe.Breakage, old: griffe.Object, new: griffe.Object) -> bool:
+    if b.kind is griffe.BreakageKind.PARAMETER_CHANGED_DEFAULT:
+        before, after = b.old_value, b.new_value
+        return (
+            isinstance(before, griffe.Parameter)
+            and isinstance(after, griffe.Parameter)
+            and str(before.default) in OMITTED
+            and str(after.default) in OMITTED
+        )
+    if b.kind is not griffe.BreakageKind.OBJECT_CHANGED_KIND:
+        return False
+    before, after = _counterpart(old, new, b.obj.path), _member(new, b.obj.path)
+    if before is None or after is None:
+        return False
+    return (_is_property(before) and _is_property(after)) or (
+        _is_callable(before) and _is_callable(after)
+    )
 
 
 def _target(member: griffe.Object | griffe.Alias) -> griffe.Object | None:
@@ -239,7 +331,8 @@ def verify(old_tree: Path, new_tree: Path, package: str | None = None) -> Report
         else griffe.Module(name)
     )
     pct, scores = closeness(old_tree, new_tree)
-    return Report(name, breaking_changes(old, new), additive_changes(old, new), pct, scores)
+    breaking, same = classify(old, new)
+    return Report(name, breaking, additive_changes(old, new), same, pct, scores)
 
 
 def export_ref(repo: Path, ref: str, dest: Path) -> Path:

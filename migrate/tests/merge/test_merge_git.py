@@ -141,3 +141,38 @@ def test_write_tree_refuses_paths_outside_out(tmp_path: Path, rel: str) -> None:
     with pytest.raises(FerruleError, match="FER4008"):
         write_tree(tmp_path / "out", {rel: b"x"})
     assert not (tmp_path / "escape.py").exists()
+
+
+def test_regenerate_merges_from_the_last_generation_the_branch_took(repo: Path) -> None:
+    # A generation whose PR was never merged (gen3, on `pr`) must not become the base: gen4
+    # changes a file gen3 had deleted, and main still has it from gen2.
+    regenerate_branch(repo, GEN1, keep=KeepRules())
+    gen2 = {**GEN1, "X.md": b"x2\n"}
+    regenerate_branch(repo, gen2, keep=KeepRules())
+    git(repo, "branch", "pr")
+    regenerate_branch(repo, GEN1, keep=KeepRules(), into="pr")
+    gen4 = {**GEN1, "X.md": b"x4\n"}
+    regen = regenerate_branch(repo, gen4, keep=KeepRules())
+    assert regen.conflict_branch is None
+    assert (repo / "X.md").read_bytes() == b"x4\n"
+
+
+def test_regenerate_keeps_file_modes(repo: Path) -> None:
+    # A kept script stays executable (the opencode SDK's scripts/mock), and a generated script
+    # new to the branch is executable when it starts with a shebang.
+    regenerate_branch(repo, GEN1, keep=KeepRules(keep_files=("scripts/mock",)))
+    (repo / "scripts").mkdir()
+    (repo / "scripts/mock").write_bytes(b"#!/usr/bin/env bash\nmine\n")
+    (repo / "scripts/mock").chmod(0o755)
+    git(repo, "add", "-A")
+    git(repo, "commit", "-qm", "mock")
+    gen2 = {**GEN1, "README.md": b"r2\n", "bin/publish": b"#!/bin/sh\n", "scripts/mock": b"gen\n"}
+    regenerate_branch(repo, gen2, keep=KeepRules(keep_files=("scripts/mock",)))
+    modes = {
+        line.split("\t")[1]: line.split()[0]
+        for line in git(repo, "ls-tree", "-r", "HEAD").splitlines()
+    }
+    assert modes["scripts/mock"] == "100755"
+    assert modes["bin/publish"] == "100755"
+    assert modes["README.md"] == "100644"
+    assert git(repo, "status", "--porcelain") == ""

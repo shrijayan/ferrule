@@ -77,10 +77,13 @@ fn method(response: Option<SdkType>) -> SdkMethod {
         body_params: Vec::new(),
         body_media_type: None,
         body_whole: false,
+        body_binary: false,
         body_variants: Vec::new(),
         body_discriminator: None,
         body_file_paths: Vec::new(),
         response,
+        unwrap: None,
+        skip_test: None,
         pagination: None,
         streaming: None,
     }
@@ -268,7 +271,8 @@ fn marks_required_params_and_imports_named_models() {
     ];
     let out = emit_params_file(Some(&r), &m);
     assert!(out.contains("q: Required[str]"));
-    assert!(out.contains("from .shared.u import U"));
+    // A request takes the model's `TypedDict` twin (`tests/param_twins`).
+    assert!(out.contains("from .shared_params.u import U"));
 }
 
 #[test]
@@ -344,6 +348,91 @@ fn emits_header_api_keys_optional_and_several_env_options() {
     assert!(out.contains("org: str | None\n"));
     assert!(out.contains("- `org` from `ACME_ORG`"));
     assert!(out.contains("by passing region to the client\""));
+}
+
+/// A client option with a `default` (the opencode SDK's basic-auth `username: opencode`) takes it
+/// when neither the argument nor its environment variable gives one, before the required check.
+#[test]
+fn applies_a_client_option_default_after_the_environment() {
+    let mut c = sdk(vec![method(Some(SdkType::Object(obj_with("id"))))]);
+    let s = c.settings.as_mut().expect("settings");
+    let opt = s.opts[0].clone();
+    s.opts = vec![
+        SdkClientOpt {
+            name: "username".into(),
+            nullable: true,
+            default: Some(serde_json::json!("opencode")),
+            read_env: Some("ACME_USERNAME".into()),
+            auth: None,
+            ..opt.clone()
+        },
+        SdkClientOpt {
+            name: "region".into(),
+            default: Some(serde_json::json!("us")),
+            read_env: None,
+            auth: None,
+            ..opt
+        },
+    ];
+    let out = emit_client_file(&c).expect("emits");
+    let want = "        if username is None:\n            username = os.environ.get(\"ACME_USERNAME\")\n        \
+                if username is None:\n            username = \"opencode\"\n        self.username = username\n";
+    assert!(out.contains(want), "{out}");
+    assert!(
+        out.contains("        if region is None:\n            region = \"us\"\n"),
+        "{out}"
+    );
+    assert!(!out.contains("by passing region to the client"), "{out}");
+}
+
+/// HTTP basic auth (the opencode SDK: `username` and `password` options with those roles) is the
+/// `Authorization: Basic` header of `username:password`, as modern-treasury-python's
+/// `auth_headers` writes it, and nothing while a nullable option is unset.
+#[test]
+fn emits_basic_auth_from_the_username_and_password_options() {
+    let mut c = sdk(vec![method(Some(SdkType::Object(obj_with("id"))))]);
+    let s = c.settings.as_mut().expect("settings");
+    let opt = s.opts[0].clone();
+    let role = |role| {
+        Some(SdkAuth {
+            security_scheme: "basicAuth".into(),
+            role,
+        })
+    };
+    s.opts = vec![
+        SdkClientOpt {
+            name: "username".into(),
+            nullable: true,
+            read_env: None,
+            auth: role(AuthRole::Username),
+            ..opt.clone()
+        },
+        SdkClientOpt {
+            name: "password".into(),
+            nullable: true,
+            read_env: Some("ACME_PASSWORD".into()),
+            auth: role(AuthRole::Password),
+            ..opt
+        },
+    ];
+    s.security_schemes = vec![(
+        "basicAuth".into(),
+        SdkSecurityScheme::Http {
+            scheme: HttpAuthScheme::Basic,
+            keyword: None,
+        },
+    )];
+    s.security = vec![vec!["basicAuth".into()]];
+    let out = emit_client_file(&c).expect("emits");
+    let want = "    def auth_headers(self) -> dict[str, str]:
+        if self.username is None or self.password is None:
+            return {}
+        credentials = f\"{self.username}:{self.password}\".encode(\"ascii\")
+        header = f\"Basic {base64.b64encode(credentials).decode('ascii')}\"
+        return {\"Authorization\": header}
+";
+    assert!(out.contains(want), "{out}");
+    assert!(out.contains("\nimport base64\n"), "{out}");
 }
 
 /// Several auth schemes (papr-python `_client.py`: an API key header, a nullable session token

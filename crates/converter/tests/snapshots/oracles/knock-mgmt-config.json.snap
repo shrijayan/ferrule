@@ -1,5 +1,5 @@
 {
-  "sha256": "9acfa99719c58b050126d7ca160ac5c28581c01988102b2095972e7f76bae098",
+  "sha256": "5a9cbdd09ca4f6d8b919300189870e2d540f3c262e38a231cc4930b1b140b95a",
   "root": {
     "x-ferrule-client": {
       "defaultEnvironment": "production",
@@ -54,6 +54,46 @@
       "pythonEdition": "python.2025-10-08",
       "version": 1
     },
+    "x-ferrule-page-schemes": [
+      {
+        "kind": "cursor",
+        "name": "entries_cursor",
+        "request": [
+          {
+            "name": "after",
+            "purpose": "next_cursor_param",
+            "type": "string"
+          },
+          {
+            "name": "before",
+            "purpose": "previous_cursor_param",
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "type": "integer"
+          }
+        ],
+        "response": [
+          {
+            "name": "entries",
+            "purpose": "items",
+            "type": "array"
+          },
+          {
+            "fields": [
+              {
+                "name": "after",
+                "purpose": "next_cursor_field",
+                "type": "string"
+              }
+            ],
+            "name": "page_info",
+            "type": "object"
+          }
+        ]
+      }
+    ],
     "x-ferrule-targets": {
       "go": {
         "edition": "go.2025-10-08",

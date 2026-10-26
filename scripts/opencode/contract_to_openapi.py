@@ -10,7 +10,8 @@ It lists groups of endpoints and a ``$defs`` table of JSON Schemas. This module 
 - ``params``/``query``/``headers``/``wildcard`` inputs to parameters,
 - ``payload`` inputs to a JSON (``struct``) or octet-stream (``binary``) request body,
 - ``value``/``void``/``stream``/``binary`` successes and tagged errors to responses,
-- ``$defs`` to ``components.schemas``.
+- ``$defs`` to ``components.schemas``, with Effect's ``Struct`` + ``Record`` intersection and
+  ``NonEmptyArray`` written in the plain form generators read.
 
 ``convert`` is pure and deterministic; only ``main`` touches files. See ADR 0015.
 """
@@ -45,10 +46,26 @@ def rewrite_refs(node: object) -> object:
                 out[key] = COMPONENTS_PREFIX + value.removeprefix(DEFS_PREFIX)
             else:
                 out[key] = rewrite_refs(value)
-        return fold_record(out)
+        return fold_non_empty_array(fold_record(out))
     if isinstance(node, list):
         return [rewrite_refs(item) for item in cast("list[object]", node)]
     return node
+
+
+def fold_non_empty_array(schema: Json) -> Json:
+    """Drop the ``prefixItems`` of Effect's ``NonEmptyArray``: its one entry repeats ``items``.
+
+    ``minItems: 1`` already says the array is not empty; generators that read only ``items``
+    (Forge) otherwise see no item type. A real tuple (``prefixItems`` that differ) is kept.
+    """
+    prefix = schema.get("prefixItems")
+    if (
+        schema.get("type") != "array"
+        or not isinstance(prefix, list)
+        or cast("list[object]", prefix) != [schema.get("items")]
+    ):
+        return schema
+    return {key: value for key, value in schema.items() if key != "prefixItems"}
 
 
 def _is_record(member: object) -> bool:
@@ -121,7 +138,9 @@ def _request_body(endpoint: Json, payload: list[Json]) -> Json | None:
         return None
     mode = cast("Json", endpoint.get("payload") or {}).get("mode", "struct")
     if mode == "binary":
-        content: Json = {"application/octet-stream": {"schema": {"type": "string"}}}
+        content: Json = {
+            "application/octet-stream": {"schema": {"type": "string", "format": "binary"}}
+        }
         return {"required": True, "content": content}
     if mode != "struct":
         msg = f"{endpoint['operationId']}: unknown payload mode {mode!r}"
@@ -196,6 +215,9 @@ def convert_endpoint(group: str, endpoint: Json) -> Json:
     status, success = _success(endpoint)
     operation["responses"] = {status: success, **_errors(endpoint)}
     operation["x-opencode-client-path"] = list(endpoint["clientPath"])
+    if cast("Json", endpoint["success"]).get("unwrapData"):
+        # The SDK returns the `data` of this envelope (config_models.py: `unwrap_response`).
+        operation["x-opencode-unwrap-data"] = True
     return operation
 
 
