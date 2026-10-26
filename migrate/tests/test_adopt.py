@@ -314,6 +314,9 @@ def test_adopt_no_stainless_history(tmp_path: Path, tools: Tools) -> None:
     assert any("no Stainless history" in line for line in lines)
     assert show(root, "src/acme/resources/foo.py") == BASE_FOO.replace("line1", "gen1").rstrip("\n")
     assert show(root, "src/acme/_rpc.py") == "custom"
+    # Ferrule's runtime replaces the other generator's: it is committed and locked as generated.
+    assert show(root, "src/acme/_utils/__init__.py") == "# acme runtime"
+    assert "src/acme/_utils/__init__.py" in json.loads(show(root, "ferrule.lock"))["files"]
 
 
 def test_adopt_no_stainless_history_without_spec(tmp_path: Path, tools: Tools) -> None:
