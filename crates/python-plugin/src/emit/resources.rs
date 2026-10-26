@@ -837,9 +837,8 @@ fn emit_method(
             awaits,
         ))
     });
-    // A union is cast unless the response streams or is unwrapped through a wrapper.
-    let union = stream.is_none()
-        && switch.is_none()
+    // A union is cast unless it is unwrapped through a wrapper or switched to a stream.
+    let union = switch.is_none()
         && method.unwrap.is_none()
         && ret.as_ref().is_some_and(|r| returns_union(&s.client.models, r));
     push_options_and_cast(
@@ -876,7 +875,7 @@ fn emit_method(
     };
     let aw = if awaits { "await " } else { "" };
     let request = call(&format!("{aw}self.{f}("), items, true);
-    if union && page.is_none() {
+    if union && page.is_none() && stream.is_none() {
         // `return cast(Model, self._get(...))`, as knock-mgmt-python writes it.
         let cast = call("cast(", vec![model.clone().into(), request.into()], false);
         print_expr(p, &cast.into(), "return ", "");
