@@ -1796,9 +1796,6 @@ section {
 .lg-st.main {
   color: var(--ok);
 }
-.lg-st.review {
-  color: var(--brass);
-}
 .lg-st.none {
   color: var(--dim);
 }
