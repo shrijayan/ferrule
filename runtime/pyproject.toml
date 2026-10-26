@@ -32,6 +32,7 @@ packages = ["src/ferrule_runtime"]
 "ruby/template" = "ferrule_runtime/ruby/template"
 "php/template" = "ferrule_runtime/php/template"
 "csharp/template" = "ferrule_runtime/csharp/template"
+"rust/template" = "ferrule_runtime/rust/template"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

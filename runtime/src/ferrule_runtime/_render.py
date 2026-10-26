@@ -40,7 +40,16 @@ __all__ = [
 ]
 
 Language = Literal[
-    "python", "typescript", "typescript-node", "go", "go-v2", "java", "ruby", "csharp", "php"
+    "python",
+    "typescript",
+    "typescript-node",
+    "go",
+    "go-v2",
+    "java",
+    "ruby",
+    "csharp",
+    "php",
+    "rust",
 ]
 
 PKG_PLACEHOLDER = "__ferrule_pkg__"
