@@ -68,6 +68,7 @@
             "media_type": "application/json",
             "required": true,
             "description": "",
+            "schema_description": "A request to vectorize content with an Isaacus embedding model.",
             "ty": {
               "kind": "object",
               "bases": [],
@@ -231,6 +232,7 @@
                 "media_type": "application/json",
                 "required": true,
                 "description": "",
+                "schema_description": "A request to classify the relevance of documents to a query with an Isaacus universal classification model.",
                 "ty": {
                   "kind": "object",
                   "bases": [],
@@ -430,6 +432,7 @@
             "media_type": "application/json",
             "required": true,
             "description": "",
+            "schema_description": "A request to rerank documents by their relevance to a query with an Isaacus reranker.",
             "ty": {
               "kind": "object",
               "bases": [],
@@ -636,6 +639,7 @@
                 "media_type": "application/json",
                 "required": true,
                 "description": "",
+                "schema_description": "A request to extract answers from documents with an Isaacus extractive question answering model.",
                 "ty": {
                   "kind": "object",
                   "bases": [],
@@ -821,6 +825,7 @@
             "media_type": "application/json",
             "required": true,
             "description": "",
+            "schema_description": "A request to enrich texts with an Isaacus enrichment model.",
             "ty": {
               "kind": "object",
               "bases": [],
@@ -3315,5 +3320,6 @@
         "origin": null
       }
     }
-  ]
+  ],
+  "style": []
 }
