@@ -66,8 +66,8 @@ class RuntimeRenderer(Protocol):
     """What ``ferrule_runtime.render`` must look like for ``generate`` to use it.
 
     It writes the runtime modules for ``package`` into ``package_dir`` (``<out>/src/<package>``),
-    and ``pagination.py`` when it is given ``pagination``: the annotated spec's
-    ``x-ferrule-page-schemes`` entries.
+    with the options :func:`renderer_options` reads from the annotated spec (``pagination.py``
+    from its page schemes, the client's timeout and retries).
     """
 
     def __call__(self, package: str, package_dir: Path, /, **options: Any) -> object:  # noqa: ANN401 - renderer options
@@ -283,18 +283,28 @@ def tree_digest(root: Path) -> str:
     return h.hexdigest()
 
 
-def page_schemes(annotated: Path) -> list[object]:
-    """Return the ``x-ferrule-page-schemes`` entries the converter wrote, if any."""
+def renderer_options(annotated: Path) -> dict[str, object]:
+    """Return what the runtime renderer takes from the annotated spec the converter wrote.
+
+    ``pagination``: the ``x-ferrule-page-schemes`` entries; ``timeout`` and ``max_retries``:
+    the client settings (``x-ferrule-client``), when the config sets them.
+    """
     try:
         spec: object = json.loads(annotated.read_text(encoding="utf-8"))
     except (OSError, ValueError):
-        return []
-    schemes = (
-        cast("dict[str, object]", spec).get("x-ferrule-page-schemes")
-        if isinstance(spec, dict)
-        else None
-    )
-    return list(cast("list[object]", schemes)) if isinstance(schemes, list) else []
+        return {}
+    root = cast("dict[str, object]", spec) if isinstance(spec, dict) else {}
+    options: dict[str, object] = {}
+    schemes = root.get("x-ferrule-page-schemes")
+    if isinstance(schemes, list) and schemes:
+        options["pagination"] = list(cast("list[object]", schemes))
+    raw_client = root.get("x-ferrule-client")
+    client = cast("dict[str, object]", raw_client) if isinstance(raw_client, dict) else {}
+    for key, name in (("timeoutSeconds", "timeout"), ("maxRetries", "max_retries")):
+        value = client.get(key)
+        if isinstance(value, int | float) and not isinstance(value, bool) and value == int(value):
+            options[name] = int(value)
+    return options
 
 
 def load_renderer() -> RuntimeRenderer | None:
@@ -470,7 +480,7 @@ def generate(
     with tempfile.TemporaryDirectory(prefix="ferrule-") as tmp:
         for step in plan_steps(planned, Path(tmp)):
             _run(step, runner)
-        pages = page_schemes(Path(tmp) / "annotated.json")
+        options = renderer_options(Path(tmp) / "annotated.json")
     rendered: tuple[PurePosixPath, ...] = ()
     if request.runtime_from is not None and own:
         package, runtime_count = _copy_runtime(request.runtime_from, request.out)
@@ -478,10 +488,7 @@ def generate(
         package = pick_package(_src_packages(request.out), "--out")
         package_dir = request.out / "src" / package
         before = set(relative_files(package_dir))
-        if pages:
-            renderer(package, package_dir, pagination=pages)
-        else:
-            renderer(package, package_dir)
+        renderer(package, package_dir, **options)
         prefix = PurePosixPath("src", package)
         rendered = tuple(prefix / p for p in relative_files(package_dir) if p not in before)
         runtime_count = len(rendered)
