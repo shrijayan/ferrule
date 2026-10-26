@@ -55,3 +55,8 @@ with `dotnet build`.
 `tests/golden.rs` checks a small synthetic API with a C# target only against
 `tests/synthetic/golden`, byte for byte; csharpier accepts it and is settled after one pass, and
 the SDK builds and its tests pass against a mock server. Golden changes are reviewed by a human.
+
+`tests/requests.rs` pins, on small inline specs, what neither covers: an API key in the query
+(the runtime's `auth_query` slot; no oracle has one), test values for required dictionaries and
+JSON, a method whose required argument a test cannot build (it gets no test), and a model no C#
+method reaches keeping the inlined shape of a model left out for C#.
