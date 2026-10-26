@@ -1,0 +1,33 @@
+organization: {name: fx}
+targets:
+  python: {package_name: fx, production_repo: fx/fx-python, publish: {pypi: false}}
+environments: {production: 'https://api.example.com'}
+pagination:
+  - name: cursor_page
+    type: cursor
+    request:
+      cursor:
+        type: string
+        x-stainless-pagination-property: {purpose: next_cursor_param}
+    response:
+      data:
+        type: array
+        items: {}
+        x-stainless-pagination-property: {purpose: items}
+      next:
+        type: string
+        x-stainless-pagination-property: {purpose: next_cursor_field}
+
+resources:
+  audiences:
+    models:
+      audience: Audience
+    methods:
+      retrieve: get /audiences/{key}
+      list:
+        endpoint: get /audiences
+        paginated: cursor_page
+readme:
+  example_requests:
+    default: {type: request, endpoint: 'get /audiences', params: {}}
+    headline: {type: request, endpoint: 'get /audiences', params: {}}
