@@ -467,6 +467,26 @@ fn naming_extensions(ctx: &Ctx<'_>) -> Vec<(&'static str, Value)> {
     out
 }
 
+/// `x-ferrule-config`: the Python target's package and project names and the editions whose
+/// defaults apply (the first ones when the config names none).
+fn python_config(config: &Value, python: Option<&Map>, pkg: &Map) -> Map {
+    let ed = apply_edition(config);
+    let mut cfg = Map::new();
+    cfg.insert("version", Value::Number(1.0));
+    cfg.insert("edition", Value::from(ed.edition));
+    cfg.insert("pythonEdition", Value::from(ed.python_edition));
+    let package_name = pkg.get("name").cloned().unwrap_or_default();
+    cfg.insert("packageName", package_name.clone());
+    cfg.insert(
+        "projectName",
+        python
+            .and_then(|p| p.get("project_name"))
+            .cloned()
+            .unwrap_or(package_name),
+    );
+    cfg
+}
+
 /// Annotate a copy of `spec` from `config`. Pure.
 #[must_use]
 pub fn annotate(spec: &Value, config: &Value) -> (Value, Vec<Diagnostic>) {
@@ -508,7 +528,10 @@ pub fn annotate(spec: &Value, config: &Value) -> (Value, Vec<Diagnostic>) {
         .get("targets")
         .and_then(|t| t.get("python"))
         .and_then(Value::as_object);
-    // Root settings are written for a Python target only; without one the spec is left as is.
+    // The package and `x-ferrule-config` are the Python target's. The client settings belong to
+    // every target, so a config with targets but no Python one (imagekit's csharp branch) gets
+    // them too. A config with neither (no targets, or Python alone without a package name) is
+    // left as is.
     let pkg = python.and_then(|p| p.get("package_name")).map(|name| {
         let mut pkg = Map::new();
         pkg.insert("name", name.clone());
@@ -522,26 +545,14 @@ pub fn annotate(spec: &Value, config: &Value) -> (Value, Vec<Diagnostic>) {
         pkg
     });
     let mut client = None;
-    if let Some(pkg) = &pkg {
+    if pkg.is_some() || ctx.targets.beyond_python() {
         let (built, ds) = build_client(&out, config);
         ctx.diagnostics.extend(ds);
-        // The editions whose defaults apply (the first ones when the config names none).
-        let ed = apply_edition(config);
-        let mut cfg = Map::new();
-        cfg.insert("version", Value::Number(1.0));
-        cfg.insert("edition", Value::from(ed.edition));
-        cfg.insert("pythonEdition", Value::from(ed.python_edition));
-        let package_name = pkg.get("name").cloned().unwrap_or_default();
-        cfg.insert("packageName", package_name.clone());
-        cfg.insert(
-            "projectName",
-            python
-                .and_then(|p| p.get("project_name"))
-                .cloned()
-                .unwrap_or(package_name),
-        );
+        // `x-ferrule-config` first, as the root has always listed them.
+        if let (Some(pkg), Some(root)) = (&pkg, out.as_object_mut()) {
+            root.insert("x-ferrule-config", Value::Object(python_config(config, python, pkg)));
+        }
         if let Some(root) = out.as_object_mut() {
-            root.insert("x-ferrule-config", Value::Object(cfg));
             root.insert("x-ferrule-client", built.clone());
             for (key, value) in naming_extensions(&ctx) {
                 root.insert(key, value);
