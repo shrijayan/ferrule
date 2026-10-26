@@ -178,6 +178,13 @@ def test_adopt_end_to_end(repo: Path, tools: Tools) -> None:
     assert message.startswith("Dev <dev@example.com>\nSwitch SDK generation to Ferrule")
     assert "Signed-off-by: Dev <dev@example.com>" in message
     assert sh(repo, "rev-parse", f"{BRANCH}~1") == head
+    # The pristine generation is the base of the next regeneration (`ferrule regenerate`): the
+    # `generated` branch holds it, and the adopt commit names it in its trailer.
+    generated = sh(repo, "rev-parse", "generated")
+    assert f"Ferrule-Generated-From: {generated}" in message
+    pristine = sh(repo, "ls-tree", "-r", "--name-only", "generated").splitlines()
+    assert sorted(pristine) == sorted([*lock.files, "ferrule.lock"])
+    assert "custom8" not in sh(repo, "show", "generated:src/acme/resources/foo.py")
     assert result.against == sh(repo, "rev-parse", "HEAD~1")
 
 
