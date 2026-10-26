@@ -169,3 +169,25 @@ fn a_named_enum_only_requests_use_is_declared() {
     assert!(text.contains("\ntype Color string\n"), "{text}");
     assert!(text.contains("\tColorRed   Color = \"red\"\n"), "{text}");
 }
+
+#[test]
+fn a_root_enum_named_file_renames_the_runtime_file_helper() {
+    let body = "              type: object
+              properties:
+                name:
+                  type: string";
+    let components = "        kind:
+          $ref: '#/components/schemas/File'
+    File:
+      type: string
+      enum: [image, video]";
+    let out = v2(
+        &convert(&spec(body, components), &config("      thing: Thing\n      file: File")),
+        GoMeta::default(),
+    );
+    assert!(file(&out, "thing.go").contains("\ntype File string\n"));
+    assert!(
+        out.runtime.new_file,
+        "field.go's File helper would collide with the File enum"
+    );
+}
