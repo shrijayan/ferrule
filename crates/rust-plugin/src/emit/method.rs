@@ -437,7 +437,7 @@ fn params_struct(m: &Method, name: &str, call: &str, fields: &[ParamField]) -> S
     let mut item = format!(
         "/// The params of `{call}` ({} `{}`).\n",
         m.http_method.as_str().to_uppercase(),
-        m.path
+        crate::doc::inline(&m.path)
     );
     item.push_str("#[derive(Debug, Clone, PartialEq)]\n");
     let _ = writeln!(item, "pub struct {name} {{");
@@ -556,6 +556,11 @@ fn endpoint(
     )
 }
 
+/// `text` as literal text of a `format!` string.
+fn braces(text: &str) -> String {
+    text.replace('{', "{{").replace('}', "}}")
+}
+
 /// The path with its params filled: a `format!` when it has any.
 fn path_expr(cx: &mut Cx<'_, '_>, m: &Method, fields: &[ParamField]) -> String {
     let mut template = String::new();
@@ -563,7 +568,7 @@ fn path_expr(cx: &mut Cx<'_, '_>, m: &Method, fields: &[ParamField]) -> String {
     let mut rest = m.path.as_str();
     while let Some(start) = rest.find('{') {
         let Some(len) = rest[start..].find('}') else { break };
-        template.push_str(&rest[..start]);
+        template.push_str(&braces(&rest[..start]));
         let wire = &rest[start + 1..start + len];
         match fields.iter().find(|f| f.location == Location::Path && f.wire == wire) {
             Some(f) => {
@@ -576,7 +581,7 @@ fn path_expr(cx: &mut Cx<'_, '_>, m: &Method, fields: &[ParamField]) -> String {
         }
         rest = &rest[start + len + 1..];
     }
-    template.push_str(rest);
+    template.push_str(&braces(rest));
     if args.is_empty() {
         format!("{:?}.to_owned()", m.path)
     } else {
@@ -787,7 +792,7 @@ pub fn pages_module(pages: &[Pagination]) -> String {
         let _ = write!(
             out,
             "\n/// The `{}` scheme.\npub const {name}: PageConfig = PageConfig {{\n    scheme: Scheme::{scheme},\n    location: ParamLocation::{location},\n    params: &[{}],\n    fields: &[{}],\n}};\n",
-            p.page.written,
+            crate::doc::inline(&p.page.written),
             pairs(&p.request),
             pairs(&p.response)
         );

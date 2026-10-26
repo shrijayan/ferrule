@@ -27,16 +27,16 @@ tokio = { version = "1.45", features = ["macros", "rt-multi-thread"] }
 pub fn cargo_toml(g: &Gen<'_>) -> String {
     let n = &g.names;
     let mut out = format!(
-        "[package]\nname = \"{}\"\nversion = \"{}\"\nedition = \"2024\"\nrust-version = \"1.88\"\ndescription = {:?}\n",
+        "[package]\nname = \"{}\"\nversion = \"{}\"\nedition = \"2024\"\nrust-version = \"1.88\"\ndescription = {}\n",
         n.crate_name,
         n.version,
-        description(g)
+        toml(&description(g))
     );
     if let Some(license) = &n.license {
-        let _ = writeln!(out, "license = {license:?}");
+        let _ = writeln!(out, "license = {}", toml(license));
     }
     if let Some(repo) = &n.repository {
-        let _ = writeln!(out, "repository = \"https://github.com/{repo}\"");
+        let _ = writeln!(out, "repository = {}", toml(&format!("https://github.com/{repo}")));
     }
     out.push_str("readme = \"README.md\"\n\n[features]\n# A client whose calls block, on a runtime of its own.\nblocking = []\n# A fake server that answers like the API, for tests.\ntesting = []\n\n");
     out.push_str(DEPENDENCIES);
@@ -172,12 +172,31 @@ pub fn routes(routes: &[Route]) -> String {
 
 /// `text` as a raw string literal, with as many `#` as it needs.
 fn raw(text: &str) -> String {
-    let hashes = "#".repeat(
-        (1..64)
-            .find(|n| !text.contains(&format!("\"{}", "#".repeat(*n))))
-            .unwrap_or(1),
-    );
-    format!("r{hashes}\"{text}\"{hashes}")
+    let hashes = (1..=255).find(|n| !text.contains(&format!("\"{}", "#".repeat(*n))));
+    hashes.map_or_else(
+        || format!("{text:?}"),
+        |n| {
+            let hashes = "#".repeat(n);
+            format!("r{hashes}\"{text}\"{hashes}")
+        },
+    )
+}
+
+/// `text` as a TOML basic string.
+fn toml(text: &str) -> String {
+    let mut out = String::from("\"");
+    for c in text.chars() {
+        match c {
+            '"' => out.push_str("\\\""),
+            '\\' => out.push_str("\\\\"),
+            c if c.is_control() => {
+                let _ = write!(out, "\\u{:04X}", u32::from(c));
+            }
+            c => out.push(c),
+        }
+    }
+    out.push('"');
+    out
 }
 
 /// `tests/api.rs`: every call against the fake server.
@@ -300,4 +319,16 @@ fn test_fn(case: &TestCase, examples: &Examples, lib: &str, indent: &str) -> Str
         case.name.trim_start_matches("r#"),
         case.http_method
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{raw, toml};
+
+    #[test]
+    fn escapes_strings() {
+        assert_eq!(toml("a \"b\" \\ \n"), r#""a \"b\" \\ \u000A""#);
+        assert_eq!(raw("x"), "r#\"x\"#");
+        assert_eq!(raw("\"#"), "r##\"\"#\"##");
+    }
 }

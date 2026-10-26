@@ -2,8 +2,9 @@
 //!
 //! Spec descriptions are Markdown written for other tools. In a Rust doc comment an indented
 //! block or an unlabelled code fence is a doctest, and a list item's unindented continuation is
-//! a `doc_lazy_continuation` warning, so lines lose their leading whitespace, fences become
-//! `text` blocks and list continuations are indented under their item.
+//! a `doc_lazy_continuation` warning, so lines lose their leading whitespace, fences (of backticks
+//! or tildes) become `text` blocks and list continuations are indented under their item. Control
+//! characters become spaces, so no text can end the comment's line.
 
 use std::fmt::Write as _;
 
@@ -28,8 +29,9 @@ fn lines(text: &str) -> Vec<String> {
     // The indent a list item's continuation lines take, while in one.
     let mut item_indent: Option<usize> = None;
     for raw in text.lines() {
+        let raw = inline(raw);
         let line = raw.trim();
-        if line.starts_with("```") {
+        if line.starts_with("```") || line.starts_with("~~~") {
             item_indent = None;
             out.push(if in_fence {
                 "```".to_owned()
@@ -69,6 +71,13 @@ fn lines(text: &str) -> Vec<String> {
     out
 }
 
+/// `text` on one line: every control character (a newline among them) a space. For names and
+/// URLs written into a one-line doc comment.
+#[must_use]
+pub fn inline(text: &str) -> String {
+    text.chars().map(|c| if c.is_control() { ' ' } else { c }).collect()
+}
+
 /// The width of a list item's marker with its space (`- `, `1. `), when `line` starts one.
 fn list_marker(line: &str) -> Option<usize> {
     if ["- ", "* ", "+ "].iter().any(|m| line.starts_with(m)) {
@@ -97,6 +106,13 @@ mod tests {
         assert_eq!(lines("a\n```json\n  {}\n```"), ["a", "```text", "  {}", "```"]);
         assert_eq!(lines("```\nx"), ["```text", "x", "```"]);
         assert_eq!(lines("    indented"), ["indented"]);
+    }
+
+    #[test]
+    fn keeps_text_inside_the_comment() {
+        assert_eq!(doc("a\rpub fn x() {}", ""), "/// a pub fn x() {}\n");
+        assert_eq!(inline("x\n}\nfn y"), "x } fn y");
+        assert_eq!(lines("~~~\nfn main() {}\n~~~"), ["```text", "fn main() {}", "```"]);
     }
 
     #[test]
