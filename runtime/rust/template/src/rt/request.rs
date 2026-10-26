@@ -126,13 +126,17 @@ impl RequestSpec {
     }
 }
 
-/// A path param as text, percent-encoded.
+/// A path param as text, percent-encoded; `.` and `..` too, so that a value cannot step out
+/// of its segment.
 #[doc(hidden)]
 pub fn path_param(value: &impl Serialize) -> String {
     let value = serde_json::to_value(value).unwrap_or_default();
-    query::scalar(&value)
-        .map(|text| query::percent(&text))
-        .unwrap_or_default()
+    match query::scalar(&value).as_deref() {
+        Some(".") => "%2E".to_owned(),
+        Some("..") => "%2E%2E".to_owned(),
+        Some(text) => query::percent(text),
+        None => String::new(),
+    }
 }
 
 /// Settings of one request that override the client's.
@@ -348,6 +352,10 @@ mod tests {
         assert_eq!(path_param(&"1_100 a/b"), "1_100%20a%2Fb");
         assert_eq!(path_param(&42), "42");
         assert_eq!(path_param(&json!("a")), "a");
+        assert_eq!(
+            (path_param(&"."), path_param(&"..")),
+            ("%2E".to_owned(), "%2E%2E".to_owned())
+        );
     }
 
     #[test]

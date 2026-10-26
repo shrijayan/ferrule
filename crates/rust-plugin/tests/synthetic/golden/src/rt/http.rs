@@ -143,8 +143,15 @@ impl Core {
         );
         let query = query::encode(&params, self.config.array_format, self.config.nested_format);
         let base = self.config.base_url.trim_end_matches('/');
-        // A `cursor_url` page's next URL is absolute.
+        // A `cursor_url` page's next URL is absolute; the client's credentials go only to the
+        // base URL's origin.
         let mut url = if spec.path.starts_with("http://") || spec.path.starts_with("https://") {
+            if origin(&spec.path) != origin(base) {
+                return Err(Error::Config(format!(
+                    "refusing to send a request to {}, which is not on the base URL's origin",
+                    origin(&spec.path).unwrap_or_default()
+                )));
+            }
             spec.path.clone()
         } else {
             format!("{base}{}", spec.path)
@@ -153,8 +160,11 @@ impl Core {
             url.push(if url.contains('?') { '&' } else { '?' });
             url.push_str(&query);
         }
-        let url = reqwest::Url::parse(&url)
-            .map_err(|err| Error::Config(format!("invalid URL {url}: {err}")))?;
+        // The query is left out of the message: it may hold an API key.
+        let url = reqwest::Url::parse(&url).map_err(|err| {
+            let shown = url.split('?').next().unwrap_or_default();
+            Error::Config(format!("invalid URL {shown}: {err}"))
+        })?;
         let mut request = reqwest::Request::new(spec.method.clone(), url);
         let headers = request.headers_mut();
         insert(headers, "user-agent", &self.config.user_agent)?;
@@ -177,6 +187,17 @@ impl Core {
         }
         Ok(request)
     }
+}
+
+/// The scheme, host and port of `url`.
+fn origin(url: &str) -> Option<String> {
+    let url = reqwest::Url::parse(url).ok()?;
+    Some(format!(
+        "{}://{}:{}",
+        url.scheme(),
+        url.host_str()?,
+        url.port_or_known_default()?
+    ))
 }
 
 /// Sets header `name`, replacing any value it had.
@@ -237,7 +258,7 @@ fn retry_after(headers: &HeaderMap) -> Option<Duration> {
     let seconds = number("retry-after-ms")
         .map(|ms| ms / 1000.0)
         .or_else(|| number("retry-after"))?;
-    (seconds.is_finite() && seconds >= 0.0).then(|| Duration::from_secs_f64(seconds))
+    Duration::try_from_secs_f64(seconds).ok()
 }
 
 /// A random fraction in [0, 1), for jitter.
@@ -315,6 +336,16 @@ pub(crate) mod tests {
         );
         let secs = headers(&[("retry-after", "2")]);
         assert_eq!(retry_delay(&c, 3, Some(&secs), 0.0), Duration::from_secs(2));
+        let huge = headers(&[("retry-after", "1e300")]);
+        assert_eq!(
+            retry_delay(&c, 0, Some(&huge), 0.0),
+            Duration::from_millis(500)
+        );
+        let negative = headers(&[("retry-after-ms", "-5")]);
+        assert_eq!(
+            retry_delay(&c, 0, Some(&negative), 0.0),
+            Duration::from_millis(500)
+        );
         let long = headers(&[("retry-after", "120")]);
         assert_eq!(
             retry_delay(&c, 0, Some(&long), 0.0),
@@ -442,6 +473,42 @@ pub(crate) mod tests {
             (Some("1"), Some("2"))
         );
         assert_eq!(sent.query, "key=k&q=a%20b");
+    }
+
+    #[tokio::test]
+    async fn sends_nothing_to_another_origin() {
+        let server = FakeServer::with_routes(&[]);
+        let core = core(&server, 0);
+        let mut spec = RequestSpec::new(reqwest::Method::GET, "https://elsewhere.test/page".into());
+        spec.query("cursor", &"c2").expect("encodes");
+        let err = core
+            .execute(&spec, &RequestOptions::default())
+            .await
+            .expect_err("refused");
+        assert!(
+            matches!(&err, Error::Config(m) if m.contains("https://elsewhere.test:443")),
+            "{err:?}"
+        );
+        assert!(server.requests().is_empty());
+        let same = format!("{}/page?cursor=c2", server.base_url());
+        server.enqueue(Reply::json(200, &json!({})));
+        let spec = RequestSpec::new(reqwest::Method::GET, same);
+        core.execute(&spec, &RequestOptions::default())
+            .await
+            .expect("same origin");
+    }
+
+    #[test]
+    fn keeps_the_query_out_of_url_errors() {
+        let mut config = config();
+        config.base_url = "http://bad host".into();
+        config.query.push(("key".into(), "secret".into()));
+        let core = Core::new(config, None).expect("a core");
+        let spec = RequestSpec::new(reqwest::Method::GET, "/x".into());
+        let err = core
+            .build(&spec, &RequestOptions::default(), None)
+            .expect_err("invalid");
+        assert!(!err.to_string().contains("secret"), "{err}");
     }
 
     #[test]
