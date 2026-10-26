@@ -455,7 +455,7 @@ impl Context<'_> {
         };
         let body_whole = whole.is_some();
         let mut body_params = whole.map_or(body_params, |p| vec![p]);
-        prefix_clashes([
+        rename_clashes([
             ("path_", path_params.iter_mut().collect()),
             ("query_", query_params.iter_mut().collect()),
             ("header_", header_params.iter_mut().collect()),
@@ -557,10 +557,20 @@ fn file_paths(ty: Type<'_>) -> Vec<Vec<String>> {
         .collect()
 }
 
-/// Prefixes with its location every parameter whose Python name another location also has, as
-/// Stainless does (gcore-python `dns.zones.replace(path_name, *, body_name)`, cloudflare-python
-/// `recipients.create(share_id, *, path_account_id, body_account_id)`); the wire name stays.
-fn prefix_clashes<const N: usize>(mut locations: [(&str, Vec<&mut SdkParam>); N]) {
+/// The names a method already binds besides its parameters: `self` and the request options.
+const BOUND_NAMES: [&str; 5] = ["self", "extra_headers", "extra_query", "extra_body", "timeout"];
+
+/// Renames the parameters that would share a Python name, keeping the wire name (ADR 0020). One
+/// named like a [`BOUND_NAMES`] entry is `api_<name>` (browserbase-python `api_timeout`); then each
+/// whose name another location also has is prefixed with its location (gcore-python
+/// `dns.zones.replace(path_name, *, body_name)`, cloudflare-python
+/// `recipients.create(share_id, *, path_account_id, body_account_id)`).
+fn rename_clashes<const N: usize>(mut locations: [(&str, Vec<&mut SdkParam>); N]) {
+    for p in locations.iter_mut().flat_map(|(_, ps)| ps.iter_mut()) {
+        if BOUND_NAMES.contains(&p.py_name.as_str()) {
+            p.py_name = format!("api_{}", p.py_name);
+        }
+    }
     let names: Vec<Vec<String>> = locations
         .iter()
         .map(|(_, ps)| ps.iter().map(|p| p.py_name.clone()).collect())
