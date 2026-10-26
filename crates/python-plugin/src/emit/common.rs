@@ -346,20 +346,59 @@ pub fn with_bool_literal(ty: &SdkType, value: bool) -> SdkType {
     }
 }
 
-/// The type a parameter's example is made from: a ref to a named alias (an ID string, an enum, a
-/// union) stands in for that alias's type, so the example is a value of it, not `{}`.
+/// The type a parameter's example is made from: each ref to a named model stands in for its
+/// type (an alias's, or an object with its bases' fields first), so the example is a value of it
+/// rather than `{}`, as lithic-python's tests write its shared `address`. A ref back to a model
+/// being expanded stays a ref, which is `{}`.
 #[must_use]
-pub fn example_type<'a>(ty: &'a SdkType, models: &'a [SdkModelDecl]) -> &'a SdkType {
-    let mut ty = ty;
-    // A bound, not a cycle check: aliases of aliases are short, and a cycle stops here as a ref.
-    for _ in 0..8 {
-        let SdkType::Ref(r) = ty else { break };
-        match models.iter().find(|m| m.r#ref == *r).and_then(|m| m.alias.as_ref()) {
-            Some(alias) => ty = alias,
-            None => break,
+pub fn example_type(ty: &SdkType, models: &[SdkModelDecl]) -> SdkType {
+    expand_refs(ty, models, &mut Vec::new())
+}
+
+fn expand_refs(ty: &SdkType, models: &[SdkModelDecl], seen: &mut Vec<SdkRef>) -> SdkType {
+    match ty {
+        SdkType::Ref(r) => {
+            let Some(model) = models.iter().find(|m| m.r#ref == *r).filter(|_| !seen.contains(r)) else {
+                return ty.clone();
+            };
+            seen.push(r.clone());
+            let out = match &model.alias {
+                Some(alias) => expand_refs(alias, models, seen),
+                None => SdkType::Object(expand_object(&model.ty, models, seen)),
+            };
+            seen.pop();
+            out
+        }
+        SdkType::Array(items) => SdkType::Array(Box::new(expand_refs(items, models, seen))),
+        SdkType::Map(values) => SdkType::Map(Box::new(expand_refs(values, models, seen))),
+        SdkType::Union {
+            variants,
+            discriminator,
+        } => SdkType::Union {
+            variants: variants.iter().map(|v| expand_refs(v, models, seen)).collect(),
+            discriminator: discriminator.clone(),
+        },
+        SdkType::Object(object) => SdkType::Object(expand_object(object, models, seen)),
+        other => other.clone(),
+    }
+}
+
+fn expand_object(object: &SdkObject, models: &[SdkModelDecl], seen: &mut Vec<SdkRef>) -> SdkObject {
+    let mut fields = Vec::new();
+    for base in &object.bases {
+        if let SdkType::Object(o) = expand_refs(&SdkType::Ref(base.clone()), models, seen) {
+            fields.extend(o.fields);
         }
     }
-    ty
+    fields.extend(object.fields.iter().map(|f| SdkField {
+        ty: expand_refs(&f.ty, models, seen),
+        ..f.clone()
+    }));
+    SdkObject {
+        bases: Vec::new(),
+        fields,
+        ..object.clone()
+    }
 }
 
 fn typed_return<'a>(resource: Option<&SdkResource>, method: &SdkMethod, t: &'a SdkType) -> ReturnModel<'a> {
