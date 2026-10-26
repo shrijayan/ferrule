@@ -302,17 +302,19 @@ fn resource_models(g: &Gen<'_>, s: &Service<'_>, ctx: &mut Ctx<'_>) -> Vec<Decl>
         .collect()
 }
 
-/// A model's declarations as the SDK has them: its response types unless only params use it,
-/// then in v2 its param variant when params use it (knock-mgmt-go's `Duration`, then
-/// `DurationParam`), the enums shared between them declared once.
+/// A model's declarations as the SDK has them: its response types unless only params use it
+/// and v2 declares a param variant in their place, then in v2 its param variant when params use
+/// it (knock-mgmt-go's `Duration`, then `DurationParam`), the enums shared between them declared
+/// once. A model without a param variant (an enum) is the same type on both sides.
 pub fn all_model_decls(g: &Gen<'_>, d: &ferrule_sdk_model::model::ModelDecl, ctx: &mut Ctx<'_>) -> Vec<Decl> {
     let schema = &d.r#ref.schema;
     let in_params = g.param_models.contains(schema);
+    let variant = g.target.v2() && in_params && crate::types::has_param_variant(g.client, &d.r#ref);
     let mut out = Vec::new();
-    if !g.target.v2() || g.response_models.contains(schema) || !in_params {
+    if !variant || g.response_models.contains(schema) {
         out.extend(model_decls(d, Mode::Response, ctx));
     }
-    if g.target.v2() && in_params && crate::types::has_param_variant(g.client, &d.r#ref) {
+    if variant {
         for decl in model_decls(d, Mode::Body, ctx) {
             if !out.iter().any(|o: &Decl| o.name() == decl.name()) {
                 out.push(decl);
