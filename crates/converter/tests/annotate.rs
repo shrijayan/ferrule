@@ -234,13 +234,12 @@ mod pagination {
     }
 
     /// The configured schemes go on the root too, for the runtime to render `pagination.py` from
-    /// when it is not copied from an adopted SDK: the class name spelled with the casings, and the
-    /// fields as lists, in config order (the annotated spec's objects are written sorted).
+    /// when it is not copied from an adopted SDK: the fields as lists, in config order (the
+    /// annotated spec's objects are written sorted).
     #[test]
     fn writes_the_configured_schemes_on_the_root() {
         let expected = v(&json!([{
             "name": "cursor_page",
-            "className": "CursorPage",
             "kind": "cursor",
             "request": [
                 {"name": "after", "type": "string", "purpose": "next_cursor_param"},
@@ -265,12 +264,11 @@ mod pagination {
         assert!(none.spec.get("x-ferrule-page-schemes").is_none());
     }
 
-    /// The knock and ogx shapes: an implicit items array, nested fields, a field written before
-    /// the items, and a custom casing in the name.
+    /// The knock shapes: an implicit items array (also one named `items`), nested fields and a
+    /// field written before the items.
     #[test]
-    fn writes_nested_fields_implicit_items_and_cased_names() {
+    fn writes_nested_fields_and_implicit_items() {
         let config = v(&json!({
-            "custom_casings": {"openai": {"pascal": "OpenAI"}},
             "pagination": [
                 {
                     "name": "openai_cursor_page",
@@ -287,12 +285,21 @@ mod pagination {
             ],
             "resources": {"users": {"methods": {"list": "get /users"}}}
         }));
+        let named_items = v(&json!({
+            "pagination": {"name": "p", "type": "cursor", "response": {"items": {"type": "array"}}},
+            "resources": {"users": {"methods": {"list": "get /users"}}}
+        }));
+        assert_eq!(
+            convert(&make_spec(), &named_items).spec.get("x-ferrule-page-schemes"),
+            Some(&v(&json!([{"name": "p", "kind": "cursor", "request": [], "response": [
+                {"name": "items", "type": "array", "purpose": "items"}
+            ]}])))
+        );
         let r = convert(&make_spec(), &config);
         assert_eq!(
             r.spec.get("x-ferrule-page-schemes"),
             Some(&v(&json!([{
                 "name": "openai_cursor_page",
-                "className": "OpenAICursorPage",
                 "kind": "cursor",
                 "request": [{"name": "after", "type": "string", "purpose": "next_cursor_param"}],
                 "response": [
