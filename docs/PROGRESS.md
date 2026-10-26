@@ -181,8 +181,8 @@ pins). Open PRs, with what is proven:
 | Java, Kotlin | #25, #32 | onebusaway-kotlin 61/61, imagekit-java 67/67 | onebusaway-java 328/343, onebusaway-kotlin 282/338, imagekit-java 186/291 |
 | Ruby | #25, #35 | onebusaway-ruby 58/58 | onebusaway-ruby 326/329, imagekit-ruby 348/432; both gems' own tests pass |
 | PHP | #38 | imagekit-php 48/48 | imagekit-php 268/336 shared files (86 more under other names); its 87 pest tests pass |
+| C# | #39 | imagekit-dotnet 38/38 | imagekit-csharp 109/184 (38 more differ only in doc wrapping); builds with dotnet, synthetic SDK's 89 tests pass |
 
-In progress: C# (imagekit-dotnet, which pairs with the `csharp` branch of
-imagekit's config repo; stagehand-net, MIT, for comparison). Then CLI and Terraform. Python moves onto `sdk-model` once the Phase 4 PRs
+Next: CLI and Terraform. Python moves onto `sdk-model` once the Phase 4 PRs
 land (`crates/sdk-model/MIGRATION.md`).
 
