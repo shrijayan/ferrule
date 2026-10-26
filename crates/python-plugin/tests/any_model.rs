@@ -1,5 +1,5 @@
 //! A named schema with no type (`tests/any_model/`, reduced from the opencode SDK's compaction
-//! payload) is an `object` alias; a named object without properties stays an empty class.
+//! payload) is an `object` alias; a named `type: object` stays a map of any values.
 
 use std::collections::BTreeMap;
 use std::fs;
@@ -16,5 +16,5 @@ fn a_typeless_model_is_an_object_alias() {
     let payload = files.get("src/fx/types/shared/payload.py").expect("payload.py");
     assert!(payload.ends_with("Payload: TypeAlias = object\n"), "{payload}");
     let empty = files.get("src/fx/types/shared/empty.py").expect("empty.py");
-    assert!(empty.ends_with("class Empty(BaseModel):\n    pass\n"), "{empty}");
+    assert!(empty.ends_with("Empty: TypeAlias = Dict[str, object]\n"), "{empty}");
 }

@@ -181,6 +181,9 @@ impl Context<'_> {
                             alias: None,
                         };
                         self.decls.push((schema.to_owned(), decl));
+                        // No type at all (`{}`, `{not: ...}`) holds any value: an alias, not the
+                        // empty class an object without properties is.
+                        let any = matches!(model.ty(), Type::Scalar(Scalar::Unknown));
                         let body = self.read_type(model.ty())?;
                         if let Some(clash) = attribute_clash(&body) {
                             let pointer =
@@ -190,6 +193,7 @@ impl Context<'_> {
                         if let Some((_, slot)) = self.decls.iter_mut().find(|(k, _)| k == schema) {
                             match body {
                                 SdkType::Object(o) => slot.ty = o,
+                                SdkType::Unknown if any => slot.alias = Some(SdkType::Unknown),
                                 // An object without properties: an empty class, as Stainless prints it.
                                 SdkType::Unknown => {}
                                 other => slot.alias = Some(other),
