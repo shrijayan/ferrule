@@ -157,3 +157,26 @@ def test_apply_unwraps_the_operations_the_contract_marks() -> None:
     )
     assert "      list: get /api/agent\n" in once
     assert apply(once, spec) == once
+
+
+def test_model_entries_leave_out_the_envelopes_the_sdk_unwraps() -> None:
+    # The SDK returns GenerateTextResponse's `data`, so the envelope is no model of its own (its
+    # name would clash with the unwrapped type's); Shared is also used by another schema.
+    def returns(schema: str) -> Json:
+        content = {"application/json": {"schema": {"$ref": f"#/components/schemas/{schema}"}}}
+        return {"x-opencode-unwrap-data": True, "responses": {"200": {"content": content}}}
+
+    spec: Json = {
+        "paths": {
+            "/api/generate": {"post": returns("GenerateTextResponse")},
+            "/api/shared": {"get": returns("Shared")},
+        },
+        "components": {
+            "schemas": {
+                "GenerateTextResponse": {"type": "object"},
+                "Shared": {"type": "object"},
+                "Holder": {"properties": {"s": {"$ref": "#/components/schemas/Shared"}}},
+            }
+        },
+    }
+    assert model_entries(spec) == [("holder", "Holder"), ("shared", "Shared")]
