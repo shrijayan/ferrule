@@ -276,7 +276,7 @@ const IMAGEKIT_JAVA: Oracle = Oracle {
     known: &[],
 };
 
-const IMAGEKIT_IDENTICAL: usize = 186;
+const IMAGEKIT_IDENTICAL: usize = 187;
 
 #[test]
 fn imagekit_java_matches_at_least_the_ratchet() {

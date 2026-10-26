@@ -49,7 +49,7 @@ branding substitutions:
 |---|---|---|
 | onebusaway-java (`c29c48ad`, Apache-2.0, same generation as the Python pin) | 328 of 343 | 14 tests: Forge gap G18 (parameter and field `example`s, `maximum` not in the model); `StopsForAgencyListResponse.kt`: Stainless spelled one KDoc type in full in this file only |
 | onebusaway-kotlin (`69234467`, Apache-2.0, same generation) | 282 of 338 | the same G18 tests; 43 files carry hand edits of the Kotlin repo (`limitExceeded`/`outOfRange` and the `Situation.Reason` enum), which the Java repo of the same generation does not have |
-| imagekit-java (`f96c35e8`, Apache-2.0, same generation as the imagekit-python pin) | 186 of 291 (a ratchet) | unions, multipart uploads, webhooks, G18 examples, path params' schema descriptions, imagekit's custom code (`lib/Helper`) |
+| imagekit-java (`f96c35e8`, Apache-2.0, same generation as the imagekit-python pin) | 187 of 291 (a ratchet) | unions, multipart uploads, webhooks, G18 examples, path params' schema descriptions, imagekit's custom code (`lib/Helper`) |
 
 It also checks that every generated OneBusAway file is emitted, but `README.md` and
 `.stats.yml`. The runtime is proven by `runtime/tests/test_render_oracles_java.py`.
