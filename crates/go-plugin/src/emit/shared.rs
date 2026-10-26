@@ -5,9 +5,9 @@ use std::fmt::Write as _;
 
 use super::Gen;
 use super::decls::print_decls;
-use super::resource::model_decls;
+use super::resource::all_model_decls;
 use crate::printer::go_file;
-use crate::types::{Decl, Mode, Pkg, model_pkg};
+use crate::types::{Decl, Pkg, model_pkg};
 
 /// The declarations of every `$shared` model, in model order.
 #[must_use]
@@ -17,7 +17,7 @@ pub fn shared_decls(g: &Gen<'_>) -> Vec<Decl> {
         .models
         .iter()
         .filter(|d| model_pkg(&d.r#ref) == Pkg::Shared)
-        .flat_map(|d| model_decls(d, Mode::Response, &mut ctx))
+        .flat_map(|d| all_model_decls(g, d, &mut ctx))
         .collect()
 }
 
@@ -30,7 +30,7 @@ pub fn shared_file(g: &Gen<'_>) -> Option<(String, String)> {
         .models
         .iter()
         .filter(|d| model_pkg(&d.r#ref) == Pkg::Shared)
-        .flat_map(|d| model_decls(d, Mode::Response, &mut ctx))
+        .flat_map(|d| all_model_decls(g, d, &mut ctx))
         .collect();
     if decls.is_empty() {
         return None;

@@ -45,8 +45,29 @@ pub fn returns(g: &Gen<'_>, s: &Service<'_>, m: &Method, ctx: &mut Ctx<'_>) -> (
         };
         return (returns, mapped.decls);
     }
+    // v2 declares a response that is any object as an empty struct (imagekit-go's
+    // `FolderNewResponse`).
+    if g.target.v2() && is_any_object(&resp.ty) {
+        let empty = ferrule_sdk_model::model::Object::default();
+        let decls = object_decls(&empty, &Position::exact(&name), &doc(&resp.ty), Mode::Response, ctx);
+        return (Returns::Pointer(name), decls);
+    }
     let mapped = map_type(&resp.ty, &Position::exact(&name), &doc(&resp.ty), Mode::Response, ctx);
     (Returns::Pointer(mapped.ty), mapped.decls)
+}
+
+/// Whether `ty` is an object with no fields, whose other keys may be anything.
+fn is_any_object(ty: &Type) -> bool {
+    match ty {
+        Type::Object(o) => o.fields.is_empty() && o.bases.is_empty(),
+        Type::Map { values } => matches!(
+            **values,
+            Type::Scalar {
+                scalar: ferrule_sdk_model::model::Scalar::Unknown
+            }
+        ),
+        _ => false,
+    }
 }
 
 /// The params struct of `m`, if it takes params.
@@ -273,14 +294,38 @@ fn service_decl(out: &mut String, g: &Gen<'_>, s: &Service<'_>, ctx: &mut Ctx<'_
 fn resource_models(g: &Gen<'_>, s: &Service<'_>, ctx: &mut Ctx<'_>) -> Vec<Decl> {
     g.models_of(s)
         .into_iter()
-        .flat_map(|d| model_decls(d, Mode::Response, ctx))
+        .flat_map(|d| all_model_decls(g, d, ctx))
         .collect()
 }
 
-/// The declarations of one named model.
+/// A model's declarations as the SDK has them: its response types unless only params use it,
+/// then in v2 its param variant when params use it (knock-mgmt-go's `Duration`, then
+/// `DurationParam`), the enums shared between them declared once.
+pub fn all_model_decls(g: &Gen<'_>, d: &ferrule_sdk_model::model::ModelDecl, ctx: &mut Ctx<'_>) -> Vec<Decl> {
+    let schema = &d.r#ref.schema;
+    let in_params = g.param_models.contains(schema);
+    let mut out = Vec::new();
+    if !g.target.v2() || g.response_models.contains(schema) || !in_params {
+        out.extend(model_decls(d, Mode::Response, ctx));
+    }
+    if g.target.v2() && in_params && crate::types::has_param_variant(g.client, &d.r#ref) {
+        for decl in model_decls(d, Mode::Body, ctx) {
+            if !out.iter().any(|o: &Decl| o.name() == decl.name()) {
+                out.push(decl);
+            }
+        }
+    }
+    out
+}
+
+/// The declarations of one named model in `mode`: in v2 params, its param variant.
 pub fn model_decls(d: &ferrule_sdk_model::model::ModelDecl, mode: Mode, ctx: &mut Ctx<'_>) -> Vec<Decl> {
-    let name = d.r#ref.name.written.clone();
-    let pos = Position::exact(&name);
+    let name = crate::types::model_name(&d.r#ref, ctx.casings);
+    let pos = if ctx.v2 && mode != Mode::Response {
+        Position::param_variant(&name)
+    } else {
+        Position::exact(&name)
+    };
     match &d.ty {
         Type::Object(o) if !(o.fields.is_empty() && o.bases.is_empty()) => {
             let doc = if d.description.is_empty() {

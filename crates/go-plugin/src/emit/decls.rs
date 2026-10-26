@@ -71,27 +71,24 @@ fn params_v2(out: &mut String, name: &str, fields: &[GoField], bases: &[String],
     let is_scalar = |f: &GoField| opt_scalar(&f.ty) && f.enum_values.is_empty();
     let json = fields.iter().any(|f| f.key == "json");
     let query = fields.iter().any(|f| f.key == "query");
-    if json || fields.iter().any(|f| !f.required && is_scalar(f)) {
+    if json || fields.iter().any(|f| (!f.required || f.nullable) && is_scalar(f)) {
         ctx.import_module("packages/param");
     }
     for f in fields {
         comment(out, 1, &field_doc(f, true));
-        // A path field is a required plain value.
+        // A path field is a required plain value; a nullable scalar is a `param.Opt` even when
+        // required (knock-mgmt-go's `Label`), and params tag no `nullable`.
         let scalar = is_scalar(f) || f.key == "path";
-        let ty = if !f.required && scalar {
+        let opt = scalar && (!f.required || f.nullable);
+        let ty = if opt {
             format!("param.Opt[{}]", f.ty)
         } else {
             f.ty.clone()
         };
-        let omitzero = if f.required && scalar { "" } else { ",omitzero" };
+        let omitzero = if scalar && !opt { "" } else { ",omitzero" };
         let mut tag = format!("`{}:\"{}{omitzero}\"", f.key, f.wire);
-        let api: Vec<&str> = [(f.required, "required"), (f.nullable, "nullable")]
-            .iter()
-            .filter(|(on, _)| *on)
-            .map(|(_, s)| *s)
-            .collect();
-        if !api.is_empty() {
-            let _ = write!(tag, " api:\"{}\"", api.join(","));
+        if f.required {
+            tag.push_str(" api:\"required\"");
         }
         if let Some(format) = f.format {
             let _ = write!(tag, " format:\"{format}\"");

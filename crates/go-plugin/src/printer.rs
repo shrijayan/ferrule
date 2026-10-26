@@ -137,25 +137,89 @@ pub fn align(text: &str) -> String {
     out
 }
 
-/// Greedy word wrap of one paragraph at [`COMMENT_WIDTH`].
-fn wrap_paragraph(text: &str, out: &mut Vec<String>) {
-    let mut line = String::new();
-    let mut len = 0;
-    for word in text.split(' ').filter(|w| !w.is_empty()) {
-        let wlen = word.chars().count();
-        if len > 0 && len + 1 + wlen > COMMENT_WIDTH {
-            out.push(std::mem::take(&mut line));
-            len = 0;
+/// The words of a paragraph, a Markdown link (`[text](url)`) kept as one: Stainless never
+/// breaks a line inside one (knock-mgmt-go's `[data obfuscation docs](https://...)`).
+fn units(text: &str) -> Vec<String> {
+    let words: Vec<&str> = text.split(' ').filter(|w| !w.is_empty()).collect();
+    let mut out = Vec::new();
+    let mut i = 0;
+    while i < words.len() {
+        let w = words[i];
+        if let Some(start) = w.find('[')
+            && !w[start..].contains("](")
+            && let Some(end) = (i + 1..words.len()).find(|&j| words[j].contains("]("))
+            && words[i + 1..end].iter().all(|x| !x.contains('[') && !x.contains(']'))
+        {
+            out.push(words[i..=end].join(" "));
+            i = end + 1;
+            continue;
         }
-        if len > 0 {
+        out.push(w.to_owned());
+        i += 1;
+    }
+    out
+}
+
+/// Greedy word wrap of one paragraph at [`COMMENT_WIDTH`], the first line starting with
+/// `first` and the others with `rest` (counted in the width).
+fn wrap_with(text: &str, first: &str, rest: &str, out: &mut Vec<String>) {
+    let mut line = first.to_owned();
+    let mut len = first.chars().count();
+    let mut empty = true;
+    for word in &units(text) {
+        let wlen = word.chars().count();
+        if !empty && len + 1 + wlen > COMMENT_WIDTH {
+            out.push(std::mem::take(&mut line));
+            line.push_str(rest);
+            len = rest.chars().count();
+            empty = true;
+        }
+        if !empty {
             line.push(' ');
             len += 1;
         }
         line.push_str(word);
         len += wlen;
+        empty = false;
     }
-    if len > 0 {
+    if !empty {
         out.push(line);
+    }
+}
+
+/// Greedy word wrap of one paragraph at [`COMMENT_WIDTH`].
+fn wrap_paragraph(text: &str, out: &mut Vec<String>) {
+    wrap_with(text, "", "", out);
+}
+
+/// A Markdown list item (`- item`, `* item`), as its text.
+fn list_item(line: &str) -> Option<&str> {
+    line.strip_prefix("- ").or_else(|| line.strip_prefix("* "))
+}
+
+/// One paragraph's lines. A Markdown list is a Go doc list (`  - item`, continued at four
+/// spaces); a Markdown hard break (a line ending in two spaces or `\`, the `\` kept) ends a
+/// line, as in imagekit-go; other line breaks are spaces.
+fn paragraph_lines(paragraph: &str, out: &mut Vec<String>) {
+    let lines: Vec<&str> = paragraph.split('\n').collect();
+    if lines.iter().all(|l| list_item(l.trim()).is_some()) {
+        for l in lines {
+            wrap_with(list_item(l.trim()).unwrap_or_default().trim(), "  - ", "    ", out);
+        }
+        return;
+    }
+    let mut segment: Vec<&str> = Vec::new();
+    for l in lines {
+        let hard = l.ends_with("  ") || l.trim_end().ends_with('\\');
+        segment.push(l.trim());
+        if hard {
+            wrap_paragraph(&segment.join(" "), out);
+            segment.clear();
+        }
+    }
+    let rest = segment.join(" ");
+    if !rest.trim().is_empty() {
+        wrap_paragraph(&rest, out);
     }
 }
 
@@ -165,14 +229,13 @@ fn wrap_paragraph(text: &str, out: &mut Vec<String>) {
 pub fn comment_lines(text: &str) -> Vec<String> {
     let mut out = Vec::new();
     for (i, paragraph) in text.trim().split("\n\n").enumerate() {
-        let joined = paragraph.split('\n').map(str::trim).collect::<Vec<_>>().join(" ");
-        if joined.is_empty() {
+        if paragraph.trim().is_empty() {
             continue;
         }
         if i > 0 && !out.is_empty() {
             out.push(String::new());
         }
-        wrap_paragraph(&joined, &mut out);
+        paragraph_lines(paragraph, &mut out);
     }
     out
 }
@@ -295,6 +358,25 @@ mod tests {
             ]
         );
         assert_eq!(comment_lines("a\n\nb"), ["a", "", "b"]);
+        assert_eq!(comment_lines("a\nb"), ["a b"]);
+        assert_eq!(
+            comment_lines("**Note:** beta.  \nCreates one."),
+            ["**Note:** beta.", "Creates one."]
+        );
+        assert_eq!(comment_lines("**Limit** \\\nTen."), ["**Limit** \\", "Ten."]);
+        assert_eq!(
+            comment_lines("Apps\n\n- One.\n- Two."),
+            ["Apps", "", "  - One.", "  - Two."]
+        );
+        assert_eq!(
+            comment_lines(
+                "Whether PII data is hidden from the environment. Read more in the [data obfuscation docs](https://docs.knock.app/manage-your-account/data-obfuscation)."
+            ),
+            [
+                "Whether PII data is hidden from the environment. Read more in the",
+                "[data obfuscation docs](https://docs.knock.app/manage-your-account/data-obfuscation)."
+            ]
+        );
         assert_eq!(comment_lines("  "), Vec::<String>::new());
     }
 
