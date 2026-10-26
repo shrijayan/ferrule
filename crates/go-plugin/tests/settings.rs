@@ -104,3 +104,34 @@ fn a_property_named_json_does_not_collide_with_the_json_metadata_field() {
     assert!(text.contains("\tJson        apijson.Field\n"), "{text}");
     assert!(text.contains("\tJSON thingGetResponseJSON `json:\"-\"`\n"), "{text}");
 }
+
+const OBJECT: &str = "                type: object
+                properties:
+                  name:
+                    type: string";
+
+#[test]
+fn non_string_client_settings_are_sent_as_strings() {
+    let settings = format!(
+        "{API_KEY}
+    org_id:
+      type: integer
+      send_in_header: X-Org
+    ratio:
+      type: number
+      send_as_query_param: ratio
+    beta:
+      type: boolean
+      send_in_header: X-Beta
+    region:
+      type: string
+      send_in_header: X-Region"
+    );
+    let out = go(&spec(OBJECT, BEARER), &config(&settings));
+    let options = &out.runtime.client_options;
+    assert!(options.contains("r.Apply(WithHeader(\"X-Org\", fmt.Sprint(*r.OrgID)))"), "{options}");
+    assert!(options.contains("r.Apply(WithQuery(\"ratio\", fmt.Sprint(*r.Ratio)))"), "{options}");
+    assert!(options.contains("r.Apply(WithHeader(\"X-Beta\", fmt.Sprint(*r.Beta)))"), "{options}");
+    // A string option is sent as it is.
+    assert!(options.contains("r.Apply(WithHeader(\"X-Region\", *r.Region))"), "{options}");
+}
