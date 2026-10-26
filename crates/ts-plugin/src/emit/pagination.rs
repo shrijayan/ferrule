@@ -148,7 +148,8 @@ fn next_cursor_url(ctx: &Ctx<'_>, page: Page<'_>) -> Vec<String> {
             "    const next = new URL(url);".to_owned(),
             "    return {".to_owned(),
             "      ...this.options,".to_owned(),
-            "      path: next.pathname,".to_owned(),
+            // The whole URL: `buildURL` takes an absolute path as is.
+            "      path: next.toString(),".to_owned(),
             "      query: Object.fromEntries(next.searchParams),".to_owned(),
             "    };".to_owned(),
         ]);
