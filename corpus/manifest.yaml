@@ -43,7 +43,12 @@
       },
       "sha256": "9e6a6c528ad39fb9544cae241178bd01362b690952bea6b65bce8ab9c9d69898",
       "size": 4130012,
-      "notes": ""
+      "notes": "Compared with openai-python at its last stainless-app[bot] commit (release 2.52.1); later commits use another generator.",
+      "compare": {
+        "repo": "openai/openai-python",
+        "sha": "f83b1f4cce7f25a11079341e28a76f71b1d6b2fb",
+        "package": "openai"
+      }
     },
     {
       "name": "kubernetes",
@@ -82,7 +87,12 @@
       },
       "sha256": "aa6bdbad8612a41f302ee214f20f0a1ece5f821068dfb56ef7558e27908de4b3",
       "size": 27485719,
-      "notes": ""
+      "notes": "Compared with cloudflare-python at its last stainless-app[bot] commit.",
+      "compare": {
+        "repo": "cloudflare/cloudflare-python",
+        "sha": "de1242647d25670ab1122b7aa0a67064614fdb81",
+        "package": "cloudflare"
+      }
     },
     {
       "name": "azure-storage",
@@ -147,7 +157,12 @@
       },
       "sha256": "3b6d440549faf18c731fe22570fbaca02462cf61be9128b9f59e9672d5e76d39",
       "size": 141082,
-      "notes": "Multi-file spec: the root document $refs sibling files at the same commit; fetch.py downloads only the root."
+      "notes": "Multi-file spec: the root document $refs sibling files at the same commit; fetch.py downloads only the root. Compared with gradient-python (Stainless-generated; covers the GenAI subset of this API) at its last stainless-app[bot] commit.",
+      "compare": {
+        "repo": "digitalocean/gradient-python",
+        "sha": "32b6f060714d4f0b32be8aa768338da209fa4050",
+        "package": "gradient"
+      }
     },
     {
       "name": "discord",
@@ -180,7 +195,7 @@
       "url": "https://developer.atlassian.com/cloud/jira/platform/swagger-v3.v3.json",
       "format": "json",
       "source": null,
-      "sha256": "e30922c95a8e036084ce5da6a244e247cb527f3f0eb398f1ba2c973fe4d9e59b",
+      "sha256": "15ceb328f369b367595d0cf4a9afb6c511b16940658ca05decc8352d777fd2f3",
       "size": 2510000,
       "notes": "Not on GitHub; pinned by sha256 only. Atlassian replaces this file in place, so a hash mismatch means re-pin (see corpus/README.md)."
     }

@@ -581,8 +581,39 @@ pub fn annotate(spec: &Value, config: &Value) -> (Value, Vec<Diagnostic>) {
             mirrored.insert(key, value);
         }
     }
+    let bound: Vec<Vec<Seg>> = ctx.bindings.iter().map(|(p, _)| p.clone()).collect();
     write_bindings(&mut out, ctx.bindings, &mirrored);
+    drop_unbound_groups(&mut out, &bound);
     (out, ctx.diagnostics)
+}
+
+/// The operation keys of a path item that Forge reads as operations.
+const VERBS: [&str; 8] = ["get", "put", "post", "delete", "options", "head", "patch", "trace"];
+/// Extensions Forge makes methods from: Fern's grouping (an operation with a group name is
+/// generated) and Forge's own aliases (one method per alias).
+const FERN_GROUPING: [&str; 3] = ["x-fern-sdk-group-name", "x-fern-sdk-method-name", "x-forge-aliases"];
+
+/// Removes Fern's grouping and Forge aliases from operations no method is bound to, which a
+/// spec may carry itself (cloudflare's does), so Forge drops them as Stainless leaves out unconfigured
+/// endpoints, instead of grouping them without `x-ferrule-resource`.
+fn drop_unbound_groups(out: &mut Value, bound: &[Vec<Seg>]) {
+    let Some(Value::Object(paths)) = out.as_object_mut().and_then(|o| o.get_mut("paths")) else {
+        return;
+    };
+    for (route, item) in paths.iter_mut() {
+        let Value::Object(item) = item else { continue };
+        for verb in VERBS {
+            let Some(Value::Object(op)) = item.get_mut(verb) else {
+                continue;
+            };
+            let here = [Seg::from("paths"), Seg::from(route.as_str()), Seg::from(verb)];
+            if !bound.iter().any(|p| p.as_slice() == here.as_slice()) {
+                for key in FERN_GROUPING {
+                    op.remove(key);
+                }
+            }
+        }
+    }
 }
 
 /// Writes each method's extensions, and `mirrored`, on its operation. An operation bound to
@@ -603,6 +634,8 @@ fn write_bindings(out: &mut Value, bindings: Vec<(Vec<Seg>, Vec<Map>)>, mirrored
             })
             .collect();
         if defs.len() == 1 {
+            // Aliases the spec carried would make Forge methods beside this one.
+            op.remove("x-forge-aliases");
             for (key, value) in defs.remove(0) {
                 op.insert(key, value);
             }

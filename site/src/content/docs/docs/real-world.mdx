@@ -1,0 +1,54 @@
+---
+title: Real-world specs
+description: Fourteen large public OpenAPI specs run through Ferrule end to end, with every stage's result, failures included.
+---
+
+import CorpusTable from '../../../components/CorpusTable.astro';
+
+The [fidelity board](../fidelity/) measures Ferrule against SDKs that Stainless generated from a
+public `stainless.yml`. This page asks a different question: what happens to fourteen of the
+largest and messiest public API specs, which have no `stainless.yml` at all? Each one is run
+through the whole pipeline by `mise run corpus -- --tier 1`, and every result is shown here,
+failures included. [What the real-world specs taught us](../corpus-findings/) explains the
+failures, with their evidence, and what has been fixed.
+
+<CorpusTable />
+
+## Methodology
+
+Each spec is pinned by commit and sha256 in
+[`corpus/manifest.yaml`](https://github.com/shrijayan/ferrule/blob/main/corpus/manifest.yaml).
+The harness is [`scripts/corpus/run.py`](https://github.com/shrijayan/ferrule/blob/main/scripts/corpus/run.py);
+this page's data, `site/src/data/corpus.json`, is built from its reports by
+`mise run board:corpus -- --date <run date>`.
+
+| Stage | What it checks |
+| --- | --- |
+| fetch | The pinned file downloads and matches its sha256. A `stainless.yml` is synthesized: one resource per first tag, one method per operation. |
+| convert | `ferrule-gen convert` reads the spec and config. Swagger 2.0 specs are converted to OpenAPI 3 here. The board lists the diagnostics by FER code. |
+| gen | Forge and the Python plugin generate the SDK. When an operation is refused, the run does what the diagnostic says: it names a recursive schema as a model, or leaves the operation out. Each skipped operation is counted under its FER code. |
+| render | The whole `ferrule generate` with the final config: runtime, import sort, formatting. Its time is the generation time. |
+| Generated (column) | Distinct endpoints the generated `api.md` lists. Operations sharing an endpoint shape (the same verb and path apart from parameter names) count once. |
+| deps | A fresh venv with only the SDK's declared dependencies and its dev lock. |
+| ruff, pyright, mypy | The SDK's own lint and strict type-check configuration ([ADR 0012](https://github.com/shrijayan/ferrule/blob/main/docs/adr/0012-generated-sdk-type-checks-use-the-sdk-config.md)). |
+| import | The package imports, and its client can be built. |
+| tests | The generated tests run against the pinned mock server, which serves the converted spec. |
+| determ. | A second generation gives the same tree digest. |
+| wheel | `uv build --wheel` succeeds. |
+
+**Comparison with official SDKs.** Three of the fourteen APIs have an official Python SDK that
+Stainless generated (it carries Stainless's `.stats.yml`): OpenAI (`openai/openai-python`),
+Cloudflare (`cloudflare/cloudflare-python`) and DigitalOcean's Gradient
+(`digitalocean/gradient-python`, which covers the GenAI part of the DigitalOcean API). Each one is
+pinned at its last `stainless-app[bot]` commit. For these three, the generated SDK uses the official
+package name and is compared with `ferrule verify`, the same API diff and closeness score the
+fidelity board uses. The board also reports endpoint coverage: how many of the official SDK's
+endpoints the generated SDK has. The official SDKs' `stainless.yml` files are private, so the
+synthesized config cannot reproduce their resource names or layout, and the breaking count
+mostly measures that. Endpoint coverage is the fairer number here. The official SDKs are only
+read, never imported or run. For the other eleven, there is no Stainless-generated Python SDK to
+compare with, and the reason is shown for each.
+
+**Gaps.** Workarounds for the limits of Forge's reader are listed in
+[`docs/forge-gaps.md`](https://github.com/shrijayan/ferrule/blob/main/docs/forge-gaps.md), and each
+spec shows the gaps it hit. A gap marked *blocking* stopped that spec.

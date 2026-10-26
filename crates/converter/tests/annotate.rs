@@ -168,6 +168,44 @@ mod resources_and_methods {
         assert_eq!(op(&r.spec, "/unconfigured", "get"), op(&input, "/unconfigured", "get"));
     }
 
+    /// Reduced from the Tier 1 corpus (cloudflare): the spec carries Fern's grouping extensions
+    /// on every operation, so Forge grouped operations the config leaves out and the plugin
+    /// refused them (FER103, no `x-ferrule-resource`). Stainless generates configured endpoints only.
+    #[test]
+    fn drops_fern_grouping_from_operations_not_in_the_config() {
+        let mut spec = make_spec_json();
+        spec["paths"]["/unconfigured"]["get"]["x-fern-sdk-group-name"] = json!("accounts.billing");
+        spec["paths"]["/unconfigured"]["get"]["x-fern-sdk-method-name"] = json!("createSetupIntent");
+        let r = convert(&v(&spec), &config());
+        let unbound = op(&r.spec, "/unconfigured", "get");
+        for key in ["x-fern-sdk-group-name", "x-fern-sdk-method-name"] {
+            assert!(unbound.get(key).is_none(), "unconfigured operation keeps {key}");
+        }
+        assert!(unbound.get("responses").is_some());
+    }
+
+    /// Cloudflare's spec also carries `x-forge-aliases` with Fern grouping inside: on an
+    /// operation the config leaves out, Forge made a method of each alias.
+    #[test]
+    fn drops_spec_forge_aliases_from_operations_not_in_the_config() {
+        let mut spec = make_spec_json();
+        let alias = json!([{"x-fern-sdk-group-name": "a.b", "x-fern-sdk-method-name": "c"}]);
+        spec["paths"]["/unconfigured"]["get"]["x-forge-aliases"] = alias.clone();
+        spec["paths"]["/users"]["post"]["x-forge-aliases"] = alias;
+        let r = convert(&v(&spec), &config());
+        let unbound = op(&r.spec, "/unconfigured", "get");
+        assert!(
+            unbound.get("x-forge-aliases").is_none(),
+            "unconfigured operation keeps the spec's x-forge-aliases"
+        );
+        let bound = op(&r.spec, "/users", "post");
+        assert!(
+            bound.get("x-forge-aliases").is_none(),
+            "configured operation keeps the spec's x-forge-aliases"
+        );
+        assert!(matches_object(bound, &v(&json!({"x-ferrule-method-name": "create"}))));
+    }
+
     #[test]
     fn reports_fer1001_with_a_pointer_for_missing_operations() {
         let r = convert(

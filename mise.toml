@@ -120,3 +120,7 @@ run = "uv run python -m scripts.corpus.run"
 [tasks.board]
 description = "Build the fidelity board data from reports/parity"
 run = "uv run python -m scripts.board.build"
+
+[tasks."board:corpus"]
+description = "Build the real-world specs board data from reports/corpus (pass --date YYYY-MM-DD)"
+run = "uv run python -m scripts.board.corpus"

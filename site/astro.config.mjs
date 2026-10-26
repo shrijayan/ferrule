@@ -52,7 +52,7 @@ export default defineConfig({
       sidebar: [
         { label: 'Start', items: ['docs', 'docs/quickstart', 'docs/commands', 'docs/action'] },
         { label: 'Design', items: ['docs/architecture', 'docs/principles'] },
-        { label: 'Fidelity', items: ['docs/fidelity'] },
+        { label: 'Fidelity', items: ['docs/fidelity', 'docs/real-world', 'docs/corpus-findings'] },
         { label: 'Decisions', items: ['docs/adr'] },
       ],
     }),

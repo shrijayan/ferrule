@@ -64,10 +64,13 @@ SKIP_PARTS = frozenset({"__pycache__", ".ruff_cache", ".mypy_cache", ".pytest_ca
 class RuntimeRenderer(Protocol):
     """What ``ferrule_runtime.render`` must look like for ``generate`` to use it.
 
-    It writes the runtime modules for ``package`` into ``package_dir`` (``<out>/src/<package>``).
+    It writes the runtime modules for ``package`` into ``package_dir`` (``<out>/src/<package>``),
+    named for ``client_name`` (``<ClientName>Error``, ...) when it is given.
     """
 
-    def __call__(self, package: str, package_dir: Path, /) -> object:
+    def __call__(
+        self, package: str, package_dir: Path, /, *, client_name: str | None = None
+    ) -> object:
         """Render the runtime for ``package`` into ``package_dir``."""
         ...
 
@@ -288,6 +291,16 @@ def load_renderer() -> RuntimeRenderer | None:
     return cast("RuntimeRenderer", render) if callable(render) else None
 
 
+_CLIENT_RE = re.compile(r"^class (\w+)\(SyncAPIClient\):", re.MULTILINE)
+
+
+def client_class(package_dir: Path) -> str | None:
+    """Return the sync client class the plugin wrote in ``_client.py`` (it names the runtime)."""
+    path = package_dir / "_client.py"
+    match = _CLIENT_RE.search(path.read_text(encoding="utf-8")) if path.is_file() else None
+    return match[1] if match else None
+
+
 def run_subprocess(argv: Sequence[str]) -> subprocess.CompletedProcess[str]:
     """Run one pipeline command, capturing its output."""
     return subprocess.run(argv, capture_output=True, text=True, check=False)  # noqa: S603
@@ -439,7 +452,7 @@ def generate(
         package = pick_package(_src_packages(request.out), "--out")
         package_dir = request.out / "src" / package
         before = len(relative_files(package_dir))
-        renderer(package, package_dir)
+        renderer(package, package_dir, client_name=client_class(package_dir))
         runtime_count = len(relative_files(package_dir)) - before
     else:
         raise fail(

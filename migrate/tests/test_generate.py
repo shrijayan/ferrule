@@ -258,13 +258,41 @@ def test_generate_with_renderer(inputs: tuple[GenerateRequest, Path]) -> None:
     request = replace(request, runtime_from=None)
     seen: list[tuple[str, Path]] = []
 
-    def render(package: str, package_dir: Path, /) -> None:
+    def render(package: str, package_dir: Path, /, *, client_name: str | None = None) -> None:
+        assert client_name is None  # the fake _client.py defines no SyncAPIClient
         seen.append((package, package_dir))
         write(package_dir / "_base_client.py", "x\n")
 
     result = generate(request, runner=fake_runner([]), renderer=render)
     assert seen == [("acme", request.out / "src/acme")]
     assert result.runtime_files == 1
+
+
+def test_generate_renders_runtime_for_the_generated_client(
+    inputs: tuple[GenerateRequest, Path],
+) -> None:
+    # Reduced from the Tier 1 corpus (slack): package `corpus_slack`, client `Slack`. The
+    # plugin's __init__.py imports `SlackError`; a runtime named after the package defined
+    # `CorpusSlackError` instead, so the SDK did not import.
+    request, _ = inputs
+    request = replace(request, runtime_from=None)
+    base = fake_runner([])
+
+    def runner(argv: Sequence[str]) -> subprocess.CompletedProcess[str]:
+        proc = base(argv)
+        if argv[1] == "generate":
+            out = Path(argv[argv.index("--out") + 1])
+            write(out / "src/acme/_client.py", "class AcmeSDK(SyncAPIClient):\n    pass\n")
+        return proc
+
+    seen: list[tuple[str, str | None]] = []
+
+    def render(package: str, package_dir: Path, /, *, client_name: str | None = None) -> None:
+        seen.append((package, client_name))
+        write(package_dir / "_base_client.py", "x\n")
+
+    generate(request, runner=runner, renderer=render)
+    assert seen == [("acme", "AcmeSDK")]
 
 
 def test_generate_without_runtime(inputs: tuple[GenerateRequest, Path]) -> None:

@@ -1,0 +1,388 @@
+---
+// Copyright 2026 Ferrule contributors
+// SPDX-License-Identifier: Apache-2.0
+// Real-world specs board. Rows come from src/data/corpus.json (scripts/board/corpus.py).
+import corpus from '../data/corpus.json';
+
+interface Stage {
+  name: string;
+  status: 'pass' | 'fail' | 'not-run';
+  detail?: string;
+  causes?: Record<string, number>;
+  seconds?: number;
+}
+interface Gap {
+  id: string;
+  title: string;
+  blocking: boolean;
+}
+interface Compare {
+  status: 'none' | 'pass' | 'fail' | 'not-run';
+  reason?: string;
+  repo?: string;
+  sha?: string;
+  package?: string;
+  detail?: string;
+  breaking?: number;
+  additive?: number;
+  closeness?: number;
+  endpoints_official?: number;
+  endpoints_ours?: number;
+  endpoints_shared?: number;
+  endpoints_official_in_spec?: number;
+}
+interface Scale {
+  operations?: number | null;
+  schemas?: number | null;
+  resources?: number | null;
+  methods?: number | null;
+  generated_methods?: number | null;
+  skipped?: number | null;
+  files?: number | null;
+}
+interface Spec {
+  name: string;
+  url: string;
+  sha256: string;
+  source_sha: string | null;
+  ran: boolean;
+  format?: string;
+  swagger2?: boolean;
+  reached: string;
+  failed_at: string | null;
+  stages?: Stage[];
+  scale?: Scale;
+  skipped_by_code?: Record<string, number>;
+  models_added?: number;
+  convert_codes?: Record<string, number>;
+  generation_seconds?: number | null;
+  check_errors?: Record<string, number | null>;
+  tests?: { passed: number; failed: number; errors: number; skipped: number; total: number } | null;
+  deterministic?: boolean | null;
+  compare?: Compare;
+  gaps?: Gap[];
+  caveat?: string | null;
+}
+interface Board {
+  run_date: string;
+  generator: string | null;
+  specs: Spec[];
+}
+
+const board = corpus as Board;
+const specs = board.specs;
+// biome-ignore lint/correctness/noUnusedVariables: used by the template below
+const gapsUrl = 'https://github.com/shrijayan/ferrule/blob/main/docs/forge-gaps.md';
+// Columns of the stage strip, in harness order, with short labels.
+// biome-ignore lint/correctness/noUnusedVariables: used by the template below
+const strip = [
+  ['fetch', 'fetch'],
+  ['convert', 'convert'],
+  ['generate', 'gen'],
+  ['render', 'render'],
+  ['deps', 'deps'],
+  ['ruff', 'ruff'],
+  ['pyright', 'pyright'],
+  ['mypy', 'mypy'],
+  ['import', 'import'],
+  ['tests', 'tests'],
+  ['determinism', 'determ.'],
+  ['wheel', 'wheel'],
+] as const;
+// biome-ignore lint/correctness/noUnusedVariables: used by the template below
+const mark = { pass: '✓', fail: '✗', 'not-run': '·' } as const;
+const stageOf = (s: Spec, name: string) => s.stages?.find((x) => x.name === name);
+// biome-ignore lint/correctness/noUnusedVariables: used by the template below
+const passed = (name: string) => specs.filter((s) => stageOf(s, name)?.status === 'pass').length;
+// biome-ignore lint/correctness/noUnusedVariables: used by the template below
+const num = (n: number | null | undefined) =>
+  n === null || n === undefined ? '—' : n.toLocaleString('en-US');
+// biome-ignore lint/correctness/noUnusedVariables: used by the template below
+const pct = (a?: number | null, b?: number | null) =>
+  a && b ? `${((100 * a) / b).toFixed(0)}%` : '—';
+// biome-ignore lint/correctness/noUnusedVariables: used by the template below
+const codes = (m?: Record<string, number>) =>
+  Object.entries(m ?? {})
+    .map(([c, n]) => `${c} ×${n}`)
+    .join(', ') || '—';
+---
+
+<p class="meta">
+  Run of <strong>{board.run_date}</strong>
+  {board.generator && <> with <code>{board.generator}</code></>}. {specs.length} specs, pinned in{' '}
+  <a href="https://github.com/shrijayan/ferrule/blob/main/corpus/manifest.yaml"><code>corpus/manifest.yaml</code></a>.
+</p>
+
+<div class="board">
+  <table class="tally">
+    <thead>
+      <tr>
+        <th scope="col">Stage</th>
+        {strip.map(([, label]) => <th scope="col">{label}</th>)}
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <th scope="row">Specs passing</th>
+        {strip.map(([name]) => <td>{passed(name)}/{specs.length}</td>)}
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="board">
+  <table class="specs">
+    <thead>
+      <tr>
+        <th scope="col">Spec</th>
+        <th scope="col">Format</th>
+        <th scope="col">Operations</th>
+        <th scope="col">Generated</th>
+        <th scope="col">Skipped</th>
+        <th scope="col">Stages</th>
+        <th scope="col">Stopped at</th>
+        <th scope="col">Gen. time</th>
+        <th scope="col">Deterministic</th>
+        <th scope="col">Official SDK</th>
+      </tr>
+    </thead>
+    <tbody>
+      {specs.map((s) => (
+        <tr>
+          <td>
+            <a href={`#spec-${s.name}`}>{s.name}</a>
+            {s.caveat && (
+              <span class="warn" title={s.caveat}>
+                {' '}
+                ⚠
+              </span>
+            )}
+          </td>
+          <td>{s.format ?? '—'}</td>
+          <td>{num(s.scale?.operations)}</td>
+          <td>
+            {num(s.scale?.generated_methods)}
+            {s.scale?.generated_methods ? <span class="sub"> ({pct(s.scale.generated_methods, s.scale.operations)})</span> : null}
+          </td>
+          <td>{num(s.scale?.skipped)}</td>
+          <td class="strip">
+            {strip.map(([name, label]) => {
+              const st = stageOf(s, name);
+              const status = st?.status ?? 'not-run';
+              return (
+                <span class={`pill ${status}`} title={`${name}: ${status}${st?.detail ? ` — ${st.detail}` : ''}`}>
+                  <span aria-hidden="true">{mark[status]}</span>
+                  <span class="sr-only">
+                    {label} {status}
+                  </span>
+                </span>
+              );
+            })}
+          </td>
+          <td>{s.failed_at ? <span class="fail-text">{s.failed_at}</span> : s.ran ? 'all passed' : 'not run'}</td>
+          <td>{s.generation_seconds === null || s.generation_seconds === undefined ? '—' : `${s.generation_seconds} s`}</td>
+          <td>{s.deterministic === null || s.deterministic === undefined ? '—' : s.deterministic ? 'yes' : 'no'}</td>
+          <td>
+            {s.compare?.status === 'pass'
+              ? `${num(s.compare.breaking)} breaking`
+              : s.compare?.status === 'none'
+                ? 'none'
+                : (s.compare?.status ?? '—')}
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+
+<p class="legend">
+  <span class="pill pass">✓</span> passed <span class="pill fail">✗</span> failed <span class="pill not-run">·</span> not
+  run (an earlier stage it needs failed). Hover a mark for the stage's error.
+</p>
+
+<h2 id="per-spec">Per spec</h2>
+
+{
+  specs.map((s) => (
+    <section id={`spec-${s.name}`} class="spec">
+      <h3>{s.name}</h3>
+      <p class="sub">
+        <a href={s.url}>spec</a>
+        {s.source_sha && (
+          <>
+            {' '}@ <code>{s.source_sha.slice(0, 7)}</code>
+          </>
+        )}
+        , sha256 <code>{s.sha256.slice(0, 12)}…</code>
+        {s.swagger2 && ' · converted from Swagger 2.0'}
+      </p>
+      {s.caveat && (
+        <p class="caveat">
+          <strong>Read with care:</strong> {s.caveat}
+        </p>
+      )}
+      {!s.ran ? (
+        <p>Not run.</p>
+      ) : (
+        <>
+          <dl>
+            <dt>Scale</dt>
+            <dd>
+              {num(s.scale?.operations)} operations, {num(s.scale?.schemas)} schemas; {num(s.scale?.resources)}{' '}
+              resources and {num(s.scale?.methods)} methods synthesized; {num(s.scale?.generated_methods)} generated,{' '}
+              {num(s.scale?.skipped)} skipped ({codes(s.skipped_by_code)}); {num(s.scale?.files)} files.
+              {s.models_added ? ` ${s.models_added} recursive schemas named as models.` : ''}
+            </dd>
+            <dt>Convert diagnostics</dt>
+            <dd>{codes(s.convert_codes)}</dd>
+            {s.check_errors && Object.keys(s.check_errors).length > 0 && (
+              <>
+                <dt>Lint and type errors</dt>
+                <dd>
+                  {Object.entries(s.check_errors)
+                    .map(([t, n]) => `${t} ${n === null ? '?' : n}`)
+                    .join(' · ')}
+                </dd>
+              </>
+            )}
+            <dt>Generated tests</dt>
+            <dd>
+              {s.tests
+                ? `${num(s.tests.passed)} passed, ${num(s.tests.failed + s.tests.errors)} failed or errored, ${num(s.tests.skipped)} skipped, of ${num(s.tests.total)}`
+                : 'did not run to completion (see the failures below)'}
+            </dd>
+            <dt>Official SDK</dt>
+            <dd>
+              {s.compare?.status === 'none' ? (
+                <>No comparison: {s.compare.reason}</>
+              ) : (
+                <>
+                  <a href={`https://github.com/${s.compare?.repo}/tree/${s.compare?.sha}`}>
+                    {s.compare?.repo}@<code>{s.compare?.sha?.slice(0, 7)}</code>
+                  </a>
+                  {s.compare?.status === 'pass' ? (
+                    <>
+                      : {num(s.compare.breaking)} breaking, {num(s.compare.additive)} additive, closeness{' '}
+                      {s.compare.closeness?.toFixed(2)}%; endpoints: {num(s.compare.endpoints_shared)} of{' '}
+                      {num(s.compare.endpoints_official)} official endpoints generated (
+                      {num(s.compare.endpoints_official_in_spec)} of them are in this spec).
+                    </>
+                  ) : (
+                    <>: {s.compare?.status}{s.compare?.detail ? ` — ${s.compare.detail}` : ''}</>
+                  )}
+                </>
+              )}
+            </dd>
+            {s.gaps && s.gaps.length > 0 && (
+              <>
+                <dt>Forge gaps hit</dt>
+                <dd>
+                  <ul>
+                    {s.gaps.map((g) => (
+                      <li>
+                        <a href={gapsUrl}>{g.id}</a> {g.title} — {g.blocking ? <strong>blocking</strong> : 'worked around'}
+                      </li>
+                    ))}
+                  </ul>
+                </dd>
+              </>
+            )}
+          </dl>
+          {s.stages?.some((x) => x.status === 'fail') && (
+            <ul class="fails">
+              {s.stages
+                .filter((x) => x.status === 'fail')
+                .map((x) => (
+                  <li>
+                    <strong>{x.name}</strong>:{' '}
+                    {x.causes && Object.keys(x.causes).length > 0 ? (
+                      <>
+                        most frequent causes:
+                        <ul>
+                          {Object.entries(x.causes).map(([cause, n]) => (
+                            <li>
+                              <code>{cause}</code> ×{n.toLocaleString('en-US')}
+                            </li>
+                          ))}
+                        </ul>
+                      </>
+                    ) : (
+                      <code>{x.detail}</code>
+                    )}
+                  </li>
+                ))}
+            </ul>
+          )}
+        </>
+      )}
+    </section>
+  ))
+}
+
+<style>
+  .board {
+    overflow-x: auto;
+  }
+  .meta,
+  .legend,
+  .sub {
+    color: var(--sl-color-gray-3);
+    font-size: var(--sl-text-sm);
+  }
+  table.tally td,
+  table.tally th {
+    text-align: center;
+    white-space: nowrap;
+  }
+  td.strip {
+    white-space: nowrap;
+  }
+  .pill {
+    display: inline-block;
+    width: 1.3em;
+    text-align: center;
+    border-radius: 0.25em;
+    margin-right: 1px;
+    font-weight: 600;
+  }
+  .pill.pass {
+    color: var(--sl-color-green);
+    background: var(--sl-color-green-low);
+  }
+  .pill.fail {
+    color: var(--sl-color-red);
+    background: var(--sl-color-red-low);
+  }
+  .pill.not-run {
+    color: var(--sl-color-gray-4);
+    background: var(--sl-color-gray-6);
+  }
+  .caveat {
+    border-left: 3px solid var(--sl-color-orange);
+    padding-left: 0.75rem;
+  }
+  .warn {
+    color: var(--sl-color-orange);
+  }
+  .fail-text {
+    color: var(--sl-color-red);
+  }
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+  section.spec dl dt {
+    font-weight: 600;
+    margin-top: 0.5rem;
+  }
+  section.spec dl dd {
+    margin-left: 0;
+  }
+  ul.fails code {
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+</style>
