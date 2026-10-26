@@ -46,4 +46,6 @@ param examples) and `arrivalsanddeparturesforlocation_test.go` (`maxCount`'s max
 - Project files (README, CONTRIBUTING, CI, scripts, `.stats.yml`, release-please).
 - The 2025 Stainless generation (`json:"x,required"` tags, knock-go, opencode-go).
 - Unverified against an oracle: a method without a response (`Accept` header), bearer and
-  header auth options, integer path params.
+  header auth options, integer path params, a bearer `scheme_keyword`, a number or boolean
+  setting sent in a header or query (`fmt.Sprint`), and `default_headers` (sent after the
+  settings' defaults in `DefaultClientOptions`). An API key in a cookie is FER201.
