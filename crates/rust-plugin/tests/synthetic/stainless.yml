@@ -1,0 +1,190 @@
+# A small API for the Rust plugin's golden test: what OneBusAway does not have. One list method
+# per pagination scheme, a JSON body (a named model flattened, and an inline one with an enum, a
+# map and a streaming discriminator), a binary body, a method without a response, a header
+# param, a subresource, a `$client` method, a union, a recursive model and bearer auth.
+organization:
+  name: acme-notes
+
+resources:
+  $client:
+    methods:
+      health: get /health
+  notes:
+    models:
+      note: Note
+      note_block: NoteBlock
+    methods:
+      list: get /v1/notes
+      update: put /v1/notes/{note_id}
+      delete: delete /v1/notes/{note_id}
+    subresources:
+      comments:
+        methods:
+          list:
+            endpoint: get /v1/notes/{note_id}/comments
+            paginated: false
+  completions:
+    methods:
+      create:
+        endpoint: post /v1/completions
+        streaming:
+          param_discriminator: stream
+  files:
+    methods:
+      upload: post /v1/files/{file_id}/content
+  tags:
+    methods:
+      list: get /v1/tags
+  events:
+    methods:
+      list: get /v1/events
+  users:
+    methods:
+      list: get /v1/users
+  logs:
+    methods:
+      list: get /v1/logs
+  labels:
+    methods:
+      list: get /v1/labels
+
+targets:
+  python:
+    package_name: acme_notes
+    publish:
+      pypi: false
+
+client_settings:
+  opts:
+    api_key:
+      type: string
+      auth:
+        security_scheme: BearerAuth
+      read_env: ACME_NOTES_API_KEY
+    organization:
+      type: string
+      nullable: true
+      read_env: ACME_NOTES_ORG
+      send_in_header: X-Organization
+
+environments:
+  production: https://api.acme-notes.test
+  sandbox: https://sandbox.acme-notes.test
+
+pagination:
+  - name: items_cursor
+    type: cursor
+    request:
+      after:
+        type: string
+        x-stainless-pagination-property:
+          purpose: next_cursor_param
+    response:
+      data:
+        type: array
+        items:
+          type: object
+        x-stainless-pagination-property:
+          purpose: items
+      next_cursor:
+        type: string
+        x-stainless-pagination-property:
+          purpose: next_cursor_field
+  - name: offset_page
+    type: offset
+    request:
+      offset:
+        type: integer
+        x-stainless-pagination-property:
+          purpose: offset_count_param
+    response:
+      results:
+        type: array
+        items:
+          type: object
+        x-stainless-pagination-property:
+          purpose: items
+      total:
+        type: integer
+        x-stainless-pagination-property:
+          purpose: offset_total_count_field
+  - name: numbered_page
+    type: page_number
+    request:
+      page:
+        type: integer
+        x-stainless-pagination-property:
+          purpose: page_number_param
+    response:
+      entries:
+        type: array
+        items:
+          type: object
+        x-stainless-pagination-property:
+          purpose: items
+      page:
+        type: integer
+        x-stainless-pagination-property:
+          purpose: current_page_number_field
+      total_pages:
+        type: integer
+        x-stainless-pagination-property:
+          purpose: total_page_count_field
+  - name: id_cursor
+    type: cursor_id
+    request:
+      starting_after:
+        type: string
+        x-stainless-pagination-property:
+          purpose: next_cursor_id_param
+      ending_before:
+        type: string
+        x-stainless-pagination-property:
+          purpose: previous_cursor_id_param
+    response:
+      objects:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: string
+              x-stainless-pagination-property:
+                purpose: cursor_item_id
+        x-stainless-pagination-property:
+          purpose: items
+  - name: url_cursor
+    type: cursor_url
+    request: {}
+    response:
+      logs:
+        type: array
+        items:
+          type: object
+        x-stainless-pagination-property:
+          purpose: items
+      next:
+        type: string
+        x-stainless-pagination-property:
+          purpose: cursor_url_field
+  - name: single_page
+    type: fake_page
+    request: {}
+    response:
+      labels:
+        type: array
+        items:
+          type: object
+        x-stainless-pagination-property:
+          purpose: items
+
+readme:
+  example_requests:
+    default:
+      type: request
+      endpoint: get /v1/notes
+      params: {}
+    headline:
+      type: request
+      endpoint: get /v1/notes
+      params: {}
