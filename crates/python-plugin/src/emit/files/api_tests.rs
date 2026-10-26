@@ -16,6 +16,11 @@ use crate::model::{SdkLiteral, SdkPrimitive, SdkType};
 /// `parse_date` and `parse_datetime`.
 pub type Uses = BTreeSet<&'static str>;
 
+/// The ISO string of every example date, which `parse_date` reads.
+pub const EXAMPLE_DATE: &str = "2019-12-27";
+/// The ISO string of every example datetime, which `parse_datetime` reads.
+pub const EXAMPLE_DATETIME: &str = "2019-12-27T18:11:19.117Z";
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Mode {
     Sync,
@@ -39,11 +44,11 @@ fn primitive_example(
         SdkPrimitive::Null => "None".to_owned(),
         SdkPrimitive::Datetime => {
             uses.insert("parse_datetime");
-            "parse_datetime(\"2019-12-27T18:11:19.117Z\")".to_owned()
+            format!("parse_datetime({})", py_string(EXAMPLE_DATETIME))
         }
         SdkPrimitive::Date => {
             uses.insert("parse_date");
-            "parse_date(\"2019-12-27\")".to_owned()
+            format!("parse_date({})", py_string(EXAMPLE_DATE))
         }
     }
 }
