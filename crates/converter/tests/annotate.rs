@@ -233,6 +233,27 @@ mod pagination {
         );
     }
 
+    /// The schemes as configured go on the root too: the runtime renders `pagination.py` from
+    /// their response fields when it is not copied from an adopted SDK.
+    #[test]
+    fn writes_the_configured_schemes_on_the_root() {
+        let r = convert(&make_spec(), &with_pagination(&json!({"list": "get /users"})));
+        assert_eq!(r.spec.get("x-ferrule-page-schemes"), Some(&v(&json!([cursor_page()]))));
+        let single = convert(
+            &make_spec(),
+            &v(&json!({"pagination": cursor_page(), "resources": {"users": {"methods": {"list": "get /users"}}}})),
+        );
+        assert_eq!(
+            single.spec.get("x-ferrule-page-schemes"),
+            Some(&v(&json!([cursor_page()])))
+        );
+        let none = convert(
+            &make_spec(),
+            &v(&json!({"resources": {"users": {"methods": {"list": "get /users"}}}})),
+        );
+        assert!(none.spec.get("x-ferrule-page-schemes").is_none());
+    }
+
     #[test]
     fn matches_list_methods_and_all_of_responses() {
         let r = convert(
