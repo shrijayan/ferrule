@@ -9,7 +9,8 @@ The template is the runtime of the Stainless-generated imagekit-dotnet SDK (Apac
 relative to the SDK root.
 
 ``ParamsBase.AddDefaultHeaders`` sends the client's credentials, which depend on the config's
-client options and security schemes: that block is the ``auth_headers`` slot the plugin fills.
+client options and security schemes: that block is the ``auth_headers`` slot the plugin fills,
+and an API key in the query is the ``auth_query`` slot of ``ParamsBase.QueryString``.
 The SDK's ``.editorconfig`` asks for CRLF line endings in ``.cs`` files, so they render with
 CRLF, byte for byte what Stainless ships. Lines are laid out for the oracle's names; ``ferrule
 generate`` runs csharpier over the whole SDK afterwards, as the SDK's ``scripts/format`` does,
@@ -46,6 +47,9 @@ class CSharpOptions:
     """``<PREFIX>_CUSTOM_HEADERS`` (``IMAGE_KIT``)."""
     auth_headers: str = ""
     """C# statements of ``AddDefaultHeaders`` that add the credentials; empty without auth."""
+    auth_query: str = ""
+    """C# statements of ``QueryString`` that add a query credential (an API key ``in: query``)
+    to ``collection``; empty without one."""
 
 
 def _check(options: CSharpOptions) -> None:
@@ -56,9 +60,10 @@ def _check(options: CSharpOptions) -> None:
     if not _ENV.match(options.env_prefix):
         msg = f"env_prefix must be SCREAMING_SNAKE_CASE, got {options.env_prefix!r}"
         raise RenderError(msg)
-    if options.auth_headers and not options.auth_headers.endswith("\n"):
-        msg = "auth_headers must be empty or end with a newline"
-        raise RenderError(msg)
+    for kind, value in (("auth_headers", options.auth_headers), ("auth_query", options.auth_query)):
+        if value and not value.endswith("\n"):
+            msg = f"{kind} must be empty or end with a newline"
+            raise RenderError(msg)
 
 
 def _flags(options: CSharpOptions) -> dict[str, bool]:
@@ -79,7 +84,7 @@ def render_csharp_files(options: CSharpOptions) -> dict[str, str]:
             ENV_PLACEHOLDER: options.env_prefix,
         },
         flags=_flags(options),
-        slots={"auth_headers": options.auth_headers},
+        slots={"auth_headers": options.auth_headers, "auth_query": options.auth_query},
     )
     return {
         rel: text.replace("\n", "\r\n") if rel.endswith(".cs") else text

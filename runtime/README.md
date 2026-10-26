@@ -529,7 +529,7 @@ files = render_csharp_files(
 # {"src/Imagekit/Core/ParamsBase.cs": "...", "src/Imagekit.Tests/RetriesTest.cs": "...", ...}
 ```
 
-`CSharpOptions(namespace, client_name, env_prefix, *, auth_headers="")`:
+`CSharpOptions(namespace, client_name, env_prefix, *, auth_headers="", auth_query="")`:
 
 - `namespace`: the root namespace and the `src/<Ns>` and `src/<Ns>.Tests` projects
   (`targets.csharp.package_name`).
@@ -537,6 +537,8 @@ files = render_csharp_files(
 - `env_prefix`: `<PREFIX>_CUSTOM_HEADERS`, read by `ParamsBase`.
 - `auth_headers`: the slot in `ParamsBase.AddDefaultHeaders` that sends the credentials, which
   the plugin generates from the client options and security schemes; empty without auth.
+- `auth_query`: the slot in `ParamsBase.QueryString` that adds an API key `in: query` to
+  `collection`; empty without one. No oracle has one, so its form is the plugin's.
 
 Tokens: `__FerruleNs__`, `__FerruleClient__`, `__FERRULE_ENV__`. Flag: `ns_before_moq`, the
 order csharpier sorts `RetriesTest.cs`'s usings in (the SDK's namespace before or after `Moq`).
