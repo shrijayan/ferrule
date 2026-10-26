@@ -34,6 +34,26 @@ fn read_path(path: &[String]) -> String {
     format!("this.{}", path.join("?."))
 }
 
+/// Where the request options carry the scheme's request fields: `body` for `param_location:
+/// body` in the current layout, else `query` (the `node` layout's `params` join the query).
+fn request_place(ctx: &Ctx<'_>, page: Page<'_>) -> &'static str {
+    if page.scheme.in_body && !ctx.node() {
+        "body"
+    } else {
+        "query"
+    }
+}
+
+/// `(this.options.query as Record<string, unknown>)?.['key']`: a request field of the previous
+/// page's request, from where the scheme sends it.
+fn previous_request_field(ctx: &Ctx<'_>, page: Page<'_>, key: &str) -> String {
+    format!(
+        "(this.options.{} as Record<string, unknown>)?.[{}]",
+        request_place(ctx, page),
+        js::string_literal(key)
+    )
+}
+
 /// `{ ...this.options, query: { ...maybeObj(this.options.query), key: value } }` (current
 /// layout) or `{ params: { key: value } }` (`node` layout), at four spaces, after `return `.
 fn next_request(ctx: &Ctx<'_>, page: Page<'_>, key: &str, value: &str) -> Vec<String> {
@@ -47,7 +67,7 @@ fn next_request(ctx: &Ctx<'_>, page: Page<'_>, key: &str, value: &str) -> Vec<St
             "    };".to_owned(),
         ];
     }
-    let place = if page.scheme.in_body { "body" } else { "query" };
+    let place = request_place(ctx, page);
     vec![
         "    return {".to_owned(),
         "      ...this.options,".to_owned(),
@@ -88,10 +108,7 @@ fn next_cursor_id(ctx: &Ctx<'_>, page: Page<'_>) -> Vec<String> {
     ];
     if let Some(before) = page.request_param("previous_cursor_id_param") {
         let mut reverse = vec![
-            format!(
-                "    if ((this.options.query as Record<string, unknown>)?.[{}]) {{",
-                js::string_literal(before)
-            ),
+            format!("    if ({}) {{", previous_request_field(ctx, page, before)),
             format!("      const first = data[0]?.{id};"),
             "      if (!first) {".to_owned(),
             "        return null;".to_owned(),
@@ -145,8 +162,8 @@ fn next_offset(ctx: &Ctx<'_>, page: Page<'_>) -> Vec<String> {
     let param = page.request_param("offset_count_param").unwrap_or("offset");
     let mut out = vec![
         format!(
-            "    const offset = Number((this.options.query as Record<string, unknown>)?.[{}] ?? 0);",
-            js::string_literal(param)
+            "    const offset = Number({} ?? 0);",
+            previous_request_field(ctx, page, param)
         ),
         format!("    const currentCount = offset + this.{items}.length;"),
     ];
