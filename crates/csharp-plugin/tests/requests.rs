@@ -40,14 +40,20 @@ fn required_dictionary_and_json_properties_get_test_values() {
         "      create: post /things\n",
     );
     let params = &f["src/Acme/Models/Things/ThingCreateParams.cs"];
-    assert!(params.contains("public required IReadOnlyDictionary<string, string> Metadata"), "{params}");
+    assert!(
+        params.contains("public required IReadOnlyDictionary<string, string> Metadata"),
+        "{params}"
+    );
     assert!(params.contains("public required JsonElement Payload"), "{params}");
     let test = &f["src/Acme.Tests/Services/ThingServiceTest.cs"];
     assert!(
         test.contains("Metadata = new Dictionary<string, string>() { { \"foo\", \"foo\" } }"),
         "{test}"
     );
-    assert!(test.contains("Payload = JsonSerializer.SerializeToElement(\"bar\")"), "{test}");
+    assert!(
+        test.contains("Payload = JsonSerializer.SerializeToElement(\"bar\")"),
+        "{test}"
+    );
     assert!(test.contains("using System.Collections.Generic;"), "{test}");
     assert!(test.contains("using System.Text.Json;"), "{test}");
 }
@@ -74,7 +80,11 @@ fn a_query_api_key_is_sent_in_the_query() {
         "      list: get /things\n",
     );
     assert_eq!(out.runtime.auth_query, "");
-    assert!(out.runtime.auth_headers.contains("request.Headers.Add(\"X-Api-Key\", options.ApiKey);"));
+    assert!(
+        out.runtime
+            .auth_headers
+            .contains("request.Headers.Add(\"X-Api-Key\", options.ApiKey);")
+    );
     // The options of an SDK without a query key are as before.
     assert!(!out.runtime.to_json().contains("auth_query"));
 }
