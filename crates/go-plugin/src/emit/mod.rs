@@ -30,6 +30,52 @@ pub struct Gen<'a> {
     pub services: Vec<Service<'a>>,
     /// The service (index into `services`) whose file declares each root-package model, by schema.
     pub placement: Vec<(String, usize)>,
+    /// Schemas of the models reachable from params, which v2 declares param variants of.
+    pub param_models: BTreeSet<String>,
+    /// Schemas of the models reachable from responses.
+    pub response_models: BTreeSet<String>,
+}
+
+/// `roots` and every model they reach through declared models' types.
+fn reachable(client: &Client, roots: Vec<String>) -> BTreeSet<String> {
+    let mut seen = BTreeSet::new();
+    let mut todo = roots;
+    while let Some(schema) = todo.pop() {
+        if !seen.insert(schema.clone()) {
+            continue;
+        }
+        if let Some(d) = client.models.iter().find(|d| d.r#ref.schema == schema) {
+            refs(&d.ty, &mut todo);
+        }
+    }
+    seen
+}
+
+/// The models reachable from the methods' params and from their responses.
+fn usage(client: &Client) -> (BTreeSet<String>, BTreeSet<String>) {
+    let mut params = Vec::new();
+    let mut responses = Vec::new();
+    let mut methods: Vec<&Method> = client.client_methods.iter().collect();
+    let mut stack: Vec<&Resource> = client.resources.iter().collect();
+    while let Some(r) = stack.pop() {
+        methods.extend(&r.methods);
+        stack.extend(&r.subresources);
+    }
+    for m in methods {
+        for p in m.path_params.iter().chain(&m.query_params).chain(&m.header_params) {
+            refs(&p.field.ty, &mut params);
+        }
+        if let Some(b) = &m.body {
+            refs(&b.ty, &mut params);
+        }
+        if let Some(r) = &m.response {
+            refs(&r.ty, &mut responses);
+        }
+        if let Some(p) = &m.pagination {
+            refs(&p.item, &mut responses);
+        }
+    }
+    (reachable(client, params), reachable(client, responses))
 }
 
 /// The schemas `ty` references, in order.
@@ -72,14 +118,29 @@ fn method_refs(m: &Method) -> Vec<String> {
 /// `x-ferrule-models` writes Python's module for a resource model (`widget` for
 /// `widgets.models.widget`), not the resource path, so the fallback is what places most models
 /// today (Phase 1 gap list: model positions for non-Python targets).
-fn place(client: &Client, services: &[Service<'_>]) -> Vec<(String, usize)> {
+///
+/// That module names only the top resource for a subresource's model (imagekit-go's
+/// `accounts.UrlEndpointRequest`, declared under `accounts.urlEndpoints`), so the first service
+/// at or below the declared resource whose methods reference the model comes first. It names
+/// no resource for others (knock-mgmt's `member_user` under `members`, imagekit's `Folder`
+/// under `files`), which the fallback places, not always where Stainless does.
+fn place<'a>(client: &Client, services: &[Service<'a>]) -> Vec<(String, usize)> {
     let mut out = Vec::new();
     for d in client.models.iter().filter(|d| model_pkg(&d.r#ref) == Pkg::Root) {
         let path: Vec<&str> = d.r#ref.path.iter().map(|n| n.written.as_str()).collect();
-        let by_path = services.iter().position(|s| {
-            let keys: Vec<&str> = s.resource.path.iter().map(|n| n.written.as_str()).collect();
-            path.len() == keys.len() + 1 && path[..keys.len()] == keys[..]
-        });
+        let keys = |s: &Service<'a>| -> Vec<&'a str> { s.resource.path.iter().map(|n| n.written.as_str()).collect() };
+        let uses = |s: &Service<'_>| {
+            s.resource
+                .methods
+                .iter()
+                .any(|m| method_refs(m).contains(&d.r#ref.schema))
+        };
+        let parent = &path[..path.len().saturating_sub(1)];
+        let below = services
+            .iter()
+            .position(|s| !parent.is_empty() && keys(s).starts_with(parent) && uses(s));
+        let exact = || services.iter().position(|s| keys(s) == parent);
+        let by_path = below.or_else(exact);
         let by_use = || {
             services.iter().position(|s| {
                 s.resource
@@ -166,6 +227,7 @@ impl<'a> Gen<'a> {
         let mut services = Vec::new();
         collect(&client.resources, None, 0, casings, &mut services);
         let placement = place(client, &services);
+        let (param_models, response_models) = usage(client);
         Self {
             client,
             casings,
@@ -176,6 +238,8 @@ impl<'a> Gen<'a> {
                 .map_or_else(|| target.package_name.clone(), |s| s.name.written.clone()),
             services,
             placement,
+            param_models,
+            response_models,
         }
     }
 
@@ -285,24 +349,19 @@ impl<'a> Gen<'a> {
     }
 
     /// The name of a method's params argument: `params` for query and body fields (or header
-    /// params), else `body` for body fields, else `query` for query fields or v2's path fields;
-    /// v2 names a `POST`, `PUT` or `PATCH` method's query-only argument `body`
-    /// (knock-mgmt-go's `CommitService.PromoteAll`).
+    /// params), else `body` for body fields, else `query` for query fields (v1). v2 names an
+    /// argument of only query or path fields `query` for a `GET` and `body` otherwise
+    /// (knock-mgmt-go's `BranchService.Delete`, imagekit-go's `FileVersionService.Restore`).
     #[must_use]
     pub fn params_arg(&self, m: &Method) -> Option<&'static str> {
         let query = !m.query_params.is_empty();
         let body = m.body.is_some() && !body_fields(self.client, m).is_empty();
         let headers = !m.header_params.is_empty();
         let path = !self.path_fields(m).is_empty();
-        let sends_body = matches!(
-            m.http_method,
-            ferrule_sdk_model::model::HttpMethod::Post
-                | ferrule_sdk_model::model::HttpMethod::Put
-                | ferrule_sdk_model::model::HttpMethod::Patch
-        );
+        let get = m.http_method == ferrule_sdk_model::model::HttpMethod::Get;
         match (query || path, body, headers) {
             (false, false, false) => None,
-            (true, false, false) if self.target.v2() && sends_body => Some("body"),
+            (true, false, false) if self.target.v2() && !get => Some("body"),
             (true, false, false) => Some("query"),
             (false, true, false) => Some("body"),
             _ => Some("params"),

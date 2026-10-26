@@ -1,12 +1,16 @@
 //! `api.md`: the shared types, then each service's types and methods with pkg.go.dev links.
+//!
+//! v2 lists the param variants of the models params use under "Params Types" before the
+//! "Response Types" (imagekit-go, knock-mgmt-go); a model that is not an object is listed in
+//! both when both use it.
 
 use std::fmt::Write as _;
 
-use ferrule_sdk_model::model::Type;
+use ferrule_sdk_model::model::{ModelDecl, Type};
 
 use super::resource::{Returns, returns};
 use super::{Gen, Service, method_order};
-use crate::types::{Pkg, model_pkg};
+use crate::types::{Pkg, has_param_variant, model_name, model_pkg};
 
 fn link(module: &str, pkg: &str, rel: Option<&str>, name: &str) -> String {
     let base = rel.map_or_else(
@@ -20,10 +24,13 @@ fn builtin(name: &str) -> String {
     format!("<a href=\"https://pkg.go.dev/builtin#{name}\">{name}</a>")
 }
 
-/// A Go type in a method line: a root-package or `shared.` name, or a builtin.
+/// A Go type in a method line: a root-package or `shared.` name, or a builtin; a slice links
+/// its element (`[]imagekit.File`).
 fn type_link(g: &Gen<'_>, ty: &str) -> String {
     let module = &g.target.module_path;
-    if let Some(name) = ty.strip_prefix("shared.") {
+    if let Some(item) = ty.strip_prefix("[]") {
+        format!("[]{}", type_link(g, item))
+    } else if let Some(name) = ty.strip_prefix("shared.") {
         link(module, "shared", Some("shared"), name)
     } else if ty.starts_with(|c: char| c.is_ascii_uppercase()) {
         link(module, &g.target.package_name, None, ty)
@@ -32,16 +39,44 @@ fn type_link(g: &Gen<'_>, ty: &str) -> String {
     }
 }
 
+/// The models of `models` listed as params and as responses, by Go name.
+fn model_lists(g: &Gen<'_>, models: &[&ModelDecl]) -> (Vec<String>, Vec<String>) {
+    let mut params = Vec::new();
+    let mut responses = Vec::new();
+    for d in models {
+        let name = model_name(&d.r#ref, g.casings);
+        let in_params = g.param_models.contains(&d.r#ref.schema);
+        if g.target.v2() && in_params {
+            if has_param_variant(g.client, &d.r#ref) {
+                params.push(format!("{name}Param"));
+            } else {
+                params.push(name.clone());
+            }
+        }
+        if !g.target.v2() || g.response_models.contains(&d.r#ref.schema) || !in_params {
+            responses.push(name);
+        }
+    }
+    (params, responses)
+}
+
+fn list(out: &mut String, title: &str, items: &[String], link: impl Fn(&str) -> String) {
+    if items.is_empty() {
+        return;
+    }
+    let _ = writeln!(out, "{title}\n");
+    for t in items {
+        let _ = writeln!(out, "- {}", link(t));
+    }
+    out.push('\n');
+}
+
 fn section(out: &mut String, g: &Gen<'_>, s: &Service<'_>) {
     let hashes = "#".repeat(s.depth + 1);
     let _ = writeln!(out, "{hashes} {}\n", s.field);
     let mut ctx = g.ctx(Pkg::Root);
     let methods = method_order(&s.resource.methods);
-    let mut types: Vec<String> = g
-        .models_of(s)
-        .into_iter()
-        .map(|d| d.r#ref.name.written.clone())
-        .collect();
+    let (params, mut types) = model_lists(g, &g.models_of(s));
     let mut rets = Vec::new();
     for m in &methods {
         let (ret, _) = returns(g, s, m, &mut ctx);
@@ -56,13 +91,8 @@ fn section(out: &mut String, g: &Gen<'_>, s: &Service<'_>) {
         }
         rets.push(ret);
     }
-    if !types.is_empty() {
-        out.push_str("Response Types:\n\n");
-        for t in &types {
-            let _ = writeln!(out, "- {}", type_link(g, t));
-        }
-        out.push('\n');
-    }
+    list(out, "Params Types:", &params, |t| type_link(g, t));
+    list(out, "Response Types:", &types, |t| type_link(g, t));
     if methods.is_empty() {
         return;
     }
@@ -104,20 +134,17 @@ fn section(out: &mut String, g: &Gen<'_>, s: &Service<'_>) {
 #[must_use]
 pub fn api_md(g: &Gen<'_>) -> (String, String) {
     let mut out = String::new();
-    let shared: Vec<&str> = g
+    let shared: Vec<&ModelDecl> = g
         .client
         .models
         .iter()
         .filter(|d| model_pkg(&d.r#ref) == Pkg::Shared)
-        .map(|d| d.r#ref.name.written.as_str())
         .collect();
-    if !shared.is_empty() {
-        out.push_str("# Shared Response Types\n\n");
-        for name in shared {
-            let _ = writeln!(out, "- {}", link(&g.target.module_path, "shared", Some("shared"), name));
-        }
-        out.push('\n');
-    }
+    let (params, responses) = model_lists(g, &shared);
+    let module = &g.target.module_path;
+    let shared_link = |name: &str| link(module, "shared", Some("shared"), name);
+    list(&mut out, "# Shared Params Types", &params, shared_link);
+    list(&mut out, "# Shared Response Types", &responses, shared_link);
     for s in &g.services {
         section(&mut out, g, s);
     }

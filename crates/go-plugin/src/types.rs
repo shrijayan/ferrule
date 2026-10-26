@@ -89,6 +89,9 @@ pub struct Position {
     /// Fields from the type declared exactly (`0`): v2 declares a params enum only one level
     /// down (`VariableListParamsType`), deeper ones are plain strings.
     pub depth: usize,
+    /// Appended to every struct declared here and below, not to enums: v2's param variant of a
+    /// model (`MessageTypeBooleanFieldSettingsParam`, whose enums are the model's).
+    pub suffix: String,
 }
 
 impl Position {
@@ -100,7 +103,23 @@ impl Position {
             item_name: name.to_owned(),
             child_prefix: name.to_owned(),
             depth: 0,
+            suffix: String::new(),
         }
+    }
+
+    /// [`Position::exact`] for the structs of a model's param variant: `<name>...Param`.
+    #[must_use]
+    pub fn param_variant(name: &str) -> Self {
+        Self {
+            suffix: "Param".to_owned(),
+            ..Self::exact(name)
+        }
+    }
+
+    /// The name of a struct declared here.
+    #[must_use]
+    pub fn struct_name(&self) -> String {
+        format!("{}{}", self.name, self.suffix)
     }
 
     /// The position of a field with words `field` inside a type with this child prefix.
@@ -112,6 +131,7 @@ impl Position {
             child_prefix: plain.clone(),
             name: plain,
             depth: self.depth + 1,
+            suffix: self.suffix.clone(),
         }
     }
 
@@ -121,6 +141,7 @@ impl Position {
             item_name: self.item_name.clone(),
             child_prefix: self.child_prefix.clone(),
             depth: self.depth,
+            suffix: self.suffix.clone(),
         }
     }
 }
@@ -179,9 +200,32 @@ pub fn model_pkg(r: &TypeRef) -> Pkg {
     }
 }
 
+/// The Go name of a named model: its config name in Go's casing (`UrlEndpointRequest` ->
+/// `URLEndpointRequest`, imagekit-go).
+#[must_use]
+pub fn model_name(r: &TypeRef, casings: Casings<'_>) -> String {
+    exported(&crate::naming::split_words(&r.name.written), casings)
+}
+
+/// Whether v2 declares a param variant of the model: an object with fields.
+#[must_use]
+pub fn has_param_variant(client: &Client, r: &TypeRef) -> bool {
+    client
+        .model(r)
+        .is_some_and(|d| matches!(&d.ty, Type::Object(o) if !(o.fields.is_empty() && o.bases.is_empty())))
+}
+
 /// The Go name of a named model, qualified for `ctx.pkg`.
 pub fn model_ref(r: &TypeRef, ctx: &mut Ctx<'_>) -> String {
-    let name = r.name.written.clone();
+    model_ref_in(r, Mode::Response, ctx)
+}
+
+/// The Go name of a named model in `mode`: in v2 params, its param variant (`DurationParam`).
+pub fn model_ref_in(r: &TypeRef, mode: Mode, ctx: &mut Ctx<'_>) -> String {
+    let mut name = model_name(r, ctx.casings);
+    if ctx.v2 && mode != Mode::Response && has_param_variant(ctx.client, r) {
+        name.push_str("Param");
+    }
     match (model_pkg(r), ctx.pkg) {
         (Pkg::Shared, Pkg::Root) => {
             ctx.import_module("shared");
@@ -263,16 +307,18 @@ pub fn opt_scalar(ty: &str) -> bool {
     matches!(ty, "string" | "int64" | "float64" | "bool" | "time.Time")
 }
 
-/// v2 params order: required fields, then optional `param.Opt` scalars, then the other
-/// optional fields (imagekit-go, knock-mgmt-go), each group in [`sort_fields`] order.
+/// v2 params order: required fields before optional ones; within each, nullable scalars,
+/// then the other scalars, then the rest (imagekit-go, knock-mgmt-go:
+/// `MessageTypeBooleanFieldParam` is `Label` (nullable), `Key`, `Type`), each group in
+/// [`sort_fields`] order.
 fn v2_param_rank(f: &GoField) -> u8 {
-    if f.required {
-        0
-    } else if opt_scalar(&f.ty) && f.enum_values.is_empty() {
-        1
+    let group = if f.required { 0 } else { 3 };
+    let kind = if opt_scalar(&f.ty) && f.enum_values.is_empty() {
+        u8::from(!f.nullable)
     } else {
         2
-    }
+    };
+    group + kind
 }
 
 /// The tag key of a field mapped in `mode`.
@@ -319,7 +365,8 @@ pub fn params_decls(path: &[Field], query: &[Field], body: &[Field], name: &str,
             required: true,
             nullable: false,
             format: None,
-            doc: f.description.clone(),
+            // imagekit-go's `FileVersionDeleteParams.FileID` is undocumented.
+            doc: String::new(),
             enum_values: Vec::new(),
             key: "path",
         })
@@ -345,13 +392,29 @@ pub fn params_decls(path: &[Field], query: &[Field], body: &[Field], name: &str,
 pub fn object_decls(obj: &Object, pos: &Position, doc: &str, mode: Mode, ctx: &mut Ctx<'_>) -> Vec<Decl> {
     let mut nested = Vec::new();
     let mut fields = go_fields(&obj.fields, pos, mode, ctx, &mut nested);
+    let mut doc = doc.trim_end().to_owned();
     if ctx.v2 && mode != Mode::Response {
         fields.sort_by_key(v2_param_rank);
+        // v2 names a param object's required properties in its doc (knock-mgmt-go).
+        let mut required: Vec<&str> = fields.iter().filter(|f| f.required).map(|f| f.name.as_str()).collect();
+        required.sort_unstable();
+        let line = match required.as_slice() {
+            [] => String::new(),
+            [one] => format!("The property {one} is required."),
+            many => format!("The properties {} are required.", many.join(", ")),
+        };
+        if !line.is_empty() {
+            doc = if doc.is_empty() {
+                line
+            } else {
+                format!("{doc}\n\n{line}")
+            };
+        }
     }
     let bases = obj.bases.iter().map(|b| model_ref(b, ctx)).collect();
     let mut out = vec![Decl::Struct {
-        name: pos.name.clone(),
-        doc: doc.to_owned(),
+        name: pos.struct_name(),
+        doc,
         fields,
         bases,
         mode,
@@ -413,7 +476,7 @@ pub fn map_type(ty: &Type, pos: &Position, doc: &str, mode: Mode, ctx: &mut Ctx<
         }
         Type::Object(o) if o.fields.is_empty() && o.bases.is_empty() => any(ctx),
         Type::Object(o) => Mapped {
-            ty: pos.name.clone(),
+            ty: pos.struct_name(),
             format: None,
             nullable: false,
             decls: object_decls(o, pos, doc, mode, ctx),
@@ -421,7 +484,7 @@ pub fn map_type(ty: &Type, pos: &Position, doc: &str, mode: Mode, ctx: &mut Ctx<
         // Stainless's Go v1 unions (interface types with registered variants) are not emitted
         // yet; any value decodes.
         Type::Union(_) => any(ctx),
-        Type::Ref(r) => Mapped::plain(&model_ref(r, ctx)),
+        Type::Ref(r) => Mapped::plain(&model_ref_in(r, mode, ctx)),
         Type::Nullable { inner } => {
             let m = map_type(inner, pos, doc, mode, ctx);
             Mapped { nullable: true, ..m }

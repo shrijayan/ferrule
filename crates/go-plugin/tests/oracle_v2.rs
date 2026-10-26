@@ -34,7 +34,7 @@ const IMAGEKIT: Oracle = Oracle {
     ),
     version: "2.5.0",
     example: (&["files"], "upload"),
-    floor: 12,
+    floor: 15,
 };
 
 const KNOCK_MGMT: Oracle = Oracle {
