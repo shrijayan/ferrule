@@ -1,5 +1,5 @@
 {
-  "sha256": "1c6fe93867e181c9cdd11378a32ebc303a19de730cfbd69477f5f0e9059984ab",
+  "sha256": "d6ab2e2f6cf7d087ad529f3b555eb90c9299a6a1b0e60a6a469e510ad79b9326",
   "root": {
     "x-ferrule-client": {
       "defaultEnvironment": "production",
@@ -271,8 +271,8 @@
         "page": "openai_cursor_page",
         "paramLocation": "query",
         "request": {
-          "after": "next_cursor_param",
-          "limit": "limit"
+          "limit": "limit",
+          "after": "next_cursor_param"
         },
         "response": {
           "data": "data",
@@ -477,8 +477,8 @@
         "page": "openai_cursor_page",
         "paramLocation": "query",
         "request": {
-          "after": "next_cursor_param",
-          "limit": "limit"
+          "limit": "limit",
+          "after": "next_cursor_param"
         },
         "response": {
           "data": "data",
@@ -617,8 +617,8 @@
         "page": "openai_cursor_page",
         "paramLocation": "query",
         "request": {
-          "after": "next_cursor_param",
-          "limit": "limit"
+          "limit": "limit",
+          "after": "next_cursor_param"
         },
         "response": {
           "data": "data",
@@ -737,8 +737,8 @@
         "page": "openai_cursor_page",
         "paramLocation": "query",
         "request": {
-          "after": "next_cursor_param",
-          "limit": "limit"
+          "limit": "limit",
+          "after": "next_cursor_param"
         },
         "response": {
           "data": "data",
@@ -1531,8 +1531,8 @@
         "page": "openai_cursor_page",
         "paramLocation": "query",
         "request": {
-          "after": "next_cursor_param",
-          "limit": "limit"
+          "limit": "limit",
+          "after": "next_cursor_param"
         },
         "response": {
           "data": "data",
@@ -1740,8 +1740,8 @@
         "page": "openai_cursor_page",
         "paramLocation": "query",
         "request": {
-          "after": "next_cursor_param",
-          "limit": "limit"
+          "limit": "limit",
+          "after": "next_cursor_param"
         },
         "response": {
           "data": "data",
@@ -1949,8 +1949,8 @@
         "page": "openai_cursor_page",
         "paramLocation": "query",
         "request": {
-          "after": "next_cursor_param",
-          "limit": "limit"
+          "limit": "limit",
+          "after": "next_cursor_param"
         },
         "response": {
           "data": "data",
@@ -1990,8 +1990,8 @@
         "page": "openai_cursor_page",
         "paramLocation": "query",
         "request": {
-          "after": "next_cursor_param",
-          "limit": "limit"
+          "limit": "limit",
+          "after": "next_cursor_param"
         },
         "response": {
           "data": "data",
