@@ -1,0 +1,442 @@
+openapi: 3.1.0
+info:
+  title: Acme Notes
+  version: 1.4.0
+  description: Notes, completions and friends.
+servers:
+  - url: https://api.acme-notes.test
+security:
+  - BearerAuth: []
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    NoteBlock:
+      type: object
+      description: A block of rich text.
+      required: [type, text]
+      properties:
+        type:
+          type: string
+          enum: [paragraph, heading, code-block]
+        text:
+          type: string
+    Note:
+      type: object
+      description: |
+        A note.
+
+        - It has blocks
+        and a parent.
+      required: [id, title, content, created_at]
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        content:
+          description: Plain text or one block.
+          oneOf:
+            - type: string
+            - $ref: '#/components/schemas/NoteBlock'
+        parent:
+          description: The note this one answers.
+          nullable: true
+          allOf:
+            - $ref: '#/components/schemas/Note'
+        tags:
+          type: array
+          items:
+            type: string
+        attributes:
+          type: object
+          additionalProperties:
+            type: string
+        created_at:
+          type: string
+          format: date-time
+        score:
+          type: number
+          format: float
+paths:
+  /health:
+    get:
+      operationId: health
+      summary: Health check
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok]
+                properties:
+                  ok:
+                    type: boolean
+  /v1/notes:
+    get:
+      operationId: listNotes
+      summary: List notes
+      parameters:
+        - name: after
+          in: query
+          schema:
+            type: string
+        - name: tag
+          in: query
+          description: Only notes with every tag.
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: A page of notes.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Note'
+                  next_cursor:
+                    type: string
+  /v1/notes/{note_id}:
+    put:
+      operationId: updateNote
+      summary: Replace a note
+      deprecated: true
+      parameters:
+        - name: note_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: X-Request-Source
+          in: header
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Note'
+      responses:
+        '200':
+          description: The note.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Note'
+    post:
+      operationId: pinNote
+      summary: Pin a note
+      parameters:
+        - name: note_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The pinned note.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [pinned]
+                properties:
+                  pinned:
+                    type: boolean
+    delete:
+      operationId: deleteNote
+      summary: Delete a note
+      parameters:
+        - name: note_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Deleted.
+  /v1/notes/archive:
+    post:
+      operationId: archiveNotes
+      summary: Archive every note
+      responses:
+        '204':
+          description: Archived; the schema is the empty body.
+          content:
+            application/json:
+              schema:
+                type: string
+  /v1/notes/{note_id}/comments:
+    get:
+      operationId: listComments
+      parameters:
+        - name: note_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Comments.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required: [body]
+                  properties:
+                    body:
+                      type: string
+  /v1/completions:
+    post:
+      operationId: createCompletion
+      summary: Complete a note
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [prompt, model]
+              properties:
+                prompt:
+                  type: string
+                model:
+                  type: string
+                  enum: [small, large]
+                max_tokens:
+                  type: integer
+                stream:
+                  type: boolean
+                metadata:
+                  type: object
+                  additionalProperties:
+                    type: string
+      responses:
+        '200':
+          description: A completion.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [id, text]
+                properties:
+                  id:
+                    type: string
+                  text:
+                    type: string
+                  finish_reason:
+                    type: string
+                    enum: [stop, length]
+            text/event-stream:
+              schema:
+                type: object
+  /v1/files:
+    post:
+      operationId: createFile
+      summary: Upload a file
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file, purpose]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The file to upload.
+                purpose:
+                  type: string
+                  enum: [notes, attachments]
+                tags:
+                  type: array
+                  items:
+                    type: string
+                extra_files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        '200':
+          description: The file.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [id]
+                properties:
+                  id:
+                    type: string
+  /v1/files/{file_id}/content:
+    post:
+      operationId: uploadFile
+      parameters:
+        - name: file_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+      responses:
+        '200':
+          description: Uploaded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [size]
+                properties:
+                  size:
+                    type: integer
+  /v1/tags:
+    get:
+      operationId: listTags
+      parameters:
+        - name: offset
+          in: query
+          schema:
+            type: integer
+        - name: type
+          in: query
+          description: Only tags of this kind; a Rust keyword as a param name.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Tags.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [results]
+                properties:
+                  results:
+                    type: array
+                    items:
+                      type: object
+                      required: [name]
+                      properties:
+                        name:
+                          type: string
+                  total:
+                    type: integer
+  /v1/events:
+    get:
+      operationId: listEvents
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Events.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [entries]
+                properties:
+                  entries:
+                    type: array
+                    items:
+                      type: object
+                      required: [kind]
+                      properties:
+                        kind:
+                          type: string
+                  page:
+                    type: integer
+                  total_pages:
+                    type: integer
+  /v1/users:
+    get:
+      operationId: listUsers
+      parameters:
+        - name: starting_after
+          in: query
+          schema:
+            type: string
+        - name: ending_before
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Users.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [objects]
+                properties:
+                  objects:
+                    type: array
+                    items:
+                      type: object
+                      required: [id]
+                      properties:
+                        id:
+                          type: string
+                        email:
+                          type: string
+  /v1/logs:
+    get:
+      operationId: listLogs
+      responses:
+        '200':
+          description: Logs.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [logs]
+                properties:
+                  logs:
+                    type: array
+                    items:
+                      type: object
+                      required: [line]
+                      properties:
+                        line:
+                          type: string
+                  next:
+                    type: string
+  /v1/labels:
+    get:
+      operationId: listLabels
+      responses:
+        '200':
+          description: Labels.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [labels]
+                properties:
+                  labels:
+                    type: array
+                    items:
+                      type: string

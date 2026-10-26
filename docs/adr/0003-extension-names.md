@@ -233,6 +233,54 @@ Insertion order is deterministic, so the output still is. The list lives in
 an oracle shows Stainless follows config order there. The plugins already read these maps in
 written order, and `version` stays 1, since the shape is unchanged.
 
+### Amendment 2026-10-26 (ADR 0017): every target, and what each item is generated for
+
+Plugins for languages other than Python need their own target's settings and stainless.yml's
+per-language `skip:`/`only:` lists, which the converter used to read for Python only. Two
+extensions carry them:
+
+| Extension                | Where                                               | Value |
+| ------------------------ | --------------------------------------------------- | ----- |
+| `x-ferrule-targets`      | root, mirrored on every method                      | `Record<target, { package_name?: string, edition?: string, production_repo?: string, options: object }>` |
+| `x-ferrule-targets-only` | method; each `x-ferrule-models` entry               | `string[]`: the target keys the item is generated for, in config order |
+
+**`x-ferrule-targets`** has a member for every key under stainless.yml `targets` (node,
+typescript, python, go, java, kotlin, ruby, php, csharp, terraform, cli, openapi, sql, and keys
+the schema does not know, kept as written). The annotated spec is written with sorted keys, so
+readers see the targets in key order, not config order.
+
+- `edition` is the edition whose defaults apply: the one written if Ferrule knows it, else the
+  target's first ("the very first edition" in the public schema), the way `x-ferrule-config`
+  reports Python's. An edition Ferrule does not know is a FER1103 warning (Python's stays
+  FER1102). For an unknown key it is the edition as written. Python's `options.use_uv`
+  default is the only edition default with a config key; it is filled in.
+- `package_name` and `production_repo` are copied when they are strings (stagehand writes
+  `production_repo: null`, which is left out); `production_repo` may end in `#<branch>`.
+- `options` is every other key of the target as written (its own `options:` among them, so
+  imagekit's `typescript.options.mcp_server` is `options.options.mcp_server`), minus `publish`.
+
+It is written only when `targets` has a key other than `python` or a `skip:`/`only:` list
+restricts something, so a Python-only config without lists is annotated exactly as before. Like
+`x-ferrule-client`, it is mirrored onto every method and every `x-forge-aliases` entry (gap G2).
+
+**`x-ferrule-targets-only`** is written only when a list restricts the item. Lists apply down
+the tree: a resource's restriction is its parent's, then its own `only:` (keep the listed
+targets) and `skip:` (drop them; `skip: true` drops all); a method's and a model's start from
+their resource's. The targets are the config's `targets` keys (every target the schema knows,
+for a config fragment without `targets`).
+
+`x-ferrule-models` now lists every `models:` entry some target generates, not only Python's:
+an entry no target generates is left out, an entry with an `openapi_uri` Ferrule cannot read is
+FER1004 whichever target generates it, and an entry leaving Python out never replaces a Python
+entry for the same schema (the map has one entry per schema). `x-fern-type-name` is written for
+every listed entry.
+
+The Python plugin accepts both extensions and leaves out the `x-ferrule-models` entries whose
+`x-ferrule-targets-only` lacks `python`, inlining those schemas as before; it does not yet drop
+methods that leave Python out (no oracle has one). `crates/sdk-model` reads them as
+`Client.targets`, `Method.only` and `ModelDecl.only`; `Client::for_target` gives one target's
+view.
+
 ### Consequences
 
 - Good: one place defines the contract between converter and plugin; both sides test against it.

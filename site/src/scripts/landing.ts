@@ -147,26 +147,20 @@ function runDiff(): void {
   tick();
 }
 
-/* terminal: the real `ferrule adopt` output, then the user's next two commands */
+/* terminal: a real `ferrule generate` run on the OneBusAway spec and config, twice */
 type TermLine = { cmd: string } | { out: string };
-const ok = '<span class="ok">✓</span>';
+const GENERATE = 'uv run ferrule generate --spec openapi.yml --config stainless.yml --out sdk';
+const GENERATED =
+  'generated <span class="hl">onebusaway</span>: 222 files <span class="o">(26 runtime)</span> sha256 <span class="o">1f9d988f…88d96a</span>';
 const TERMINAL: TermLine[] = [
-  { cmd: 'uvx ferrule adopt .' },
-  { out: `${ok} read .stats.yml <span class="o">→ spec URL + hash</span>` },
-  { out: `${ok} rescued spec to ./openapi.json <span class="o">(hash ok)</span>` },
-  { out: `${ok} converted stainless.yml <span class="o">→ overlays</span>` },
-  { out: `${ok} copied runtime from your repo <span class="o">(you own it)</span>` },
-  { out: `${ok} found 3 hand edits <span class="o">→ .ferrule/patches/</span>` },
-  { out: `${ok} generated via forge + ferrule-python` },
-  {
-    out: `${ok} committed on local branch <span class="hl">ferrule/adopt</span> <span class="o">(not pushed)</span>`,
-  },
-  { out: '<span class="o">ferrule verify --against 1a2b3c4</span>' },
-  { out: 'public API: <span class="z">0 breaking</span> <span class="o">·</span> 6 additive' },
+  { cmd: GENERATE },
+  { out: GENERATED },
   { out: '' },
-  { cmd: 'git push -u origin ferrule/adopt' },
-  { cmd: 'gh pr create --fill' },
-  { out: '<span class="hl">https://github.com/acme/acme-python/pull/42</span>' },
+  { cmd: `rm -r sdk && ${GENERATE}` },
+  { out: GENERATED },
+  {
+    out: '<span class="z">same digest</span> <span class="o">· byte-identical on every run</span>',
+  },
 ];
 const PROMPT = '<span class="pr">$</span> ';
 const CARET = '<span class="caret"></span>';
@@ -253,9 +247,45 @@ once(
   0.2,
 );
 once(
+  byId('languages'),
+  () => {
+    all('#langRows .bar i').forEach((bar, k) => {
+      setTimeout(() => {
+        bar.style.width = `${bar.dataset.w ?? '0'}%`;
+      }, k * 60);
+    });
+  },
+  0.2,
+);
+once(
   byId('stages'),
   () => {
     if (!reduced) cycle();
   },
   0.3,
 );
+
+/* One request fills every star count. A failed fetch leaves the labels alone. */
+const slots = all<HTMLElement>('[data-stars]');
+if (slots.length > 0) {
+  void fetch('https://api.github.com/repos/shrijayan/ferrule', {
+    headers: { Accept: 'application/vnd.github+json' },
+  })
+    .then(async (response) => {
+      if (!response.ok) return;
+      const body: unknown = await response.json();
+      if (typeof body !== 'object' || body === null || !('stargazers_count' in body)) return;
+      const count = body.stargazers_count;
+      if (typeof count !== 'number' || !Number.isInteger(count) || count < 0) return;
+      const text = count.toLocaleString('en-US');
+      for (const slot of slots) {
+        const num = slot.querySelector('.gh-count');
+        if (num === null) continue;
+        num.textContent = text;
+        slot.hidden = false;
+      }
+    })
+    .catch(() => {
+      // The buttons already say GitHub / Star on GitHub and already link.
+    });
+}

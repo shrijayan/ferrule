@@ -1,0 +1,13 @@
+From imagekit-developer/imagekit-dotnet @ 265ab207 (Apache-2.0), scripts/lint. Modified by The Ferrule Authors: names, version, licence and URLs replaced by tokens. This line is not emitted.
+#!/usr/bin/env bash
+
+set -e
+
+cd "$(dirname "$0")/.."
+
+echo "==> Running dotnet csharpier check"
+dotnet csharpier check .
+
+echo "==> Running dotnet format"
+dotnet format style --severity info --verify-no-changes
+dotnet format analyzers --severity info --verify-no-changes

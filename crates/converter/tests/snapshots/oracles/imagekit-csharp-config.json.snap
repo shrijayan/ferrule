@@ -1,0 +1,2010 @@
+{
+  "sha256": "0a8a1d0cec2bbe2487471ab6175931b721296a05d06e16f39e60538db57efe02",
+  "root": {
+    "x-ferrule-client": {
+      "defaultEnvironment": "production",
+      "defaultHeaders": {},
+      "envPrefix": "IMAGE_KIT",
+      "environments": [
+        {
+          "name": "production",
+          "url": "https://api.imagekit.io"
+        }
+      ],
+      "name": "ImageKit",
+      "omitPlatformHeaders": false,
+      "opts": [
+        {
+          "auth": {
+            "role": "username",
+            "securityScheme": "basicAuth"
+          },
+          "description": "Your ImageKit private API key (starts with `private_`).\nYou can find this in the [ImageKit dashboard](https://imagekit.io/dashboard/developer/api-keys).\n",
+          "name": "private_key",
+          "nullable": false,
+          "readEnv": "IMAGEKIT_PRIVATE_KEY",
+          "type": "string"
+        },
+        {
+          "auth": {
+            "role": "password",
+            "securityScheme": "basicAuth"
+          },
+          "default": "do_not_set",
+          "description": "ImageKit uses your API key as username and ignores the password. \nThe SDK sets a dummy value. You can ignore this field.\n",
+          "name": "password",
+          "nullable": true,
+          "readEnv": "OPTIONAL_IMAGEKIT_IGNORES_THIS",
+          "type": "string"
+        },
+        {
+          "description": "Your ImageKit webhook secret for verifying webhook signatures (starts with `whsec_`).\nYou can find this in the [ImageKit dashboard](https://imagekit.io/dashboard/developer/webhooks).\nOnly required if you're using webhooks.\n",
+          "name": "webhook_secret",
+          "nullable": true,
+          "readEnv": "IMAGEKIT_WEBHOOK_SECRET",
+          "type": "string"
+        }
+      ],
+      "query": {
+        "arrayFormat": "comma",
+        "nestedFormat": "brackets"
+      },
+      "retries": {
+        "initialDelaySeconds": 0.5,
+        "maxDelaySeconds": 8,
+        "maxRetries": 2
+      },
+      "security": [
+        {
+          "basicAuth": []
+        }
+      ],
+      "securitySchemes": {
+        "basicAuth": {
+          "disableBase64": false,
+          "scheme": "basic",
+          "type": "http"
+        }
+      },
+      "timeoutSeconds": 60
+    },
+    "x-ferrule-targets": {
+      "csharp": {
+        "edition": "csharp.2025-10-08",
+        "options": {},
+        "package_name": "Imagekit",
+        "production_repo": "imagekit-developer/imagekit-dotnet#master"
+      },
+      "python": {
+        "edition": "python.2025-10-08",
+        "options": {
+          "options": {
+            "use_uv": false
+          }
+        }
+      }
+    }
+  },
+  "mirrored": {
+    "x-ferrule-client": {
+      "defaultEnvironment": "production",
+      "defaultHeaders": {},
+      "envPrefix": "IMAGE_KIT",
+      "environments": [
+        {
+          "name": "production",
+          "url": "https://api.imagekit.io"
+        }
+      ],
+      "name": "ImageKit",
+      "omitPlatformHeaders": false,
+      "opts": [
+        {
+          "auth": {
+            "role": "username",
+            "securityScheme": "basicAuth"
+          },
+          "description": "Your ImageKit private API key (starts with `private_`).\nYou can find this in the [ImageKit dashboard](https://imagekit.io/dashboard/developer/api-keys).\n",
+          "name": "private_key",
+          "nullable": false,
+          "readEnv": "IMAGEKIT_PRIVATE_KEY",
+          "type": "string"
+        },
+        {
+          "auth": {
+            "role": "password",
+            "securityScheme": "basicAuth"
+          },
+          "default": "do_not_set",
+          "description": "ImageKit uses your API key as username and ignores the password. \nThe SDK sets a dummy value. You can ignore this field.\n",
+          "name": "password",
+          "nullable": true,
+          "readEnv": "OPTIONAL_IMAGEKIT_IGNORES_THIS",
+          "type": "string"
+        },
+        {
+          "description": "Your ImageKit webhook secret for verifying webhook signatures (starts with `whsec_`).\nYou can find this in the [ImageKit dashboard](https://imagekit.io/dashboard/developer/webhooks).\nOnly required if you're using webhooks.\n",
+          "name": "webhook_secret",
+          "nullable": true,
+          "readEnv": "IMAGEKIT_WEBHOOK_SECRET",
+          "type": "string"
+        }
+      ],
+      "query": {
+        "arrayFormat": "comma",
+        "nestedFormat": "brackets"
+      },
+      "retries": {
+        "initialDelaySeconds": 0.5,
+        "maxDelaySeconds": 8,
+        "maxRetries": 2
+      },
+      "security": [
+        {
+          "basicAuth": []
+        }
+      ],
+      "securitySchemes": {
+        "basicAuth": {
+          "disableBase64": false,
+          "scheme": "basic",
+          "type": "http"
+        }
+      },
+      "timeoutSeconds": 60
+    },
+    "x-ferrule-models": {
+      "AITag": {
+        "module": "shared.AITag",
+        "name": "AITag"
+      },
+      "BaseOverlay": {
+        "module": "shared.BaseOverlay",
+        "name": "BaseOverlay"
+      },
+      "BaseWebhookEvent": {
+        "module": "BaseWebhookEvent",
+        "name": "BaseWebhookEvent"
+      },
+      "CustomMetadata": {
+        "module": "shared.CustomMetadata",
+        "name": "CustomMetadata"
+      },
+      "CustomMetadataField": {
+        "module": "CustomMetadataField",
+        "name": "CustomMetadataField"
+      },
+      "EmbeddedMetadata": {
+        "module": "shared.EmbeddedMetadata",
+        "name": "EmbeddedMetadata"
+      },
+      "ExtensionConfig": {
+        "module": "shared.ExtensionConfig",
+        "name": "ExtensionConfig"
+      },
+      "Extensions": {
+        "module": "shared.Extensions",
+        "name": "Extensions"
+      },
+      "FileCreateEvent": {
+        "module": "FileCreateEvent",
+        "name": "FileCreateEvent"
+      },
+      "FileDeleteEvent": {
+        "module": "FileDeleteEvent",
+        "name": "FileDeleteEvent"
+      },
+      "FileDetails": {
+        "module": "File",
+        "name": "File"
+      },
+      "FileUpdateEvent": {
+        "module": "FileUpdateEvent",
+        "name": "FileUpdateEvent"
+      },
+      "FileVersionCreateEvent": {
+        "module": "FileVersionCreateEvent",
+        "name": "FileVersionCreateEvent"
+      },
+      "FileVersionDeleteEvent": {
+        "module": "FileVersionDeleteEvent",
+        "name": "FileVersionDeleteEvent"
+      },
+      "FolderDetails": {
+        "module": "Folder",
+        "name": "Folder"
+      },
+      "GetImageAttributesOptions": {
+        "module": "shared.GetImageAttributesOptions",
+        "name": "GetImageAttributesOptions"
+      },
+      "ImageOverlay": {
+        "module": "shared.ImageOverlay",
+        "name": "ImageOverlay"
+      },
+      "Metadata": {
+        "module": "Metadata",
+        "name": "Metadata"
+      },
+      "OriginRequest": {
+        "module": "accounts.OriginRequest",
+        "name": "OriginRequest"
+      },
+      "OriginResponse": {
+        "module": "accounts.OriginResponse",
+        "name": "OriginResponse"
+      },
+      "Overlay": {
+        "module": "shared.Overlay",
+        "name": "Overlay"
+      },
+      "OverlayPosition": {
+        "module": "shared.OverlayPosition",
+        "name": "OverlayPosition"
+      },
+      "OverlayTiming": {
+        "module": "shared.OverlayTiming",
+        "name": "OverlayTiming"
+      },
+      "RequestBandwidthEntry": {
+        "module": "accounts.RequestBandwidthEntry",
+        "name": "RequestBandwidthEntry"
+      },
+      "ResponsiveImageAttributes": {
+        "module": "shared.ResponsiveImageAttributes",
+        "name": "ResponsiveImageAttributes"
+      },
+      "SavedExtension": {
+        "module": "shared.SavedExtension",
+        "name": "SavedExtension"
+      },
+      "SelectedFieldsSchema": {
+        "module": "shared.SelectedFieldsSchema",
+        "name": "SelectedFieldsSchema"
+      },
+      "SolidColorOverlay": {
+        "module": "shared.SolidColorOverlay",
+        "name": "SolidColorOverlay"
+      },
+      "SolidColorOverlayTransformation": {
+        "module": "shared.SolidColorOverlayTransformation",
+        "name": "SolidColorOverlayTransformation"
+      },
+      "SrcOptions": {
+        "module": "shared.SrcOptions",
+        "name": "SrcOptions"
+      },
+      "StreamingResolution": {
+        "module": "shared.StreamingResolution",
+        "name": "StreamingResolution"
+      },
+      "SubtitleOverlay": {
+        "module": "shared.SubtitleOverlay",
+        "name": "SubtitleOverlay"
+      },
+      "SubtitleOverlayTransformation": {
+        "module": "shared.SubtitleOverlayTransformation",
+        "name": "SubtitleOverlayTransformation"
+      },
+      "TextOverlay": {
+        "module": "shared.TextOverlay",
+        "name": "TextOverlay"
+      },
+      "TextOverlayTransformation": {
+        "module": "shared.TextOverlayTransformation",
+        "name": "TextOverlayTransformation"
+      },
+      "Transformation": {
+        "module": "shared.Transformation",
+        "name": "Transformation"
+      },
+      "TransformationPosition": {
+        "module": "shared.TransformationPosition",
+        "name": "TransformationPosition"
+      },
+      "UpdateFileRequest": {
+        "module": "UpdateFileRequest",
+        "name": "UpdateFileRequest"
+      },
+      "UploadPostTransformErrorEvent": {
+        "module": "UploadPostTransformErrorEvent",
+        "name": "UploadPostTransformErrorEvent"
+      },
+      "UploadPostTransformSuccessEvent": {
+        "module": "UploadPostTransformSuccessEvent",
+        "name": "UploadPostTransformSuccessEvent"
+      },
+      "UploadPreTransformErrorEvent": {
+        "module": "UploadPreTransformErrorEvent",
+        "name": "UploadPreTransformErrorEvent"
+      },
+      "UploadPreTransformSuccessEvent": {
+        "module": "UploadPreTransformSuccessEvent",
+        "name": "UploadPreTransformSuccessEvent"
+      },
+      "UrlEndpointRequest": {
+        "module": "accounts.UrlEndpointRequest",
+        "name": "UrlEndpointRequest"
+      },
+      "UrlEndpointResponse": {
+        "module": "accounts.UrlEndpointResponse",
+        "name": "UrlEndpointResponse"
+      },
+      "UsageAnalyticsResponse": {
+        "module": "accounts.UsageAnalyticsResponse",
+        "name": "UsageAnalyticsResponse"
+      },
+      "VersionInfo": {
+        "module": "shared.VersionInfo",
+        "name": "VersionInfo"
+      },
+      "VideoOverlay": {
+        "module": "shared.VideoOverlay",
+        "name": "VideoOverlay"
+      },
+      "VideoTransformationAcceptedEvent": {
+        "module": "VideoTransformationAcceptedEvent",
+        "name": "VideoTransformationAcceptedEvent"
+      },
+      "VideoTransformationErrorEvent": {
+        "module": "VideoTransformationErrorEvent",
+        "name": "VideoTransformationErrorEvent"
+      },
+      "VideoTransformationReadyEvent": {
+        "module": "VideoTransformationReadyEvent",
+        "name": "VideoTransformationReadyEvent"
+      }
+    }
+  },
+  "operations": {
+    "POST /api/v1/files/upload": {
+      "x-fern-sdk-group-name": [
+        "files"
+      ],
+      "x-fern-sdk-method-name": "upload",
+      "x-ferrule-method-name": "upload",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          3
+        ],
+        "path": [
+          "files"
+        ]
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit",
+          "production_repo": "imagekit-developer/imagekit-dotnet#master"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          }
+        }
+      }
+    },
+    "POST /api/v2/files/upload": {
+      "x-fern-sdk-group-name": [
+        "beta",
+        "v2",
+        "files"
+      ],
+      "x-fern-sdk-method-name": "upload",
+      "x-ferrule-method-name": "upload",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          9,
+          0,
+          0
+        ],
+        "path": [
+          "beta",
+          "v2",
+          "files"
+        ]
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit",
+          "production_repo": "imagekit-developer/imagekit-dotnet#master"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          }
+        }
+      }
+    },
+    "GET /v1/accounts/origins": {
+      "x-fern-sdk-group-name": [
+        "accounts",
+        "origins"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          8,
+          2
+        ],
+        "path": [
+          "accounts",
+          "origins"
+        ]
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit",
+          "production_repo": "imagekit-developer/imagekit-dotnet#master"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          }
+        }
+      }
+    },
+    "POST /v1/accounts/origins": {
+      "x-fern-sdk-group-name": [
+        "accounts",
+        "origins"
+      ],
+      "x-fern-sdk-method-name": "create",
+      "x-ferrule-method-name": "create",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          8,
+          2
+        ],
+        "path": [
+          "accounts",
+          "origins"
+        ]
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit",
+          "production_repo": "imagekit-developer/imagekit-dotnet#master"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          }
+        }
+      }
+    },
+    "DELETE /v1/accounts/origins/{id}": {
+      "x-fern-sdk-group-name": [
+        "accounts",
+        "origins"
+      ],
+      "x-fern-sdk-method-name": "delete",
+      "x-ferrule-method-name": "delete",
+      "x-ferrule-method-order": 4,
+      "x-ferrule-resource": {
+        "order": [
+          8,
+          2
+        ],
+        "path": [
+          "accounts",
+          "origins"
+        ]
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit",
+          "production_repo": "imagekit-developer/imagekit-dotnet#master"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          }
+        }
+      }
+    },
+    "GET /v1/accounts/origins/{id}": {
+      "x-fern-sdk-group-name": [
+        "accounts",
+        "origins"
+      ],
+      "x-fern-sdk-method-name": "get",
+      "x-ferrule-method-name": "get",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          8,
+          2
+        ],
+        "path": [
+          "accounts",
+          "origins"
+        ]
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit",
+          "production_repo": "imagekit-developer/imagekit-dotnet#master"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          }
+        }
+      }
+    },
+    "PUT /v1/accounts/origins/{id}": {
+      "x-fern-sdk-group-name": [
+        "accounts",
+        "origins"
+      ],
+      "x-fern-sdk-method-name": "update",
+      "x-ferrule-method-name": "update",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          8,
+          2
+        ],
+        "path": [
+          "accounts",
+          "origins"
+        ]
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit",
+          "production_repo": "imagekit-developer/imagekit-dotnet#master"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          }
+        }
+      }
+    },
+    "GET /v1/accounts/url-endpoints": {
+      "x-fern-sdk-group-name": [
+        "accounts",
+        "urlEndpoints"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          8,
+          3
+        ],
+        "path": [
+          "accounts",
+          "urlEndpoints"
+        ]
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit",
+          "production_repo": "imagekit-developer/imagekit-dotnet#master"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          }
+        }
+      }
+    },
+    "POST /v1/accounts/url-endpoints": {
+      "x-fern-sdk-group-name": [
+        "accounts",
+        "urlEndpoints"
+      ],
+      "x-fern-sdk-method-name": "create",
+      "x-ferrule-method-name": "create",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          8,
+          3
+        ],
+        "path": [
+          "accounts",
+          "urlEndpoints"
+        ]
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit",
+          "production_repo": "imagekit-developer/imagekit-dotnet#master"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          }
+        }
+      }
+    },
+    "DELETE /v1/accounts/url-endpoints/{id}": {
+      "x-fern-sdk-group-name": [
+        "accounts",
+        "urlEndpoints"
+      ],
+      "x-fern-sdk-method-name": "delete",
+      "x-ferrule-method-name": "delete",
+      "x-ferrule-method-order": 4,
+      "x-ferrule-resource": {
+        "order": [
+          8,
+          3
+        ],
+        "path": [
+          "accounts",
+          "urlEndpoints"
+        ]
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit",
+          "production_repo": "imagekit-developer/imagekit-dotnet#master"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          }
+        }
+      }
+    },
+    "GET /v1/accounts/url-endpoints/{id}": {
+      "x-fern-sdk-group-name": [
+        "accounts",
+        "urlEndpoints"
+      ],
+      "x-fern-sdk-method-name": "get",
+      "x-ferrule-method-name": "get",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          8,
+          3
+        ],
+        "path": [
+          "accounts",
+          "urlEndpoints"
+        ]
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit",
+          "production_repo": "imagekit-developer/imagekit-dotnet#master"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          }
+        }
+      }
+    },
+    "PUT /v1/accounts/url-endpoints/{id}": {
+      "x-fern-sdk-group-name": [
+        "accounts",
+        "urlEndpoints"
+      ],
+      "x-fern-sdk-method-name": "update",
+      "x-ferrule-method-name": "update",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          8,
+          3
+        ],
+        "path": [
+          "accounts",
+          "urlEndpoints"
+        ]
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit",
+          "production_repo": "imagekit-developer/imagekit-dotnet#master"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          }
+        }
+      }
+    },
+    "GET /v1/accounts/usage": {
+      "x-fern-sdk-group-name": [
+        "accounts",
+        "usage"
+      ],
+      "x-fern-sdk-method-name": "get",
+      "x-ferrule-method-name": "get",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          8,
+          0
+        ],
+        "path": [
+          "accounts",
+          "usage"
+        ]
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit",
+          "production_repo": "imagekit-developer/imagekit-dotnet#master"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          }
+        }
+      }
+    },
+    "GET /v1/accounts/usage-analytics": {
+      "x-fern-sdk-group-name": [
+        "accounts",
+        "usageAnalytics"
+      ],
+      "x-fern-sdk-method-name": "get",
+      "x-ferrule-method-name": "get",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          8,
+          1
+        ],
+        "path": [
+          "accounts",
+          "usageAnalytics"
+        ]
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit",
+          "production_repo": "imagekit-developer/imagekit-dotnet#master"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          }
+        }
+      }
+    },
+    "POST /v1/bulkJobs/copyFolder": {
+      "x-fern-sdk-group-name": [
+        "folders"
+      ],
+      "x-fern-sdk-method-name": "copy",
+      "x-ferrule-method-name": "copy",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          7
+        ],
+        "path": [
+          "folders"
+        ]
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit",
+          "production_repo": "imagekit-developer/imagekit-dotnet#master"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          }
+        }
+      }
+    },
+    "POST /v1/bulkJobs/moveFolder": {
+      "x-fern-sdk-group-name": [
+        "folders"
+      ],
+      "x-fern-sdk-method-name": "move",
+      "x-ferrule-method-name": "move",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          7
+        ],
+        "path": [
+          "folders"
+        ]
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit",
+          "production_repo": "imagekit-developer/imagekit-dotnet#master"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          }
+        }
+      }
+    },
+    "POST /v1/bulkJobs/renameFolder": {
+      "x-fern-sdk-group-name": [
+        "folders"
+      ],
+      "x-fern-sdk-method-name": "rename",
+      "x-ferrule-method-name": "rename",
+      "x-ferrule-method-order": 4,
+      "x-ferrule-resource": {
+        "order": [
+          7
+        ],
+        "path": [
+          "folders"
+        ]
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit",
+          "production_repo": "imagekit-developer/imagekit-dotnet#master"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          }
+        }
+      }
+    },
+    "GET /v1/bulkJobs/{jobId}": {
+      "x-fern-sdk-group-name": [
+        "folders",
+        "job"
+      ],
+      "x-fern-sdk-method-name": "get",
+      "x-ferrule-method-name": "get",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          7,
+          0
+        ],
+        "path": [
+          "folders",
+          "job"
+        ]
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit",
+          "production_repo": "imagekit-developer/imagekit-dotnet#master"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          }
+        }
+      }
+    },
+    "GET /v1/customMetadataFields": {
+      "x-fern-sdk-group-name": [
+        "customMetadataFields"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          2
+        ],
+        "path": [
+          "customMetadataFields"
+        ]
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit",
+          "production_repo": "imagekit-developer/imagekit-dotnet#master"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          }
+        }
+      }
+    },
+    "POST /v1/customMetadataFields": {
+      "x-fern-sdk-group-name": [
+        "customMetadataFields"
+      ],
+      "x-fern-sdk-method-name": "create",
+      "x-ferrule-method-name": "create",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          2
+        ],
+        "path": [
+          "customMetadataFields"
+        ]
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit",
+          "production_repo": "imagekit-developer/imagekit-dotnet#master"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          }
+        }
+      }
+    },
+    "DELETE /v1/customMetadataFields/{id}": {
+      "x-fern-sdk-group-name": [
+        "customMetadataFields"
+      ],
+      "x-fern-sdk-method-name": "delete",
+      "x-ferrule-method-name": "delete",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          2
+        ],
+        "path": [
+          "customMetadataFields"
+        ]
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit",
+          "production_repo": "imagekit-developer/imagekit-dotnet#master"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          }
+        }
+      }
+    },
+    "PATCH /v1/customMetadataFields/{id}": {
+      "x-fern-sdk-group-name": [
+        "customMetadataFields"
+      ],
+      "x-fern-sdk-method-name": "update",
+      "x-ferrule-method-name": "update",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          2
+        ],
+        "path": [
+          "customMetadataFields"
+        ]
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit",
+          "production_repo": "imagekit-developer/imagekit-dotnet#master"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          }
+        }
+      }
+    },
+    "POST /v1/dummy/test": {
+      "x-fern-sdk-group-name": [
+        "dummy"
+      ],
+      "x-fern-sdk-method-name": "create",
+      "x-ferrule-method-name": "create",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          1
+        ],
+        "path": [
+          "dummy"
+        ]
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit",
+          "production_repo": "imagekit-developer/imagekit-dotnet#master"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          }
+        }
+      }
+    },
+    "GET /v1/files": {
+      "x-fern-sdk-group-name": [
+        "assets"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          5
+        ],
+        "path": [
+          "assets"
+        ]
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit",
+          "production_repo": "imagekit-developer/imagekit-dotnet#master"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          }
+        }
+      }
+    },
+    "POST /v1/files/addTags": {
+      "x-fern-sdk-group-name": [
+        "files",
+        "bulk"
+      ],
+      "x-fern-sdk-method-name": "addTags",
+      "x-ferrule-method-name": "addTags",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          3,
+          0
+        ],
+        "path": [
+          "files",
+          "bulk"
+        ]
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit",
+          "production_repo": "imagekit-developer/imagekit-dotnet#master"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          }
+        }
+      }
+    },
+    "POST /v1/files/batch/deleteByFileIds": {
+      "x-fern-sdk-group-name": [
+        "files",
+        "bulk"
+      ],
+      "x-fern-sdk-method-name": "delete",
+      "x-ferrule-method-name": "delete",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          3,
+          0
+        ],
+        "path": [
+          "files",
+          "bulk"
+        ]
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit",
+          "production_repo": "imagekit-developer/imagekit-dotnet#master"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          }
+        }
+      }
+    },
+    "POST /v1/files/copy": {
+      "x-fern-sdk-group-name": [
+        "files"
+      ],
+      "x-fern-sdk-method-name": "copy",
+      "x-ferrule-method-name": "copy",
+      "x-ferrule-method-order": 4,
+      "x-ferrule-resource": {
+        "order": [
+          3
+        ],
+        "path": [
+          "files"
+        ]
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit",
+          "production_repo": "imagekit-developer/imagekit-dotnet#master"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          }
+        }
+      }
+    },
+    "POST /v1/files/move": {
+      "x-fern-sdk-group-name": [
+        "files"
+      ],
+      "x-fern-sdk-method-name": "move",
+      "x-ferrule-method-name": "move",
+      "x-ferrule-method-order": 5,
+      "x-ferrule-resource": {
+        "order": [
+          3
+        ],
+        "path": [
+          "files"
+        ]
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit",
+          "production_repo": "imagekit-developer/imagekit-dotnet#master"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          }
+        }
+      }
+    },
+    "POST /v1/files/purge": {
+      "x-fern-sdk-group-name": [
+        "cache",
+        "invalidation"
+      ],
+      "x-fern-sdk-method-name": "create",
+      "x-ferrule-method-name": "create",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          6,
+          0
+        ],
+        "path": [
+          "cache",
+          "invalidation"
+        ]
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit",
+          "production_repo": "imagekit-developer/imagekit-dotnet#master"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          }
+        }
+      }
+    },
+    "GET /v1/files/purge/{requestId}": {
+      "x-fern-sdk-group-name": [
+        "cache",
+        "invalidation"
+      ],
+      "x-fern-sdk-method-name": "get",
+      "x-ferrule-method-name": "get",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          6,
+          0
+        ],
+        "path": [
+          "cache",
+          "invalidation"
+        ]
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit",
+          "production_repo": "imagekit-developer/imagekit-dotnet#master"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          }
+        }
+      }
+    },
+    "POST /v1/files/removeAITags": {
+      "x-fern-sdk-group-name": [
+        "files",
+        "bulk"
+      ],
+      "x-fern-sdk-method-name": "removeAiTags",
+      "x-ferrule-method-name": "removeAiTags",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          3,
+          0
+        ],
+        "path": [
+          "files",
+          "bulk"
+        ]
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit",
+          "production_repo": "imagekit-developer/imagekit-dotnet#master"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          }
+        }
+      }
+    },
+    "POST /v1/files/removeTags": {
+      "x-fern-sdk-group-name": [
+        "files",
+        "bulk"
+      ],
+      "x-fern-sdk-method-name": "removeTags",
+      "x-ferrule-method-name": "removeTags",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          3,
+          0
+        ],
+        "path": [
+          "files",
+          "bulk"
+        ]
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit",
+          "production_repo": "imagekit-developer/imagekit-dotnet#master"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          }
+        }
+      }
+    },
+    "PUT /v1/files/rename": {
+      "x-fern-sdk-group-name": [
+        "files"
+      ],
+      "x-fern-sdk-method-name": "rename",
+      "x-ferrule-method-name": "rename",
+      "x-ferrule-method-order": 6,
+      "x-ferrule-resource": {
+        "order": [
+          3
+        ],
+        "path": [
+          "files"
+        ]
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit",
+          "production_repo": "imagekit-developer/imagekit-dotnet#master"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          }
+        }
+      }
+    },
+    "DELETE /v1/files/{fileId}": {
+      "x-fern-sdk-group-name": [
+        "files"
+      ],
+      "x-fern-sdk-method-name": "delete",
+      "x-ferrule-method-name": "delete",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          3
+        ],
+        "path": [
+          "files"
+        ]
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit",
+          "production_repo": "imagekit-developer/imagekit-dotnet#master"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          }
+        }
+      }
+    },
+    "GET /v1/files/{fileId}/details": {
+      "x-fern-sdk-group-name": [
+        "files"
+      ],
+      "x-fern-sdk-method-name": "get",
+      "x-ferrule-method-name": "get",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          3
+        ],
+        "path": [
+          "files"
+        ]
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit",
+          "production_repo": "imagekit-developer/imagekit-dotnet#master"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          }
+        }
+      }
+    },
+    "PATCH /v1/files/{fileId}/details": {
+      "x-fern-sdk-group-name": [
+        "files"
+      ],
+      "x-fern-sdk-method-name": "update",
+      "x-ferrule-method-name": "update",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          3
+        ],
+        "path": [
+          "files"
+        ]
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit",
+          "production_repo": "imagekit-developer/imagekit-dotnet#master"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          }
+        }
+      }
+    },
+    "GET /v1/files/{fileId}/metadata": {
+      "x-fern-sdk-group-name": [
+        "files",
+        "metadata"
+      ],
+      "x-fern-sdk-method-name": "get",
+      "x-ferrule-method-name": "get",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          3,
+          2
+        ],
+        "path": [
+          "files",
+          "metadata"
+        ]
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit",
+          "production_repo": "imagekit-developer/imagekit-dotnet#master"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          }
+        }
+      }
+    },
+    "GET /v1/files/{fileId}/versions": {
+      "x-fern-sdk-group-name": [
+        "files",
+        "versions"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          3,
+          1
+        ],
+        "path": [
+          "files",
+          "versions"
+        ]
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit",
+          "production_repo": "imagekit-developer/imagekit-dotnet#master"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          }
+        }
+      }
+    },
+    "DELETE /v1/files/{fileId}/versions/{versionId}": {
+      "x-fern-sdk-group-name": [
+        "files",
+        "versions"
+      ],
+      "x-fern-sdk-method-name": "delete",
+      "x-ferrule-method-name": "delete",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          3,
+          1
+        ],
+        "path": [
+          "files",
+          "versions"
+        ]
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit",
+          "production_repo": "imagekit-developer/imagekit-dotnet#master"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          }
+        }
+      }
+    },
+    "GET /v1/files/{fileId}/versions/{versionId}": {
+      "x-fern-sdk-group-name": [
+        "files",
+        "versions"
+      ],
+      "x-fern-sdk-method-name": "get",
+      "x-ferrule-method-name": "get",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          3,
+          1
+        ],
+        "path": [
+          "files",
+          "versions"
+        ]
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit",
+          "production_repo": "imagekit-developer/imagekit-dotnet#master"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          }
+        }
+      }
+    },
+    "PUT /v1/files/{fileId}/versions/{versionId}/restore": {
+      "x-fern-sdk-group-name": [
+        "files",
+        "versions"
+      ],
+      "x-fern-sdk-method-name": "restore",
+      "x-ferrule-method-name": "restore",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          3,
+          1
+        ],
+        "path": [
+          "files",
+          "versions"
+        ]
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit",
+          "production_repo": "imagekit-developer/imagekit-dotnet#master"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          }
+        }
+      }
+    },
+    "DELETE /v1/folder": {
+      "x-fern-sdk-group-name": [
+        "folders"
+      ],
+      "x-fern-sdk-method-name": "delete",
+      "x-ferrule-method-name": "delete",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          7
+        ],
+        "path": [
+          "folders"
+        ]
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit",
+          "production_repo": "imagekit-developer/imagekit-dotnet#master"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          }
+        }
+      }
+    },
+    "POST /v1/folder": {
+      "x-fern-sdk-group-name": [
+        "folders"
+      ],
+      "x-fern-sdk-method-name": "create",
+      "x-ferrule-method-name": "create",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          7
+        ],
+        "path": [
+          "folders"
+        ]
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit",
+          "production_repo": "imagekit-developer/imagekit-dotnet#master"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          }
+        }
+      }
+    },
+    "GET /v1/metadata": {
+      "x-fern-sdk-group-name": [
+        "files",
+        "metadata"
+      ],
+      "x-fern-sdk-method-name": "getFromURL",
+      "x-ferrule-method-name": "getFromURL",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          3,
+          2
+        ],
+        "path": [
+          "files",
+          "metadata"
+        ]
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit",
+          "production_repo": "imagekit-developer/imagekit-dotnet#master"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          }
+        }
+      }
+    },
+    "GET /v1/saved-extensions": {
+      "x-fern-sdk-group-name": [
+        "savedExtensions"
+      ],
+      "x-fern-sdk-method-name": "list",
+      "x-ferrule-method-name": "list",
+      "x-ferrule-method-order": 0,
+      "x-ferrule-resource": {
+        "order": [
+          4
+        ],
+        "path": [
+          "savedExtensions"
+        ]
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit",
+          "production_repo": "imagekit-developer/imagekit-dotnet#master"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          }
+        }
+      }
+    },
+    "POST /v1/saved-extensions": {
+      "x-fern-sdk-group-name": [
+        "savedExtensions"
+      ],
+      "x-fern-sdk-method-name": "create",
+      "x-ferrule-method-name": "create",
+      "x-ferrule-method-order": 1,
+      "x-ferrule-resource": {
+        "order": [
+          4
+        ],
+        "path": [
+          "savedExtensions"
+        ]
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit",
+          "production_repo": "imagekit-developer/imagekit-dotnet#master"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          }
+        }
+      }
+    },
+    "DELETE /v1/saved-extensions/{id}": {
+      "x-fern-sdk-group-name": [
+        "savedExtensions"
+      ],
+      "x-fern-sdk-method-name": "delete",
+      "x-ferrule-method-name": "delete",
+      "x-ferrule-method-order": 4,
+      "x-ferrule-resource": {
+        "order": [
+          4
+        ],
+        "path": [
+          "savedExtensions"
+        ]
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit",
+          "production_repo": "imagekit-developer/imagekit-dotnet#master"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          }
+        }
+      }
+    },
+    "GET /v1/saved-extensions/{id}": {
+      "x-fern-sdk-group-name": [
+        "savedExtensions"
+      ],
+      "x-fern-sdk-method-name": "get",
+      "x-ferrule-method-name": "get",
+      "x-ferrule-method-order": 2,
+      "x-ferrule-resource": {
+        "order": [
+          4
+        ],
+        "path": [
+          "savedExtensions"
+        ]
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit",
+          "production_repo": "imagekit-developer/imagekit-dotnet#master"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          }
+        }
+      }
+    },
+    "PATCH /v1/saved-extensions/{id}": {
+      "x-fern-sdk-group-name": [
+        "savedExtensions"
+      ],
+      "x-fern-sdk-method-name": "update",
+      "x-ferrule-method-name": "update",
+      "x-ferrule-method-order": 3,
+      "x-ferrule-resource": {
+        "order": [
+          4
+        ],
+        "path": [
+          "savedExtensions"
+        ]
+      },
+      "x-ferrule-targets": {
+        "csharp": {
+          "edition": "csharp.2025-10-08",
+          "options": {},
+          "package_name": "Imagekit",
+          "production_repo": "imagekit-developer/imagekit-dotnet#master"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            }
+          }
+        }
+      }
+    }
+  }
+}

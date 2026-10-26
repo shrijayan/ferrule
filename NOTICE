@@ -32,11 +32,23 @@ Sources:
     copied to runtime/typescript/template/. Modified by The Ferrule Authors (names replaced by
     tokens, //ferrule: directives and slots); marks kept in runtime/README.md and
     runtime/NOTICE. src/internal/qs/ embeds neoqs/qs (BSD-3-Clause), as its LICENSE.md notes.
+  - OneBusAway/js-sdk @ f3ca3f47613e2522ead33f4398984cdb47423622 (Apache-2.0, Copyright 2026
+    Onebusaway SDK): the TypeScript runtime of the legacy `node` layout (src/core.ts,
+    src/_shims, src/error.ts, src/uploads.ts and the entry-point re-exports), copied to
+    runtime/typescript-node/template/. Modified by The Ferrule Authors (names replaced by
+    tokens, //ferrule: directives); marks kept in runtime/README.md and runtime/NOTICE.
   - OneBusAway/go-sdk @ d115209ec6337f8d7ee52ad0cc8866a0005d6e65 (Apache-2.0, Copyright
     2026 Onebusaway SDK): the Go v1 runtime (internal/, option/, field.go,
     default_http_client.go), copied to runtime/go/template/. Modified by The Ferrule Authors
     (names replaced by tokens, //ferrule: directives and slots); marks kept in
     runtime/README.md and runtime/NOTICE.
+  - imagekit-developer/imagekit-go @ bc22fec799949ebdc6c8effff9e45e1234b4b512 (Apache-2.0,
+    Copyright 2026 Image Kit): the Go v2 runtime (internal/, option/, packages/param/,
+    packages/respjson/, field.go, default_http_client.go), copied to runtime/go-v2/template/.
+    Modified by The Ferrule Authors (names replaced by tokens, //ferrule: directives and
+    slots); marks kept in runtime/README.md and runtime/NOTICE. Its internal/encoding/json/
+    embeds Go's encoding/json (BSD-3-Clause, Copyright 2009 The Go Authors), as its headers
+    note; the licence text is runtime/go-v2/LICENSE-go.
   - OneBusAway/java-sdk @ c29c48ad95f08e9a6042bfb4b620bb93b7a5f0ab and OneBusAway/kotlin-sdk
     @ 6923446778f92f8867c591064019eec24c685c1d (Apache-2.0, Copyright 2026 Onebusaway SDK),
     with imagekit-developer/imagekit-java @ f96c35e8d1e552eeee326e2c0a25a51436b36e37
@@ -51,10 +63,21 @@ Sources:
     views, and their tests), copied to runtime/ruby/template/. Modified by The Ferrule
     Authors (names replaced by tokens, #ferrule: directives and slots); marks kept in
     runtime/README.md and runtime/NOTICE.
+  - imagekit-developer/imagekit-php @ 9f9309d5b8a6a800b5787bd9d739f2f2332c73d1 (Apache-2.0,
+    Copyright 2026 Image Kit): the PHP runtime (src/Core.php, src/Core/**,
+    src/RequestOptions.php and tests/Core/**), copied to runtime/php/template/. Modified by
+    The Ferrule Authors (namespace, name and client settings replaced by tokens); marks kept
+    in runtime/README.md and runtime/NOTICE.
+  - imagekit-developer/imagekit-dotnet @ 265ab207ce4c7d30a820ed540c0422834f05583e
+    (Apache-2.0, Copyright 2026 Image Kit): the C# runtime (src/Imagekit/Core but the client
+    options, environment URLs and JSON options, Exceptions/, IPageExtensions.cs, Shims.cs, and
+    the Core and retries tests), copied to runtime/csharp/template/. Modified by The Ferrule
+    Authors (names replaced by tokens, //ferrule: directives and a slot, CRLF stored as LF);
+    marks kept in runtime/README.md and runtime/NOTICE.
   - Pagination class text from lithic-python, honcho-python-core, knock-python and
     knock-mgmt-python (Apache-2.0), reproduced by runtime/src/ferrule_runtime/pagination.py.
-  - MIT-licensed Stainless-generated SDKs (opencode-sdk-js, opencode-sdk-go) are compared by
-    the runtime tests, never copied.
+  - MIT-licensed Stainless-generated SDKs (opencode-sdk-js, opencode-sdk-go, ogx-client-go,
+    stagehand-net) are compared by the runtime tests, never copied.
   - Embedded upstream: httpx-sse (MIT) in _streaming.py, pydantic (MIT) in
     _utils/_datetime_parse.py, as their headers note.
 
@@ -81,6 +104,139 @@ Used in: crates/python-plugin/src/emit/files/templates/ (the bearer, basic and h
          variants of the README, tests/test_client.py, tests/conftest.py and related templates)
 Modified: names replaced by template tokens, auth styles selected by %%if%% blocks, branding
           removed (see crates/python-plugin/src/emit/files/BRANDING.md).
+
+Stainless-generated TypeScript SDK files (Apache-2.0)
+------------------------------------------------------------------------
+Used in: crates/ts-plugin/src/emit/templates/ (TypeScript code and project templates)
+Sources:
+  - isaacus-dev/isaacus-typescript @ c56af182d21e32ea472def11c3af17641d8f89c3 (Apache-2.0,
+    Copyright 2026 Isaacus): src/client.ts (the client options, constructor and request
+    machinery), copied to client_head.ts.tmpl and client_tail.ts.tmpl; and every project
+    file (package and TypeScript configuration, CI workflows, bin/ and scripts/, README.md,
+    CONTRIBUTING.md, SECURITY.md, LICENSE, yarn.lock and the runtime tests in tests/*.test.ts),
+    copied to project/. Branding removed as crates/ts-plugin/BRANDING.md lists.
+  - knocklabs/knock-mgmt-node @ ca88fdba703717f355ad3e18e850a0bb23e548f6 (Apache-2.0,
+    Copyright 2026 Knock Mgmt): the getAPIList/requestAPIList methods of src/client.ts, in
+    client_tail.ts.tmpl, and the project-file lines of an SDK without an MCP server and with
+    npm publishing by OIDC (the %%if mcp%% / %%if oidc%% branches in project/), the README's
+    Auto-pagination section (the %%if pagination%% branches in project/ and node/project/); and
+    src/core/pagination.ts: its head (AbstractPage, PagePromise) copied to
+    pagination_head.ts.tmpl, and the text of its page classes, reproduced by
+    crates/ts-plugin/src/emit/pagination.rs.
+  - plastic-labs/honcho-node-core @ 91d258060f786577c51bc33ad873fb9434a6ac5c (Apache-2.0,
+    Copyright 2025 Honcho): the page classes of src/pagination.ts of the legacy `node` layout
+    (nextPageParams, nextPageInfo), reproduced by crates/ts-plugin/src/emit/pagination.rs.
+  - OneBusAway/js-sdk @ f3ca3f47613e2522ead33f4398984cdb47423622 (Apache-2.0, Copyright 2026
+    Onebusaway SDK): scripts/mock and the mock-server lines of scripts/test and CONTRIBUTING.md
+    (the %%if mock%% branches in project/), and the publish-npm.yml lines of a release by npm
+    token without an MCP server package; and the client class of src/index.ts of the legacy
+    `node` layout, copied to node/index_head.ts.tmpl and node/index_tail.ts.tmpl, and the
+    project files of that layout (package and TypeScript configuration, CI workflows, bin/ and
+    scripts/, README.md, CONTRIBUTING.md, SECURITY.md, LICENSE, yarn.lock and the runtime tests
+    in tests/*.test.ts), copied to node/project/. Branding removed as
+    crates/ts-plugin/BRANDING.md lists.
+Modified: names replaced by %%TOKEN%% placeholders and %%if%% directives; the marks are kept
+          in crates/ts-plugin/src/emit/client.rs, not in the templates, so rendered output
+          stays byte-identical.
+
+OneBusAway Go SDK generated code (Apache-2.0)
+------------------------------------------------------------------------
+Source: https://github.com/OneBusAway/go-sdk @ d115209ec6337f8d7ee52ad0cc8866a0005d6e65
+        (generated by Stainless; Copyright 2026 Onebusaway SDK)
+Used in: crates/go-plugin/src/emit/client_methods.go.txt (the generic request methods of
+         client.go, unchanged) and crates/go-plugin/src/emit/client_test.go.tmpl (client_test.go
+         after its imports). Modified by The Ferrule Authors: names replaced by template
+         tokens; each file's first line says so and is not emitted. go.sum is copied
+         unchanged to crates/go-plugin/src/emit/go.sum.txt.
+
+OneBusAway Java and Kotlin SDK generated code (Apache-2.0)
+------------------------------------------------------------------------
+Source: https://github.com/OneBusAway/java-sdk @ c29c48ad95f08e9a6042bfb4b620bb93b7a5f0ab and
+        https://github.com/OneBusAway/kotlin-sdk @ 6923446778f92f8867c591064019eec24c685c1d
+        (generated by Stainless; Copyright 2026 Onebusaway SDK)
+Used in: crates/jvm-plugin/src/emit/templates/ (core/ClientOptions.kt,
+         <client>OkHttpClient.kt and the Gradle and project files under project/), and the
+         fixed Kotlin text the emitters in crates/jvm-plugin/src/emit/ write (the doc comments
+         and members of the models, params, services, clients and tests). Modified by The
+         Ferrule Authors: names replaced by tokens, the Java and Kotlin texts merged with
+         {{#java}} blocks, the client options as slots, branding removed (see
+         crates/jvm-plugin/src/emit/templates/BRANDING.md); each template's first line says so
+         and is not emitted.
+
+OneBusAway Ruby SDK generated code (Apache-2.0)
+------------------------------------------------------------------------
+Source: https://github.com/OneBusAway/ruby-sdk @ 46a574ddc6992a697077a1463a5abf0432774f09
+        (generated by Stainless; Copyright 2026 Onebusaway SDK)
+Used in: crates/ruby-plugin/src/emit/*.txt: the head of lib/onebusaway_sdk.rb
+         (lib_header.rb.txt) and of lib/onebusaway_sdk/models.rb (models_header.rb.txt),
+         test/onebusaway_sdk/test_helper.rb (test_helper.rb.txt) and client_test.rb
+         (client_test.rb.txt), and .rubocop.yml (rubocop.yml.txt); the project files in
+         crates/ruby-plugin/src/emit/project/*.txt (the gemspec, Gemfile, Rakefile, Steepfile,
+         scripts/, sorbet/ and tool configurations); the client's custom-header parsing in
+         crates/ruby-plugin/src/emit/client.rs. Modified by The Ferrule Authors:
+         names and the example request replaced by template tokens; each .txt file's first line
+         says so and is not emitted. The versions pinned in crates/ruby-plugin/tools/Gemfile are
+         those of its Gemfile.lock.
+
+------------------------------------------------------------------------
+ImageKit PHP SDK generated code (Apache-2.0)
+------------------------------------------------------------------------
+Source: https://github.com/imagekit-developer/imagekit-php @ 9f9309d5b8a6a800b5787bd9d739f2f2332c73d1
+        (generated by Stainless; Copyright 2026 Image Kit)
+Used in: crates/php-plugin/src/emit/project/*.txt (composer.json, .php-cs-fixer.dist.php,
+         phpstan.dist.neon, phpunit.xml.dist, .phpactor.json, .gitignore, .gitattributes and
+         scripts/); the fixed text of src/Client.php (the request options, default and custom
+         headers, authHeaders and buildRequest) in crates/php-plugin/src/emit/client.rs, of the
+         services' method bodies in crates/php-plugin/src/emit/service.rs and of
+         tests/ClientTest.php and the service tests' setUp in crates/php-plugin/src/emit/tests.rs.
+         Modified by The Ferrule Authors: names replaced by template tokens; each .txt file's
+         first line says so and is not emitted. The version crates/php-plugin/tools/composer.json
+         pins (php-cs-fixer 3.92.5) is the one its composer.lock pins.
+
+ImageKit .NET SDK generated code (Apache-2.0)
+------------------------------------------------------------------------
+Source: https://github.com/imagekit-developer/imagekit-dotnet @
+        265ab207ce4c7d30a820ed540c0422834f05583e (generated by Stainless; Copyright 2026 Image Kit)
+Used in: crates/csharp-plugin/src/emit/*.txt: the request loop of src/Imagekit/ImageKitClient.cs
+         (client_execute.cs.txt), src/Imagekit/Core/ClientOptions.cs (client_options.cs.txt),
+         src/Imagekit/Core/ModelBase.cs (model_base.cs.txt) and src/Imagekit.Tests/TestBase.cs
+         (test_base.cs.txt); the project files in crates/csharp-plugin/src/emit/project/*.txt
+         (the solution, project and Directory.Build.props files, scripts/, .editorconfig and
+         the tool configurations). Modified by The Ferrule Authors: names, client options and
+         settings replaced by template tokens; each .txt file's first line says so and is not
+         emitted. The csharpier version pinned in crates/csharp-plugin/tools/dotnet-tools.json is
+         the SDK's.
+
+------------------------------------------------------------------------
+Knock Go SDK generated code (Apache-2.0)
+------------------------------------------------------------------------
+Source: https://github.com/knocklabs/knock-go @ 4b86a0d68f0ac65c1b1ccca2cca5b4893ee572ac
+        (generated by Stainless; Copyright 2025 Knock)
+Used in: crates/go-plugin/src/emit/pagination.rs (the cursor page type, GetNextPage,
+         SetPageConfig and the auto-pager of packages/pagination/pagination.go) and
+         crates/go-plugin/src/emit/tests.rs (paginationauto_test.go and
+         paginationmanual_test.go). Modified by The Ferrule Authors: written as format strings
+         over the page's names and fields.
+
+------------------------------------------------------------------------
+ImageKit and Knock Mgmt Go SDK generated code (Apache-2.0), Stainless's Go v2 layout
+------------------------------------------------------------------------
+Sources: https://github.com/imagekit-developer/imagekit-go @
+         bc22fec799949ebdc6c8effff9e45e1234b4b512 (Copyright 2026 Image Kit) and
+         https://github.com/knocklabs/knock-mgmt-go @ 85ae774cbff4c13f21a38608378d90d4947bc022
+         (Copyright 2026 Knock Mgmt), both generated by Stainless
+Used in: crates/go-plugin/src/emit/ (the v2 text of services, response and params structs,
+         serializers, client options and tests, written as format strings) and
+         crates/go-plugin/src/emit/go.sum.v2.txt (knock-mgmt-go's go.sum, unchanged).
+         Modified by The Ferrule Authors: written over the SDK's names and types.
+
+------------------------------------------------------------------------
+OneBusAway API spec and SDK config (Apache-2.0)
+------------------------------------------------------------------------
+Source: https://github.com/OneBusAway/sdk-config @ 27cdbb11faf296d3eed63aa19148dd006e05b934
+        (openapi.yml and stainless-config.yml; the onebusaway-config oracle)
+Used in: crates/rust-plugin/tests/onebusaway/ (openapi.yml, and stainless.yml, which is
+         stainless-config.yml renamed; both unchanged), the input of the Rust golden crate.
 
 ------------------------------------------------------------------------
 Fern (Apache-2.0 / MIT), https://github.com/fern-api/fern

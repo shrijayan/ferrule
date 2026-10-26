@@ -1,0 +1,20 @@
+module Acme
+  module Models
+    module Widgets
+      type part_retrieve_params = { widget_id: String, part_number: Integer } & Acme::Internal::Type::request_parameters
+
+      class PartRetrieveParams < Acme::Internal::Type::BaseModel
+        extend Acme::Internal::Type::RequestParameters::Converter
+        include Acme::Internal::Type::RequestParameters
+
+        attr_accessor widget_id: String
+
+        attr_accessor part_number: Integer
+
+        def initialize: (widget_id: String, part_number: Integer, ?request_options: Acme::request_opts) -> void
+
+        def to_hash: -> { widget_id: String, part_number: Integer, request_options: Acme::RequestOptions }
+      end
+    end
+  end
+end

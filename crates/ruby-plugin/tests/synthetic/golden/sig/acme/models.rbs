@@ -1,0 +1,19 @@
+module Acme
+  class ErrorInfo = Acme::Models::ErrorInfo
+
+  Labels: Acme::Internal::Type::Converter
+
+  class LabelsItem = Acme::Models::LabelsItem
+
+  class Widget = Acme::Models::Widget
+
+  class WidgetCreateParams = Acme::Models::WidgetCreateParams
+
+  class WidgetDeleteParams = Acme::Models::WidgetDeleteParams
+
+  class WidgetListParams = Acme::Models::WidgetListParams
+
+  class WidgetRetrieveParams = Acme::Models::WidgetRetrieveParams
+
+  module Widgets = Acme::Models::Widgets
+end

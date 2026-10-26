@@ -10,6 +10,7 @@ use crate::extensions::groups::{CLIENT_GROUP, collides_with_client_group, forge_
 use crate::extensions::json::{empty, obj, obj_of};
 use crate::extensions::pagination::{Scheme, best_match, operation_shape, read_schemes};
 use crate::extensions::streaming::{StreamingInput, build_streaming, read_on_event};
+use crate::extensions::targets::{Targets, build_targets, targets_only};
 use crate::value::{Map, Value, is_js_space};
 use std::collections::HashSet;
 
@@ -26,6 +27,9 @@ struct Ctx<'c> {
     casings: Casings,
     /// `{ path, order }` of every `standalone_api: true` resource, in config order.
     standalone: Vec<Value>,
+    targets: Targets,
+    /// Whether a `skip:`/`only:` list restricts a resource, method or model.
+    restricted: bool,
 }
 
 fn resource_pointer(path: &[String]) -> Vec<Seg> {
@@ -124,20 +128,36 @@ impl<'c> Ctx<'c> {
             on_event: read_on_event(config),
             casings,
             standalone: Vec::new(),
+            targets: Targets::of(config),
+            restricted: false,
         }
     }
 }
 
+/// Where a method sits: its resource's path and order, its own order, and the targets its
+/// resource is generated for (`None`: unrestricted).
+struct Position<'p> {
+    path: &'p [String],
+    resource_order: &'p [usize],
+    method_order: usize,
+    only: Option<&'p [String]>,
+}
+
 impl Ctx<'_> {
-    fn annotate_method(
-        &mut self,
-        spec: &mut Value,
-        path: &[String],
-        name: &str,
-        method: &Value,
-        resource_order: &[usize],
-        method_order: usize,
-    ) {
+    /// The targets `item` is generated for, given its parent's; notes any restriction.
+    fn restrict(&mut self, parent: Option<&[String]>, item: &Map) -> Option<Vec<String>> {
+        let only = self.targets.restrict(parent, item);
+        self.restricted |= only.is_some();
+        only
+    }
+
+    fn annotate_method(&mut self, spec: &mut Value, at: &Position<'_>, name: &str, method: &Value) {
+        let Position {
+            path,
+            resource_order,
+            method_order,
+            only,
+        } = *at;
         let pointer = method_pointer(path, name);
         // Methods without an endpoint (`type: webhook_unwrap`) are SDK-side helpers, not operations.
         let Some(endpoint) = endpoint_of(method) else { return };
@@ -198,6 +218,13 @@ impl Ctx<'_> {
                 def.insert("x-ferrule-streaming", s);
             }
         }
+        let only = match method {
+            Value::Object(m) => self.restrict(only, m),
+            _ => only.map(<[String]>::to_vec),
+        };
+        if let Some(only) = only {
+            def.insert("x-ferrule-targets-only", targets_only(&only));
+        }
         match self.bindings.iter_mut().find(|(p, _)| *p == op_path) {
             Some((_, defs)) => defs.push(def),
             None => self.bindings.push((op_path, vec![def])),
@@ -257,8 +284,11 @@ impl Ctx<'_> {
     }
 
     /// Models of a resource: `$shared` ones live in `types/shared/`, others under their resource path.
-    fn collect_models(&mut self, spec: &Value, path: &[String], resource: &Value) {
+    /// A model not generated for some target is still listed, with the targets that generate it;
+    /// one no target generates is left out.
+    fn collect_models(&mut self, spec: &Value, path: &[String], resource: &Value, parent: Option<&[String]>) {
         let resource = obj_of(Some(resource));
+        let here = self.restrict(parent, resource);
         for (key, model) in obj(resource, "models") {
             let mut p = resource_pointer(path);
             p.push(Seg::from("models"));
@@ -266,9 +296,15 @@ impl Ctx<'_> {
             let pointer = to_json_pointer(&p);
             let mut dotted = path.to_vec();
             dotted.push(key.clone());
+            let only = match model {
+                Value::Object(m) => self.restrict(here.as_deref(), m),
+                _ => here.clone(),
+            };
+            if only.as_ref().is_some_and(Vec::is_empty) {
+                continue;
+            }
             let model = match model_uri(model) {
                 ModelUri::Schema(uri) => uri,
-                ModelUri::NotForPython => continue,
                 ModelUri::Unsupported => {
                     self.diagnostics.push(Diagnostic::warning(
                         "FER1004",
@@ -313,17 +349,33 @@ impl Ctx<'_> {
             let mut entry = Map::new();
             entry.insert("name", Value::String(self.casings.class_name(key)));
             entry.insert("module", Value::String(dirs.join(".")));
+            // One entry per schema, the last winning, except that a model leaving Python out never
+            // replaces a Python one: the Python SDK keeps the model it had.
+            if !for_python(only.as_deref()) && self.models.get(schema).is_some_and(for_python_entry) {
+                continue;
+            }
+            if let Some(only) = only {
+                entry.insert("x-ferrule-targets-only", targets_only(&only));
+            }
             self.models.insert(schema.to_owned(), Value::Object(entry));
         }
         for (name, sub) in obj(resource, "subresources") {
             let mut p = path.to_vec();
             p.push(name.clone());
-            self.collect_models(spec, &p, sub);
+            self.collect_models(spec, &p, sub, here.as_deref());
         }
     }
 
-    fn walk(&mut self, spec: &mut Value, path: &[String], order: &[usize], resource: &Value) {
+    fn walk(
+        &mut self,
+        spec: &mut Value,
+        path: &[String],
+        order: &[usize],
+        resource: &Value,
+        parent: Option<&[String]>,
+    ) {
         let resource = obj_of(Some(resource));
+        let only = self.restrict(parent, resource);
         if is_standalone(resource) && !path.iter().any(|p| p.starts_with('$')) {
             let strings = Value::Array(path.iter().map(|p| Value::from(p.as_str())).collect());
             #[expect(clippy::cast_precision_loss, reason = "orders are small indices")]
@@ -334,14 +386,20 @@ impl Ctx<'_> {
             self.standalone.push(Value::Object(entry));
         }
         for (i, (name, method)) in obj(resource, "methods").iter().enumerate() {
-            self.annotate_method(spec, path, name, method, order, i);
+            let at = Position {
+                path,
+                resource_order: order,
+                method_order: i,
+                only: only.as_deref(),
+            };
+            self.annotate_method(spec, &at, name, method);
         }
         for (i, (name, sub)) in obj(resource, "subresources").iter().enumerate() {
             let mut p = path.to_vec();
             p.push(name.clone());
             let mut o = order.to_vec();
             o.push(i);
-            self.walk(spec, &p, &o, sub);
+            self.walk(spec, &p, &o, sub, only.as_deref());
         }
     }
 }
@@ -349,8 +407,6 @@ impl Ctx<'_> {
 enum ModelUri<'a> {
     /// `Name` or `#/components/schemas/Name`.
     Schema(&'a str),
-    /// The object form with `only:` or `skip:` leaving Python out.
-    NotForPython,
     /// `type: alias`, an object without `openapi_uri`, or a URI into a sub-schema or a query.
     Unsupported,
 }
@@ -362,17 +418,6 @@ fn model_uri(model: &Value) -> ModelUri<'_> {
         Value::Object(m) => m,
         _ => return ModelUri::Unsupported,
     };
-    let lists_python = |v: &Value| match v {
-        Value::Array(langs) => langs.iter().any(|l| l.as_str() == Some("python")),
-        _ => false,
-    };
-    let only_others = m.get("only").is_some_and(|only| !lists_python(only));
-    let skipped = m
-        .get("skip")
-        .is_some_and(|skip| *skip == Value::Bool(true) || lists_python(skip));
-    if only_others || skipped {
-        return ModelUri::NotForPython;
-    }
     if m.get("type").is_some_and(|t| t.as_str() != Some("model")) {
         return ModelUri::Unsupported;
     }
@@ -387,6 +432,19 @@ fn model_uri(model: &Value) -> ModelUri<'_> {
             }
         }
         None => ModelUri::Unsupported,
+    }
+}
+
+/// Whether an item restricted to `only` (`None`: unrestricted) is generated for Python.
+fn for_python(only: Option<&[String]>) -> bool {
+    only.is_none_or(|o| o.iter().any(|t| t == "python"))
+}
+
+/// Whether an `x-ferrule-models` entry is generated for Python.
+fn for_python_entry(entry: &Value) -> bool {
+    match entry.get("x-ferrule-targets-only") {
+        Some(Value::Array(o)) => o.iter().any(|t| t.as_str() == Some("python")),
+        _ => true,
     }
 }
 
@@ -409,6 +467,26 @@ fn naming_extensions(ctx: &Ctx<'_>) -> Vec<(&'static str, Value)> {
     out
 }
 
+/// `x-ferrule-config`: the Python target's package and project names and the editions whose
+/// defaults apply (the first ones when the config names none).
+fn python_config(config: &Value, python: Option<&Map>, pkg: &Map) -> Map {
+    let ed = apply_edition(config);
+    let mut cfg = Map::new();
+    cfg.insert("version", Value::Number(1.0));
+    cfg.insert("edition", Value::from(ed.edition));
+    cfg.insert("pythonEdition", Value::from(ed.python_edition));
+    let package_name = pkg.get("name").cloned().unwrap_or_default();
+    cfg.insert("packageName", package_name.clone());
+    cfg.insert(
+        "projectName",
+        python
+            .and_then(|p| p.get("project_name"))
+            .cloned()
+            .unwrap_or(package_name),
+    );
+    cfg
+}
+
 /// Annotate a copy of `spec` from `config`. Pure.
 #[must_use]
 pub fn annotate(spec: &Value, config: &Value) -> (Value, Vec<Diagnostic>) {
@@ -427,10 +505,10 @@ pub fn annotate(spec: &Value, config: &Value) -> (Value, Vec<Diagnostic>) {
         ));
     }
     for (name, resource) in resources {
-        ctx.collect_models(&out, std::slice::from_ref(name), resource);
+        ctx.collect_models(&out, std::slice::from_ref(name), resource, None);
     }
     for (i, (name, resource)) in resources.iter().enumerate() {
-        ctx.walk(&mut out, std::slice::from_ref(name), &[i], resource);
+        ctx.walk(&mut out, std::slice::from_ref(name), &[i], resource, None);
     }
     // `x-fern-type-name` on every schema `models:` names, so Forge's model names match (gap G3).
     for (schema, model) in &ctx.models {
@@ -450,7 +528,10 @@ pub fn annotate(spec: &Value, config: &Value) -> (Value, Vec<Diagnostic>) {
         .get("targets")
         .and_then(|t| t.get("python"))
         .and_then(Value::as_object);
-    // Root settings are written for a Python target only; without one the spec is left as is.
+    // The package and `x-ferrule-config` are the Python target's. The client settings belong to
+    // every target, so a config with targets but no Python one (imagekit's csharp branch) gets
+    // them too. A config with neither (no targets, or Python alone without a package name) is
+    // left as is.
     let pkg = python.and_then(|p| p.get("package_name")).map(|name| {
         let mut pkg = Map::new();
         pkg.insert("name", name.clone());
@@ -464,26 +545,14 @@ pub fn annotate(spec: &Value, config: &Value) -> (Value, Vec<Diagnostic>) {
         pkg
     });
     let mut client = None;
-    if let Some(pkg) = &pkg {
+    if pkg.is_some() || ctx.targets.beyond_python() {
         let (built, ds) = build_client(&out, config);
         ctx.diagnostics.extend(ds);
-        // The editions whose defaults apply (the first ones when the config names none).
-        let ed = apply_edition(config);
-        let mut cfg = Map::new();
-        cfg.insert("version", Value::Number(1.0));
-        cfg.insert("edition", Value::from(ed.edition));
-        cfg.insert("pythonEdition", Value::from(ed.python_edition));
-        let package_name = pkg.get("name").cloned().unwrap_or_default();
-        cfg.insert("packageName", package_name.clone());
-        cfg.insert(
-            "projectName",
-            python
-                .and_then(|p| p.get("project_name"))
-                .cloned()
-                .unwrap_or(package_name),
-        );
+        // `x-ferrule-config` first, as the root has always listed them.
+        if let (Some(pkg), Some(root)) = (&pkg, out.as_object_mut()) {
+            root.insert("x-ferrule-config", Value::Object(python_config(config, python, pkg)));
+        }
         if let Some(root) = out.as_object_mut() {
-            root.insert("x-ferrule-config", Value::Object(cfg));
             root.insert("x-ferrule-client", built.clone());
             for (key, value) in naming_extensions(&ctx) {
                 root.insert(key, value);
@@ -491,8 +560,17 @@ pub fn annotate(spec: &Value, config: &Value) -> (Value, Vec<Diagnostic>) {
         }
         client = Some(built);
     }
+    // Every target, when there is more than Python or a list restricts something; a Python-only
+    // config without lists is annotated as before.
+    let targets = (ctx.targets.beyond_python() || ctx.restricted).then(|| build_targets(config));
+    if let (Some(t), Some(root)) = (&targets, out.as_object_mut()) {
+        root.insert("x-ferrule-targets", t.clone());
+    }
     // Forge drops root and schema extensions (gaps G2, G3), so mirror them onto every method.
     let mut mirrored = Map::new();
+    if let Some(t) = targets {
+        mirrored.insert("x-ferrule-targets", t);
+    }
     mirrored.insert("x-ferrule-models", Value::Object(ctx.models.clone()));
     if let Some(pkg) = pkg {
         mirrored.insert("x-ferrule-package", Value::Object(pkg));

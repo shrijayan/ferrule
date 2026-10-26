@@ -1,0 +1,126 @@
+organization:
+  name: acme
+  docs: https://docs.acme.test
+  contact: support@acme.test
+
+targets:
+  python:
+    package_name: acme
+    publish:
+      pypi: false
+  typescript:
+    package_name: acme
+    production_repo: acme/acme-typescript
+    publish:
+      npm: true
+
+environments:
+  production: https://api.acme.test
+
+client_settings:
+  opts:
+    api_key:
+      type: string
+      nullable: false
+      read_env: ACME_API_KEY
+      auth:
+        security_scheme: BearerAuth
+
+pagination:
+  - name: notes_cursor
+    type: cursor_id
+    param_location: body
+    request:
+      after:
+        type: string
+        x-stainless-pagination-property:
+          purpose: next_cursor_id_param
+      before:
+        type: string
+        x-stainless-pagination-property:
+          purpose: previous_cursor_id_param
+      limit:
+        type: integer
+    response:
+      data:
+        type: array
+        items:
+          type: object
+        x-stainless-pagination-property:
+          purpose: items
+  - name: tags_offset
+    type: offset
+    param_location: body
+    request:
+      offset:
+        type: integer
+        x-stainless-pagination-property:
+          purpose: offset_count_param
+      limit:
+        type: integer
+    response:
+      data:
+        type: array
+        items:
+          type: object
+        x-stainless-pagination-property:
+          purpose: items
+      total:
+        type: integer
+        x-stainless-pagination-property:
+          purpose: offset_total_count_field
+  - name: links_url
+    type: cursor_url
+    request:
+      limit:
+        type: integer
+    response:
+      data:
+        type: array
+        items:
+          type: object
+        x-stainless-pagination-property:
+          purpose: items
+      next:
+        type: string
+        x-stainless-pagination-property:
+          purpose: cursor_url_field
+
+resources:
+  $shared:
+    models:
+      note: Note
+  notes:
+    methods:
+      search:
+        endpoint: post /notes/search
+        paginated: notes_cursor
+  tags:
+    methods:
+      search:
+        endpoint: post /tags/search
+        paginated: tags_offset
+  links:
+    methods:
+      list:
+        endpoint: get /links
+        paginated: links_url
+  archive:
+    methods:
+      list:
+        endpoint: get /archive
+        paginated: links_url
+
+settings:
+  license: Apache-2.0
+
+readme:
+  example_requests:
+    default:
+      type: request
+      endpoint: get /links
+      params: {}
+    headline:
+      type: request
+      endpoint: get /links
+      params: {}

@@ -1,0 +1,2 @@
+# Modified by The Ferrule Authors: OneBusAway ruby-sdk's .ruby-version, names replaced by tokens (this line is not emitted).
+3.2.0

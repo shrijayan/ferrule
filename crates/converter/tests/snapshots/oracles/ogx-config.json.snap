@@ -1,5 +1,5 @@
 {
-  "sha256": "48404d97a62749ee6c9c25055d35f3019b4210f890d0b17783a0d1b437843f44",
+  "sha256": "a28a0f90f6077f9b2e2f33dada8893151dd0f0e3bb670a5ecbc1c3f422c1c95f",
   "root": {
     "x-ferrule-client": {
       "defaultEnvironment": "production",
@@ -54,6 +54,36 @@
       "projectName": "ogx_client",
       "pythonEdition": "python.2025-10-08",
       "version": 1
+    },
+    "x-ferrule-targets": {
+      "go": {
+        "edition": "go.2025-10-08",
+        "options": {
+          "options": {
+            "back_compat_use_shared_package": false,
+            "enable_v2": true
+          }
+        },
+        "package_name": "ogx-client",
+        "production_repo": "ogx-ai/ogx-client-go"
+      },
+      "node": {
+        "edition": "node.2025-10-08",
+        "options": {},
+        "package_name": "ogx-client",
+        "production_repo": "ogx-ai/ogx-client-typescript"
+      },
+      "python": {
+        "edition": "python.2025-10-08",
+        "options": {
+          "options": {
+            "use_uv": true
+          },
+          "project_name": "ogx_client"
+        },
+        "package_name": "ogx_client",
+        "production_repo": "ogx-ai/ogx-client-python"
+      }
     }
   },
   "mirrored": {
@@ -288,6 +318,36 @@
         "path": [
           "batches"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "POST /v1/batches": {
@@ -311,6 +371,36 @@
         "path": [
           "batches"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "GET /v1/batches/{batch_id}": {
@@ -334,6 +424,36 @@
         "path": [
           "batches"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "POST /v1/batches/{batch_id}/cancel": {
@@ -357,6 +477,36 @@
         "path": [
           "batches"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "GET /v1/chat/completions": {
@@ -383,6 +533,36 @@
           "chat",
           "completions"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "POST /v1/chat/completions": {
@@ -428,6 +608,36 @@
         ],
         "paramDiscriminator": "stream",
         "synthesizeEventAndData": false
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "GET /v1/chat/completions/{completion_id}": {
@@ -454,6 +664,36 @@
           "chat",
           "completions"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "GET /v1/chat/completions/{completion_id}/messages": {
@@ -498,6 +738,36 @@
           "completions",
           "messages"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "POST /v1/completions": {
@@ -538,6 +808,36 @@
         ],
         "paramDiscriminator": "stream",
         "synthesizeEventAndData": false
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "POST /v1/conversations": {
@@ -554,6 +854,36 @@
         "path": [
           "conversations"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "DELETE /v1/conversations/{conversation_id}": {
@@ -570,6 +900,36 @@
         "path": [
           "conversations"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "GET /v1/conversations/{conversation_id}": {
@@ -586,6 +946,36 @@
         "path": [
           "conversations"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "POST /v1/conversations/{conversation_id}": {
@@ -602,6 +992,36 @@
         "path": [
           "conversations"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "GET /v1/conversations/{conversation_id}/items": {
@@ -636,6 +1056,36 @@
           "conversations",
           "items"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "POST /v1/conversations/{conversation_id}/items": {
@@ -655,6 +1105,36 @@
           "conversations",
           "items"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "DELETE /v1/conversations/{conversation_id}/items/{item_id}": {
@@ -674,6 +1154,36 @@
           "conversations",
           "items"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "GET /v1/conversations/{conversation_id}/items/{item_id}": {
@@ -693,6 +1203,36 @@
           "conversations",
           "items"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "POST /v1/embeddings": {
@@ -716,6 +1256,36 @@
         "path": [
           "embeddings"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "GET /v1/files": {
@@ -754,6 +1324,36 @@
         "path": [
           "files"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "POST /v1/files": {
@@ -777,6 +1377,36 @@
         "path": [
           "files"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "DELETE /v1/files/{file_id}": {
@@ -800,6 +1430,36 @@
         "path": [
           "files"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "GET /v1/files/{file_id}": {
@@ -823,6 +1483,36 @@
         "path": [
           "files"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "GET /v1/files/{file_id}/content": {
@@ -846,6 +1536,36 @@
         "path": [
           "files"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "GET /v1/health": {
@@ -863,6 +1583,36 @@
           "inspect"
         ]
       },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
+      },
       "x-public": true
     },
     "GET /v1/inspect/routes": {
@@ -879,6 +1629,36 @@
         "path": [
           "routes"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "POST /v1/messages": {
@@ -1116,6 +1896,36 @@
             "path": [
               "models"
             ]
+          },
+          "x-ferrule-targets": {
+            "go": {
+              "edition": "go.2025-10-08",
+              "options": {
+                "options": {
+                  "back_compat_use_shared_package": false,
+                  "enable_v2": true
+                }
+              },
+              "package_name": "ogx-client",
+              "production_repo": "ogx-ai/ogx-client-go"
+            },
+            "node": {
+              "edition": "node.2025-10-08",
+              "options": {},
+              "package_name": "ogx-client",
+              "production_repo": "ogx-ai/ogx-client-typescript"
+            },
+            "python": {
+              "edition": "python.2025-10-08",
+              "options": {
+                "options": {
+                  "use_uv": true
+                },
+                "project_name": "ogx_client"
+              },
+              "package_name": "ogx_client",
+              "production_repo": "ogx-ai/ogx-client-python"
+            }
           }
         },
         {
@@ -1328,6 +2138,36 @@
               "models",
               "openai"
             ]
+          },
+          "x-ferrule-targets": {
+            "go": {
+              "edition": "go.2025-10-08",
+              "options": {
+                "options": {
+                  "back_compat_use_shared_package": false,
+                  "enable_v2": true
+                }
+              },
+              "package_name": "ogx-client",
+              "production_repo": "ogx-ai/ogx-client-go"
+            },
+            "node": {
+              "edition": "node.2025-10-08",
+              "options": {},
+              "package_name": "ogx-client",
+              "production_repo": "ogx-ai/ogx-client-typescript"
+            },
+            "python": {
+              "edition": "python.2025-10-08",
+              "options": {
+                "options": {
+                  "use_uv": true
+                },
+                "project_name": "ogx_client"
+              },
+              "package_name": "ogx_client",
+              "production_repo": "ogx-ai/ogx-client-python"
+            }
           }
         }
       ]
@@ -1363,6 +2203,36 @@
         "path": [
           "models"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "GET /v1/prompts": {
@@ -1379,6 +2249,36 @@
         "path": [
           "prompts"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "POST /v1/prompts": {
@@ -1395,6 +2295,36 @@
         "path": [
           "prompts"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "DELETE /v1/prompts/{prompt_id}": {
@@ -1411,6 +2341,36 @@
         "path": [
           "prompts"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "GET /v1/prompts/{prompt_id}": {
@@ -1427,6 +2387,36 @@
         "path": [
           "prompts"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "PUT /v1/prompts/{prompt_id}": {
@@ -1443,6 +2433,36 @@
         "path": [
           "prompts"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "PUT /v1/prompts/{prompt_id}/set-default-version": {
@@ -1459,6 +2479,36 @@
         "path": [
           "prompts"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "GET /v1/prompts/{prompt_id}/versions": {
@@ -1478,6 +2528,36 @@
           "prompts",
           "versions"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "GET /v1/providers": {
@@ -1494,6 +2574,36 @@
         "path": [
           "providers"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "GET /v1/providers/{provider_id}": {
@@ -1510,6 +2620,36 @@
         "path": [
           "providers"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "GET /v1/responses": {
@@ -1548,6 +2688,36 @@
         "path": [
           "responses"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "POST /v1/responses": {
@@ -1590,6 +2760,36 @@
         ],
         "paramDiscriminator": "stream",
         "synthesizeEventAndData": false
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "POST /v1/responses/compact": {
@@ -1606,6 +2806,36 @@
         "path": [
           "responses"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "DELETE /v1/responses/{response_id}": {
@@ -1629,6 +2859,36 @@
         "path": [
           "responses"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "GET /v1/responses/{response_id}": {
@@ -1652,6 +2912,36 @@
         "path": [
           "responses"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "POST /v1/responses/{response_id}/cancel": {
@@ -1687,6 +2977,36 @@
           "responses",
           "input_items"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "POST /v1/vector-io/insert": {
@@ -1703,6 +3023,36 @@
         "path": [
           "vector_io"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "POST /v1/vector-io/query": {
@@ -1719,6 +3069,36 @@
         "path": [
           "vector_io"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "GET /v1/vector_stores": {
@@ -1757,6 +3137,36 @@
         "path": [
           "vector_stores"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "POST /v1/vector_stores": {
@@ -1780,6 +3190,36 @@
         "path": [
           "vector_stores"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "DELETE /v1/vector_stores/{vector_store_id}": {
@@ -1803,6 +3243,36 @@
         "path": [
           "vector_stores"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "GET /v1/vector_stores/{vector_store_id}": {
@@ -1826,6 +3296,36 @@
         "path": [
           "vector_stores"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "POST /v1/vector_stores/{vector_store_id}": {
@@ -1849,6 +3349,36 @@
         "path": [
           "vector_stores"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "POST /v1/vector_stores/{vector_store_id}/file_batches": {
@@ -1875,6 +3405,36 @@
           "vector_stores",
           "file_batches"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "GET /v1/vector_stores/{vector_store_id}/file_batches/{batch_id}": {
@@ -1901,6 +3461,36 @@
           "vector_stores",
           "file_batches"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "POST /v1/vector_stores/{vector_store_id}/file_batches/{batch_id}/cancel": {
@@ -1927,6 +3517,36 @@
           "vector_stores",
           "file_batches"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "GET /v1/vector_stores/{vector_store_id}/file_batches/{batch_id}/files": {
@@ -1968,6 +3588,36 @@
           "vector_stores",
           "file_batches"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "GET /v1/vector_stores/{vector_store_id}/files": {
@@ -2009,6 +3659,36 @@
           "vector_stores",
           "files"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "POST /v1/vector_stores/{vector_store_id}/files": {
@@ -2035,6 +3715,36 @@
           "vector_stores",
           "files"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "DELETE /v1/vector_stores/{vector_store_id}/files/{file_id}": {
@@ -2061,6 +3771,36 @@
           "vector_stores",
           "files"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "GET /v1/vector_stores/{vector_store_id}/files/{file_id}": {
@@ -2087,6 +3827,36 @@
           "vector_stores",
           "files"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "POST /v1/vector_stores/{vector_store_id}/files/{file_id}": {
@@ -2106,6 +3876,36 @@
           "vector_stores",
           "files"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "GET /v1/vector_stores/{vector_store_id}/files/{file_id}/content": {
@@ -2132,6 +3932,36 @@
           "vector_stores",
           "files"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "POST /v1/vector_stores/{vector_store_id}/search": {
@@ -2155,6 +3985,36 @@
         "path": [
           "vector_stores"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "GET /v1/version": {
@@ -2171,6 +4031,36 @@
         "path": [
           "inspect"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       },
       "x-public": true
     },
@@ -2191,6 +4081,36 @@
           "alpha",
           "admin"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "GET /v1alpha/admin/inspect/routes": {
@@ -2210,6 +4130,36 @@
           "alpha",
           "admin"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "GET /v1alpha/admin/providers": {
@@ -2229,6 +4179,36 @@
           "alpha",
           "admin"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "GET /v1alpha/admin/providers/{provider_id}": {
@@ -2248,6 +4228,36 @@
           "alpha",
           "admin"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "GET /v1alpha/admin/version": {
@@ -2267,6 +4277,36 @@
           "alpha",
           "admin"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "POST /v1alpha/inference/rerank": {
@@ -2286,6 +4326,36 @@
           "alpha",
           "inference"
         ]
+      },
+      "x-ferrule-targets": {
+        "go": {
+          "edition": "go.2025-10-08",
+          "options": {
+            "options": {
+              "back_compat_use_shared_package": false,
+              "enable_v2": true
+            }
+          },
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-go"
+        },
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {},
+          "package_name": "ogx-client",
+          "production_repo": "ogx-ai/ogx-client-typescript"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": true
+            },
+            "project_name": "ogx_client"
+          },
+          "package_name": "ogx_client",
+          "production_repo": "ogx-ai/ogx-client-python"
+        }
       }
     },
     "POST /v1alpha/interactions": {

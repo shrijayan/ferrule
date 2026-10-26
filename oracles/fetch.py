@@ -194,19 +194,27 @@ def _parse_spec(name: str, raw: object, verify_md5: dict[str, str]) -> Spec:
 
 def _parse_config_fields(
     name: str, entry: dict[str, object], verify_md5: dict[str, str]
-) -> tuple[str, Spec, str]:
+) -> tuple[str, Spec, str | None]:
+    """Return (config_path, spec, paired).
+
+    `pairs_with` and `paired` name and qualify the config's Python SDK. A config without a
+    Python target has neither; another language's SDK names it instead (`_check_pairs`).
+    """
     config_path = _str(entry, "config_path")
     if not _is_relative(config_path) or config_path not in verify_md5:
         msg = f"{name}: config_path must be a relative path that is also in verify_md5"
         raise ManifestError(msg)
+    spec = _parse_spec(name, entry.get("spec"), verify_md5)
+    if entry.get("pairs_with") is None:
+        if "paired" in entry:
+            msg = f"{name}: paired qualifies the python sdk in pairs_with, which is null"
+            raise ManifestError(msg)
+        return config_path, spec, None
     paired = _str(entry, "paired")
     if paired not in PAIRED:
         msg = f"{name}: paired must be one of {', '.join(PAIRED)}"
         raise ManifestError(msg)
-    if entry.get("pairs_with") is None:
-        msg = f"{name}: config oracles must name the sdk oracle they pair with"
-        raise ManifestError(msg)
-    return config_path, _parse_spec(name, entry.get("spec"), verify_md5), paired
+    return config_path, spec, paired
 
 
 def _parse_links(name: str, entry: dict[str, object]) -> tuple[str | None, str | None]:
@@ -402,6 +410,10 @@ def _check_pairs(oracles: list[Oracle]) -> None:
     for o in oracles:
         if o.kind == "sdk" and o.language != DEFAULT_LANGUAGE and o.pairs_with is not None:
             _check_language_pair(o, by_name[o.pairs_with])
+    for config in (o for o in oracles if o.kind == "config" and o.pairs_with is None):
+        if not paired_sdks(oracles, config):
+            msg = f"{config.name}: no sdk oracle pairs with this config"
+            raise ManifestError(msg)
     _check_one_sdk_per_language(oracles)
 
 
@@ -662,7 +674,8 @@ def main(argv: list[str]) -> int:
             extra = ""
             if oracle.kind == "config":
                 spec = fetch_spec(oracle, dest)
-                extra = f" ({oracle.paired}; config {oracle.config_path}; spec {spec})"
+                paired = oracle.paired or "no python sdk"
+                extra = f" ({paired}; config {oracle.config_path}; spec {spec})"
             elif sdk_language(oracle) != DEFAULT_LANGUAGE:
                 layout = f", {oracle.layout} layout" if oracle.layout else ""
                 extra = f" ({oracle.language}{layout}; {oracle.paired} with {oracle.pairs_with})"

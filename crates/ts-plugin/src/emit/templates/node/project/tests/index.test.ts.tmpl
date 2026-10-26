@@ -1,0 +1,541 @@
+// File generated from our OpenAPI spec by Ferrule. See CONTRIBUTING.md for details.
+
+import %%CLIENT%% from '%%PACKAGE%%';
+import { APIUserAbortError } from '%%PACKAGE%%';
+import { Headers } from '%%PACKAGE%%/core';
+import defaultFetch, { Response, type RequestInit, type RequestInfo } from 'node-fetch';
+
+describe('instantiate client', () => {
+  const env = process.env;
+
+  beforeEach(() => {
+    jest.resetModules();
+    process.env = { ...env };
+    console.warn = jest.fn();
+  });
+
+  afterEach(() => {
+    process.env = env;
+  });
+
+  describe('defaultHeaders', () => {
+    const client = new %%CLIENT%%({
+      baseURL: 'http://localhost:5000/',
+      defaultHeaders: { 'X-My-Default-Header': '2' },
+      %%OPT%%: %%OPT_PLACEHOLDER%%,
+    });
+
+    test('they are used in the request', async () => {
+      const { req } = await client.buildRequest({ path: '/foo', method: 'post' });
+      expect((req.headers as Headers)['x-my-default-header']).toEqual('2');
+    });
+
+    test('can ignore `undefined` and leave the default', async () => {
+      const { req } = await client.buildRequest({
+        path: '/foo',
+        method: 'post',
+        headers: { 'X-My-Default-Header': undefined },
+      });
+      expect((req.headers as Headers)['x-my-default-header']).toEqual('2');
+    });
+
+    test('can be removed with `null`', async () => {
+      const { req } = await client.buildRequest({
+        path: '/foo',
+        method: 'post',
+        headers: { 'X-My-Default-Header': null },
+      });
+      expect(req.headers as Headers).not.toHaveProperty('x-my-default-header');
+    });
+  });
+
+  describe('defaultQuery', () => {
+    test('with null query params given', () => {
+      const client = new %%CLIENT%%({
+        baseURL: 'http://localhost:5000/',
+        defaultQuery: { apiVersion: 'foo' },
+        %%OPT%%: %%OPT_PLACEHOLDER%%,
+      });
+%%if query_auth%%
+      expect(client.buildURL('/foo', null)).toEqual(
+        `http://localhost:5000/foo?%%QUERY_KEY%%=${encodeURIComponent(client.%%OPT%%)}&apiVersion=foo`,
+      );
+%%else%%
+      expect(client.buildURL('/foo', null)).toEqual('http://localhost:5000/foo?apiVersion=foo');
+%%endif%%
+    });
+
+    test('multiple default query params', () => {
+      const client = new %%CLIENT%%({
+        baseURL: 'http://localhost:5000/',
+        defaultQuery: { apiVersion: 'foo', hello: 'world' },
+        %%OPT%%: %%OPT_PLACEHOLDER%%,
+      });
+%%if query_auth%%
+      expect(client.buildURL('/foo', null)).toEqual(
+        `http://localhost:5000/foo?%%QUERY_KEY%%=${encodeURIComponent(client.%%OPT%%)}&apiVersion=foo&hello=world`,
+      );
+%%else%%
+      expect(client.buildURL('/foo', null)).toEqual('http://localhost:5000/foo?apiVersion=foo&hello=world');
+%%endif%%
+    });
+
+    test('overriding with `undefined`', () => {
+      const client = new %%CLIENT%%({
+        baseURL: 'http://localhost:5000/',
+        defaultQuery: { hello: 'world' },
+        %%OPT%%: %%OPT_PLACEHOLDER%%,
+      });
+%%if query_auth%%
+      expect(client.buildURL('/foo', { hello: undefined })).toEqual(
+        `http://localhost:5000/foo?%%QUERY_KEY%%=${encodeURIComponent(client.%%OPT%%)}`,
+      );
+%%else%%
+      expect(client.buildURL('/foo', { hello: undefined })).toEqual('http://localhost:5000/foo');
+%%endif%%
+    });
+  });
+
+  test('custom fetch', async () => {
+    const client = new %%CLIENT%%({
+      baseURL: 'http://localhost:5000/',
+      %%OPT%%: %%OPT_PLACEHOLDER%%,
+      fetch: (url) => {
+        return Promise.resolve(
+          new Response(JSON.stringify({ url, custom: true }), {
+            headers: { 'Content-Type': 'application/json' },
+          }),
+        );
+      },
+    });
+
+    const response = await client.get('/foo');
+%%if query_auth%%
+    expect(response).toEqual({
+      url: `http://localhost:5000/foo?%%QUERY_KEY%%=${encodeURIComponent(client.%%OPT%%)}`,
+      custom: true,
+    });
+%%else%%
+    expect(response).toEqual({ url: 'http://localhost:5000/foo', custom: true });
+%%endif%%
+  });
+
+  test('explicit global fetch', async () => {
+    // make sure the global fetch type is assignable to our Fetch type
+    const client = new %%CLIENT%%({
+      baseURL: 'http://localhost:5000/',
+      %%OPT%%: %%OPT_PLACEHOLDER%%,
+      fetch: defaultFetch,
+    });
+  });
+
+  test('custom signal', async () => {
+    const client = new %%CLIENT%%({
+      baseURL: process.env['TEST_API_BASE_URL'] ?? 'http://127.0.0.1:4010',
+      %%OPT%%: %%OPT_PLACEHOLDER%%,
+      fetch: (...args) => {
+        return new Promise((resolve, reject) =>
+          setTimeout(
+            () =>
+              defaultFetch(...args)
+                .then(resolve)
+                .catch(reject),
+            300,
+          ),
+        );
+      },
+    });
+
+    const controller = new AbortController();
+    setTimeout(() => controller.abort(), 200);
+
+    const spy = jest.spyOn(client, 'request');
+
+    await expect(client.get('/foo', { signal: controller.signal })).rejects.toThrowError(APIUserAbortError);
+    expect(spy).toHaveBeenCalledTimes(1);
+  });
+
+  test('normalized method', async () => {
+    let capturedRequest: RequestInit | undefined;
+    const testFetch = async (url: RequestInfo, init: RequestInit = {}): Promise<Response> => {
+      capturedRequest = init;
+      return new Response(JSON.stringify({}), { headers: { 'Content-Type': 'application/json' } });
+    };
+
+    const client = new %%CLIENT%%({
+      baseURL: 'http://localhost:5000/',
+      %%OPT%%: %%OPT_PLACEHOLDER%%,
+      fetch: testFetch,
+    });
+
+    await client.patch('/foo');
+    expect(capturedRequest?.method).toEqual('PATCH');
+  });
+
+  describe('baseUrl', () => {
+    test('trailing slash', () => {
+      const client = new %%CLIENT%%({
+        baseURL: 'http://localhost:5000/custom/path/',
+        %%OPT%%: %%OPT_PLACEHOLDER%%,
+      });
+%%if query_auth%%
+      expect(client.buildURL('/foo', null)).toEqual(
+        `http://localhost:5000/custom/path/foo?%%QUERY_KEY%%=${encodeURIComponent(client.%%OPT%%)}`,
+      );
+%%else%%
+      expect(client.buildURL('/foo', null)).toEqual('http://localhost:5000/custom/path/foo');
+%%endif%%
+    });
+
+    test('no trailing slash', () => {
+%%if query_auth%%
+      const client = new %%CLIENT%%({
+        baseURL: 'http://localhost:5000/custom/path',
+        %%OPT%%: %%OPT_PLACEHOLDER%%,
+      });
+%%else%%
+      const client = new %%CLIENT%%({ baseURL: 'http://localhost:5000/custom/path', %%OPT%%: %%OPT_PLACEHOLDER%% });
+%%endif%%
+%%if query_auth%%
+      expect(client.buildURL('/foo', null)).toEqual(
+        `http://localhost:5000/custom/path/foo?%%QUERY_KEY%%=${encodeURIComponent(client.%%OPT%%)}`,
+      );
+%%else%%
+      expect(client.buildURL('/foo', null)).toEqual('http://localhost:5000/custom/path/foo');
+%%endif%%
+    });
+
+    afterEach(() => {
+      process.env['%%ENV%%_BASE_URL'] = undefined;
+    });
+
+    test('explicit option', () => {
+      const client = new %%CLIENT%%({ baseURL: 'https://example.com', %%OPT%%: %%OPT_PLACEHOLDER%% });
+      expect(client.baseURL).toEqual('https://example.com');
+    });
+
+    test('env variable', () => {
+      process.env['%%ENV%%_BASE_URL'] = 'https://example.com/from_env';
+      const client = new %%CLIENT%%({ %%OPT%%: %%OPT_PLACEHOLDER%% });
+      expect(client.baseURL).toEqual('https://example.com/from_env');
+    });
+
+    test('empty env variable', () => {
+      process.env['%%ENV%%_BASE_URL'] = ''; // empty
+      const client = new %%CLIENT%%({ %%OPT%%: %%OPT_PLACEHOLDER%% });
+      expect(client.baseURL).toEqual('%%BASE_URL%%');
+    });
+
+    test('blank env variable', () => {
+      process.env['%%ENV%%_BASE_URL'] = '  '; // blank
+      const client = new %%CLIENT%%({ %%OPT%%: %%OPT_PLACEHOLDER%% });
+      expect(client.baseURL).toEqual('%%BASE_URL%%');
+    });
+
+    test('in request options', () => {
+      const client = new %%CLIENT%%({ %%OPT%%: %%OPT_PLACEHOLDER%% });
+%%if query_auth%%
+      expect(client.buildURL('/foo', null, 'http://localhost:5000/option')).toEqual(
+        `http://localhost:5000/option/foo?%%QUERY_KEY%%=${encodeURIComponent(client.%%OPT%%)}`,
+      );
+%%else%%
+      expect(client.buildURL('/foo', null, 'http://localhost:5000/option')).toEqual(
+        'http://localhost:5000/option/foo',
+      );
+%%endif%%
+    });
+
+    test('in request options overridden by client options', () => {
+      const client = new %%CLIENT%%({ %%OPT%%: %%OPT_PLACEHOLDER%%, baseURL: 'http://localhost:5000/client' });
+%%if query_auth%%
+      expect(client.buildURL('/foo', null, 'http://localhost:5000/option')).toEqual(
+        `http://localhost:5000/client/foo?%%QUERY_KEY%%=${encodeURIComponent(client.%%OPT%%)}`,
+      );
+%%else%%
+      expect(client.buildURL('/foo', null, 'http://localhost:5000/option')).toEqual(
+        'http://localhost:5000/client/foo',
+      );
+%%endif%%
+    });
+
+    test('in request options overridden by env variable', () => {
+      process.env['%%ENV%%_BASE_URL'] = 'http://localhost:5000/env';
+      const client = new %%CLIENT%%({ %%OPT%%: %%OPT_PLACEHOLDER%% });
+%%if query_auth%%
+      expect(client.buildURL('/foo', null, 'http://localhost:5000/option')).toEqual(
+        `http://localhost:5000/env/foo?%%QUERY_KEY%%=${encodeURIComponent(client.%%OPT%%)}`,
+      );
+%%else%%
+      expect(client.buildURL('/foo', null, 'http://localhost:5000/option')).toEqual(
+        'http://localhost:5000/env/foo',
+      );
+%%endif%%
+    });
+  });
+
+  test('maxRetries option is correctly set', () => {
+    const client = new %%CLIENT%%({ maxRetries: 4, %%OPT%%: %%OPT_PLACEHOLDER%% });
+    expect(client.maxRetries).toEqual(4);
+
+    // default
+    const client2 = new %%CLIENT%%({ %%OPT%%: %%OPT_PLACEHOLDER%% });
+    expect(client2.maxRetries).toEqual(2);
+  });
+
+  test('with environment variable arguments', () => {
+    // set options via env var
+    process.env['%%OPT_ENV%%'] = %%OPT_PLACEHOLDER%%;
+    const client = new %%CLIENT%%();
+    expect(client.%%OPT%%).toBe(%%OPT_PLACEHOLDER%%);
+  });
+
+  test('with overridden environment variable arguments', () => {
+    // set options via env var
+    process.env['%%OPT_ENV%%'] = %%OPT_PLACEHOLDER_ANOTHER%%;
+    const client = new %%CLIENT%%({ %%OPT%%: %%OPT_PLACEHOLDER%% });
+    expect(client.%%OPT%%).toBe(%%OPT_PLACEHOLDER%%);
+  });
+});
+
+describe('request building', () => {
+  const client = new %%CLIENT%%({ %%OPT%%: %%OPT_PLACEHOLDER%% });
+
+  describe('Content-Length', () => {
+    test('handles multi-byte characters', async () => {
+      const { req } = await client.buildRequest({ path: '/foo', method: 'post', body: { value: '—' } });
+      expect((req.headers as Record<string, string>)['content-length']).toEqual('20');
+    });
+
+    test('handles standard characters', async () => {
+      const { req } = await client.buildRequest({ path: '/foo', method: 'post', body: { value: 'hello' } });
+      expect((req.headers as Record<string, string>)['content-length']).toEqual('22');
+    });
+  });
+
+  describe('custom headers', () => {
+    test('handles undefined', async () => {
+      const { req } = await client.buildRequest({
+        path: '/foo',
+        method: 'post',
+        body: { value: 'hello' },
+        headers: { 'X-Foo': 'baz', 'x-foo': 'bar', 'x-Foo': undefined, 'x-baz': 'bam', 'X-Baz': null },
+      });
+      expect((req.headers as Record<string, string>)['x-foo']).toEqual('bar');
+      expect((req.headers as Record<string, string>)['x-Foo']).toEqual(undefined);
+      expect((req.headers as Record<string, string>)['X-Foo']).toEqual(undefined);
+      expect((req.headers as Record<string, string>)['x-baz']).toEqual(undefined);
+    });
+  });
+});
+
+describe('retries', () => {
+  test('retry on timeout', async () => {
+    let count = 0;
+    const testFetch = async (url: RequestInfo, { signal }: RequestInit = {}): Promise<Response> => {
+      if (count++ === 0) {
+        return new Promise(
+          (resolve, reject) => signal?.addEventListener('abort', () => reject(new Error('timed out'))),
+        );
+      }
+      return new Response(JSON.stringify({ a: 1 }), { headers: { 'Content-Type': 'application/json' } });
+    };
+
+    const client = new %%CLIENT%%({
+      %%OPT%%: %%OPT_PLACEHOLDER%%,
+      timeout: 10,
+      fetch: testFetch,
+    });
+
+    expect(await client.request({ path: '/foo', method: 'get' })).toEqual({ a: 1 });
+    expect(count).toEqual(2);
+    expect(
+      await client
+        .request({ path: '/foo', method: 'get' })
+        .asResponse()
+        .then((r) => r.text()),
+    ).toEqual(JSON.stringify({ a: 1 }));
+    expect(count).toEqual(3);
+  });
+
+  test('retry count header', async () => {
+    let count = 0;
+    let capturedRequest: RequestInit | undefined;
+    const testFetch = async (url: RequestInfo, init: RequestInit = {}): Promise<Response> => {
+      count++;
+      if (count <= 2) {
+        return new Response(undefined, {
+          status: 429,
+          headers: {
+            'Retry-After': '0.1',
+          },
+        });
+      }
+      capturedRequest = init;
+      return new Response(JSON.stringify({ a: 1 }), { headers: { 'Content-Type': 'application/json' } });
+    };
+
+    const client = new %%CLIENT%%({
+      %%OPT%%: %%OPT_PLACEHOLDER%%,
+      fetch: testFetch,
+      maxRetries: 4,
+    });
+
+    expect(await client.request({ path: '/foo', method: 'get' })).toEqual({ a: 1 });
+
+    expect((capturedRequest!.headers as Headers)['x-stainless-retry-count']).toEqual('2');
+    expect(count).toEqual(3);
+  });
+
+  test('omit retry count header', async () => {
+    let count = 0;
+    let capturedRequest: RequestInit | undefined;
+    const testFetch = async (url: RequestInfo, init: RequestInit = {}): Promise<Response> => {
+      count++;
+      if (count <= 2) {
+        return new Response(undefined, {
+          status: 429,
+          headers: {
+            'Retry-After': '0.1',
+          },
+        });
+      }
+      capturedRequest = init;
+      return new Response(JSON.stringify({ a: 1 }), { headers: { 'Content-Type': 'application/json' } });
+    };
+    const client = new %%CLIENT%%({
+      %%OPT%%: %%OPT_PLACEHOLDER%%,
+      fetch: testFetch,
+      maxRetries: 4,
+    });
+
+    expect(
+      await client.request({
+        path: '/foo',
+        method: 'get',
+        headers: { 'X-Stainless-Retry-Count': null },
+      }),
+    ).toEqual({ a: 1 });
+
+    expect(capturedRequest!.headers as Headers).not.toHaveProperty('x-stainless-retry-count');
+  });
+
+  test('omit retry count header by default', async () => {
+    let count = 0;
+    let capturedRequest: RequestInit | undefined;
+    const testFetch = async (url: RequestInfo, init: RequestInit = {}): Promise<Response> => {
+      count++;
+      if (count <= 2) {
+        return new Response(undefined, {
+          status: 429,
+          headers: {
+            'Retry-After': '0.1',
+          },
+        });
+      }
+      capturedRequest = init;
+      return new Response(JSON.stringify({ a: 1 }), { headers: { 'Content-Type': 'application/json' } });
+    };
+    const client = new %%CLIENT%%({
+      %%OPT%%: %%OPT_PLACEHOLDER%%,
+      fetch: testFetch,
+      maxRetries: 4,
+      defaultHeaders: { 'X-Stainless-Retry-Count': null },
+    });
+
+    expect(
+      await client.request({
+        path: '/foo',
+        method: 'get',
+      }),
+    ).toEqual({ a: 1 });
+
+    expect(capturedRequest!.headers as Headers).not.toHaveProperty('x-stainless-retry-count');
+  });
+
+  test('overwrite retry count header', async () => {
+    let count = 0;
+    let capturedRequest: RequestInit | undefined;
+    const testFetch = async (url: RequestInfo, init: RequestInit = {}): Promise<Response> => {
+      count++;
+      if (count <= 2) {
+        return new Response(undefined, {
+          status: 429,
+          headers: {
+            'Retry-After': '0.1',
+          },
+        });
+      }
+      capturedRequest = init;
+      return new Response(JSON.stringify({ a: 1 }), { headers: { 'Content-Type': 'application/json' } });
+    };
+    const client = new %%CLIENT%%({
+      %%OPT%%: %%OPT_PLACEHOLDER%%,
+      fetch: testFetch,
+      maxRetries: 4,
+    });
+
+    expect(
+      await client.request({
+        path: '/foo',
+        method: 'get',
+        headers: { 'X-Stainless-Retry-Count': '42' },
+      }),
+    ).toEqual({ a: 1 });
+
+    expect((capturedRequest!.headers as Headers)['x-stainless-retry-count']).toBe('42');
+  });
+
+  test('retry on 429 with retry-after', async () => {
+    let count = 0;
+    const testFetch = async (url: RequestInfo, { signal }: RequestInit = {}): Promise<Response> => {
+      if (count++ === 0) {
+        return new Response(undefined, {
+          status: 429,
+          headers: {
+            'Retry-After': '0.1',
+          },
+        });
+      }
+      return new Response(JSON.stringify({ a: 1 }), { headers: { 'Content-Type': 'application/json' } });
+    };
+
+    const client = new %%CLIENT%%({ %%OPT%%: %%OPT_PLACEHOLDER%%, fetch: testFetch });
+
+    expect(await client.request({ path: '/foo', method: 'get' })).toEqual({ a: 1 });
+    expect(count).toEqual(2);
+    expect(
+      await client
+        .request({ path: '/foo', method: 'get' })
+        .asResponse()
+        .then((r) => r.text()),
+    ).toEqual(JSON.stringify({ a: 1 }));
+    expect(count).toEqual(3);
+  });
+
+  test('retry on 429 with retry-after-ms', async () => {
+    let count = 0;
+    const testFetch = async (url: RequestInfo, { signal }: RequestInit = {}): Promise<Response> => {
+      if (count++ === 0) {
+        return new Response(undefined, {
+          status: 429,
+          headers: {
+            'Retry-After-Ms': '10',
+          },
+        });
+      }
+      return new Response(JSON.stringify({ a: 1 }), { headers: { 'Content-Type': 'application/json' } });
+    };
+
+    const client = new %%CLIENT%%({ %%OPT%%: %%OPT_PLACEHOLDER%%, fetch: testFetch });
+
+    expect(await client.request({ path: '/foo', method: 'get' })).toEqual({ a: 1 });
+    expect(count).toEqual(2);
+    expect(
+      await client
+        .request({ path: '/foo', method: 'get' })
+        .asResponse()
+        .then((r) => r.text()),
+    ).toEqual(JSON.stringify({ a: 1 }));
+    expect(count).toEqual(3);
+  });
+});

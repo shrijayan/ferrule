@@ -27,6 +27,31 @@ pub const EDITIONS: [(&str, Normalizer); 5] = [
 /// the default package manager from Rye to uv).
 pub const PYTHON_EDITIONS: [(&str, bool); 2] = [("python.2025-10-08", false), ("python.2025-11-20", true)];
 
+/// Every target's editions, oldest first, as the public schema lists them under
+/// `/properties/targets/properties/<target>/properties/edition`; the first is the one the schema
+/// calls "the very first edition", which a target without `edition` gets. Python's are
+/// [`PYTHON_EDITIONS`]; no other target's editions set a default with a config key, so for those
+/// applying an edition only names it.
+pub const TARGET_EDITIONS: [(&str, &[&str]); 13] = [
+    ("node", &["node.2025-10-08"]),
+    ("typescript", &["typescript.2025-10-08", "typescript.2025-10-10"]),
+    ("python", &["python.2025-10-08", "python.2025-11-20"]),
+    ("java", &["java.2025-10-08"]),
+    ("kotlin", &["kotlin.2025-10-08"]),
+    // `go.2026-2-3` is how the schema spells 2026-02-03 ("the first edition with defaults").
+    (
+        "go",
+        &["go.2025-10-08", "go.2026-2-3", "go.2026-03-10", "go.2026-04-15"],
+    ),
+    ("ruby", &["ruby.2025-10-08"]),
+    ("terraform", &["terraform.2025-10-08"]),
+    ("cli", &["cli.2025-10-08"]),
+    ("php", &["php.2025-10-08"]),
+    ("csharp", &["csharp.2025-10-08"]),
+    ("openapi", &["openapi.2025-10-08"]),
+    ("sql", &["sql.2025-12-08"]),
+];
+
 /// The edition `x-ferrule-config.edition` reported in Phase 1 for a config without one.
 pub const DEFAULT_EDITION: &str = "2025-10-10";
 
@@ -75,6 +100,10 @@ pub struct EditionResult {
     /// The edition whose defaults were applied (the implicit one when absent or unknown).
     pub edition: &'static str,
     pub python_edition: &'static str,
+    /// Every key under `targets`, in config order, with the edition whose defaults apply: for a
+    /// target the schema knows, the one written if Ferrule knows it, else the target's first; for
+    /// any other key, the edition as written when it is a string.
+    pub target_editions: Vec<(String, Option<String>)>,
     pub defaults: Defaults,
     pub diagnostics: Vec<Diagnostic>,
 }
@@ -90,6 +119,18 @@ fn unknown(code: &str, pointer: &str, value: &Value, names: &[&str]) -> Diagnost
             || format!("Use one of {list}, or upgrade Ferrule if this edition is newer."),
             |n| format!("Did you mean \"{n}\"?"),
         ),
+    )
+}
+
+/// FER1103: an edition Ferrule does not know, of a target other than Python. A warning, since
+/// Ferrule fills in none of those targets' edition defaults yet.
+fn unknown_target_edition(target: &str, value: &Value, names: &[&str]) -> Diagnostic {
+    let e = unknown("FER1103", &format!("/targets/{target}/edition"), value, names);
+    Diagnostic::warning(
+        "FER1103",
+        e.pointer,
+        format!("{}; {target} gets {}", e.message, names[0]),
+        e.suggestion,
     )
 }
 
@@ -132,6 +173,25 @@ pub fn apply_edition(config: &Value) -> EditionResult {
                 |(n, _)| *n,
             ),
     };
+    let target_editions = record(config.get("targets"))
+        .into_iter()
+        .flat_map(Map::iter)
+        .map(|(key, target)| {
+            let written = target.get("edition");
+            let edition = if key == "python" {
+                Some(python_edition.to_owned())
+            } else if let Some((_, names)) = TARGET_EDITIONS.iter().find(|(t, _)| t == key) {
+                let known = written.and_then(Value::as_str).filter(|w| names.contains(w));
+                if let (Some(v), None) = (written, known) {
+                    diagnostics.push(unknown_target_edition(key, v, names));
+                }
+                Some(known.unwrap_or(names[0]).to_owned())
+            } else {
+                written.and_then(Value::as_str).map(str::to_owned)
+            };
+            (key.clone(), edition)
+        })
+        .collect();
     let normalizer = EDITIONS
         .iter()
         .find(|(n, _)| *n == edition)
@@ -161,6 +221,7 @@ pub fn apply_edition(config: &Value) -> EditionResult {
         config: Value::Object(out),
         edition,
         python_edition,
+        target_editions,
         defaults,
         diagnostics,
     }
@@ -203,6 +264,74 @@ mod tests {
         let mut names: Vec<String> = python_edition_names().into_iter().map(str::to_owned).collect();
         names.sort();
         assert_eq!(names, schema_consts(py));
+    }
+
+    #[test]
+    fn target_editions_are_the_schemas_with_the_very_first_one_first() {
+        let schema = stainless_config_schema();
+        let targets = schema
+            .get("properties")
+            .and_then(|p| p.get("targets"))
+            .and_then(|t| t.get("properties"))
+            .and_then(Value::as_object)
+            .unwrap();
+        let in_schema: Vec<&str> = targets.keys().map(String::as_str).collect();
+        let in_table: Vec<&str> = TARGET_EDITIONS.iter().map(|(t, _)| *t).collect();
+        assert_eq!(in_table, in_schema);
+        for (target, names) in TARGET_EDITIONS {
+            let node = targets
+                .get(target)
+                .and_then(|t| t.get("properties"))
+                .and_then(|p| p.get("edition"))
+                .unwrap();
+            let mut ours: Vec<String> = names.iter().map(|n| (*n).to_owned()).collect();
+            ours.sort();
+            assert_eq!(ours, schema_consts(node), "{target}");
+            let first = node
+                .get("anyOf")
+                .and_then(Value::as_array)
+                .into_iter()
+                .flatten()
+                .find(|b| b.get("description").and_then(Value::as_str) == Some("the very first edition"))
+                .and_then(|b| b.get("const"))
+                .and_then(Value::as_str);
+            assert_eq!(first, Some(names[0]), "{target}");
+        }
+        let python: Vec<&str> = TARGET_EDITIONS[2].1.to_vec();
+        assert_eq!(python, python_edition_names());
+    }
+
+    #[test]
+    fn names_each_targets_edition_and_warns_about_unknown_ones() {
+        let r = apply_edition(&Value::from(json!({"targets": {
+            "node": {},
+            "python": {"edition": "python.2025-11-20"},
+            "go": {"edition": "go.2026-03-10"},
+            "java": {"edition": "java.2030-01-01"},
+            "cobol": {"edition": "cobol.1959"},
+            "fortran": {"edition": 77}
+        }})));
+        let owned = |e: Option<&str>| e.map(str::to_owned);
+        assert_eq!(
+            r.target_editions,
+            [
+                ("node".to_owned(), owned(Some("node.2025-10-08"))),
+                ("python".to_owned(), owned(Some("python.2025-11-20"))),
+                ("go".to_owned(), owned(Some("go.2026-03-10"))),
+                ("java".to_owned(), owned(Some("java.2025-10-08"))),
+                ("cobol".to_owned(), owned(Some("cobol.1959"))),
+                ("fortran".to_owned(), None),
+            ]
+        );
+        assert_eq!(
+            r.diagnostics,
+            [Diagnostic::warning(
+                "FER1103",
+                "/targets/java/edition",
+                "unknown edition \"java.2030-01-01\"; Ferrule knows java.2025-10-08; java gets java.2025-10-08",
+                "Did you mean \"java.2025-10-08\"?"
+            )]
+        );
     }
 
     #[test]

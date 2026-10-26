@@ -7,6 +7,21 @@ lefthook = "latest"
 gitleaks = "latest"
 # Same channel as rust-toolchain.toml and the pinned Forge commit (ADR 0014).
 rust = { version = "1.99.0", components = "rustfmt,clippy" }
+# gofmt checks the Go plugin's output; go build/vet/test run the generated Go SDKs.
+go = "1.27.1"
+# The JVM plugin's Kotlin output is formatted by ktfmt --kotlinlang-style at the version the
+# Stainless JVM SDKs' buildSrc pins; the JDK runs it and the generated SDKs' ./gradlew.
+java = "temurin-21.0.13+9.0.LTS"
+"github:facebook/ktfmt" = { version = "0.61", asset_pattern = "ktfmt-0.61-with-dependencies.jar" }
+# The Ruby plugin's formatters (crates/ruby-plugin/tools/Gemfile) and the generated gems' tests;
+# the gems need Ruby >= 3.2.
+ruby = "3.4.12"
+# The C# plugin's formatter (csharpier, crates/csharp-plugin/tools/dotnet-tools.json) and the
+# generated SDKs' builds and tests; the SDKs target net8.0, as the oracles' CI does.
+dotnet = "8.0.426"
+# The Rust target's public-API checker (ADR 0019), run on the generated crates by the Rust
+# plugin's tests.
+"github:obi1kenobi/cargo-semver-checks" = "0.51.0"
 
 [tasks."forge:setup"]
 description = "Check out the pinned Forge commit into .cache/forge (for the canary)"
@@ -33,6 +48,18 @@ run = ["cargo fmt --all --check", "cargo clippy --workspace --all-targets --lock
 [tasks."test:rs"]
 run = "cargo test --workspace --locked"
 
+[tasks."ruby:tools"]
+description = "Install the Ruby plugin's formatters (crates/ruby-plugin/tools/Gemfile.lock) into .cache/ruby-tools"
+run = "bash crates/ruby-plugin/tools/install.sh"
+
+[tasks."php:tools"]
+description = "Install PHP and the PHP plugin's formatter (crates/php-plugin/tools/composer.lock) into .cache/php-tools"
+run = "bash crates/php-plugin/tools/install.sh"
+
+[tasks."csharp:tools"]
+description = "Install the C# plugin's formatter (csharpier, crates/csharp-plugin/tools/dotnet-tools.json) into .cache/csharp-tools"
+run = "bash crates/csharp-plugin/tools/install.sh"
+
 [tasks.check]
 description = "Everything ci.yml runs"
 depends = ["lint:ts", "lint:py", "lint:rs", "typecheck:py", "test:py", "test:rs"]
@@ -58,10 +85,12 @@ description = "Build target/release/ferrule-gen: converter, Forge and the Python
 run = "cargo build --release --locked -p ferrule-gen"
 
 [tasks.golden]
-description = "Golden output: plugin goldens, agent context, project files vs the oracle, converter snapshots"
+description = "Golden output: plugin goldens, agent context, project files vs the oracle, converter and SDK model snapshots"
 run = [
   "cargo test -p ferrule-python-plugin --test golden --test agent --test files_oracle --test project_files_oracles",
   "cargo test -p ferrule-converter --test goldens",
+  "cargo test -p ferrule-sdk-model --test snapshots --test python_cross_check",
+  "cargo test -p ferrule-rust-plugin --test golden",
 ]
 
 [tasks.spike]

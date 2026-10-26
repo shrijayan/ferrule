@@ -40,6 +40,19 @@ src/internal/qs/ is the vendored copy of neoqs (https://github.com/PuruVJ/neoqs)
 rewrite of qs (https://github.com/ljharb/qs), BSD-3-Clause, Copyright (c) 2014 Nathan
 LaFreniere and other contributors, as its LICENSE.md and README.md note.
 
+runtime/typescript-node/template/ is derived from the Stainless-generated OneBusAway JS SDK
+(the legacy `node` layout):
+  Repository: https://github.com/OneBusAway/js-sdk
+  Commit:     f3ca3f47613e2522ead33f4398984cdb47423622 (release 1.20.0)
+  Licence:    Apache License, Version 2.0
+  Copyright:  Copyright 2026 Onebusaway SDK
+  Files:      src/core.ts, src/error.ts, src/uploads.ts, src/resource.ts, src/resources.ts,
+              src/shims/*.ts, src/_shims/**, src/internal/utils/query.ts
+  Changes:    Modified by The Ferrule Authors: client, error and package names and the
+              repository replaced by tokens; //ferrule: directive lines added to src/core.ts
+              and src/_shims/registry.ts. Marks are recorded here and in runtime/README.md
+              instead of in the files (ADR 0004 amendment).
+
 runtime/go/template/ is derived from the Stainless-generated OneBusAway Go SDK:
   Repository: https://github.com/OneBusAway/go-sdk
   Commit:     d115209ec6337f8d7ee52ad0cc8866a0005d6e65 (release 1.15.0)
@@ -53,6 +66,27 @@ runtime/go/template/ is derived from the Stainless-generated OneBusAway Go SDK:
               config-dependent lines of internal/requestconfig/requestconfig.go and
               option/requestoption.go replaced by slots. Marks are recorded here and in
               runtime/README.md instead of in the files (ADR 0004 amendment).
+
+runtime/go-v2/template/ is derived from the Stainless-generated ImageKit Go SDK (Go v2 layout):
+  Repository: https://github.com/imagekit-developer/imagekit-go
+  Commit:     bc22fec799949ebdc6c8effff9e45e1234b4b512 (release 2.5.0)
+  Licence:    Apache License, Version 2.0
+  Copyright:  Copyright 2026 Image Kit
+  Files:      internal/** except internal/version.go, option/*, packages/param/*,
+              packages/respjson/*, field.go, default_http_client.go
+  Changes:    Modified by The Ferrule Authors: module path, package, client and organisation
+              names, max retries and the redacted-header list replaced by tokens, the README
+              link's module by a token; //ferrule: lines added to field.go (import order, the
+              file helper's name) and option/requestoption.go (import order, encoding/base64);
+              the config-dependent lines of internal/requestconfig/requestconfig.go and
+              option/requestoption.go replaced by slots. Marks are recorded here and in
+              runtime/README.md instead of in the files (ADR 0004 amendment).
+
+runtime/go-v2/template/internal/encoding/json/ is Go's encoding/json package as imagekit-go
+vendors it ("Vendored from Go 1.24.0-pre-release", with its shims/ and sentinel/ packages):
+BSD-3-Clause, Copyright 2009 The Go Authors, as the files' headers note. The licence text is
+runtime/go-v2/LICENSE-go (Go's LICENSE, unchanged). imagekit-go and knock-mgmt-go ship these
+files without that licence file, and so do the SDKs rendered from the template.
 
 runtime/java/template/ is derived from Stainless-generated Java and Kotlin SDKs:
   Repository: https://github.com/OneBusAway/java-sdk
@@ -101,6 +135,33 @@ runtime/ruby/template/ is derived from Stainless-generated Ruby SDKs:
               the @example blocks of base_model.rb, enum.rb and union.rb replaced by slots.
               Marks are recorded here and in runtime/README.md instead of in the files
               (ADR 0004 amendment).
+
+runtime/php/template/ is derived from a Stainless-generated PHP SDK:
+  Repository: https://github.com/imagekit-developer/imagekit-php
+  Commit:     9f9309d5b8a6a800b5787bd9d739f2f2332c73d1
+  Licence:    Apache License, Version 2.0
+  Copyright:  Copyright 2026 Image Kit
+  Files:      src/Core.php, src/Core/**, src/RequestOptions.php, tests/Core/**
+  Changes:    Modified by The Ferrule Authors: namespace, SDK name and client settings replaced
+              by tokens (also in the base exception's file name); the renderer sorts the use
+              lines for the namespace. Marks are recorded here and in runtime/README.md instead
+              of in the files (ADR 0004 amendment).
+
+runtime/csharp/template/ is derived from the Stainless-generated ImageKit .NET SDK:
+  Repository: https://github.com/imagekit-developer/imagekit-dotnet
+  Commit:     265ab207ce4c7d30a820ed540c0422834f05583e (release 6.3.0)
+  Licence:    Apache License, Version 2.0
+  Copyright:  Copyright 2026 Image Kit
+  Files:      src/Imagekit/Core/*.cs (but ClientOptions.cs, EnvironmentUrl.cs, ModelBase.cs),
+              src/Imagekit/Exceptions/*.cs, src/Imagekit/{IPageExtensions,Shims}.cs,
+              src/Imagekit.Tests/Core/*.cs, src/Imagekit.Tests/RetriesTest.cs
+  Changes:    Modified by The Ferrule Authors: namespace, client name and env prefix replaced
+              by tokens (also in directory and file names); line endings stored as LF and
+              rendered as CRLF; the credentials block of ParamsBase.AddDefaultHeaders replaced
+              by a //ferrule: slot, and a //ferrule: slot for a query credential added to
+              ParamsBase.QueryString; a //ferrule: using-order block added to RetriesTest.cs.
+              Marks are recorded here and in runtime/README.md instead of in the files
+              (ADR 0004 amendment). stagehand-net (MIT) is compared with, never copied.
 
 src/ferrule_runtime/pagination.py reproduces the pagination class text of Stainless-generated
 SDKs (Apache-2.0): lithic-python, honcho-python-core, knock-python, knock-mgmt-python.

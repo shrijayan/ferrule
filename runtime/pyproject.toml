@@ -1,6 +1,6 @@
 [project]
 name = "ferrule-runtime"
-version = "0.0.0"
+version = "0.1.0"
 description = "Runtime support code vendored into Ferrule-generated Python SDKs."
 license = "Apache-2.0"
 requires-python = ">=3.12"
@@ -25,9 +25,14 @@ packages = ["src/ferrule_runtime"]
 [tool.hatch.build.targets.wheel.force-include]
 "template" = "ferrule_runtime/template"
 "typescript/template" = "ferrule_runtime/typescript/template"
+"typescript-node/template" = "ferrule_runtime/typescript-node/template"
 "go/template" = "ferrule_runtime/go/template"
+"go-v2/template" = "ferrule_runtime/go-v2/template"
 "java/template" = "ferrule_runtime/java/template"
 "ruby/template" = "ferrule_runtime/ruby/template"
+"php/template" = "ferrule_runtime/php/template"
+"csharp/template" = "ferrule_runtime/csharp/template"
+"rust/template" = "ferrule_runtime/rust/template"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

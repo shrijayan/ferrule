@@ -75,7 +75,7 @@ These are the targets enabled in each pinned config (`oracles/cache/<g>-config/<
 | honcho | node `plastic-labs/honcho-node-core` (+ `mcp_server`) |
 | stagehand | go, java, kotlin, ruby, php, csharp (`browserbase/stagehand-{go,java,kotlin,ruby,php,net}`, every edition `*.2025-10-08`); typescript has `production_repo: null` |
 | ogx | node `ogx-ai/ogx-client-typescript`, go `ogx-ai/ogx-client-go` (`enable_v2`) |
-| imagekit | typescript `imagekit-nodejs`, go `imagekit-go` (`enable_v2`), java `imagekit-java`, ruby `imagekit-ruby` (all `#master`); php and csharp have no production_repo, but `imagekit-php` and `imagekit-dotnet` exist; cli, terraform and kotlin have `production_repo: null` |
+| imagekit | typescript `imagekit-nodejs`, go `imagekit-go` (`enable_v2`), java `imagekit-java`, ruby `imagekit-ruby` (all `#master`); php and csharp have no production_repo, but `imagekit-php` and `imagekit-dotnet` exist; cli, terraform and kotlin have `production_repo: null`. A second config, on the config repo's `csharp` branch, lists only csharp `imagekit-dotnet#master` (pinned as `imagekit-csharp-config`) |
 | knock | typescript `knocklabs/knock-node`, go `knock-go`, java `knock-java`, ruby `knock-ruby` |
 | knock-mgmt | typescript `knocklabs/knock-mgmt-node`, go `knock-mgmt-go` (`enable_v2`) |
 | papr | typescript `Papr-ai/papr-TypescriptSDK` |
@@ -110,7 +110,7 @@ newest Stainless `release:` commit on the default branch. "Last Stainless" is th
 | browserbase/stagehand-kotlin (archived) | MIT | proven, only on `next` | `cbdefde6` (08-14, next) | `ab301e6` 2026-08-14 |
 | browserbase/stagehand-ruby | MIT | proven, only on `next` | `dadba887` (07-21, next) | `87fdd67` 2026-07-21 |
 | browserbase/stagehand-php (archived) | MIT | proven, only on `next` | `38312f0f` (08-14, next) | `570c2c3` 2026-08-14 |
-| browserbase/stagehand-net (archived, C#) | MIT | proven, only on `next` | `0d81242a` (07-25, next) | `06de8bf` 2026-07-25 |
+| browserbase/stagehand-net (archived, C#) | MIT | proven, off the default branch | `06de8bf3` release 3.22.0 (07-25, `release-please--branches--main--changes--next`; codegen `0d81242a` on next) | `06de8bf` 2026-07-25 |
 | ogx-ai/ogx-client-typescript (`node`) | MIT | proven | `029aa5f8` release 1.1.0-alpha.6 (06-11, main) | `3a87723` 2026-08-19 |
 | ogx-ai/ogx-client-go | MIT | proven, only on `generated` | `c66deeff` (06-10, generated) | `6fac7c3` 2026-08-19 |
 | imagekit-developer/imagekit-nodejs | Apache-2.0 | proven | `9161f99f` (05-17, main) | `4279fef` 2026-06-18 |
@@ -118,7 +118,7 @@ newest Stainless `release:` commit on the default branch. "Last Stainless" is th
 | imagekit-developer/imagekit-java | Apache-2.0 | proven | `f96c35e8` (05-17, main) | `133b9e2` 2026-06-18 |
 | imagekit-developer/imagekit-ruby | Apache-2.0 | proven | `65401086` (05-17, main) | `c7bd81a` 2026-06-18 |
 | imagekit-developer/imagekit-php | MIT | proven | `9f9309d5` (05-17) | `ada6b90` 2026-05-23 |
-| imagekit-developer/imagekit-dotnet | Apache-2.0 | unpaired: its hashes come from July 2026 configs | none | `bdf0d20` 2026-07-27 |
+| imagekit-developer/imagekit-dotnet | Apache-2.0 | proven, with the `csharp`-branch config `315e53b7` (2026-07-14), not the pinned one | `265ab207` release 6.3.0 (07-24, main) | `bdf0d20` 2026-07-27 (version bump, on a history unrelated to main) |
 | knocklabs/knock-node | Apache-2.0 | proven | `e2c0f18a` release 1.7.0 (2025-06-06, main) | `b7cdf1a` 2026-07-14 |
 | knocklabs/knock-go | Apache-2.0 | proven | `4b86a0d6` release 1.5.0 (2025-06-06, main) | `a6cf779` 2026-07-14 |
 | knocklabs/knock-java | Apache-2.0 | proven, only on `generated` (main was rewritten by hand later) | `6e0df234` (2025-06-06) | `9fc337c` 2025-07-09 |
@@ -138,9 +138,24 @@ Notes on the table:
     2026-07-18).
   - Commits from 2026-08-11 on ("feat: initial stlc build", `stlc-bot`) come from a different
     generator.
-- **Coverage of the default branch.** Every Apache-2.0 repo except knock-java and imagekit-dotnet
-  has a proven commit on its default branch. The stagehand SDKs (MIT) pair only on `next`: their
+- **Coverage of the default branch.** Every Apache-2.0 repo except knock-java has a proven
+  commit on its default branch. The stagehand SDKs (MIT) pair only on `next`: their
   last generation was never merged to `main`, which was later marked deprecated.
+- **C# pairing (corrected 2026-10-26).** This table first compared the C# `.stats.yml` hashes
+  only with the pinned configs' `verify_md5`, which made imagekit-dotnet look unpaired and
+  stagehand-net pairable only on `next`. Hashing every commit of every config file in the config
+  repos, on all branches, gives two proven C# pairs:
+  - imagekit-dotnet 6.3.0 (`265ab207`, main, the last Stainless release before stlc took over
+    on 2026-07-27): md5(`stainless-config/main.yaml`) = `90e338d7…` and md5(`openapi/v1.0.0.yaml`)
+    = `10766ada…` at sdk-generation `315e53b7`, on the `csharp` branch (also
+    `usage-analytics-csharp`). That config has only the csharp target, so it has no Python SDK;
+    imagekit-python pairs with `28534c19` on `main`. The C# and Python imagekit oracles come
+    from different inputs.
+  - stagehand-net 3.22.0 (`06de8bf3`) carries stagehand-config's hashes (`4cdfcfed…`,
+    `1fb12ae9…`), the same inputs as stagehand-python. It is the one C# SDK whose inputs equal a
+    Python oracle's. Its `main` stops at 3.21.0 (`5de7c5d5`), from stagehand `49575d62`.
+  - No other C# SDK pairs: the other Stainless C# repos found (15 by primary language) have no public config (their
+    configs live in the Stainless dashboard), and knock's csharp target is always `skip: true`.
 - **`generated` branch.** Almost every repo has a `generated` branch (pure generator output).
   It is the natural merge base for `adopt` and `merge`.
 
@@ -231,7 +246,7 @@ OBA js: 176 files, of which 36 runtime, 31 resources and 34 tests.
 - **Generated:** `src/Services/`, `src/ServiceContracts/` and model directories per resource.
 - **Tooling:** composer, phpstan, php-cs-fixer and phpunit.
 
-### C# (stagehand-net)
+### C# (imagekit-dotnet, stagehand-net)
 
 - **Runtime:** `src/<Pkg>/Core/**` (22 files) and `Exceptions/**` (15 files).
 - **Generated:** `Models/**`, `Services/**`, `<Pkg>Client.cs`, a `.sln`, csproj files with
@@ -270,6 +285,7 @@ None of these tools is copied into Ferrule; they are only run.
 | Ruby | no standard tool | the generated `sig/**/*.rbs`, parsed with the `rbs` gem (`RBS::Parser`) and compared by class, method and type signature; the `.rbi` files are a second check |
 | PHP | roave/backward-compatibility-check (MIT) | |
 | C# | Microsoft.DotNet.ApiCompat / package validation (MIT) | |
+| Rust | `cargo-semver-checks` (Apache-2.0/MIT), run between two releases of the generated crate; Rust is a Ferrule-original target with no Stainless oracle (ADR 0019) | the crate's public API from rustdoc JSON, with semver lints (removed items, changed signatures, new required fields) |
 | Python | griffe (ISC), static load, never imports the SDK | modules, classes, functions and parameters (in use since Phase 3) |
 | CLI (Go) | `apidiff` for the Go package, plus a diff of the command and flag tree dumped by the built binary (`--help` per command, or cobra's doc generator) | commands, flags, defaults |
 | Terraform (Go) | `terraform providers schema -json` from the old and new provider builds, diffed by resource, attribute, type and required/optional | resources, data sources, attributes |
@@ -380,8 +396,9 @@ Python's keyword guard and acronym list.
    - The largest emitter per endpoint (builders, `JsonField`, validation, async services).
 5. **Ruby.** About 33 repos. Oracles: OBA, knock, imagekit, stagehand. Three views (rb, rbi, rbs)
    of the same model; the RBS view gives the API diff for free.
-6. **PHP and C#.** 19 and 15 repos. Oracles: stagehand (MIT, `next`), imagekit-php (MIT, proven),
-   imagekit-dotnet (Apache, unpaired with our pin).
+6. **PHP and C#.** 19 and 15 repos. Oracles: stagehand (MIT, `next`; stagehand-net proven on a
+   release-please branch), imagekit-php (MIT, proven), imagekit-dotnet (Apache-2.0, proven with
+   the `csharp`-branch config).
 7. **CLI and Terraform.** Only after Go. The imagekit config enables both, but no public repo
    exists.
 

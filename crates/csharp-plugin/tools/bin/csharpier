@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# csharpier from .cache/csharp-tools, which `mise run csharp:tools` installs.
+set -euo pipefail
+# shellcheck source=../env.sh
+source "$(dirname "${BASH_SOURCE[0]}")/../env.sh"
+ferrule_csharpier_installed
+exec "$CSHARP_TOOLS/csharpier" "$@"

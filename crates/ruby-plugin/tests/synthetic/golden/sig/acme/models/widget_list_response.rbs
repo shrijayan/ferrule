@@ -1,0 +1,15 @@
+module Acme
+  module Models
+    type widget_list_response = { data: ::Array[Acme::Widget], next_cursor: String? }
+
+    class WidgetListResponse < Acme::Internal::Type::BaseModel
+      attr_accessor data: ::Array[Acme::Widget]
+
+      attr_accessor next_cursor: String?
+
+      def initialize: (data: ::Array[Acme::Widget], ?next_cursor: String?) -> void
+
+      def to_hash: -> { data: ::Array[Acme::Widget], next_cursor: String? }
+    end
+  end
+end

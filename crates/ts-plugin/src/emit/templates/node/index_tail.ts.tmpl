@@ -1,0 +1,62 @@
+  /**
+   * Check whether the base URL is set to its default.
+   */
+  #baseURLOverridden(): boolean {
+%%if environments%%
+    return this.baseURL !== environments[this._options.environment || '%%DEFAULT_ENVIRONMENT%%'];
+%%else%%
+    return this.baseURL !== '%%BASE_URL%%';
+%%endif%%
+  }
+
+  protected override defaultQuery(): Core.DefaultQuery | undefined {
+%%if query_auth%%
+%%if nullable%%
+    if (this.%%OPT%% == null) {
+      return this._options.defaultQuery;
+    }
+%%endif%%
+    return {
+      %%QUERY_KEY%%: this.%%OPT%%,
+      ...this._options.defaultQuery,
+    };
+%%else%%
+    return this._options.defaultQuery;
+%%endif%%
+  }
+
+  protected override defaultHeaders(opts: Core.FinalRequestOptions): Core.Headers {
+    return {
+      ...super.defaultHeaders(opts),
+      ...this._options.defaultHeaders,
+    };
+  }
+
+  protected override authHeaders(opts: Core.FinalRequestOptions): Core.Headers {
+%%if nullable%%
+    if (this.%%OPT%% == null) {
+      return {};
+    }
+%%endif%%
+%%AUTH_HEADERS%%
+  }
+
+  static %%CLIENT%% = this;
+  static DEFAULT_TIMEOUT = %%TIMEOUT%%; // 1 minute
+
+  static %%CLIENT%%Error = Errors.%%CLIENT%%Error;
+  static APIError = Errors.APIError;
+  static APIConnectionError = Errors.APIConnectionError;
+  static APIConnectionTimeoutError = Errors.APIConnectionTimeoutError;
+  static APIUserAbortError = Errors.APIUserAbortError;
+  static NotFoundError = Errors.NotFoundError;
+  static ConflictError = Errors.ConflictError;
+  static RateLimitError = Errors.RateLimitError;
+  static BadRequestError = Errors.BadRequestError;
+  static AuthenticationError = Errors.AuthenticationError;
+  static InternalServerError = Errors.InternalServerError;
+  static PermissionDeniedError = Errors.PermissionDeniedError;
+  static UnprocessableEntityError = Errors.UnprocessableEntityError;
+
+  static toFile = Uploads.toFile;
+  static fileFromPath = Uploads.fileFromPath;

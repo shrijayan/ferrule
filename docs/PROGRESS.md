@@ -79,7 +79,7 @@ Gate: `mise run check && mise run golden && mise run parity -- onebusaway` — g
 - Placeholders: version (0.0.1 unless adopted), README example heuristic, readme title.
 - `webhook_unwrap` not emitted.
 
-## Phase 4 — Adopt, verify, keep regenerating: NEXT
+## Phase 4 — Adopt, verify, keep regenerating: gate passed on main (2026-10-26)
 
 See [phases/phase-4.md](phases/phase-4.md).
 
@@ -107,7 +107,53 @@ Already on main: rescue/adopt, three-way merge, GitHub Action, Forge-parse norma
    `worktree-agent-abb6070…` (plugin union/alias fixes), `worktree-agent-a1f47d7…` (merge),
    `worktree-agent-a8eae2c…` (runtime tests).
 3. Pick five targets with 0 breaking and run the Phase 4 gate:
-   `mise run check && mise run adopt:gate`. Record the result here.
+   `mise run check && mise run adopt:gate`. Record the result here. Done; see below.
+
+### Phase 4 gate result (2026-10-26)
+
+`mise run check && mise run adopt:gate` is green on main (aea669c, with every language merged).
+Every target adopts with 0 breaking API changes, custom code byte-identical and the SDK's own
+tests passing:
+
+| Target | Breaking | Custom code changed | Its own tests |
+| --- | --- | --- | --- |
+| onebusaway | 0 | 0 | 1110 passed |
+| lumaai | 0 | 0 | 728 passed |
+| isaacus | 0 (hand-written `Span.decode` kept as a patch) | 0 | 472 passed |
+| honcho | 0 (older generator style read from its runtime, ADR 0018) | 0 | 1241 passed |
+| knock-mgmt | 0 | 0 | 468 passed |
+
+Merged into main on 2026-10-26, rebase only, in this order: #28, #40 (pagination maps in config
+order), #24, #41, #13 (custom casings, standalone APIs), #16 (pagination items), #18 (project
+files for every auth style), #21 (union, map and array bodies, environments, path params,
+multipart), #26 (older generator styles), #30 (knock-mgmt model shapes), #33 (param-switched
+streaming), #36 (header params); then the multi-language PRs below. Each was rebuilt on the
+current main and passed `mise run check`, `mise run golden` and `mise run converter:oracles`
+before merging, with parity on onebusaway (0 breaking, 1110 passed) at the end of every line.
+
+Remaining gaps (not needed for the gate): knock 138 breaking (`positional_params`, object query
+params), imagekit 81 (union variant names from schema `title`, webhooks, camelCase method names),
+opencode 15, papr (its public config doesn't pair with its SDK). Param-switched streaming (#33) and
+header params (#36) now let stagehand generate (109 breaking, a third of it hand-written client
+code); ogx next needs array-of-union names Forge doesn't expose (gap G30).
+
+### Phase 4 gate: passed (2026-10-26)
+
+`mise run adopt:gate` — OK on all five targets (adopt exit 0, custom code changed 0):
+
+| SDK | Own tests |
+| --- | --- |
+| onebusaway | 1110 passed, 0 failed |
+| isaacus | 472 passed, 0 failed |
+| lumaai | 728 passed, 0 failed |
+| honcho | 1241 passed, 0 failed |
+| knock-mgmt | 468 passed, 0 failed |
+
+Side branches checked: every unmerged commit is superseded on main (TypeScript-era converter
+and plugin work reimplemented in the Rust crates; fake-server and agent-context ADRs landed as
+0016 and 0013; `ferrule merge`/`gitio.py` and `runtime/template/` already present).
+`mise run check`: green (after deleting stale untracked Astro output in `docs/site/`; the site
+lives in `site/`).
 
 ### Phase 4 gate: passed (2026-10-26)
 
@@ -197,3 +243,29 @@ What changed for users:
 - `ferrule.lock` is `lock_version` 2: `generator: "ferrule-gen <version>"` replaces
   `plugin_sha256`, and `forge_commit` comes from `ferrule-gen --version`. Version 1 locks still
   read.
+
+## Multi-language SDKs (ADR 0017): on main (2026-10-26)
+
+Ferrule generates every major Stainless language from one language-neutral model
+(`crates/sdk-model`, the only Forge adapter) and one plugin crate per language. Each language is
+proven against public Stainless SDKs paired with our configs (`oracles/manifest.yaml`, 23 new
+pins). Merged into main, with what is proven:
+
+| Language | PRs | Runtime template | Generated SDK |
+| --- | --- | --- | --- |
+| model and config | #17 (sdk-model, `--target`), #22 (per-target config) | | Python re-derived exactly from the neutral model |
+| oracles | #20 | | TypeScript, Go, Java, Kotlin, Ruby, PHP pinned |
+| TypeScript, current layout | #19, #27 | isaacus, imagekit, knock-mgmt byte-identical | isaacus-typescript 84/84 files; its lint and 216 jest tests pass |
+| TypeScript, node layout | #29 | onebusaway 36/36 | onebusaway-typescript 108/109 |
+| TypeScript pagination | #34 | | every oracle pagination file byte-identical, both layouts |
+| Go v1 | #19, #23 | onebusaway-go 25/25 | onebusaway-go 65/69 (4 need spec examples, gap G18); builds, tests pass |
+| Go pagination, v2 layout | #37 | imagekit-go, knock-mgmt-go, ogx-go 54/54 | imagekit-go 17/45, knock-mgmt-go 8/50 (floors); knock-go cursor pages 3/4 |
+| Java, Kotlin | #25, #32 | onebusaway-kotlin 61/61, imagekit-java 67/67 | onebusaway-java 328/343, onebusaway-kotlin 282/338, imagekit-java 186/291 |
+| Ruby | #25, #35 | onebusaway-ruby 58/58 | onebusaway-ruby 326/329, imagekit-ruby 349/432; both gems' own tests pass |
+| PHP | #38 | imagekit-php 48/48 | imagekit-php 271/340 shared files (82 more under other names); its 87 pest tests pass |
+| C# | #39 | imagekit-dotnet 38/38 | imagekit-csharp 109/184 (38 more differ only in doc wrapping); builds with dotnet, synthetic SDK's 89 tests pass |
+
+CLI and Terraform are blocked: no public Stainless-generated CLI or Terraform provider pairs by
+md5 with any public config (35 repos, 360 config versions checked), so neither has an oracle yet. Next: Python moves onto `sdk-model`
+(`crates/sdk-model/MIGRATION.md`); the Phase 4 work it waited for is on main.
+

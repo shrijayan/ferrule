@@ -1,5 +1,5 @@
 {
-  "sha256": "32179bbe3f1c10ce75f1312a4a5af55589ce3c534121ae068e9bcfc672d46526",
+  "sha256": "a2fcf8d5d2b4be841ee5bd56f34b81fada7536423c67b326854f16dec9cd8886",
   "root": {
     "x-ferrule-client": {
       "defaultEnvironment": "demo",
@@ -62,6 +62,34 @@
       "projectName": "honcho-core",
       "pythonEdition": "python.2025-10-08",
       "version": 1
+    },
+    "x-ferrule-targets": {
+      "node": {
+        "edition": "node.2025-10-08",
+        "options": {
+          "options": {
+            "mcp_server": {
+              "enable_all_resources": true,
+              "package_name": "@honcho-ai/mcp"
+            }
+          },
+          "readme_title": "honcho-ai"
+        },
+        "package_name": "@honcho-ai/core",
+        "production_repo": "plastic-labs/honcho-node-core"
+      },
+      "python": {
+        "edition": "python.2025-10-08",
+        "options": {
+          "options": {
+            "use_uv": false
+          },
+          "project_name": "honcho-core",
+          "readme_title": "honcho-ai"
+        },
+        "package_name": "honcho_core",
+        "production_repo": "plastic-labs/honcho-python-core"
+      }
     }
   },
   "mirrored": {
@@ -190,6 +218,34 @@
         "path": [
           "keys"
         ]
+      },
+      "x-ferrule-targets": {
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "package_name": "@honcho-ai/mcp"
+              }
+            },
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "@honcho-ai/core",
+          "production_repo": "plastic-labs/honcho-node-core"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "honcho-core",
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "honcho_core",
+          "production_repo": "plastic-labs/honcho-python-core"
+        }
       }
     },
     "POST /v2/workspaces": {
@@ -206,6 +262,34 @@
         "path": [
           "workspaces"
         ]
+      },
+      "x-ferrule-targets": {
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "package_name": "@honcho-ai/mcp"
+              }
+            },
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "@honcho-ai/core",
+          "production_repo": "plastic-labs/honcho-node-core"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "honcho-core",
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "honcho_core",
+          "production_repo": "plastic-labs/honcho-python-core"
+        }
       }
     },
     "POST /v2/workspaces/list": {
@@ -239,6 +323,34 @@
         "path": [
           "workspaces"
         ]
+      },
+      "x-ferrule-targets": {
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "package_name": "@honcho-ai/mcp"
+              }
+            },
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "@honcho-ai/core",
+          "production_repo": "plastic-labs/honcho-node-core"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "honcho-core",
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "honcho_core",
+          "production_repo": "plastic-labs/honcho-python-core"
+        }
       }
     },
     "PUT /v2/workspaces/{workspace_id}": {
@@ -255,6 +367,34 @@
         "path": [
           "workspaces"
         ]
+      },
+      "x-ferrule-targets": {
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "package_name": "@honcho-ai/mcp"
+              }
+            },
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "@honcho-ai/core",
+          "production_repo": "plastic-labs/honcho-node-core"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "honcho-core",
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "honcho_core",
+          "production_repo": "plastic-labs/honcho-python-core"
+        }
       }
     },
     "GET /v2/workspaces/{workspace_id}/deriver/status": {
@@ -271,6 +411,34 @@
         "path": [
           "workspaces"
         ]
+      },
+      "x-ferrule-targets": {
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "package_name": "@honcho-ai/mcp"
+              }
+            },
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "@honcho-ai/core",
+          "production_repo": "plastic-labs/honcho-node-core"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "honcho-core",
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "honcho_core",
+          "production_repo": "plastic-labs/honcho-python-core"
+        }
       }
     },
     "POST /v2/workspaces/{workspace_id}/peers": {
@@ -290,6 +458,34 @@
           "workspaces",
           "peers"
         ]
+      },
+      "x-ferrule-targets": {
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "package_name": "@honcho-ai/mcp"
+              }
+            },
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "@honcho-ai/core",
+          "production_repo": "plastic-labs/honcho-node-core"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "honcho-core",
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "honcho_core",
+          "production_repo": "plastic-labs/honcho-python-core"
+        }
       }
     },
     "POST /v2/workspaces/{workspace_id}/peers/list": {
@@ -326,6 +522,34 @@
           "workspaces",
           "peers"
         ]
+      },
+      "x-ferrule-targets": {
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "package_name": "@honcho-ai/mcp"
+              }
+            },
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "@honcho-ai/core",
+          "production_repo": "plastic-labs/honcho-node-core"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "honcho-core",
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "honcho_core",
+          "production_repo": "plastic-labs/honcho-python-core"
+        }
       }
     },
     "PUT /v2/workspaces/{workspace_id}/peers/{peer_id}": {
@@ -345,6 +569,34 @@
           "workspaces",
           "peers"
         ]
+      },
+      "x-ferrule-targets": {
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "package_name": "@honcho-ai/mcp"
+              }
+            },
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "@honcho-ai/core",
+          "production_repo": "plastic-labs/honcho-node-core"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "honcho-core",
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "honcho_core",
+          "production_repo": "plastic-labs/honcho-python-core"
+        }
       }
     },
     "GET /v2/workspaces/{workspace_id}/peers/{peer_id}/card": {
@@ -364,6 +616,34 @@
           "workspaces",
           "peers"
         ]
+      },
+      "x-ferrule-targets": {
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "package_name": "@honcho-ai/mcp"
+              }
+            },
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "@honcho-ai/core",
+          "production_repo": "plastic-labs/honcho-node-core"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "honcho-core",
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "honcho_core",
+          "production_repo": "plastic-labs/honcho-python-core"
+        }
       }
     },
     "POST /v2/workspaces/{workspace_id}/peers/{peer_id}/chat": {
@@ -383,6 +663,34 @@
           "workspaces",
           "peers"
         ]
+      },
+      "x-ferrule-targets": {
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "package_name": "@honcho-ai/mcp"
+              }
+            },
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "@honcho-ai/core",
+          "production_repo": "plastic-labs/honcho-node-core"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "honcho-core",
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "honcho_core",
+          "production_repo": "plastic-labs/honcho-python-core"
+        }
       }
     },
     "POST /v2/workspaces/{workspace_id}/peers/{peer_id}/representation": {
@@ -402,6 +710,34 @@
           "workspaces",
           "peers"
         ]
+      },
+      "x-ferrule-targets": {
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "package_name": "@honcho-ai/mcp"
+              }
+            },
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "@honcho-ai/core",
+          "production_repo": "plastic-labs/honcho-node-core"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "honcho-core",
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "honcho_core",
+          "production_repo": "plastic-labs/honcho-python-core"
+        }
       }
     },
     "POST /v2/workspaces/{workspace_id}/peers/{peer_id}/search": {
@@ -421,6 +757,34 @@
           "workspaces",
           "peers"
         ]
+      },
+      "x-ferrule-targets": {
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "package_name": "@honcho-ai/mcp"
+              }
+            },
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "@honcho-ai/core",
+          "production_repo": "plastic-labs/honcho-node-core"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "honcho-core",
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "honcho_core",
+          "production_repo": "plastic-labs/honcho-python-core"
+        }
       }
     },
     "POST /v2/workspaces/{workspace_id}/peers/{peer_id}/sessions": {
@@ -460,6 +824,34 @@
           "peers",
           "sessions"
         ]
+      },
+      "x-ferrule-targets": {
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "package_name": "@honcho-ai/mcp"
+              }
+            },
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "@honcho-ai/core",
+          "production_repo": "plastic-labs/honcho-node-core"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "honcho-core",
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "honcho_core",
+          "production_repo": "plastic-labs/honcho-python-core"
+        }
       }
     },
     "POST /v2/workspaces/{workspace_id}/search": {
@@ -476,6 +868,34 @@
         "path": [
           "workspaces"
         ]
+      },
+      "x-ferrule-targets": {
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "package_name": "@honcho-ai/mcp"
+              }
+            },
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "@honcho-ai/core",
+          "production_repo": "plastic-labs/honcho-node-core"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "honcho-core",
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "honcho_core",
+          "production_repo": "plastic-labs/honcho-python-core"
+        }
       }
     },
     "POST /v2/workspaces/{workspace_id}/sessions": {
@@ -495,6 +915,34 @@
           "workspaces",
           "sessions"
         ]
+      },
+      "x-ferrule-targets": {
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "package_name": "@honcho-ai/mcp"
+              }
+            },
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "@honcho-ai/core",
+          "production_repo": "plastic-labs/honcho-node-core"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "honcho-core",
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "honcho_core",
+          "production_repo": "plastic-labs/honcho-python-core"
+        }
       }
     },
     "POST /v2/workspaces/{workspace_id}/sessions/list": {
@@ -531,6 +979,34 @@
           "workspaces",
           "sessions"
         ]
+      },
+      "x-ferrule-targets": {
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "package_name": "@honcho-ai/mcp"
+              }
+            },
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "@honcho-ai/core",
+          "production_repo": "plastic-labs/honcho-node-core"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "honcho-core",
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "honcho_core",
+          "production_repo": "plastic-labs/honcho-python-core"
+        }
       }
     },
     "DELETE /v2/workspaces/{workspace_id}/sessions/{session_id}": {
@@ -550,6 +1026,34 @@
           "workspaces",
           "sessions"
         ]
+      },
+      "x-ferrule-targets": {
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "package_name": "@honcho-ai/mcp"
+              }
+            },
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "@honcho-ai/core",
+          "production_repo": "plastic-labs/honcho-node-core"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "honcho-core",
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "honcho_core",
+          "production_repo": "plastic-labs/honcho-python-core"
+        }
       }
     },
     "PUT /v2/workspaces/{workspace_id}/sessions/{session_id}": {
@@ -569,6 +1073,34 @@
           "workspaces",
           "sessions"
         ]
+      },
+      "x-ferrule-targets": {
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "package_name": "@honcho-ai/mcp"
+              }
+            },
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "@honcho-ai/core",
+          "production_repo": "plastic-labs/honcho-node-core"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "honcho-core",
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "honcho_core",
+          "production_repo": "plastic-labs/honcho-python-core"
+        }
       }
     },
     "GET /v2/workspaces/{workspace_id}/sessions/{session_id}/clone": {
@@ -588,6 +1120,34 @@
           "workspaces",
           "sessions"
         ]
+      },
+      "x-ferrule-targets": {
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "package_name": "@honcho-ai/mcp"
+              }
+            },
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "@honcho-ai/core",
+          "production_repo": "plastic-labs/honcho-node-core"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "honcho-core",
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "honcho_core",
+          "production_repo": "plastic-labs/honcho-python-core"
+        }
       }
     },
     "GET /v2/workspaces/{workspace_id}/sessions/{session_id}/context": {
@@ -607,6 +1167,34 @@
           "workspaces",
           "sessions"
         ]
+      },
+      "x-ferrule-targets": {
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "package_name": "@honcho-ai/mcp"
+              }
+            },
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "@honcho-ai/core",
+          "production_repo": "plastic-labs/honcho-node-core"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "honcho-core",
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "honcho_core",
+          "production_repo": "plastic-labs/honcho-python-core"
+        }
       }
     },
     "POST /v2/workspaces/{workspace_id}/sessions/{session_id}/messages/": {
@@ -629,6 +1217,34 @@
           "sessions",
           "messages"
         ]
+      },
+      "x-ferrule-targets": {
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "package_name": "@honcho-ai/mcp"
+              }
+            },
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "@honcho-ai/core",
+          "production_repo": "plastic-labs/honcho-node-core"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "honcho-core",
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "honcho_core",
+          "production_repo": "plastic-labs/honcho-python-core"
+        }
       }
     },
     "POST /v2/workspaces/{workspace_id}/sessions/{session_id}/messages/list": {
@@ -668,6 +1284,34 @@
           "sessions",
           "messages"
         ]
+      },
+      "x-ferrule-targets": {
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "package_name": "@honcho-ai/mcp"
+              }
+            },
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "@honcho-ai/core",
+          "production_repo": "plastic-labs/honcho-node-core"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "honcho-core",
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "honcho_core",
+          "production_repo": "plastic-labs/honcho-python-core"
+        }
       }
     },
     "POST /v2/workspaces/{workspace_id}/sessions/{session_id}/messages/upload": {
@@ -690,6 +1334,34 @@
           "sessions",
           "messages"
         ]
+      },
+      "x-ferrule-targets": {
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "package_name": "@honcho-ai/mcp"
+              }
+            },
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "@honcho-ai/core",
+          "production_repo": "plastic-labs/honcho-node-core"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "honcho-core",
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "honcho_core",
+          "production_repo": "plastic-labs/honcho-python-core"
+        }
       }
     },
     "GET /v2/workspaces/{workspace_id}/sessions/{session_id}/messages/{message_id}": {
@@ -712,6 +1384,34 @@
           "sessions",
           "messages"
         ]
+      },
+      "x-ferrule-targets": {
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "package_name": "@honcho-ai/mcp"
+              }
+            },
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "@honcho-ai/core",
+          "production_repo": "plastic-labs/honcho-node-core"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "honcho-core",
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "honcho_core",
+          "production_repo": "plastic-labs/honcho-python-core"
+        }
       }
     },
     "PUT /v2/workspaces/{workspace_id}/sessions/{session_id}/messages/{message_id}": {
@@ -734,6 +1434,34 @@
           "sessions",
           "messages"
         ]
+      },
+      "x-ferrule-targets": {
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "package_name": "@honcho-ai/mcp"
+              }
+            },
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "@honcho-ai/core",
+          "production_repo": "plastic-labs/honcho-node-core"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "honcho-core",
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "honcho_core",
+          "production_repo": "plastic-labs/honcho-python-core"
+        }
       }
     },
     "DELETE /v2/workspaces/{workspace_id}/sessions/{session_id}/peers": {
@@ -756,6 +1484,34 @@
           "sessions",
           "peers"
         ]
+      },
+      "x-ferrule-targets": {
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "package_name": "@honcho-ai/mcp"
+              }
+            },
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "@honcho-ai/core",
+          "production_repo": "plastic-labs/honcho-node-core"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "honcho-core",
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "honcho_core",
+          "production_repo": "plastic-labs/honcho-python-core"
+        }
       }
     },
     "GET /v2/workspaces/{workspace_id}/sessions/{session_id}/peers": {
@@ -795,6 +1551,34 @@
           "sessions",
           "peers"
         ]
+      },
+      "x-ferrule-targets": {
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "package_name": "@honcho-ai/mcp"
+              }
+            },
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "@honcho-ai/core",
+          "production_repo": "plastic-labs/honcho-node-core"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "honcho-core",
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "honcho_core",
+          "production_repo": "plastic-labs/honcho-python-core"
+        }
       }
     },
     "POST /v2/workspaces/{workspace_id}/sessions/{session_id}/peers": {
@@ -817,6 +1601,34 @@
           "sessions",
           "peers"
         ]
+      },
+      "x-ferrule-targets": {
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "package_name": "@honcho-ai/mcp"
+              }
+            },
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "@honcho-ai/core",
+          "production_repo": "plastic-labs/honcho-node-core"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "honcho-core",
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "honcho_core",
+          "production_repo": "plastic-labs/honcho-python-core"
+        }
       }
     },
     "PUT /v2/workspaces/{workspace_id}/sessions/{session_id}/peers": {
@@ -839,6 +1651,34 @@
           "sessions",
           "peers"
         ]
+      },
+      "x-ferrule-targets": {
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "package_name": "@honcho-ai/mcp"
+              }
+            },
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "@honcho-ai/core",
+          "production_repo": "plastic-labs/honcho-node-core"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "honcho-core",
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "honcho_core",
+          "production_repo": "plastic-labs/honcho-python-core"
+        }
       }
     },
     "GET /v2/workspaces/{workspace_id}/sessions/{session_id}/peers/{peer_id}/config": {
@@ -861,6 +1701,34 @@
           "sessions",
           "peers"
         ]
+      },
+      "x-ferrule-targets": {
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "package_name": "@honcho-ai/mcp"
+              }
+            },
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "@honcho-ai/core",
+          "production_repo": "plastic-labs/honcho-node-core"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "honcho-core",
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "honcho_core",
+          "production_repo": "plastic-labs/honcho-python-core"
+        }
       }
     },
     "POST /v2/workspaces/{workspace_id}/sessions/{session_id}/peers/{peer_id}/config": {
@@ -883,6 +1751,34 @@
           "sessions",
           "peers"
         ]
+      },
+      "x-ferrule-targets": {
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "package_name": "@honcho-ai/mcp"
+              }
+            },
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "@honcho-ai/core",
+          "production_repo": "plastic-labs/honcho-node-core"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "honcho-core",
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "honcho_core",
+          "production_repo": "plastic-labs/honcho-python-core"
+        }
       }
     },
     "POST /v2/workspaces/{workspace_id}/sessions/{session_id}/search": {
@@ -902,6 +1798,34 @@
           "workspaces",
           "sessions"
         ]
+      },
+      "x-ferrule-targets": {
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "package_name": "@honcho-ai/mcp"
+              }
+            },
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "@honcho-ai/core",
+          "production_repo": "plastic-labs/honcho-node-core"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "honcho-core",
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "honcho_core",
+          "production_repo": "plastic-labs/honcho-python-core"
+        }
       }
     },
     "GET /v2/workspaces/{workspace_id}/sessions/{session_id}/summaries": {
@@ -921,6 +1845,34 @@
           "workspaces",
           "sessions"
         ]
+      },
+      "x-ferrule-targets": {
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "package_name": "@honcho-ai/mcp"
+              }
+            },
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "@honcho-ai/core",
+          "production_repo": "plastic-labs/honcho-node-core"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "honcho-core",
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "honcho_core",
+          "production_repo": "plastic-labs/honcho-python-core"
+        }
       }
     },
     "GET /v2/workspaces/{workspace_id}/webhooks": {
@@ -957,6 +1909,34 @@
           "workspaces",
           "webhooks"
         ]
+      },
+      "x-ferrule-targets": {
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "package_name": "@honcho-ai/mcp"
+              }
+            },
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "@honcho-ai/core",
+          "production_repo": "plastic-labs/honcho-node-core"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "honcho-core",
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "honcho_core",
+          "production_repo": "plastic-labs/honcho-python-core"
+        }
       }
     },
     "POST /v2/workspaces/{workspace_id}/webhooks": {
@@ -976,6 +1956,34 @@
           "workspaces",
           "webhooks"
         ]
+      },
+      "x-ferrule-targets": {
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "package_name": "@honcho-ai/mcp"
+              }
+            },
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "@honcho-ai/core",
+          "production_repo": "plastic-labs/honcho-node-core"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "honcho-core",
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "honcho_core",
+          "production_repo": "plastic-labs/honcho-python-core"
+        }
       }
     },
     "GET /v2/workspaces/{workspace_id}/webhooks/test": {
@@ -995,6 +2003,34 @@
           "workspaces",
           "webhooks"
         ]
+      },
+      "x-ferrule-targets": {
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "package_name": "@honcho-ai/mcp"
+              }
+            },
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "@honcho-ai/core",
+          "production_repo": "plastic-labs/honcho-node-core"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "honcho-core",
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "honcho_core",
+          "production_repo": "plastic-labs/honcho-python-core"
+        }
       }
     },
     "DELETE /v2/workspaces/{workspace_id}/webhooks/{endpoint_id}": {
@@ -1014,6 +2050,34 @@
           "workspaces",
           "webhooks"
         ]
+      },
+      "x-ferrule-targets": {
+        "node": {
+          "edition": "node.2025-10-08",
+          "options": {
+            "options": {
+              "mcp_server": {
+                "enable_all_resources": true,
+                "package_name": "@honcho-ai/mcp"
+              }
+            },
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "@honcho-ai/core",
+          "production_repo": "plastic-labs/honcho-node-core"
+        },
+        "python": {
+          "edition": "python.2025-10-08",
+          "options": {
+            "options": {
+              "use_uv": false
+            },
+            "project_name": "honcho-core",
+            "readme_title": "honcho-ai"
+          },
+          "package_name": "honcho_core",
+          "production_repo": "plastic-labs/honcho-python-core"
+        }
       }
     }
   }

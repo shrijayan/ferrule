@@ -1,0 +1,8 @@
+# From OneBusAway/java-sdk @ c29c48ad, scripts/java-format (Apache-2.0, see NOTICE). Modified by The Ferrule Authors: names replaced by {{...}} tokens, the flavors merged with {{#java}} blocks, branding per BRANDING.md; this line is not emitted.
+#!/usr/bin/env bash
+
+set -e
+
+cd "$(dirname "$0")/.."
+
+find . -name "*.java" -not -path "./buildSrc/build/*" -print0 | xargs -0 -r palantir-java-format --palantir --replace "$@"

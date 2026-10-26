@@ -1,0 +1,9 @@
+Modified by The Ferrule Authors: imagekit-php's scripts/format (this line is not emitted).
+#!/usr/bin/env bash
+
+set -e
+
+cd -- "$(dirname -- "$0")/.."
+
+echo "==> Running php-cs-fixer"
+exec -- ./vendor/bin/php-cs-fixer fix

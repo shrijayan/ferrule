@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# syntax_tree's stree (with the RBS plugin) from the formatter bundle `mise run ruby:tools` installs.
+set -euo pipefail
+# shellcheck source=../bundle.sh
+source "$(dirname "${BASH_SOURCE[0]}")/../bundle.sh"
+ferrule_bundle_installed
+bundle exec stree "$@"

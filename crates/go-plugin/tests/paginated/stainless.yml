@@ -1,0 +1,78 @@
+# A cursor-paginated API for the Go plugin's golden test, shaped like knock's `items_cursor`
+# (knock-go is the Go v1 oracle with pagination): a page whose items field is named `items`
+# and whose next cursor sits in a nested `page_info` object; one list method with a named
+# item model, one with a path param and an inline item.
+organization:
+  name: acme
+
+resources:
+  notes:
+    models:
+      note: Note
+    methods:
+      list: get /v1/notes
+  boards:
+    methods:
+      list_notes: get /v1/boards/{board_id}/notes
+
+targets:
+  python:
+    package_name: acme
+    publish:
+      pypi: false
+  go:
+    package_name: acme
+    production_repo: acme-test/acme-go
+
+client_settings:
+  opts:
+    api_key:
+      type: string
+      auth:
+        security_scheme: BearerAuth
+      read_env: ACME_API_KEY
+
+environments:
+  production: https://api.acme.test
+
+pagination:
+  - name: items_cursor
+    type: cursor
+    request:
+      after:
+        type: string
+        x-stainless-pagination-property:
+          purpose: next_cursor_param
+      before:
+        type: string
+        x-stainless-pagination-property:
+          purpose: previous_cursor_param
+      page_size:
+        type: integer
+    response:
+      items:
+        type: array
+        items:
+          type: object
+      page_info:
+        type: object
+        properties:
+          after:
+            type: string
+            x-stainless-pagination-property:
+              purpose: next_cursor_field
+
+readme:
+  example_requests:
+    default:
+      type: request
+      endpoint: get /v1/notes
+      params: {}
+    headline:
+      type: request
+      endpoint: get /v1/notes
+      params: {}
+    pagination:
+      type: request
+      endpoint: get /v1/notes
+      params: {}

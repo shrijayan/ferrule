@@ -1,4 +1,5 @@
-//! `FER11xx`: stainless.yml validation. FER1101 and FER1102 (editions) live in [`crate::editions`].
+//! `FER11xx`: stainless.yml validation. FER1101, FER1102 and FER1103 (editions) live in
+//! [`crate::editions`].
 //! Codes are stable; never reuse a retired one.
 
 use super::config::config_issues;

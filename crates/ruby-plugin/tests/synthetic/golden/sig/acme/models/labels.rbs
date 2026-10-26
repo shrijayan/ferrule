@@ -1,0 +1,21 @@
+module Acme
+  module Models
+    type labels_item = { text: String, color: String }
+
+    class LabelsItem < Acme::Internal::Type::BaseModel
+      attr_accessor text: String
+
+      attr_reader color: String?
+
+      def color=: (String) -> String
+
+      def initialize: (text: String, ?color: String) -> void
+
+      def to_hash: -> { text: String, color: String }
+    end
+
+    type labels = ::Hash[Symbol, Acme::LabelsItem]
+
+    Labels: Acme::Internal::Type::Converter
+  end
+end

@@ -1,0 +1,28 @@
+# frozen_string_literal: true
+
+# The formatters of a Stainless Ruby gem's `rake format` (`syntax_tree` for `.rbi` and `.rbs`,
+# rubocop for `.rb`), at the versions OneBusAway ruby-sdk's Gemfile.lock pins (46a574dd).
+# `mise run ruby:tools` installs them into .cache/ruby-tools; bin/stree and bin/rubocop run them,
+# and `ferrule generate --target ruby` and the tests find them there (see the crate README).
+# $FERRULE_STREE and $FERRULE_RUBOCOP override them.
+
+source "https://rubygems.org"
+
+gem "prettier_print", "1.2.1"
+gem "rbs", "3.9.5"
+gem "syntax_tree", "6.3.0"
+gem "syntax_tree-rbs", github: "ruby-syntax-tree/syntax_tree-rbs", ref: "f94bc3060682ffbd126e4d5086ffedc89073d626"
+
+gem "ast", "2.4.3"
+gem "json", "2.19.9"
+gem "language_server-protocol", "3.17.0.5"
+gem "lint_roller", "1.1.0"
+gem "parallel", "1.27.0"
+gem "parser", "3.3.10.0"
+gem "rainbow", "3.1.1"
+gem "regexp_parser", "2.11.3"
+gem "rubocop", "1.81.7"
+gem "rubocop-ast", "1.47.1"
+gem "ruby-progressbar", "1.13.0"
+gem "unicode-display_width", "3.2.0"
+gem "unicode-emoji", "4.1.0"

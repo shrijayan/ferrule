@@ -1,0 +1,64 @@
+# From OneBusAway/java-sdk @ c29c48ad and OneBusAway/kotlin-sdk @ 69234467, <artifact>-example/build.gradle.kts (Apache-2.0, see NOTICE). Modified by The Ferrule Authors: names replaced by {{...}} tokens, the flavors merged with {{#java}} blocks, branding per BRANDING.md; this line is not emitted.
+plugins {
+{{#java}}
+    id("{{ORG}}.java")
+{{/java}}
+{{#kotlin}}
+    kotlin("jvm")
+{{/kotlin}}
+    application
+}
+{{#kotlin}}
+
+group = "{{PKG}}.example"
+version = "0.0.1-alpha.0"
+{{/kotlin}}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+{{#java}}
+    implementation(project(":{{ARTIFACT}}"))
+}
+
+tasks.withType<JavaCompile>().configureEach {
+    // Allow using more modern APIs, like `List.of` and `Map.of`, in examples.
+    options.release.set(9)
+{{/java}}
+{{#kotlin}}
+    implementation(project(":{{ARTIFACT}}-core"))
+    implementation(project(":{{ARTIFACT}}-client-okhttp"))
+    testImplementation(platform("org.junit:junit-bom:5.9.1"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+{{/kotlin}}
+}
+
+application {
+    // Use `./gradlew :{{ARTIFACT}}-example:run` to run `Main`
+    // Use `./gradlew :{{ARTIFACT}}-example:run -Pexample=Something` to run `SomethingExample`
+    mainClass = "{{PKG}}.example.${
+        if (project.hasProperty("example"))
+{{#java}}
+            "${project.property("example")}Example"
+{{/java}}
+{{#kotlin}}
+            "${project.property("example")}ExampleKt"
+{{/kotlin}}
+        else
+{{#java}}
+            "Main"
+{{/java}}
+{{#kotlin}}
+            "MainKt"
+{{/kotlin}}
+    }"
+}
+
+{{#kotlin}}
+tasks.test {
+    useJUnitPlatform()
+}
+
+{{/kotlin}}

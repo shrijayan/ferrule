@@ -1,0 +1,7 @@
+# Modified by The Ferrule Authors: OneBusAway ruby-sdk's .yardopts, names replaced by tokens (this line is not emitted).
+--type-name-tag generic:Generic
+--default-return void
+--markup markdown
+--markup-provider redcarpet
+--exclude /rbi
+--exclude /sig

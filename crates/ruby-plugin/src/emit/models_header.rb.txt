@@ -1,0 +1,41 @@
+# Modified by The Ferrule Authors: the head of OneBusAway ruby-sdk's lib/onebusaway_sdk/models.rb, names replaced by tokens (this line is not emitted).
+# frozen_string_literal: true
+
+module __M__
+__BASE_MODELS__    cls.define_sorbet_constant!(:OrHash) { T.type_alias { T.any(cls, __M__::Internal::AnyHash) } }
+  end
+
+  __M__::Internal::Util.walk_namespaces(__M__::Models).each do |mod|
+    case mod
+    in __M__::Internal::Type::Enum | __M__::Internal::Type::Union
+      mod.constants.each do |name|
+        case mod.const_get(name)
+        in true | false
+          mod.define_sorbet_constant!(:TaggedBoolean) { T.type_alias { T::Boolean } }
+          mod.define_sorbet_constant!(:OrBoolean) { T.type_alias { T::Boolean } }
+        in Integer
+          mod.define_sorbet_constant!(:TaggedInteger) { T.type_alias { Integer } }
+          mod.define_sorbet_constant!(:OrInteger) { T.type_alias { Integer } }
+        in Float
+          mod.define_sorbet_constant!(:TaggedFloat) { T.type_alias { Float } }
+          mod.define_sorbet_constant!(:OrFloat) { T.type_alias { Float } }
+        in Symbol
+          mod.define_sorbet_constant!(:TaggedSymbol) { T.type_alias { Symbol } }
+          mod.define_sorbet_constant!(:OrSymbol) { T.type_alias { T.any(Symbol, String) } }
+        else
+        end
+      end
+    else
+    end
+  end
+
+  __M__::Internal::Util.walk_namespaces(__M__::Models)
+__ALIGN__.lazy
+__ALIGN__.grep(__M__::Internal::Type::Union)
+__ALIGN__.each do |mod|
+    const = :Variants
+    next if mod.sorbet_constant_defined?(const)
+
+    mod.define_sorbet_constant!(const) { T.type_alias { mod.to_sorbet_type } }
+  end
+

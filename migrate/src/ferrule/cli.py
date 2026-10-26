@@ -14,8 +14,20 @@ from typing import TYPE_CHECKING
 
 from ferrule import __version__
 from ferrule.adopt import AdoptRequest, adopt
-from ferrule.errors import FerruleError
+from ferrule.errors import MISSING_INPUT, FerruleError, fail
 from ferrule.generate import GenerateRequest, generate, load_renderer, resolve_tools
+from ferrule.generate_csharp import FORMATTER_BIN as CSHARP_FORMATTER_BIN
+from ferrule.generate_csharp import CSharpRequest, generate_csharp, load_csharp_renderer
+from ferrule.generate_go import GoRequest, generate_go, load_go_renderer
+from ferrule.generate_jvm import JvmRequest, generate_jvm, load_java_renderer, resolve_ktfmt
+from ferrule.generate_php import FORMATTER_BIN as PHP_FORMATTER_BIN
+from ferrule.generate_php import PhpRequest, generate_php, load_php_renderer
+from ferrule.generate_ruby import (
+    RubyRequest,
+    generate_ruby,
+    load_ruby_renderer,
+    resolve_formatter,
+)
 from ferrule.rescue import rescue, write_spec
 from ferrule.verify import export_ref, verify
 
@@ -52,6 +64,12 @@ def build_parser() -> argparse.ArgumentParser:
     gen.add_argument("--out", type=Path, required=True, help="new, empty output directory")
     gen.add_argument("--runtime-from", type=Path, help="copy the runtime from this SDK checkout")
     gen.add_argument("--gen", type=Path, help="ferrule-gen binary (default: $FERRULE_GEN)")
+    gen.add_argument(
+        "--target",
+        choices=("python", "go", "java", "kotlin", "ruby", "php", "csharp"),
+        default="python",
+        help="SDK language (default: python)",
+    )
 
     ver = subs["verify"]
     ver.add_argument("--against", required=True, help="old SDK: a directory or a git ref")
@@ -117,7 +135,138 @@ def _adopt(args: argparse.Namespace) -> int:
     return EXIT_FAILED if report.breaking else EXIT_OK
 
 
+def _generate_go(args: argparse.Namespace) -> int:
+    if args.runtime_from is not None:
+        raise fail(
+            MISSING_INPUT,
+            "--runtime-from is not supported with --target go",
+            "--runtime-from",
+            "drop it: the Go runtime is rendered from ferrule_runtime",
+        )
+    request = GoRequest(
+        spec=args.spec,
+        config=args.config,
+        out=args.out,
+        gen=resolve_tools(os.environ, gen=args.gen).gen,
+        gofmt=os.environ.get("FERRULE_GOFMT", "gofmt"),
+    )
+    result = generate_go(request, renderer=load_go_renderer())
+    sys.stdout.write(
+        f"generated {result.package}: {result.files} files "
+        f"({result.runtime_files} runtime) sha256 {result.digest}\n",
+    )
+    return EXIT_OK
+
+
+def _generate_jvm(args: argparse.Namespace) -> int:
+    if args.runtime_from is not None:
+        raise fail(
+            MISSING_INPUT,
+            f"--runtime-from is not supported with --target {args.target}",
+            "--runtime-from",
+            "drop it: the JVM runtime is rendered from ferrule_runtime",
+        )
+    request = JvmRequest(
+        spec=args.spec,
+        config=args.config,
+        out=args.out,
+        gen=resolve_tools(os.environ, gen=args.gen).gen,
+        target=args.target,
+        ktfmt=resolve_ktfmt(os.environ),
+    )
+    result = generate_jvm(request, renderer=load_java_renderer())
+    sys.stdout.write(
+        f"generated {result.package}: {result.files} files "
+        f"({result.runtime_files} runtime) sha256 {result.digest}\n",
+    )
+    return EXIT_OK
+
+
+def _generate_ruby(args: argparse.Namespace) -> int:
+    if args.runtime_from is not None:
+        raise fail(
+            MISSING_INPUT,
+            "--runtime-from is not supported with --target ruby",
+            "--runtime-from",
+            "drop it: the Ruby runtime is rendered from ferrule_runtime",
+        )
+    request = RubyRequest(
+        spec=args.spec,
+        config=args.config,
+        out=args.out,
+        gen=resolve_tools(os.environ, gen=args.gen).gen,
+        stree=resolve_formatter(os.environ, "FERRULE_STREE", "stree"),
+        rubocop=resolve_formatter(os.environ, "FERRULE_RUBOCOP", "rubocop"),
+    )
+    result = generate_ruby(request, renderer=load_ruby_renderer())
+    sys.stdout.write(
+        f"generated {result.package}: {result.files} files "
+        f"({result.runtime_files} runtime) sha256 {result.digest}\n",
+    )
+    return EXIT_OK
+
+
+def _generate_php(args: argparse.Namespace) -> int:
+    if args.runtime_from is not None:
+        raise fail(
+            MISSING_INPUT,
+            "--runtime-from is not supported with --target php",
+            "--runtime-from",
+            "drop it: the PHP runtime is rendered from ferrule_runtime",
+        )
+    request = PhpRequest(
+        spec=args.spec,
+        config=args.config,
+        out=args.out,
+        gen=resolve_tools(os.environ, gen=args.gen).gen,
+        fixer=resolve_formatter(
+            os.environ, "FERRULE_PHP_CS_FIXER", "php-cs-fixer", bin_dir=PHP_FORMATTER_BIN
+        ),
+    )
+    result = generate_php(request, renderer=load_php_renderer())
+    sys.stdout.write(
+        f"generated {result.package}: {result.files} files "
+        f"({result.runtime_files} runtime) sha256 {result.digest}\n",
+    )
+    return EXIT_OK
+
+
+def _generate_csharp(args: argparse.Namespace) -> int:
+    if args.runtime_from is not None:
+        raise fail(
+            MISSING_INPUT,
+            "--runtime-from is not supported with --target csharp",
+            "--runtime-from",
+            "drop it: the C# runtime is rendered from ferrule_runtime",
+        )
+    request = CSharpRequest(
+        spec=args.spec,
+        config=args.config,
+        out=args.out,
+        gen=resolve_tools(os.environ, gen=args.gen).gen,
+        csharpier=resolve_formatter(
+            os.environ, "FERRULE_CSHARPIER", "csharpier", CSHARP_FORMATTER_BIN
+        ),
+    )
+    result = generate_csharp(request, renderer=load_csharp_renderer())
+    sys.stdout.write(
+        f"generated {result.package}: {result.files} files "
+        f"({result.runtime_files} runtime) sha256 {result.digest}\n",
+    )
+    return EXIT_OK
+
+
 def _generate(args: argparse.Namespace) -> int:
+    if args.target == "go":
+        return _generate_go(args)
+    if args.target in ("java", "kotlin"):
+        return _generate_jvm(args)
+    if args.target == "ruby":
+        return _generate_ruby(args)
+    if args.target == "php":
+        return _generate_php(args)
+    if args.target == "csharp":
+        return _generate_csharp(args)
     request = GenerateRequest(
         spec=args.spec,
         config=args.config,

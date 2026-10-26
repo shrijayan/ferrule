@@ -1,0 +1,57 @@
+Modified by The Ferrule Authors: imagekit-php's composer.json, names replaced by tokens (this line is not emitted).
+{
+  "$schema": "https://getcomposer.org/schema.json",
+  "license": "Apache-2.0",
+  "autoload": {
+    "files": [
+      "src/Version.php"
+    ],
+    "psr-4": {
+      "__NS_JSON__\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Tests\\": "tests/"
+    }
+  },
+  "config": {
+    "allow-plugins": {
+      "pestphp/pest-plugin": true,
+      "php-http/discovery": false,
+      "phpstan/extension-installer": true
+    },
+    "platform": {
+      "php": "8.3"
+    },
+    "preferred-install": "dist",
+    "sort-packages": true
+  },
+  "description": "__TITLE__ PHP SDK",
+  "name": "__COMPOSER__",
+  "require": {
+    "php": "^8.1",
+    "php-http/discovery": "^1",
+    "psr/http-client": "^1",
+    "psr/http-client-implementation": "^1",
+    "psr/http-factory-implementation": "^1",
+    "psr/http-message": "^1|^2"__WEBHOOKS__
+  },
+  "require-dev": {
+    "friendsofphp/php-cs-fixer": "^3",
+    "guzzlehttp/guzzle": "^7",
+    "nyholm/psr7": "^1",
+    "pestphp/pest": "^3",
+    "php-http/mock-client": "^1",
+    "phpstan/extension-installer": "^1",
+    "phpstan/phpstan": "^2",
+    "phpstan/phpstan-phpunit": "^2",
+    "phpunit/phpunit": "^11",
+    "symfony/http-client": "^7"
+  },
+  "scripts": {
+    "build:docs": "curl --etag-save ./vendor/ag.etags --etag-compare ./vendor/ag.etags --create-dirs --remote-name --output-dir ./vendor/bin --no-progress-meter -- https://github.com/ApiGen/ApiGen/releases/latest/download/apigen.phar && php ./vendor/bin/apigen.phar --output docs -- src",
+    "lint": "./scripts/lint",
+    "test": "./scripts/test"
+  }
+}

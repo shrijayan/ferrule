@@ -1,0 +1,9 @@
+From imagekit-developer/imagekit-dotnet @ 265ab207 (Apache-2.0), scripts/bootstrap. Modified by The Ferrule Authors: names, version, licence and URLs replaced by tokens. This line is not emitted.
+#!/usr/bin/env bash
+
+set -e
+
+cd "$(dirname "$0")/.."
+
+echo "==> Running dotnet tool restore"
+dotnet tool restore

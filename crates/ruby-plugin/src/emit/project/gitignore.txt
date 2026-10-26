@@ -1,0 +1,12 @@
+# Modified by The Ferrule Authors: OneBusAway ruby-sdk's .gitignore, names replaced by tokens (this line is not emitted).
+*.gem
+.idea/
+.ignore
+.prism.log
+.stdy.log
+.ruby-lsp/
+.yardoc/
+bin/tapioca
+Brewfile.lock.json
+doc/
+sorbet/tapioca/*

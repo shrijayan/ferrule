@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# php-cs-fixer from the install `mise run php:tools` makes, run with the PHP mise.toml pins.
+set -euo pipefail
+# shellcheck source=../env.sh
+source "$(dirname "${BASH_SOURCE[0]}")/../env.sh"
+ferrule_tools_installed
+exec php "$COMPOSER_VENDOR_DIR/friendsofphp/php-cs-fixer/php-cs-fixer" "$@"

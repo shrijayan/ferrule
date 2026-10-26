@@ -1,0 +1,15 @@
+Modified by The Ferrule Authors: imagekit-php's phpstan.dist.neon (this line is not emitted).
+parameters:
+    level: max
+    phpVersion:
+        min: 80100
+        max: 80499
+    paths:
+        - src
+        - tests
+    ignoreErrors:
+        - identifier: parameter.defaultValue
+        - identifier: trait.unused
+        - identifier: property.onlyWritten
+
+    reportUnmatchedIgnoredErrors: false

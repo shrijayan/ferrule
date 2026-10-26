@@ -8,9 +8,14 @@ per-SDK names replaced by tokens; rendering is pure and byte-identical to the or
 |---|---|---|---|
 | Python | `template/` | `render_files`, `render` | `OneBusAway/python-sdk` @ `4c20fa83` |
 | TypeScript (`typescript` target, current layout) | `typescript/template/` | `render_typescript_files` | `isaacus-dev/isaacus-typescript` @ `c56af182`, `src/internal/qs/` from `knocklabs/knock-mgmt-node` @ `ca88fdba` |
+| TypeScript (`node` target, legacy layout) | `typescript-node/template/` | `render_typescript_node_files` | `OneBusAway/js-sdk` @ `f3ca3f47` |
 | Go (v1) | `go/template/` | `render_go_files` | `OneBusAway/go-sdk` @ `d115209e` |
+| Go (v2, `enable_v2`) | `go-v2/template/` | `render_go_files(layout="v2")` | `imagekit-developer/imagekit-go` @ `bc22fec7` |
 | JVM (`java` and `kotlin` targets) | `java/template/` | `render_java_files` | `OneBusAway/java-sdk` @ `c29c48ad`, `OneBusAway/kotlin-sdk` @ `69234467`, `OkHttpClient.kt` and the webhook files from `imagekit-developer/imagekit-java` @ `f96c35e8` |
 | Ruby | `ruby/template/` | `render_ruby_files` | `OneBusAway/ruby-sdk` @ `46a574dd` |
+| PHP | `php/template/` | `render_php_files` | `imagekit-developer/imagekit-php` @ `9f9309d5` |
+| C# (`csharp` target) | `csharp/template/` | `render_csharp_files` | `imagekit-developer/imagekit-dotnet` @ `265ab207` |
+| Rust (Ferrule-original, ADR 0019) | `rust/template/` | `render_rust_files` | none: Ferrule's own code, written from scratch |
 
 - Templates are third-party code: not linted or formatted by our rules (excluded in the root
   `pyproject.toml` and `biome.json`).
@@ -20,7 +25,7 @@ per-SDK names replaced by tokens; rendering is pure and byte-identical to the or
 
 All languages share one engine, `render_tree(root, *, replacements, flags, comment, slots,
 gated, line_length)`: whole-line directives `<comment>ferrule:if <flag>` / `else` / `endif` and
-`<comment>ferrule:slot <name>` (`#` for Python and Ruby, `//` for TypeScript, Go and the JVM), then
+`<comment>ferrule:slot <name>` (`#` for Python and Ruby, `//` for TypeScript, Go, the JVM and PHP), then
 token replacement in the text and in the path (a directory named `__ferrule_pkg_path__`
 becomes `org/acme`), then a check that no `__ferrule_*__` / `__Ferrule*__` / `__FERRULE_*__`
 token is left. `gated` maps a template path prefix to whether files under it are rendered. A
@@ -146,7 +151,7 @@ The plugin emits `<pkg>/testing/_routes.json` (missing file = no routes):
 
 For SDKs on the `typescript` target (Stainless's current layout, TypeScript 5.8). The legacy
 `node` layout (`src/core.ts`, `src/_shims/**`: OneBusAway js-sdk, lumaai, honcho, ogx) is a
-different runtime and is not templated.
+different runtime, templated separately (see "TypeScript, `node` layout" below).
 
 ```python
 from ferrule_runtime import TypeScriptOptions, render_typescript_files
@@ -222,11 +227,72 @@ no `utils/query.ts`), listed per file as `known_drift` in
 hand edits (`utils/query.ts` re-exports `src/lib/stringifyQuery.ts`, `index.ts` exports
 `src/lib`).
 
+## TypeScript, `node` layout
+
+For SDKs on the `node` target (Stainless's legacy TypeScript layout, TypeScript 4.8, `node-fetch`
+shims). It has its own template because the layouts share no runtime file but the one-line
+`src/resources.ts` (`test_layouts_share_one_file`): the request machinery is `src/core.ts`
+instead of `src/client.ts` + `src/internal/**`, errors and uploads live in `src/error.ts` and
+`src/uploads.ts` instead of `src/core/`, and fetch comes from `src/_shims/**`.
+
+```python
+from ferrule_runtime import TypeScriptNodeOptions, render_typescript_node_files
+
+files = render_typescript_node_files(
+    TypeScriptNodeOptions(
+        client_name="OnebusawaySDK", package_name="onebusaway-sdk", repo="OneBusAway/js-sdk"
+    )
+)  # {"src/core.ts": "...", "src/_shims/index.js": "...", ...}: paths from the SDK root
+```
+
+`TypeScriptNodeOptions(client_name, package_name, repo, *, error_name=None)`: `package_name`
+is the npm package the shims import themselves by (`onebusaway-sdk/_shims/auto/runtime`),
+`repo` the GitHub `owner/name` the shims' file-upload error links to, `error_name` the base
+error (default `<client_name>Error`).
+
+Tokens: `__FerruleClient__`, `__FerruleError__`, `__ferrule_package__`, `__FERRULE_REPO__`.
+Flags, computed from prettier's `printWidth` of 110: `ensure_present_fits` (`ensurePresent`'s
+`if (value == null) throw new <Error>(...)` on one line) and `registry_fits` (the "can't
+import ... after import ..." error of `src/_shims/registry.ts` on one line, which depends on
+the package name's length). Two more lines would wrap with an error name longer than 24
+characters (`Cannot generate b64 string`) or 30 (`Could not coerce`); no oracle has one, so
+those layouts are not templated.
+
+### File classification
+
+| Files | Class | Notes |
+|---|---|---|
+| `src/core.ts` | runtime | `APIClient`, `APIPromise`, `AbstractPage`, the helpers; two width-dependent lines |
+| `src/_shims/**` (27 files) | runtime | `registry.ts`: one width-dependent line |
+| `src/{error,uploads,resource,resources}.ts`, `src/shims/{node,web}.ts` | runtime | |
+| `src/internal/utils/query.ts` | runtime | the basic `stringifyQuery`; 2025 generations kept it in `core.ts` |
+| `src/index.ts` | generated | the client class, its options and resources (`crates/ts-plugin`, node layout) |
+| `src/version.ts`, `src/resources/**`, `src/pagination.ts` | generated | |
+| `src/streaming.ts`, `src/internal/{decoders,qs,stream-utils}*` | not templated | only ogx-typescript (MIT) has them |
+| `tests/*.test.ts`, project files | not runtime | `crates/ts-plugin` templates, as for the current layout |
+
+### Oracles
+
+| Oracle | Commit | Identical |
+|---|---|---|
+| onebusaway-typescript | `f3ca3f47613e2522ead33f4398984cdb47423622` (1.20.0, 2026-07-18) | 36/36 |
+| lumaai-typescript | `4dbfae0fcabab74fa7a35ebfcc1b67ab30fb1e11` (1.21.0, 2026-04-07) | 35/36 |
+| honcho-typescript | `91d258060f786577c51bc33ad873fb9434a6ac5c` (2025-10-08) | 34/35 |
+
+lumaai's `core.ts` is the 2026-04 `readEnv` (`?.trim() ?? undefined`); honcho's is a 2025
+generation (query stringifying inline, no `content-length: 0` check, older `Retry-After`
+handling), and it has no `internal/utils/query.ts`. Both are `known_drift` in
+`tests/test_render_oracles_typescript_node.py`. ogx-typescript (MIT) is not compared: every
+file carries ogx's own licence header.
+
 ## Go
 
-For SDKs on Stainless's Go v1 layout. v2 (`enable_v2`: imagekit-go, knock-mgmt-go, ogx,
-stagehand) adds `internal/encoding/`, `internal/paramutil/`, `packages/param/`,
-`packages/respjson/`, `shared/constant/` and `backcompat.go` and is not templated yet.
+Two layouts, two templates: Stainless's Go v1 (`go/template/`, OneBusAway's runtime) and Go v2
+(`go-v2/template/`, imagekit-go's; `targets.go.options.enable_v2`: imagekit-go, knock-mgmt-go,
+ogx, stagehand). v2 adds `internal/encoding/`, `internal/paramutil/`, `packages/param/` and
+`packages/respjson/`, and only 4 of v1's 25 files are the same in v2 (`default_http_client.go`,
+`apiform/form.go`, `testutil.go`, `middleware.go`), so a layout switch inside one template would
+be directives around nearly every file; two templates keep each byte-identical to its source.
 
 ```python
 from ferrule_runtime import GoOptions, render_go_files
@@ -238,7 +304,7 @@ files = render_go_files(
 
 `GoOptions(module_path, package_name, client_name, *, org_name=None, max_retries=2,
 redacted_headers=("api-key", "x-api-key"), config_fields="", config_clone="",
-client_options="")`:
+client_options="", layout="v1", new_file=False)`:
 
 - `module_path`: the `go.mod` module; every internal import and the pkg.go.dev README links.
 - `package_name`: the root package of `field.go` and `default_http_client.go`.
@@ -251,11 +317,17 @@ client_options="")`:
   `client_options` (the `WithEnvironment*` and client-setting options appended to
   `option/requestoption.go`, starting with a blank line). gofmt aligns a struct block to its
   longest field name; a client setting longer than `RequestTimeout` would realign the runtime's
-  own lines, which the template does not do.
+  own lines, which the template does not do. In v2 a `base64.` in `client_options` (HTTP Basic
+  auth) also imports `encoding/base64`.
+- `layout`: `"v1"` or `"v2"`, the template rendered.
+- `new_file` (v2 only): `field.go`'s file helper is `NewFile` rather than `File`, as Stainless
+  names it when the root package declares a type `File` (imagekit-go, ogx-client-go).
 
 Tokens: `__ferrule_module__`, `__ferrule_pkg__`, `__FerruleClient__`, `__FERRULE_ORG__`,
 `__FERRULE_MAX_RETRIES__` (`NewRequestConfig`'s `MaxRetries: 2`; a non-default value is
-unverified), `__FERRULE_SENSITIVE_HEADERS__`. Flags `module_before_io` and
+unverified), `__FERRULE_SENSITIVE_HEADERS__`, and in v2 `__ferrule_docs_module__` (the module
+without its `/vN` suffix, as the pkg.go.dev README link names it: imagekit-go/v2's links
+`github.com/imagekit-developer/imagekit-go`). Flags `module_before_io` and
 `module_before_sjson` keep gofmt's import order in `field.go` and `option/requestoption.go`,
 where the module's packages share an import group with `io` or `github.com/tidwall/sjson`
 (the reversed order is in no oracle; it follows gofmt's sort by import path).
@@ -270,7 +342,9 @@ where the module's packages share an import group with `io` or `github.com/tidwa
 | `internal/version.go` | generated | version, like `src/version.ts` |
 | `client.go`, `aliases.go`, `shared/**`, resource files, `api.md`, `examples/` | generated | |
 | `packages/pagination/pagination.go` | generated | page types from the config (knock-go) |
-| `packages/ssestream/ssestream.go` | not templated | SSE: only opencode-sdk-go (MIT) has it |
+| `packages/ssestream/ssestream.go` | not templated | SSE: only opencode-sdk-go and ogx-client-go (MIT) have it |
+| v2: `internal/{encoding/json,paramutil}/**`, `packages/{param,respjson}/**` (54 runtime files in all) | runtime | as v1 otherwise |
+| v2: `shared/constant/constants.go`, `backcompat.go` | generated | constants of the spec's `const`s; aliases of models moved to `shared` |
 | `go.mod`, `go.sum`, `scripts/`, `lib/` | not runtime | project files and hand-written code |
 
 ### Oracles
@@ -280,6 +354,9 @@ where the module's packages share an import group with `io` or `github.com/tidwa
 | onebusaway-go | `d115209ec6337f8d7ee52ad0cc8866a0005d6e65` (1.15.0, 2026-07-18), slots from its config | 25/25 |
 | knock-go | `4b86a0d68f0ac65c1b1ccca2cca5b4893ee572ac` (1.5.0, 2025-06-06) | 11/25 |
 | opencode-sdk-go (MIT, compared only) | `04c05a5d98bed833f9e8ed91616e6153880c1873` (0.1.0-alpha.28, 2025-07-29) | 11/25 |
+| imagekit-go (v2) | `bc22fec799949ebdc6c8effff9e45e1234b4b512` (2.5.0, 2026-05-13), slots from its config | 54/54 |
+| knock-mgmt-go (v2) | `85ae774cbff4c13f21a38608378d90d4947bc022` (0.2.0, 2026-07-09), slots from its config | 54/54 |
+| ogx-client-go (v2, MIT, compared only) | `c66deeffe54455aee6aab72e063f3b8eeef96274` (0.4.0-alpha.1), compared without its `file_header` | 54/54 |
 
 knock-go and opencode-sdk-go are 2025 generations (`api` struct tags, no header redaction in
 `WithDebugLog`, no `default_http_client.go`, older request code); `known_drift` in
@@ -430,6 +507,93 @@ state, no `write_query_param_element!`, older errors and file parts); 39 files a
 `known_drift` in `tests/test_render_oracles_ruby.py`. Unverified: wrapping that depends on
 names shorter than `Imagekitio` or longer than `OnebusawaySDK` outside the `fits` blocks.
 
+## PHP
+
+```python
+from ferrule_runtime import PhpOptions, render_php_files
+
+files = render_php_files(PhpOptions(namespace="Acme"))
+# {"src/Core/BaseClient.php": "...", "src/RequestOptions.php": "...", ...}: package root
+```
+
+`PhpOptions(namespace, *, name=None, timeout=60, max_retries=2, initial_retry_delay=0.5,
+max_retry_delay=8.0)`:
+
+- `namespace`: the root namespace and PSR-4 prefix of `src/` (`Imagekit`, from
+  `targets.php.package_name`).
+- `name`: the base exception (`<name>Exception`) and the `DESC` texts of the exceptions
+  (`'<name> Error'`); defaults to the namespace's last segment.
+- `timeout`, `max_retries`, `initial_retry_delay`, `max_retry_delay`: `client_settings`, the
+  defaults of `RequestOptions`. The timeout is written as an integer when it is one (`60`), the
+  delays as floats (`0.5`, `8.0`), as in the oracle.
+
+Tokens: `__FerruleNs__`, `__FerruleName__` (also in the base exception's file name),
+`__FERRULE_TIMEOUT__`, `__FERRULE_MAX_RETRIES__`, `__FERRULE_INITIAL_RETRY_DELAY__`,
+`__FERRULE_MAX_RETRY_DELAY__`. No flags. The files are php-cs-fixer's output, and its
+`ordered_imports` (alphabetical, backslashes compared as spaces, case-insensitive) sorts each
+file's `use` lines, so another namespace sorts differently against `Psr\` and `PHPUnit\`: the
+renderer sorts every block of top-level `use` lines by that rule (identity for imagekit).
+
+## C#
+
+```python
+from ferrule_runtime import CSharpOptions, render_csharp_files
+
+files = render_csharp_files(
+    CSharpOptions(namespace="Imagekit", client_name="ImageKit", env_prefix="IMAGE_KIT")
+)
+# {"src/Imagekit/Core/ParamsBase.cs": "...", "src/Imagekit.Tests/RetriesTest.cs": "...", ...}
+```
+
+`CSharpOptions(namespace, client_name, env_prefix, *, auth_headers="", auth_query="")`:
+
+- `namespace`: the root namespace and the `src/<Ns>` and `src/<Ns>.Tests` projects
+  (`targets.csharp.package_name`).
+- `client_name`: the prefix of `<Client>Client` and the exception classes (`ImageKit`).
+- `env_prefix`: `<PREFIX>_CUSTOM_HEADERS`, read by `ParamsBase`.
+- `auth_headers`: the slot in `ParamsBase.AddDefaultHeaders` that sends the credentials, which
+  the plugin generates from the client options and security schemes; empty without auth.
+- `auth_query`: the slot in `ParamsBase.QueryString` that adds an API key `in: query` to
+  `collection`; empty without one. No oracle has one, so its form is the plugin's.
+
+Tokens: `__FerruleNs__`, `__FerruleClient__`, `__FERRULE_ENV__`. Flag: `ns_before_moq`, the
+order csharpier sorts `RetriesTest.cs`'s usings in (the SDK's namespace before or after `Moq`).
+The template is stored with LF; `.cs` files render with CRLF, as the SDK's `.editorconfig` asks
+and the oracles ship. No `fits` blocks: the files are laid out for the oracles' names, and
+`ferrule generate` runs csharpier over the whole SDK, as its `scripts/format` does, so a name
+that makes a line longer than 100 columns wraps as csharpier wraps it.
+
+### File classification
+
+| Files | Class | Notes |
+|---|---|---|
+| `src/Core.php`, `src/Core/**` (44 files), `src/RequestOptions.php` | runtime | `RequestOptions`: client settings |
+| `tests/Core/{ModelTest,StreamingTransportTest,UtilTest}.php` | runtime | tests of the runtime |
+| `src/Client.php`, `src/Version.php` | generated | client settings, resources, auth; the release version |
+| `src/Services/**`, `src/ServiceContracts/**`, the model directories | generated | per resource |
+| `tests/ClientTest.php`, `tests/UnsupportedMockTests.php`, `tests/Services/**` | generated | `disable_mock_tests`, the example request |
+| `composer.json`, `.php-cs-fixer.dist.php`, `phpstan.dist.neon`, `phpunit.xml.dist`, `scripts/` | not runtime | project files |
+| `src/<Ns>/Core/*.cs` (18), `Exceptions/*.cs` (14), `IPageExtensions.cs`, `Shims.cs` | runtime | `ParamsBase.cs`: credentials slot |
+| `src/<Ns>.Tests/Core/*.cs` (3), `RetriesTest.cs` | runtime | tests of the runtime |
+| `Core/ClientOptions.cs`, `Core/EnvironmentUrl.cs`, `Core/ModelBase.cs` | generated | client options, environments, the JSON options listing every enum converter |
+| `<Client>Client.cs`, `I<Client>Client.cs`, `Models/**`, `Services/**`, `TestBase.cs` and the model and service tests | generated | the plugin |
+| `Core/Sse.cs`, `<Client>SseException.cs`, `SseTest.cs` | not yet | streaming; only in stagehand-net (MIT), so not copied |
+| imagekit's `Helper/**`, stagehand's `ClientOptionsTest.cs` | not generated | hand-written in the oracles |
+| `*.sln`, `*.csproj`, `Directory.Build.props`, `scripts/`, `.editorconfig`, `.config/` | not runtime | project files |
+
+### Oracles
+
+| Oracle | Commit | Options | Identical |
+|---|---|---|---|
+| imagekit-php | `9f9309d5b8a6a800b5787bd9d739f2f2332c73d1` (2026-05-17) | defaults | 48/48 |
+
+imagekit-php is the only Apache-2.0 PHP oracle (stagehand-php is MIT and not used).
+Unverified, with one oracle: whether `WebhookException` is emitted for an SDK without webhooks,
+whether a non-default timeout keeps the integer form, and lines whose wrapping depends on the
+name's length (none of the template's lines that name it is near the generator's width).
+| imagekit-csharp | `265ab207ce4c7d30a820ed540c0422834f05583e` (6.3.0, 2026-07-24) | basic auth slot | 38/38 |
+| stagehand-csharp (MIT, compared only) | `06de8bf30afa35ffead7969df2083c3d3ab36450` (3.22.0, 2026-07-25) | two API-key headers; `Moq` first | 38/38 |
+
 ## Adding a language
 
 1. Pick the newest Apache-2.0 Stainless SDK in that language among the oracles and list every
@@ -469,10 +633,16 @@ rendered output, so the mark lives here and in `NOTICE` (ADR 0004 amendment):
   format replaced by placeholders; `src/index.ts`, `src/internal/utils/log.ts` and
   `src/internal/utils/query.ts` gained `//ferrule:` lines; `query.ts` combines isaacus's and
   knock-mgmt-node's versions);
+- all files under `typescript-node/template/` (client, error and package names and the
+  repository replaced by tokens; `src/core.ts` and `src/_shims/registry.ts` gained `//ferrule:`
+  lines choosing prettier's one-line or wrapped layout);
 - all files under `go/template/` (module path, package, client and organisation names, max
   retries and the redacted-header list replaced by placeholders; `field.go` and
   `option/requestoption.go` gained `//ferrule:` import-order lines; `requestconfig.go` and
   `requestoption.go` had their config-dependent lines replaced by slots);
+- all files under `go-v2/template/` (the same tokens and slots, the README link's module as
+  `__ferrule_docs_module__`; `field.go` gained the `new_file` lines and
+  `option/requestoption.go` the `base64` lines);
 - all files under `java/template/` (artifact, package and client names, log env var and
   repository replaced by placeholders, also in directory and file names; the Java and Kotlin
   texts merged with `//ferrule:if java` / `kotlin` blocks; `QueryParams.kt`,
@@ -484,7 +654,13 @@ rendered output, so the mark lives here and in `NOTICE` (ADR 0004 amendment):
   directory names; `base_client` gained `#ferrule:if auth_query` blocks in each view and
   `util.rb` a comma-format block from imagekit-ruby; 20 `fits` blocks with imagekit-ruby's
   one-line forms; the `@example` blocks of `base_model.rb`, `enum.rb` and `union.rb` replaced by
-  slots).
+  slots);
+- all files under `php/template/` (namespace, name and client settings replaced by
+  placeholders, also in the base exception's file name; the renderer re-sorts `use` lines).
+- all files under `csharp/template/` (namespace, client name and env prefix replaced by
+  placeholders, also in directory and file names; LF instead of CRLF; the credentials block of
+  `ParamsBase.cs` replaced by a slot; `RetriesTest.cs` gained a `//ferrule:if ns_before_moq`
+  block).
 
-MIT-licensed oracles (opencode-sdk-js, opencode-sdk-go) are compared by the tests but never
-copied; stagehand and ogx (MIT) are not used.
+MIT-licensed oracles (opencode-sdk-js, opencode-sdk-go, ogx-client-go, stagehand-net) are
+compared by the tests but never copied.

@@ -1,0 +1,11 @@
+From imagekit-developer/imagekit-dotnet @ 265ab207 (Apache-2.0), .gitignore. Modified by The Ferrule Authors: names, version, licence and URLs replaced by tokens. This line is not emitted.
+.prism.log
+.stdy.log
+bin/
+obj/
+.vs/
+.idea/
+
+# do not edit! excludes generated files used internally
+.artifacts/
+devcontainer-lock.json

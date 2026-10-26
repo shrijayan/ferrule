@@ -1,0 +1,189 @@
+openapi: 3.1.0
+info:
+  title: Acme
+  version: 1.0.0
+servers:
+  - url: https://api.acme.test
+security:
+  - BearerAuth: []
+paths:
+  /widgets:
+    get:
+      operationId: listWidgets
+      summary: List widgets
+      parameters:
+        - in: query
+          name: environment
+          required: true
+          schema:
+            type: string
+            description: The environment slug.
+        - in: query
+          name: after
+          schema:
+            type: string
+            description: The cursor to fetch entries after.
+        - in: query
+          name: before
+          schema:
+            type: string
+            description: The cursor to fetch entries before.
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            description: The number of entries to fetch per-page.
+      responses:
+        '200':
+          description: A page of widgets.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [entries, page_info]
+                properties:
+                  entries:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Widget'
+                  page_info:
+                    $ref: '#/components/schemas/PageInfo'
+  /widgets/search:
+    post:
+      operationId: searchWidgets
+      summary: Search widgets
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+        - in: query
+          name: size
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [query]
+              properties:
+                query:
+                  type: string
+                  description: The text to search for.
+      responses:
+        '200':
+          description: A page of widgets.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, page, size]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Widget'
+                  page:
+                    type: integer
+                  size:
+                    type: integer
+                  pages:
+                    type: integer
+                  total:
+                    type: integer
+  /gadgets:
+    get:
+      operationId: listGadgets
+      summary: List gadgets
+      parameters:
+        - in: query
+          name: after
+          schema:
+            type: string
+        - in: query
+          name: before
+          schema:
+            type: string
+        - in: query
+          name: limit
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: A page of gadgets.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [entries, page_info]
+                properties:
+                  entries:
+                    type: array
+                    items:
+                      type: object
+                      description: A gadget.
+                      required: [id]
+                      properties:
+                        id:
+                          type: string
+                  page_info:
+                    $ref: '#/components/schemas/PageInfo'
+  /gadgets/{gadget_id}/widgets:
+    get:
+      operationId: listGadgetWidgets
+      summary: List a gadget's widgets
+      parameters:
+        - in: path
+          name: gadget_id
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: after
+          schema:
+            type: string
+        - in: query
+          name: before
+          schema:
+            type: string
+        - in: query
+          name: limit
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: A page of widgets.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [entries, page_info]
+                properties:
+                  entries:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Widget'
+                  page_info:
+                    $ref: '#/components/schemas/PageInfo'
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    Widget:
+      type: object
+      description: A widget.
+      required: [id]
+      properties:
+        id:
+          type: string
+    PageInfo:
+      type: object
+      properties:
+        after:
+          type: string
+        before:
+          type: string

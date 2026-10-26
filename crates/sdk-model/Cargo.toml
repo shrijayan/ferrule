@@ -1,0 +1,19 @@
+[package]
+name = "ferrule-sdk-model"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[dependencies]
+forge.workspace = true
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json.workspace = true
+
+[dev-dependencies]
+ferrule-converter.workspace = true
+ferrule-python-plugin.workspace = true
+
+[lints]
+workspace = true

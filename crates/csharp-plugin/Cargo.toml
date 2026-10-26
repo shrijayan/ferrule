@@ -1,0 +1,19 @@
+[package]
+name = "ferrule-csharp-plugin"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[dependencies]
+ferrule-sdk-model.workspace = true
+serde_json.workspace = true
+
+[dev-dependencies]
+ferrule-converter.workspace = true
+# Tests only: parses annotated specs for `ferrule_sdk_model::forge_to_model` (tests/common).
+forge.workspace = true
+
+[lints]
+workspace = true

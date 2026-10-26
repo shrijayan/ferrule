@@ -35,8 +35,8 @@ client = OnebusawaySDK()
 now = client.current_time.retrieve()
 agency = client.agency.retrieve("1")
 
-# same import, same names, same kwargs.
-# written for Stainless. still running.`).join('\n');
+# names come from the config.
+# this is what users import.`).join('\n');
 
 // biome-ignore lint/correctness/noUnusedVariables: used by the template below
 const agentTree = [
@@ -83,6 +83,90 @@ const flows = [120, 165, 210, 255, 300, 345, 390].map((y, k) => {
   };
 });
 
+// Status per language: every SDK language is on main. Proof is identical files out of the
+// total, against real public Stainless SDKs.
+interface LangRow {
+  name: string;
+  status: 'main' | 'none';
+  best: [number, number] | null;
+  proof: string;
+  plugin: string | null;
+}
+// biome-ignore lint/correctness/noUnusedVariables: used by the template below
+const languages: LangRow[] = [
+  {
+    name: 'Python',
+    status: 'main',
+    best: [80, 80],
+    proof:
+      'onebusaway: 0 breaking, 1,110 of its own tests pass. Five real SDKs adopt with 0 breaking, every test passing and custom code unchanged.',
+    plugin: 'python-plugin',
+  },
+  {
+    name: 'TypeScript',
+    status: 'main',
+    best: [84, 84],
+    proof:
+      'isaacus-typescript, and its lint and 216 jest tests pass. onebusaway-typescript (node layout) 108/109.',
+    plugin: 'ts-plugin',
+  },
+  {
+    name: 'Go',
+    status: 'main',
+    best: [65, 69],
+    proof:
+      'onebusaway-go: runtime 25/25, builds and tests pass. v2 layout, imagekit-go: runtime 54/54, generated 17/45.',
+    plugin: 'go-plugin',
+  },
+  {
+    name: 'Java',
+    status: 'main',
+    best: [328, 343],
+    proof: 'onebusaway-java. imagekit-java 186/291.',
+    plugin: 'jvm-plugin',
+  },
+  {
+    name: 'Kotlin',
+    status: 'main',
+    best: [282, 338],
+    proof: 'onebusaway-kotlin.',
+    plugin: 'jvm-plugin',
+  },
+  {
+    name: 'Ruby',
+    status: 'main',
+    best: [326, 329],
+    proof: "onebusaway-ruby. imagekit-ruby 349/432. Both gems' own tests pass.",
+    plugin: 'ruby-plugin',
+  },
+  {
+    name: 'PHP',
+    status: 'main',
+    best: [271, 340],
+    proof:
+      "imagekit-php, shared files: runtime 48/48 (319/388 with it; 82 more under other names), and the package's 87 pest tests pass.",
+    plugin: 'php-plugin',
+  },
+  {
+    name: 'C#',
+    status: 'main',
+    best: [109, 184],
+    proof:
+      "imagekit-dotnet: runtime 38/38, 38 more files differ only in doc wrapping, builds with dotnet. The synthetic SDK's 89 tests pass.",
+    plugin: 'csharp-plugin',
+  },
+  {
+    name: 'CLI, Terraform',
+    status: 'none',
+    best: null,
+    proof:
+      'No public Stainless-generated CLI or provider pairs with a public config, so there is no oracle to prove against.',
+    plugin: null,
+  },
+];
+// biome-ignore lint/correctness/noUnusedVariables: used by the template below
+const statusLabel = { main: 'on main', none: 'not started' } as const;
+
 interface BoardRow {
   name: string;
   repo: string | null;
@@ -117,10 +201,10 @@ const testsLabel = (r: BoardRow): string => {
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Ferrule · Change the engine, not the SDK</title>
+    <title>Ferrule · SDKs from your OpenAPI spec</title>
     <meta
       name="description"
-      content="Ferrule regenerates the exact Python SDK your users already import, from the same OpenAPI spec and stainless.yml, and proves nothing public changed. Open source, Apache-2.0."
+      content="Ferrule generates the SDKs your users import — Python, TypeScript, Go, Java, Kotlin, Ruby, PHP and C# — from an OpenAPI spec and one config. Deterministic. One Rust binary. Apache-2.0. Runs on your laptop and in CI. No account."
     />
     <meta name="color-scheme" content="dark" />
     <link rel="icon" href={`${base}/favicon.svg`} type="image/svg+xml" />
@@ -151,9 +235,11 @@ const testsLabel = (r: BoardRow): string => {
         </a>
         <nav class="nav-links">
           <a href="#why">Why</a>
-          <a href="#proof">Proof</a>
+          <a href="#adopt">Adopt</a>
+          <a href="#languages">Languages</a>
           <a href="#how">How it works</a>
           <a href="#compare">Compare</a>
+          <a href="#proof">Proof</a>
           <a href="#board">Fidelity board</a>
           <a href={docs}>Docs</a>
         </nav>
@@ -164,7 +250,14 @@ const testsLabel = (r: BoardRow): string => {
                 d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"
               ></path></svg
             >
-            GitHub
+            GitHub<span class="gh-stars" data-stars hidden
+              ><svg class="gh-star" viewBox="0 0 16 16" aria-hidden="true"
+                ><path
+                  fill="currentColor"
+                  d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z"
+                ></path></svg
+              ><span class="gh-count"></span></span
+            >
           </a>
           <a class="btn btn-brass" href={`${docs}quickstart/`}>Get started</a>
         </div>
@@ -173,16 +266,21 @@ const testsLabel = (r: BoardRow): string => {
 
     <section class="hero" id="top">
       <div class="wrap">
-        <div class="eyebrow reveal"><span class="pill">Open source</span> For teams leaving Stainless</div>
-        <h1 class="display reveal d1">Change the engine.<br /><em>Not the SDK.</em></h1>
+        <div class="eyebrow reveal"><span class="pill">Open source</span> Eight languages, one config</div>
+        <h1 class="display reveal d1">Generate the SDKs.<br /><em>From the spec.</em></h1>
         <p class="lede reveal d2">
-          Ferrule regenerates the <strong>exact Python SDK your users already import</strong>, from the same
-          OpenAPI spec and <code>stainless.yml</code>, then proves that nothing public changed. Apache-2.0. Runs on
-          your laptop and in CI. No account.
+          Ferrule reads an OpenAPI spec and a <code>stainless.yml</code>, then writes the <strong>SDKs your users import</strong>. Deterministic, one Rust binary, Apache-2.0, on your laptop and in CI, with no account.
         </p>
         <div class="hero-actions reveal d3">
-          <button type="button" class="cmd" data-copy="uvx ferrule adopt ." aria-label="Copy command">
-            <span><span class="p">$</span> uvx ferrule adopt .</span>
+          <button
+            type="button"
+            class="cmd"
+            data-copy="uvx ferrule generate --spec openapi.yml --config stainless.yml --out sdk"
+            aria-label="Copy generate command"
+          >
+            <span class="cmd-text"
+              ><span class="p">$</span> uvx ferrule generate <span class="nw">--spec openapi.yml</span> <span class="nw">--config stainless.yml</span> <span class="nw">--out sdk</span></span
+            >
             <span class="copy"
               ><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 ><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"
@@ -190,21 +288,17 @@ const testsLabel = (r: BoardRow): string => {
               ></span
             >
           </button>
-          <a class="btn btn-lg" href="#proof"
-            >See the proof
-            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              ><path d="M5 12h14M13 6l6 6-6 6"></path></svg
-            >
-          </a>
+          <a class="btn btn-brass btn-lg" href={`${docs}quickstart/`}>Get started</a>
         </div>
         <p class="hero-note reveal d3">
-          Pre-alpha · <code>uvx</code> lands with 0.1 · <a href={`${docs}quickstart/`}>run it from source today →</a>
+          Pre-alpha · <a href="#languages">eight languages</a> · <code>uvx</code> lands with 0.1 ·
+          <a href={`${docs}quickstart/`}>run it from source today</a>
         </p>
 
         <div class="stage reveal" id="stage">
-          <div class="annot a1"><b>Your config · unchanged</b></div>
-          <div class="annot a2"><span class="tick l"></span><b>Engine · replaced</b><span class="tick r"></span></div>
-          <div class="annot a3"><b>Your users' code · unchanged</b></div>
+          <div class="annot a1"><b>The config</b></div>
+          <div class="annot a2"><span class="tick l"></span><b>Ferrule</b><span class="tick r"></span></div>
+          <div class="annot a3"><b>The SDK</b></div>
 
           <svg class="flow" viewBox="0 0 1200 470" preserveAspectRatio="none" aria-hidden="true">
             <defs>
@@ -238,23 +332,23 @@ const testsLabel = (r: BoardRow): string => {
           <div class="card left">
             <div class="card-head">
               <div class="dots"><i></i><i></i><i></i></div>
-              stainless.yml<span class="tag">kept</span>
+              stainless.yml<span class="tag">reads this</span>
             </div>
             <pre set:html={heroYaml} />
           </div>
           <div class="card right">
             <div class="card-head">
               <div class="dots"><i></i><i></i><i></i></div>
-              their_app.py<span class="tag">still works</span>
+              app.py<span class="tag">users import</span>
             </div>
             <pre set:html={heroPy} />
           </div>
         </div>
 
         <div class="stage-foot reveal">
-          <span>OpenAPI 3.x + stainless.yml in</span>
-          <span>Stainless-identical Python out</span>
-          <span>Built on Forge, Cloudflare's open engine</span>
+          <span>OpenAPI 3.x and stainless.yml in</span>
+          <span>SDKs out, in eight languages</span>
+          <span>One Rust binary, Forge built in</span>
         </div>
       </div>
 
@@ -274,6 +368,10 @@ const testsLabel = (r: BoardRow): string => {
                 <div class="marquee-item">
                   <b>80 / 80</b>
                   <span>generated code files identical</span>
+                </div>
+                <div class="marquee-item">
+                  <b>8</b>
+                  <span>SDK languages, all on main</span>
                 </div>
                 <div class="marquee-item">
                   <b>byte-for-byte</b>
@@ -297,41 +395,100 @@ const testsLabel = (r: BoardRow): string => {
     <section class="sec" id="why">
       <div class="wrap">
         <div class="sec-head">
-          <div class="kicker reveal">The situation</div>
-          <h2 class="h2 reveal d1">Your generator is going away. <em>Your users aren't.</em></h2>
+          <div class="kicker reveal">Why Ferrule</div>
+          <h2 class="h2 reveal d1">A spec is not an SDK. <em>Ferrule writes it.</em></h2>
           <p class="sub reveal d2">
-            Thousands of developers import the SDK you shipped. Every class name, every keyword argument, every
-            <code>with_raw_response</code> is a promise. You have three ways forward.
+            You maintain an OpenAPI document. Your users want a client they can import, in the languages you ship.
+            One config names the client, the resources and the methods.
           </p>
         </div>
         <div class="options">
           <div class="opt reveal">
             <span class="n">Option 01</span>
-            <h3>Switch to another generator</h3>
+            <h3>Write each SDK by hand</h3>
             <p>
-              It has its own house style. Class names move, params change shape, and your users find out from a
-              stack trace. Some free tiers put copyleft code inside your SDK.
+              Every new endpoint is a change in every language. The clients drift apart, and the spec stops being
+              the source of the code your users import.
             </p>
-            <span class="verdict">Your users rewrite their code</span>
+            <span class="verdict">The SDKs drift</span>
           </div>
           <div class="opt reveal d1">
             <span class="n">Option 02</span>
-            <h3>Freeze it and hand-maintain</h3>
+            <h3>Rent a hosted generator</h3>
             <p>
-              Works until the API ships a new endpoint. Then someone writes pagination by hand at 11pm, and the
-              SDK slowly drifts away from the spec it was built from.
+              Generation runs on someone else's service. You need an account. The licence on the code you ship
+              follows their terms.
             </p>
-            <span class="verdict">The SDK rots</span>
+            <span class="verdict">Their cloud, their terms</span>
           </div>
           <div class="opt win reveal d2">
             <span class="n">Option 03 · Ferrule</span>
-            <h3>Keep the SDK. Swap the engine.</h3>
+            <h3>Generate it on your machine</h3>
             <p>
-              Same spec, same <code>stainless.yml</code>, same Python, regenerated on an open engine you control. A
-              public API diff proves it before you merge.
+              One spec, one <code>stainless.yml</code>, an SDK per language. Deterministic output. A single Rust
+              binary. No account. The SDK does not depend on Ferrule.
             </p>
-            <span class="verdict">Nobody notices. That's the point.</span>
+            <span class="verdict">Yours, on your machine</span>
           </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec flush" id="adopt">
+      <div class="wrap">
+        <div class="sec-head">
+          <div class="kicker reveal">Moving over</div>
+          <h2 class="h2 reveal d1">Already have a stainless.yml? <em>Moving over is seamless.</em></h2>
+          <p class="sub reveal d2">
+            It is easy. You keep the config shape. Your users' code keeps working.
+            <code>ferrule adopt</code> reads that config, regenerates the SDKs, and proves the public surface before
+            you commit.
+          </p>
+        </div>
+        <ol class="next-steps reveal">
+          <li>
+            <span class="ns-n">01</span>
+            <h4>Adopt locally</h4>
+            <p>Rescue, regenerate, re-apply your edits and verify, inside a temporary worktree. Your checkout is never touched.</p>
+            <code class="ns-chip">ferrule adopt .</code>
+          </li>
+          <li>
+            <span class="ns-n">02</span>
+            <h4>Review one commit</h4>
+            <p>The spec, your patches, <code>ferrule.lock</code> and the workflow. Generated files differ by one header line.</p>
+            <code class="ns-chip">branch ferrule/adopt</code>
+          </li>
+          <li>
+            <span class="ns-n">03</span>
+            <h4>Push and let CI test</h4>
+            <p>Your existing test suite runs against the regenerated code, in your CI, like any other PR.</p>
+            <code class="ns-chip">gh pr create --fill</code>
+          </li>
+          <li>
+            <span class="ns-n">04</span>
+            <h4>Merge and release</h4>
+            <p>Nothing your users import has changed, so the next release is an ordinary patch.</p>
+            <code class="ns-chip">release · patch</code>
+          </li>
+          <li>
+            <span class="ns-n">05</span>
+            <h4>Stay current</h4>
+            <p>Every spec change opens a PR labelled major, minor or patch. A breaking change needs a human's label.</p>
+            <code class="ns-chip">sdk.yml · nightly</code>
+          </li>
+        </ol>
+        <div class="next-cta reveal">
+          <a class="btn btn-brass btn-lg" href="#proof">See the proof</a>
+          <a class="btn btn-lg" href={`${docs}quickstart/`}>Read the quickstart</a>
+          <button type="button" class="cmd" data-copy="uvx ferrule adopt ." aria-label="Copy adopt command">
+            <span class="cmd-text"><span class="p">$</span> uvx ferrule adopt .</span>
+            <span class="copy"
+              ><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                ><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"
+                ></path></svg
+              ></span
+            >
+          </button>
         </div>
       </div>
     </section>
@@ -342,8 +499,8 @@ const testsLabel = (r: BoardRow): string => {
           <div class="kicker reveal">The proof</div>
           <h2 class="h2 reveal d1">Not "compatible." <em>Identical.</em></h2>
           <p class="sub reveal d2">
-            Left: a file from the last Stainless release of the OneBusAway Python SDK. Right: Ferrule's output from
-            the same spec and config. Watch the comparison run.
+            This is the adoption check. Left: a file from the last Stainless release of the OneBusAway Python SDK.
+            Right: Ferrule, from the same spec and config. Watch the comparison run.
           </p>
         </div>
 
@@ -406,14 +563,95 @@ const testsLabel = (r: BoardRow): string => {
       </div>
     </section>
 
+    <section class="sec flush" id="languages">
+      <div class="wrap">
+        <div class="sec-head">
+          <div class="kicker reveal">Languages</div>
+          <h2 class="h2 reveal d1">Eight languages. <em>One model.</em></h2>
+          <p class="sub reveal d2">
+            Python, TypeScript, Go, Java, Kotlin, Ruby, PHP and C#, all on main. Each one is checked by regenerating
+            a real public SDK from its spec and config, counting the files that match, and running that SDK's own
+            tests.
+          </p>
+        </div>
+        <div class="board langs reveal">
+          <div class="board-head">
+            <span>Language</span><span>Status</span><span>Files identical</span><span>Proof</span><span>Plugin</span>
+          </div>
+          <div id="langRows">
+            {
+              languages.map((l) => (
+                <div class="brow">
+                  <span class="nm">{l.name}</span>
+                  <span class:list={['lg-st', l.status]}>{statusLabel[l.status]}</span>
+                  <span class="bar-wrap">
+                    <span class="bar">
+                      <i data-w={l.best ? ((l.best[0] / l.best[1]) * 100).toFixed(1) : 0} />
+                    </span>
+                    <span>{l.best ? `${l.best[0]}/${l.best[1]}` : 'n/a'}</span>
+                  </span>
+                  <span class="lg-pf">{l.proof}</span>
+                  <span class="lg-pr">
+                    {l.plugin ? <a href={`${repo}/tree/main/crates/${l.plugin}`}>{l.plugin}</a> : <span>—</span>}
+                  </span>
+                </div>
+              ))
+            }
+          </div>
+          <div class="board-foot">
+            <span>Identical files out of the total, best real SDK per language</span>
+            <a href={`${repo}/blob/main/docs/adr/0017-multi-language-targets.md`}>One language-neutral model: ADR 0017 →</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec flush" id="rust">
+      <div class="wrap">
+        <div class="sec-head">
+          <div class="kicker reveal">Built in Rust</div>
+          <h2 class="h2 reveal d1">One binary. <em>No Node, no WebAssembly.</em></h2>
+          <p class="sub reveal d2">
+            The converter, the model and every language plugin are Rust. <code>ferrule-gen</code> is a single binary
+            with Forge built in natively. No Node. No WebAssembly. The same inputs write the same files.
+          </p>
+        </div>
+        <div class="board perf reveal">
+          <div class="diff-foot">
+            <div class="stat">
+              <div class="v">8<small>MB</small></div>
+              <div class="l">one binary, Forge built in</div>
+            </div>
+            <div class="stat">
+              <div class="v">8</div>
+              <div class="l">SDK languages in that binary</div>
+            </div>
+            <div class="stat">
+              <div class="v">0</div>
+              <div class="l">accounts, tokens or telemetry</div>
+            </div>
+            <div class="stat">
+              <div class="v g">same</div>
+              <div class="l">sha256 on every run</div>
+            </div>
+          </div>
+          <div class="board-foot">
+            <span>No Node. No WebAssembly.</span>
+            <span>Byte-identical on every run</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section class="sec flush" id="how">
       <div class="wrap">
         <div class="sec-head">
           <div class="kicker reveal">How it works</div>
           <h2 class="h2 reveal d1">Five stages. <em>One of them borrowed.</em></h2>
           <p class="sub reveal d2">
-            We didn't build another generator. Forge, Cloudflare's Apache-2.0 engine, parses the spec. Ferrule adds
-            everything it doesn't do: reading your config, writing Stainless-shaped Python, and proving it.
+            Forge, Cloudflare's Apache-2.0 engine, parses the spec. Ferrule reads the config, keeps one
+            language-neutral model, and a plugin per language writes the SDK. The same inputs always write the same
+            files.
           </p>
         </div>
         <div class="pipe reveal">
@@ -424,7 +662,7 @@ const testsLabel = (r: BoardRow): string => {
               ><span class="chip">last release</span>
             </div>
             <div>
-              <b>Out</b><span class="chip">Python SDK</span><span class="chip">api.md</span><span class="chip"
+              <b>Out</b><span class="chip">an SDK per language</span><span class="chip">api.md</span><span class="chip"
                 >.stats.yml</span
               ><span class="chip">ferrule.lock</span><span class="chip">verify report</span>
             </div>
@@ -440,25 +678,25 @@ const testsLabel = (r: BoardRow): string => {
             <div class="st forge">
               <div class="dot">02</div>
               <h4>Forge</h4>
-              <p>A pinned Forge commit parses the annotated spec and runs our native plugin in the same process.</p>
-              <div class="own">dependency · never forked</div>
+              <p>A pinned Forge commit, built into the binary, parses the spec and runs the language plugin in process.</p>
+              <div class="own">dependency</div>
             </div>
             <div class="st">
               <div class="dot">03</div>
               <h4>Emit</h4>
-              <p>An adapter maps Forge data into our own model; pure emitters write every SDK file.</p>
-              <div class="own">python-plugin · Rust</div>
+              <p>An adapter maps Forge data into one language-neutral model; a plugin per language writes every file.</p>
+              <div class="own">sdk-model + plugins · Rust</div>
             </div>
             <div class="st">
               <div class="dot">04</div>
               <h4>Finish</h4>
-              <p>Copy the runtime from your repo, format with ruff, re-apply your custom code.</p>
+              <p>Copy the runtime from your repo, format it (ruff for Python), re-apply your custom code.</p>
               <div class="own">migrate · Python</div>
             </div>
             <div class="st">
               <div class="dot">05</div>
               <h4>Verify</h4>
-              <p>Diff the public API against your last release and give a semver verdict.</p>
+              <p>Diff the public API against a previous release and give a semver verdict.</p>
               <div class="own">migrate · Python</div>
             </div>
           </div>
@@ -471,35 +709,36 @@ const testsLabel = (r: BoardRow): string => {
         <div class="term-grid">
           <div>
             <div class="kicker reveal">Your first hour</div>
-            <h2 class="h2 reveal d1">One command to adopt. <em>Proof included.</em></h2>
+            <h2 class="h2 reveal d1">One command to generate. <em>The SDK is yours.</em></h2>
             <div class="steps-list reveal d2">
               <div>
                 <span class="i">01</span><span
-                  ><b>Rescue the spec</b><p>
-                    Your <code>.stats.yml</code> points at a spec in a bucket you don't own. Ferrule saves it and checks
-                    the hash.
+                  ><b>Bring an OpenAPI spec</b><p>
+                    The spec describes the API. Ferrule reads it locally. There is no account and no upload.
                   </p></span
                 >
               </div>
               <div>
                 <span class="i">02</span><span
-                  ><b>Convert and generate</b><p>
-                    Your config becomes Forge overlays. Your runtime is copied from your own repo, so you keep owning it.
+                  ><b>Name the SDK in stainless.yml</b><p>
+                    The config names the client, the resources and the methods. Ferrule validates it against the public
+                    schema.
                   </p></span
                 >
               </div>
               <div>
                 <span class="i">03</span><span
-                  ><b>Record your hand edits</b><p>
-                    Custom code becomes patches that are re-applied on every regeneration.
+                  ><b>Generate into an empty directory</b><p>
+                    <code>ferrule generate --spec --config --out</code> writes Python by default.
+                    <code>--target</code> selects go, java, kotlin, ruby, php or csharp.
                   </p></span
                 >
               </div>
               <div>
                 <span class="i">04</span><span
-                  ><b>Verify, then commit on a branch</b><p>
-                    The public API diff runs automatically. Everything lands on <code>ferrule/adopt</code>; nothing is
-                    pushed until you push it.
+                  ><b>Ship code that does not depend on Ferrule</b><p>
+                    The runtime is copied into the SDK. The command prints a sha256. The same inputs give the same
+                    digest.
                   </p></span
                 >
               </div>
@@ -508,59 +747,10 @@ const testsLabel = (r: BoardRow): string => {
           <div class="term reveal d1" id="term">
             <div class="term-head">
               <div class="dots"><i></i><i></i><i></i></div>
-              <span class="ttl">~/acme-python</span>
+              <span class="ttl">~/onebusaway</span>
             </div>
             <div class="term-body" id="termBody"><span class="caret"></span></div>
           </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="sec flush" id="next">
-      <div class="wrap">
-        <div class="sec-head">
-          <div class="kicker reveal">What happens next</div>
-          <h2 class="h2 reveal d1">From the first command <em>to the next release.</em></h2>
-          <p class="sub reveal d2">
-            Adoption is one reviewed pull request. After that, the SDK keeps itself current and you only read
-            diffs.
-          </p>
-        </div>
-        <ol class="next-steps reveal">
-          <li>
-            <span class="ns-n">01</span>
-            <h4>Adopt locally</h4>
-            <p>Rescue, regenerate, re-apply your edits and verify, inside a temporary worktree. Your checkout is never touched.</p>
-            <code class="ns-chip">ferrule adopt .</code>
-          </li>
-          <li>
-            <span class="ns-n">02</span>
-            <h4>Review one commit</h4>
-            <p>The spec, your patches, <code>ferrule.lock</code> and the workflow. Generated files differ by one header line.</p>
-            <code class="ns-chip">branch ferrule/adopt</code>
-          </li>
-          <li>
-            <span class="ns-n">03</span>
-            <h4>Push and let CI test</h4>
-            <p>Your existing test suite runs against the regenerated code, in your CI, like any other PR.</p>
-            <code class="ns-chip">gh pr create --fill</code>
-          </li>
-          <li>
-            <span class="ns-n">04</span>
-            <h4>Merge and release</h4>
-            <p>Nothing your users import has changed, so the next release is an ordinary patch.</p>
-            <code class="ns-chip">release · patch</code>
-          </li>
-          <li>
-            <span class="ns-n">05</span>
-            <h4>Stay current</h4>
-            <p>Every spec change opens a PR labelled major, minor or patch. A breaking change needs a human's label.</p>
-            <code class="ns-chip">sdk.yml · nightly</code>
-          </li>
-        </ol>
-        <div class="next-cta reveal">
-          <a class="btn btn-brass btn-lg" href={`${docs}quickstart/`}>Read the quickstart</a>
-          <a class="btn btn-lg" href={`${docs}commands/`}>Command reference</a>
         </div>
       </div>
     </section>
@@ -569,15 +759,15 @@ const testsLabel = (r: BoardRow): string => {
       <div class="wrap">
         <div class="sec-head">
           <div class="kicker reveal">What you get</div>
-          <h2 class="h2 reveal d1">More than a migration. <em>A better SDK, the same API.</em></h2>
+          <h2 class="h2 reveal d1">Run it yourself. <em>Own the SDK.</em></h2>
         </div>
         <div class="bento">
           <div class="tile w4 reveal">
             <div class="lab">ferrule verify</div>
-            <h3>Proof that nothing broke</h3>
+            <h3>A diff of the public API</h3>
             <p>
-              A public API diff against your last Stainless release, read with griffe and never imported. Our parity
-              harness also runs the SDK's own tests on the new output.
+              <code>ferrule verify</code> compares two SDK trees, read with griffe and never imported. Adoption runs
+              it against the last release. The parity harness also runs the SDK's own tests.
             </p>
             <div class="viz">
               <div class="report">
@@ -592,7 +782,8 @@ const testsLabel = (r: BoardRow): string => {
             <div class="lab">ferrule rescue</div>
             <h3>Your spec, saved</h3>
             <p>
-              Every Stainless repo points at a spec in a bucket that may disappear. Rescue alone is worth running today.
+              <code>ferrule rescue</code> copies the OpenAPI spec <code>.stats.yml</code> points at, and checks the
+              hash. Useful when that file lives in a bucket you don't control.
             </p>
             <div class="viz">
               <div class="rescue">
@@ -654,8 +845,8 @@ const testsLabel = (r: BoardRow): string => {
             <div class="lab">Fidelity board</div>
             <h3>Scores, published nightly</h3>
             <p>
-              We regenerate real public Stainless SDKs every night and publish the numbers, including the ones that
-              aren't green yet.
+              Real public SDKs, regenerated nightly. The numbers are published, including the rows that aren't green
+              yet.
             </p>
             <div class="viz">
               <a class="btn" href="#board"
@@ -673,10 +864,10 @@ const testsLabel = (r: BoardRow): string => {
       <div class="wrap">
         <div class="sec-head">
           <div class="kicker reveal">Compare</div>
-          <h2 class="h2 reveal d1">Others want you to switch. <em>We want you to stay.</em></h2>
+          <h2 class="h2 reveal d1">Local. Open. <em>No account.</em></h2>
           <p class="sub reveal d2">
-            Every other path asks your users to adapt to a new SDK. Ferrule is the only one that treats your existing
-            SDK as the specification.
+            Other generators bring their own style, or they run in someone else's cloud. Ferrule reads your config,
+            writes the SDK on your machine, and can prove what changed.
           </p>
         </div>
         <div class="cmp reveal">
@@ -698,7 +889,7 @@ const testsLabel = (r: BoardRow): string => {
                   ><td class="m">Partly</td><td>n/a</td>
                 </tr>
                 <tr>
-                  <th>Same Python your users import</th><td class="us y">Identical, by design</td><td class="n"
+                  <th>SDK your users can import</th><td class="us y">Eight languages, checked on real SDKs</td><td class="n"
                     >Its own style</td
                   ><td class="m">Close</td><td class="y">Until the spec changes</td>
                 </tr>
@@ -778,8 +969,10 @@ const testsLabel = (r: BoardRow): string => {
           <div class="kicker reveal">Fidelity board</div>
           <h2 class="h2 reveal d1">We publish the scoreboard. <em>Even the red.</em></h2>
           <p class="sub reveal d2">
-            {board.length} real Stainless Python SDKs, pinned at their last Stainless commit and regenerated by Ferrule.
-            Ferrule is pre-alpha: this board is how you'll know when yours is ready.
+            {board.length} real public Python SDKs, pinned at their last generated commit and regenerated by Ferrule.
+            They were originally produced from Stainless configs; that is the reference the board scores against. The
+            other languages' numbers are in the <a href="#languages">languages table</a>. Ferrule is pre-alpha: the
+            board is how close each SDK is.
           </p>
         </div>
         <div class="board reveal">
@@ -823,11 +1016,22 @@ const testsLabel = (r: BoardRow): string => {
         </div>
         <div class="reveal d1">
           <details open>
+            <summary>What do I need to generate an SDK?<span class="pm"></span></summary>
+            <div class="ans">
+              An OpenAPI spec and a <code>stainless.yml</code>.
+              <code>ferrule generate --spec openapi.yml --config stainless.yml --out sdk</code> writes Python into an
+              empty directory. <code>--target</code> selects go, java, kotlin, ruby, php or csharp. Until 0.1, run it
+              from a checkout with <code>uv run ferrule …</code>, as the
+              <a href={`${docs}quickstart/`}>quickstart</a> shows. The flags are the same.
+            </div>
+          </details>
+          <details>
             <summary>Will my users have to change any code?<span class="pm"></span></summary>
             <div class="ans">
-              No, and Ferrule checks that for you. <code>ferrule verify</code> diffs the public API of the new output
-              against your last Stainless release, and adoption runs it before anything is committed. The GitHub Action
-              fails if a breaking change arrives without a label.
+              On a new SDK, they import what you generated. Class and method names come from the config. If you are
+              adopting a Stainless-shaped SDK, <code>ferrule verify</code> diffs the public API against the last
+              release, and <code>adopt</code> runs that diff before anything is committed. The GitHub Action fails if a
+              breaking change arrives without a label.
             </div>
           </details>
           <details>
@@ -841,9 +1045,9 @@ const testsLabel = (r: BoardRow): string => {
           <details>
             <summary>Is the generated SDK really ours?<span class="pm"></span></summary>
             <div class="ans">
-              Yes. In adopt mode the runtime is copied from your own repository, so it stays under the licence you
-              already ship. The SDK has no dependency on Ferrule or Forge, and the generated code carries no
-              obligations.
+              Yes. The SDK has no dependency on Ferrule or Forge, and the generated code carries no obligations. In
+              adopt mode the runtime is copied from your own repository, so it stays under the licence you already
+              ship.
             </div>
           </details>
           <details>
@@ -857,8 +1061,9 @@ const testsLabel = (r: BoardRow): string => {
           <details>
             <summary>How ready is it?<span class="pm"></span></summary>
             <div class="ans">
-              Pre-alpha. The converter, plugin and runtime are done, and the OneBusAway SDK regenerates with zero
-              breaking changes and all 1,110 of its own tests passing. It isn't on PyPI yet: the
+              Pre-alpha. All eight languages are on main. In Python, the OneBusAway SDK regenerates with zero breaking
+              changes and all 1,110 of its own tests passing; the other languages' numbers are in the
+              <a href="#languages">languages table</a>. It isn't on PyPI yet: the
               <a href={`${docs}quickstart/`}>quickstart</a> shows how to run it from source. Watch the fidelity board
               for your kind of SDK.
             </div>
@@ -866,8 +1071,12 @@ const testsLabel = (r: BoardRow): string => {
           <details>
             <summary>Only Python?<span class="pm"></span></summary>
             <div class="ans">
-              For now, on purpose. One language done perfectly beats four done approximately. TypeScript comes after
-              Python is proven, and only if teams ask for it.
+              No. Ferrule generates Python, TypeScript, Go, Java, Kotlin, Ruby, PHP and C#, all on main.
+              <code>ferrule generate --target</code> selects Python (the default), Go, Java, Kotlin, Ruby, PHP and C#.
+              Each language is checked against real public SDKs. The seven newer ones are generated from one
+              language-neutral model, with one plugin per language; Python keeps its own adapter for now and moves onto
+              that model later. CLI and Terraform have not started: no public generated CLI or provider pairs with a
+              public config, so there is nothing to prove them against yet.
             </div>
           </details>
           <details>
@@ -885,10 +1094,19 @@ const testsLabel = (r: BoardRow): string => {
     <section class="final">
       <div class="ring-bg"></div><div class="ring-bg b2"></div>
       <div class="wrap">
-        <h2 class="display reveal">Same SDK as yesterday.<br /><em>Yours from now on.</em></h2>
+        <h2 class="display reveal">From the spec.<br /><em>The SDKs.</em></h2>
         <div class="hero-actions reveal d1">
-          <a class="btn btn-brass btn-lg" href={`${docs}quickstart/`}>Read the quickstart</a>
-          <a class="btn btn-lg" href={repo}>Star on GitHub</a>
+          <a class="btn btn-brass btn-lg" href={`${docs}quickstart/`}>Get started</a>
+          <a class="btn btn-lg" href={repo}
+            >Star on GitHub<span class="gh-stars" data-stars hidden
+              ><svg class="gh-star" viewBox="0 0 16 16" aria-hidden="true"
+                ><path
+                  fill="currentColor"
+                  d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z"
+                ></path></svg
+              ><span class="gh-count"></span></span
+            ></a
+          >
         </div>
       </div>
     </section>
@@ -906,7 +1124,8 @@ const testsLabel = (r: BoardRow): string => {
               Ferrule
             </a>
             <p class="foot-blurb">
-              A ferrule is the metal collar that joins two parts so firmly you forget there's a joint. That's the job.
+              A ferrule is the metal collar that joins two parts. This one joins an OpenAPI spec to the SDKs your users
+              import.
             </p>
           </div>
           <div>
@@ -938,7 +1157,6 @@ const testsLabel = (r: BoardRow): string => {
         </div>
         <div class="foot-legal">
           <span>Apache-2.0 · The Ferrule Authors</span>
-          <span>Ferrule is independent and not affiliated with Stainless or Cloudflare.</span>
         </div>
       </div>
     </footer>

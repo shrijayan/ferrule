@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["crates/converter", "crates/python-plugin", "crates/ferrule-gen"]
+members = ["crates/converter", "crates/sdk-model", "crates/python-plugin", "crates/jvm-plugin", "crates/go-plugin", "crates/ts-plugin", "crates/ruby-plugin", "crates/php-plugin", "crates/csharp-plugin", "crates/rust-plugin", "crates/ferrule-gen"]
 
 [workspace.package]
 version = "0.0.0"
@@ -15,6 +15,14 @@ forge = { git = "https://github.com/cloudflare/forge.git", rev = "91f52a40c746e8
 serde_json = { version = "1.0.151", features = ["preserve_order"] }
 ferrule-converter = { path = "crates/converter" }
 ferrule-python-plugin = { path = "crates/python-plugin" }
+ferrule-go-plugin = { path = "crates/go-plugin" }
+ferrule-jvm-plugin = { path = "crates/jvm-plugin" }
+ferrule-ruby-plugin = { path = "crates/ruby-plugin" }
+ferrule-php-plugin = { path = "crates/php-plugin" }
+ferrule-csharp-plugin = { path = "crates/csharp-plugin" }
+ferrule-rust-plugin = { path = "crates/rust-plugin" }
+ferrule-sdk-model = { path = "crates/sdk-model" }
+ferrule-ts-plugin = { path = "crates/ts-plugin" }
 
 [workspace.lints.rust]
 unsafe_code = "forbid"

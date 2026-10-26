@@ -660,6 +660,35 @@ mod client_order_streaming {
     }
 
     #[test]
+    fn writes_x_ferrule_client_for_a_config_without_a_python_target() {
+        // imagekit's csharp-branch config has only `targets.csharp`: the neutral model still
+        // needs the client settings and the custom casings, but there is no Python package.
+        let r = convert(
+            &make_spec(),
+            &v(&json!({
+                "organization": {"name": "acme"},
+                "targets": {"csharp": {"package_name": "Acme", "production_repo": "acme/acme-csharp"}},
+                "client_settings": {"idempotency": {"header": "Idempotency-Key"}},
+                "custom_casings": {"acme": {"pascal": "ACME"}},
+                "resources": {"users": {"methods": {"create": "post /users", "retrieve": "get /users/{id}"}}}
+            })),
+        );
+        assert_eq!(r.diagnostics, none());
+        let root = r.spec.get("x-ferrule-client").expect("client");
+        assert!(matches_object(
+            root,
+            &v(&json!({"name": "acme", "envPrefix": "ACME", "idempotencyHeader": "Idempotency-Key"}))
+        ));
+        let post = op(&r.spec, "/users", "post");
+        assert_eq!(post.get("x-ferrule-client"), Some(root));
+        assert!(post.get("x-ferrule-casings").is_some());
+        assert!(post.get("x-ferrule-targets").is_some());
+        // Python's settings stay Python's.
+        assert!(post.get("x-ferrule-package").is_none());
+        assert!(r.spec.get("x-ferrule-config").is_none());
+    }
+
+    #[test]
     fn passes_client_diagnostics_through() {
         let r = convert(
             &make_spec(),
@@ -824,8 +853,9 @@ resources: { a: { models: { thing: { type: { $ref: \"#/components/schemas/Thing\
 }
 
 /// imagekit `$shared.models`: `Transformation: { openapi_uri: '#/components/schemas/Transformation' }`
-/// is a model (Stainless writes `types/shared/transformation.py`); `only:` or `skip:` leaving
-/// Python out (`AITag: { only: [go, ruby, java] }`) is not one in Python, and says nothing.
+/// is a model (Stainless writes `types/shared/transformation.py`); `only:` or `skip:` lists give
+/// the targets that generate it (`x-ferrule-targets-only`). One no target generates is left out,
+/// and one leaving Python out never replaces a Python model of the same schema.
 #[test]
 fn reads_the_object_model_form_and_honours_only_and_skip() {
     let config = parse_config(
@@ -848,13 +878,13 @@ resources:
         ext(&r.spec, "/a", "x-ferrule-models"),
         Some(&v(&json!({
             "Thing": {"name": "Transformation", "module": "shared.transformation"},
-            "Ref": {"name": "References", "module": "shared.references"}
+            "Ref": {"name": "References", "module": "shared.references", "x-ferrule-targets-only": ["python", "go"]}
         })))
     );
 }
 
 /// `openapi_uri` into a sub-schema (`#/components/schemas/Extensions/items`) or a query, and
-/// `type: alias`, are not read yet: FER1004 at the entry, when the entry is for Python.
+/// `type: alias`, are not read yet: FER1004 at the entry, when some target generates it.
 #[test]
 fn warns_on_object_models_it_cannot_read() {
     let config = parse_config(
@@ -875,6 +905,7 @@ resources:
         [
             ("FER1004", "warning".to_owned(), "/resources/a/models/item"),
             ("FER1004", "warning".to_owned(), "/resources/a/models/old"),
+            ("FER1004", "warning".to_owned(), "/resources/a/models/java_only"),
         ]
     );
     assert_eq!(ext(&r.spec, "/a", "x-ferrule-models"), Some(&v(&json!({}))));

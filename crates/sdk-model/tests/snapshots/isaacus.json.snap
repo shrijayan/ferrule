@@ -1,0 +1,3348 @@
+{
+  "package": {"name": "isaacus", "repo": "isaacus-dev/isaacus-python"},
+  "targets": [
+    [
+      "python",
+      {
+        "package_name": "isaacus",
+        "edition": "python.2025-10-08",
+        "production_repo": "isaacus-dev/isaacus-python",
+        "options": {"options": {"use_uv": false}, "readme_title": "Isaacus Python"}
+      }
+    ],
+    [
+      "typescript",
+      {
+        "package_name": "isaacus",
+        "edition": "typescript.2025-10-08",
+        "production_repo": "isaacus-dev/isaacus-typescript",
+        "options": {
+          "options": {"mcp_server": {"enable_all_resources": true, "package_name": "isaacus-mcp"}},
+          "readme_title": "Isaacus TypeScript"
+        }
+      }
+    ]
+  ],
+  "version": "0.8.3",
+  "description": "Isaacus API\n\nA RESTful API for using Isaacus legal models, data and other solutions.",
+  "base_url": "https://api.isaacus.com/v1",
+  "settings": {
+    "name": {"written": "isaacus", "words": ["isaacus"]},
+    "env_prefix": "ISAACUS",
+    "opts": [
+      {
+        "name": {"written": "api_key", "words": ["api", "key"]},
+        "ty": "string",
+        "nullable": false,
+        "default": null,
+        "read_env": "ISAACUS_API_KEY",
+        "description": "An Isaacus-issued API key passed as a bearer token via the `Authorization` header.",
+        "auth": {"security_scheme": "APIKeyBearerTokenAuth", "role": "value"},
+        "send": null
+      }
+    ],
+    "environments": [
+      {
+        "name": {"written": "production", "words": ["production"]},
+        "url": "https://api.isaacus.com/v1"
+      }
+    ],
+    "default_environment": "production",
+    "security_schemes": [
+      {
+        "name": "APIKeyBearerTokenAuth",
+        "scheme": {"type": "http", "scheme": "bearer", "keyword": null}
+      }
+    ],
+    "security": [["APIKeyBearerTokenAuth"]],
+    "timeout_seconds": 60.0,
+    "max_retries": 2,
+    "initial_retry_delay_seconds": 0.5,
+    "max_retry_delay_seconds": 8.0,
+    "idempotency_header": null,
+    "default_headers": [],
+    "array_format": "comma",
+    "nested_format": "brackets"
+  },
+  "casings": [
+    {"word": "ilgs", "casing": {"initialism": true}},
+    {"word": "qa", "casing": {"initialism": true}},
+    {"word": "v1", "casing": {"pascal": "v1"}}
+  ],
+  "resources": [
+    {
+      "name": {"written": "embeddings", "words": ["embeddings"]},
+      "path": [{"written": "embeddings", "words": ["embeddings"]}],
+      "order": 0,
+      "methods": [
+        {
+          "name": {"written": "create", "words": ["create"]},
+          "pointer": "#/paths/~1embeddings/post",
+          "http_method": "post",
+          "path": "/embeddings",
+          "summary": "Embedding",
+          "description": "Vectorize content with an Isaacus embedding model.",
+          "order": 0,
+          "deprecated": false,
+          "path_params": [],
+          "query_params": [],
+          "header_params": [],
+          "body": {
+            "media_type": "application/json",
+            "required": true,
+            "description": "",
+            "schema_description": "A request to vectorize content with an Isaacus embedding model.",
+            "ty": {
+              "kind": "object",
+              "bases": [],
+              "fields": [
+                {
+                  "name": {"written": "dimensions", "words": ["dimensions"]},
+                  "wire_name": "dimensions",
+                  "required": false,
+                  "deprecated": false,
+                  "read_only": false,
+                  "description": "The number of dimensions the embeddings should have, not exceeding the maximum dimensions of the model.\n\nIf `null`, the model's default dimensions will be used.",
+                  "default": null,
+                  "ty": {"kind": "nullable", "inner": {"kind": "scalar", "scalar": "int"}}
+                },
+                {
+                  "name": {"written": "model", "words": ["model"]},
+                  "wire_name": "model",
+                  "required": true,
+                  "deprecated": false,
+                  "read_only": false,
+                  "description": "The ID of the [model](https://docs.isaacus.com/models#embedding) to use for embedding.",
+                  "default": null,
+                  "ty": {
+                    "kind": "enum",
+                    "members": [
+                      {
+                        "value": "kanon-2-embedder",
+                        "name": {
+                          "written": "kanon-2-embedder",
+                          "words": ["kanon", "2", "embedder"]
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "name": {"written": "overflow_strategy", "words": ["overflow", "strategy"]},
+                  "wire_name": "overflow_strategy",
+                  "required": false,
+                  "deprecated": false,
+                  "read_only": false,
+                  "description": "The strategy to employ when content exceeds the model's maximum input length.\n\n`drop_end`, which is the default setting, drops tokens from the end of the content exceeding the limit.\n\nIf `null`, an error will be raised if any content exceeds the model's maximum input length.",
+                  "default": "drop_end",
+                  "ty": {
+                    "kind": "nullable",
+                    "inner": {
+                      "kind": "enum",
+                      "members": [
+                        {
+                          "value": "drop_end",
+                          "name": {"written": "drop_end", "words": ["drop", "end"]}
+                        }
+                      ]
+                    }
+                  }
+                },
+                {
+                  "name": {"written": "task", "words": ["task"]},
+                  "wire_name": "task",
+                  "required": false,
+                  "deprecated": false,
+                  "read_only": false,
+                  "description": "The task the embeddings will be used for.\n\n`retrieval/query` is meant for queries and statements, and `retrieval/document` is meant for anything to be retrieved using query embeddings.\n\nIf `null`, which is the default setting, embeddings will not be optimized for any particular task.",
+                  "default": null,
+                  "ty": {
+                    "kind": "nullable",
+                    "inner": {
+                      "kind": "enum",
+                      "members": [
+                        {
+                          "value": "retrieval/query",
+                          "name": {"written": "retrieval/query", "words": ["retrieval", "query"]}
+                        },
+                        {
+                          "value": "retrieval/document",
+                          "name": {
+                            "written": "retrieval/document",
+                            "words": ["retrieval", "document"]
+                          }
+                        }
+                      ]
+                    }
+                  }
+                },
+                {
+                  "name": {"written": "texts", "words": ["texts"]},
+                  "wire_name": "texts",
+                  "required": true,
+                  "deprecated": false,
+                  "read_only": false,
+                  "description": "The text or array of texts to embed.\n\nEach text must contain at least one non-whitespace character.\n\nNo more than 128 texts can be embedded in a single request.",
+                  "default": null,
+                  "ty": {
+                    "kind": "union",
+                    "variants": [
+                      {
+                        "name": null,
+                        "discriminator_value": null,
+                        "ty": {"kind": "array", "items": {"kind": "scalar", "scalar": "string"}}
+                      },
+                      {
+                        "name": null,
+                        "discriminator_value": null,
+                        "ty": {"kind": "scalar", "scalar": "string"}
+                      }
+                    ],
+                    "discriminator": null,
+                    "exclusive": true
+                  }
+                }
+              ],
+              "extra": null,
+              "description": "A request to vectorize content with an Isaacus embedding model.",
+              "origin": "EmbeddingRequest"
+            }
+          },
+          "response": {
+            "status": "200",
+            "media_type": "application/json",
+            "ty": {
+              "kind": "ref",
+              "schema": "EmbeddingResponse",
+              "path": [{"written": "embedding_response", "words": ["embedding", "response"]}],
+              "name": {"written": "EmbeddingResponse", "words": ["embedding", "response"]}
+            }
+          },
+          "pagination": null,
+          "streaming": null
+        }
+      ],
+      "subresources": [],
+      "standalone": false
+    },
+    {
+      "name": {"written": "classifications", "words": ["classifications"]},
+      "path": [{"written": "classifications", "words": ["classifications"]}],
+      "order": 1,
+      "methods": [],
+      "subresources": [
+        {
+          "name": {"written": "universal", "words": ["universal"]},
+          "path": [
+            {"written": "classifications", "words": ["classifications"]},
+            {"written": "universal", "words": ["universal"]}
+          ],
+          "order": 0,
+          "methods": [
+            {
+              "name": {"written": "create", "words": ["create"]},
+              "pointer": "#/paths/~1classifications~1universal/post",
+              "http_method": "post",
+              "path": "/classifications/universal",
+              "summary": "Universal classification",
+              "description": "Classify documents with an Isaacus universal classification model.",
+              "order": 0,
+              "deprecated": false,
+              "path_params": [],
+              "query_params": [],
+              "header_params": [],
+              "body": {
+                "media_type": "application/json",
+                "required": true,
+                "description": "",
+                "schema_description": "A request to classify the relevance of documents to a query with an Isaacus universal classification model.",
+                "ty": {
+                  "kind": "object",
+                  "bases": [],
+                  "fields": [
+                    {
+                      "name": {"written": "chunking_options", "words": ["chunking", "options"]},
+                      "wire_name": "chunking_options",
+                      "required": false,
+                      "deprecated": false,
+                      "read_only": false,
+                      "description": "Settings for how the texts should be chunked into smaller segments before classification using [semchunk](https://github.com/isaacus-dev/semchunk).\n\nIf `null`, the texts will not be chunked and will instead be truncated to the maximum input length of the model less overhead if found to exceed that limit.\n\nChunking is enabled by default.",
+                      "default": null,
+                      "ty": {
+                        "kind": "nullable",
+                        "inner": {
+                          "kind": "object",
+                          "bases": [],
+                          "fields": [
+                            {
+                              "name": {"written": "overlap_ratio", "words": ["overlap", "ratio"]},
+                              "wire_name": "overlap_ratio",
+                              "required": false,
+                              "deprecated": false,
+                              "read_only": false,
+                              "description": "The proportion of the chunk size by which chunks should overlap.\n\nThe ratio must be less than 1.\n\nIf `null`, no overlapping will occur unless `overlap_tokens` is set.\n\n`overlap_ratio` and `overlap_tokens` cannot both be set.",
+                              "default": null,
+                              "ty": {
+                                "kind": "nullable",
+                                "inner": {"kind": "scalar", "scalar": "double"}
+                              }
+                            },
+                            {
+                              "name": {"written": "overlap_tokens", "words": ["overlap", "tokens"]},
+                              "wire_name": "overlap_tokens",
+                              "required": false,
+                              "deprecated": false,
+                              "read_only": false,
+                              "description": "The number of tokens by which chunks should overlap.\n\nIf `null`, no overlapping will occur unless `overlap_ratio` is set.\n\n`overlap_tokens` and `overlap_ratio` cannot both be set.",
+                              "default": null,
+                              "ty": {
+                                "kind": "nullable",
+                                "inner": {"kind": "scalar", "scalar": "int"}
+                              }
+                            },
+                            {
+                              "name": {"written": "size", "words": ["size"]},
+                              "wire_name": "size",
+                              "required": false,
+                              "deprecated": false,
+                              "read_only": false,
+                              "description": "The maximum number of tokens allowed in a chunk.\n\nIf `null`, the maximum input length of the model will be used less overhead.",
+                              "default": null,
+                              "ty": {
+                                "kind": "nullable",
+                                "inner": {"kind": "scalar", "scalar": "int"}
+                              }
+                            }
+                          ],
+                          "extra": null,
+                          "description": "Options for how to split text into smaller chunks.",
+                          "origin": "ChunkingOptions"
+                        }
+                      }
+                    },
+                    {
+                      "name": {"written": "is_iql", "words": ["is", "iql"]},
+                      "wire_name": "is_iql",
+                      "required": false,
+                      "deprecated": false,
+                      "read_only": false,
+                      "description": "Whether the query should be interpreted as an [IQL](https://docs.isaacus.com/iql) query or else as a statement.",
+                      "default": true,
+                      "ty": {"kind": "scalar", "scalar": "boolean"}
+                    },
+                    {
+                      "name": {"written": "model", "words": ["model"]},
+                      "wire_name": "model",
+                      "required": true,
+                      "deprecated": false,
+                      "read_only": false,
+                      "description": "The ID of the [model](https://docs.isaacus.com/models#universal-classification) to use for universal classification.",
+                      "default": null,
+                      "ty": {
+                        "kind": "enum",
+                        "members": [
+                          {
+                            "value": "kanon-universal-classifier",
+                            "name": {
+                              "written": "kanon-universal-classifier",
+                              "words": ["kanon", "universal", "classifier"]
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "name": {"written": "query", "words": ["query"]},
+                      "wire_name": "query",
+                      "required": true,
+                      "deprecated": false,
+                      "read_only": false,
+                      "description": "The [Isaacus Query Language (IQL)](https://docs.isaacus.com/iql) query or, if IQL is disabled, the statement, to evaluate the texts against.\n\nThe query must contain at least one non-whitespace character.\n\nUnlike the texts being classified, the query cannot be so long that it exceeds the maximum input length of the universal classifier.",
+                      "default": null,
+                      "ty": {"kind": "scalar", "scalar": "string"}
+                    },
+                    {
+                      "name": {"written": "scoring_method", "words": ["scoring", "method"]},
+                      "wire_name": "scoring_method",
+                      "required": false,
+                      "deprecated": false,
+                      "read_only": false,
+                      "description": "The method to use for producing an overall confidence score.\n\n`auto` is the default scoring method and is recommended for most use cases. Currently, it is equivalent to `chunk_max`. In the future, it will automatically select the best method based on the model and inputs.\n\n`chunk_max` uses the highest confidence score of all of the texts' chunks.\n\n`chunk_avg` averages the confidence scores of all of the texts' chunks.\n\n`chunk_min` uses the lowest confidence score of all of the texts' chunks.",
+                      "default": "auto",
+                      "ty": {
+                        "kind": "enum",
+                        "members": [
+                          {"value": "auto", "name": {"written": "auto", "words": ["auto"]}},
+                          {
+                            "value": "chunk_max",
+                            "name": {"written": "chunk_max", "words": ["chunk", "max"]}
+                          },
+                          {
+                            "value": "chunk_avg",
+                            "name": {"written": "chunk_avg", "words": ["chunk", "avg"]}
+                          },
+                          {
+                            "value": "chunk_min",
+                            "name": {"written": "chunk_min", "words": ["chunk", "min"]}
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "name": {"written": "texts", "words": ["texts"]},
+                      "wire_name": "texts",
+                      "required": true,
+                      "deprecated": false,
+                      "read_only": false,
+                      "description": "The texts to classify.\n\nEach text must contain at least one non-whitespace character.",
+                      "default": null,
+                      "ty": {"kind": "array", "items": {"kind": "scalar", "scalar": "string"}}
+                    }
+                  ],
+                  "extra": null,
+                  "description": "A request to classify the relevance of documents to a query with an Isaacus universal classification model.",
+                  "origin": "UniversalClassificationRequest"
+                }
+              },
+              "response": {
+                "status": "200",
+                "media_type": "application/json",
+                "ty": {
+                  "kind": "ref",
+                  "schema": "UniversalClassificationResponse",
+                  "path": [
+                    {"written": "classifications", "words": ["classifications"]},
+                    {"written": "universal", "words": ["universal"]},
+                    {
+                      "written": "universal_classification_response",
+                      "words": ["universal", "classification", "response"]
+                    }
+                  ],
+                  "name": {
+                    "written": "UniversalClassificationResponse",
+                    "words": ["universal", "classification", "response"]
+                  }
+                }
+              },
+              "pagination": null,
+              "streaming": null
+            }
+          ],
+          "subresources": [],
+          "standalone": true
+        }
+      ],
+      "standalone": false
+    },
+    {
+      "name": {"written": "rerankings", "words": ["rerankings"]},
+      "path": [{"written": "rerankings", "words": ["rerankings"]}],
+      "order": 2,
+      "methods": [
+        {
+          "name": {"written": "create", "words": ["create"]},
+          "pointer": "#/paths/~1rerankings/post",
+          "http_method": "post",
+          "path": "/rerankings",
+          "summary": "Reranking",
+          "description": "Score and rank documents by their relevance to queries with an Isaacus reranker.",
+          "order": 0,
+          "deprecated": false,
+          "path_params": [],
+          "query_params": [],
+          "header_params": [],
+          "body": {
+            "media_type": "application/json",
+            "required": true,
+            "description": "",
+            "schema_description": "A request to rerank documents by their relevance to a query with an Isaacus reranker.",
+            "ty": {
+              "kind": "object",
+              "bases": [],
+              "fields": [
+                {
+                  "name": {"written": "chunking_options", "words": ["chunking", "options"]},
+                  "wire_name": "chunking_options",
+                  "required": false,
+                  "deprecated": false,
+                  "read_only": false,
+                  "description": "Settings for how texts should be chunked into smaller segments by [semchunk](https://github.com/isaacus-dev/semchunk) before reranking.\n\nIf `null`, the texts will not be chunked and will instead be truncated to the maximum input length of the reranker less overhead if found to exceed that limit.\n\nChunking is enabled by default.",
+                  "default": null,
+                  "ty": {
+                    "kind": "nullable",
+                    "inner": {
+                      "kind": "object",
+                      "bases": [],
+                      "fields": [
+                        {
+                          "name": {"written": "overlap_ratio", "words": ["overlap", "ratio"]},
+                          "wire_name": "overlap_ratio",
+                          "required": false,
+                          "deprecated": false,
+                          "read_only": false,
+                          "description": "The proportion of the chunk size by which chunks should overlap.\n\nThe ratio must be less than 1.\n\nIf `null`, no overlapping will occur unless `overlap_tokens` is set.\n\n`overlap_ratio` and `overlap_tokens` cannot both be set.",
+                          "default": null,
+                          "ty": {
+                            "kind": "nullable",
+                            "inner": {"kind": "scalar", "scalar": "double"}
+                          }
+                        },
+                        {
+                          "name": {"written": "overlap_tokens", "words": ["overlap", "tokens"]},
+                          "wire_name": "overlap_tokens",
+                          "required": false,
+                          "deprecated": false,
+                          "read_only": false,
+                          "description": "The number of tokens by which chunks should overlap.\n\nIf `null`, no overlapping will occur unless `overlap_ratio` is set.\n\n`overlap_tokens` and `overlap_ratio` cannot both be set.",
+                          "default": null,
+                          "ty": {"kind": "nullable", "inner": {"kind": "scalar", "scalar": "int"}}
+                        },
+                        {
+                          "name": {"written": "size", "words": ["size"]},
+                          "wire_name": "size",
+                          "required": false,
+                          "deprecated": false,
+                          "read_only": false,
+                          "description": "The maximum number of tokens allowed in a chunk.\n\nIf `null`, the maximum input length of the model will be used less overhead.",
+                          "default": null,
+                          "ty": {"kind": "nullable", "inner": {"kind": "scalar", "scalar": "int"}}
+                        }
+                      ],
+                      "extra": null,
+                      "description": "Options for how to split text into smaller chunks.",
+                      "origin": "ChunkingOptions"
+                    }
+                  }
+                },
+                {
+                  "name": {"written": "is_iql", "words": ["is", "iql"]},
+                  "wire_name": "is_iql",
+                  "required": false,
+                  "deprecated": false,
+                  "read_only": false,
+                  "description": "Whether the query should be interpreted as an [Isaacus Query Language (IQL)](https://docs.isaacus.com/iql) query, which is not the case by default.\n\nIf you allow untrusted users to construct their own queries, think carefully before enabling IQL since queries can be crafted to consume an excessively large amount of tokens.",
+                  "default": false,
+                  "ty": {"kind": "scalar", "scalar": "boolean"}
+                },
+                {
+                  "name": {"written": "model", "words": ["model"]},
+                  "wire_name": "model",
+                  "required": true,
+                  "deprecated": false,
+                  "read_only": false,
+                  "description": "The ID of the model to use for reranking, being either a [reranking model](https://docs.isaacus.com/models/introduction#reranking) or [universal classification model](https://docs.isaacus.com/models/introduction#universal-classification).",
+                  "default": null,
+                  "ty": {
+                    "kind": "enum",
+                    "members": [
+                      {
+                        "value": "kanon-2-reranker",
+                        "name": {
+                          "written": "kanon-2-reranker",
+                          "words": ["kanon", "2", "reranker"]
+                        }
+                      },
+                      {
+                        "value": "kanon-universal-classifier",
+                        "name": {
+                          "written": "kanon-universal-classifier",
+                          "words": ["kanon", "universal", "classifier"]
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "name": {"written": "query", "words": ["query"]},
+                  "wire_name": "query",
+                  "required": true,
+                  "deprecated": false,
+                  "read_only": false,
+                  "description": "The query to evaluate the relevance of the texts to.\n\nThe query must contain at least one non-whitespace character.\n\nUnlike the texts being reranked, the query cannot be so long that it exceeds the maximum input length of the reranker.",
+                  "default": null,
+                  "ty": {"kind": "scalar", "scalar": "string"}
+                },
+                {
+                  "name": {"written": "scoring_method", "words": ["scoring", "method"]},
+                  "wire_name": "scoring_method",
+                  "required": false,
+                  "deprecated": false,
+                  "read_only": false,
+                  "description": "The method to use for producing an overall relevance score for a text that exceeds the model's local context window and has, therefore, been split into multiple chunks.\n\n`auto` is the default scoring method and is recommended for most use cases. Currently, it is equivalent to `chunk_max`. In the future, it will automatically select the best method based on the model and inputs.\n\n`chunk_max` uses the highest relevance score of all of a text's chunks.\n\n`chunk_avg` averages the relevance scores of all of a text's chunks.\n\n`chunk_min` uses the lowest relevance score of all of a text's chunks.",
+                  "default": "auto",
+                  "ty": {
+                    "kind": "enum",
+                    "members": [
+                      {"value": "auto", "name": {"written": "auto", "words": ["auto"]}},
+                      {
+                        "value": "chunk_max",
+                        "name": {"written": "chunk_max", "words": ["chunk", "max"]}
+                      },
+                      {
+                        "value": "chunk_avg",
+                        "name": {"written": "chunk_avg", "words": ["chunk", "avg"]}
+                      },
+                      {
+                        "value": "chunk_min",
+                        "name": {"written": "chunk_min", "words": ["chunk", "min"]}
+                      }
+                    ]
+                  }
+                },
+                {
+                  "name": {"written": "texts", "words": ["texts"]},
+                  "wire_name": "texts",
+                  "required": true,
+                  "deprecated": false,
+                  "read_only": false,
+                  "description": "The texts to rerank.\n\nThere must be at least one text.\n\nEach text must contain at least one non-whitespace character.",
+                  "default": null,
+                  "ty": {"kind": "array", "items": {"kind": "scalar", "scalar": "string"}}
+                },
+                {
+                  "name": {"written": "top_n", "words": ["top", "n"]},
+                  "wire_name": "top_n",
+                  "required": false,
+                  "deprecated": false,
+                  "read_only": false,
+                  "description": "The number of highest scoring results to return.\n\nIf `null`, which is the default, all results will be returned.",
+                  "default": null,
+                  "ty": {"kind": "nullable", "inner": {"kind": "scalar", "scalar": "int"}}
+                }
+              ],
+              "extra": null,
+              "description": "A request to rerank documents by their relevance to a query with an Isaacus reranker.",
+              "origin": "RerankingRequest"
+            }
+          },
+          "response": {
+            "status": "200",
+            "media_type": "application/json",
+            "ty": {
+              "kind": "ref",
+              "schema": "RerankingResponse",
+              "path": [{"written": "reranking_response", "words": ["reranking", "response"]}],
+              "name": {"written": "RerankingResponse", "words": ["reranking", "response"]}
+            }
+          },
+          "pagination": null,
+          "streaming": null
+        }
+      ],
+      "subresources": [],
+      "standalone": false
+    },
+    {
+      "name": {"written": "extractions", "words": ["extractions"]},
+      "path": [{"written": "extractions", "words": ["extractions"]}],
+      "order": 3,
+      "methods": [],
+      "subresources": [
+        {
+          "name": {"written": "qa", "words": ["qa"]},
+          "path": [
+            {"written": "extractions", "words": ["extractions"]},
+            {"written": "qa", "words": ["qa"]}
+          ],
+          "order": 0,
+          "methods": [
+            {
+              "name": {"written": "create", "words": ["create"]},
+              "pointer": "#/paths/~1extractions~1qa/post",
+              "http_method": "post",
+              "path": "/extractions/qa",
+              "summary": "Extractive question answering",
+              "description": "Extract information from documents with an Isaacus extractive question answering model.",
+              "order": 0,
+              "deprecated": false,
+              "path_params": [],
+              "query_params": [],
+              "header_params": [],
+              "body": {
+                "media_type": "application/json",
+                "required": true,
+                "description": "",
+                "schema_description": "A request to extract answers from documents with an Isaacus extractive question answering model.",
+                "ty": {
+                  "kind": "object",
+                  "bases": [],
+                  "fields": [
+                    {
+                      "name": {"written": "chunking_options", "words": ["chunking", "options"]},
+                      "wire_name": "chunking_options",
+                      "required": false,
+                      "deprecated": false,
+                      "read_only": false,
+                      "description": "Settings for how texts should be chunked into smaller segments by [semchunk](https://github.com/isaacus-dev/semchunk) before extraction.\n\nIf `null`, the texts will not be chunked and will instead be truncated to the maximum input length of the model less overhead if found to exceed that limit.\n\nChunking is enabled by default.",
+                      "default": null,
+                      "ty": {
+                        "kind": "nullable",
+                        "inner": {
+                          "kind": "object",
+                          "bases": [],
+                          "fields": [
+                            {
+                              "name": {"written": "overlap_ratio", "words": ["overlap", "ratio"]},
+                              "wire_name": "overlap_ratio",
+                              "required": false,
+                              "deprecated": false,
+                              "read_only": false,
+                              "description": "The proportion of the chunk size by which chunks should overlap.\n\nThe ratio must be less than 1.\n\nIf `null`, no overlapping will occur unless `overlap_tokens` is set.\n\n`overlap_ratio` and `overlap_tokens` cannot both be set.",
+                              "default": null,
+                              "ty": {
+                                "kind": "nullable",
+                                "inner": {"kind": "scalar", "scalar": "double"}
+                              }
+                            },
+                            {
+                              "name": {"written": "overlap_tokens", "words": ["overlap", "tokens"]},
+                              "wire_name": "overlap_tokens",
+                              "required": false,
+                              "deprecated": false,
+                              "read_only": false,
+                              "description": "The number of tokens by which chunks should overlap.\n\nIf `null`, no overlapping will occur unless `overlap_ratio` is set.\n\n`overlap_tokens` and `overlap_ratio` cannot both be set.",
+                              "default": null,
+                              "ty": {
+                                "kind": "nullable",
+                                "inner": {"kind": "scalar", "scalar": "int"}
+                              }
+                            },
+                            {
+                              "name": {"written": "size", "words": ["size"]},
+                              "wire_name": "size",
+                              "required": false,
+                              "deprecated": false,
+                              "read_only": false,
+                              "description": "The maximum number of tokens allowed in a chunk.\n\nIf `null`, the maximum input length of the model will be used less overhead.",
+                              "default": null,
+                              "ty": {
+                                "kind": "nullable",
+                                "inner": {"kind": "scalar", "scalar": "int"}
+                              }
+                            }
+                          ],
+                          "extra": null,
+                          "description": "Options for how to split text into smaller chunks.",
+                          "origin": "ChunkingOptions"
+                        }
+                      }
+                    },
+                    {
+                      "name": {
+                        "written": "ignore_inextractability",
+                        "words": ["ignore", "inextractability"]
+                      },
+                      "wire_name": "ignore_inextractability",
+                      "required": false,
+                      "deprecated": false,
+                      "read_only": false,
+                      "description": "Whether to, if the model's score of the likelihood that an answer can not be extracted from a text is greater than the highest score of all possible answers, still return the highest scoring answers for that text.\n\nIf you have already determined that the texts answer the query, for example, by using one of our classification or reranker models, then you should set this to `true`.",
+                      "default": false,
+                      "ty": {"kind": "scalar", "scalar": "boolean"}
+                    },
+                    {
+                      "name": {"written": "model", "words": ["model"]},
+                      "wire_name": "model",
+                      "required": true,
+                      "deprecated": false,
+                      "read_only": false,
+                      "description": "The ID of the [model](https://docs.isaacus.com/models#extractive-question-answering) to use for extractive question answering.",
+                      "default": null,
+                      "ty": {
+                        "kind": "enum",
+                        "members": [
+                          {
+                            "value": "kanon-answer-extractor",
+                            "name": {
+                              "written": "kanon-answer-extractor",
+                              "words": ["kanon", "answer", "extractor"]
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "name": {"written": "query", "words": ["query"]},
+                      "wire_name": "query",
+                      "required": true,
+                      "deprecated": false,
+                      "read_only": false,
+                      "description": "The query to extract the answer to.\n\nThe query must contain at least one non-whitespace character.\n\nUnlike the texts from which the answer will be extracted, the query cannot be so long that it exceeds the maximum input length of the model.",
+                      "default": null,
+                      "ty": {"kind": "scalar", "scalar": "string"}
+                    },
+                    {
+                      "name": {"written": "texts", "words": ["texts"]},
+                      "wire_name": "texts",
+                      "required": true,
+                      "deprecated": false,
+                      "read_only": false,
+                      "description": "The texts to search for the answer in and extract the answer from.\n\nThere must be at least one text.\n\nEach text must contain at least one non-whitespace character.",
+                      "default": null,
+                      "ty": {"kind": "array", "items": {"kind": "scalar", "scalar": "string"}}
+                    },
+                    {
+                      "name": {"written": "top_k", "words": ["top", "k"]},
+                      "wire_name": "top_k",
+                      "required": false,
+                      "deprecated": false,
+                      "read_only": false,
+                      "description": "The number of highest scoring answers to return.\n\nIf `null`, which is the default, all answers will be returned.",
+                      "default": 1,
+                      "ty": {"kind": "scalar", "scalar": "int"}
+                    }
+                  ],
+                  "extra": null,
+                  "description": "A request to extract answers from documents with an Isaacus extractive question answering model.",
+                  "origin": "AnswerExtractionRequest"
+                }
+              },
+              "response": {
+                "status": "200",
+                "media_type": "application/json",
+                "ty": {
+                  "kind": "ref",
+                  "schema": "AnswerExtractionResponse",
+                  "path": [
+                    {"written": "extractions", "words": ["extractions"]},
+                    {"written": "qa", "words": ["qa"]},
+                    {
+                      "written": "answer_extraction_response",
+                      "words": ["answer", "extraction", "response"]
+                    }
+                  ],
+                  "name": {
+                    "written": "AnswerExtractionResponse",
+                    "words": ["answer", "extraction", "response"]
+                  }
+                }
+              },
+              "pagination": null,
+              "streaming": null
+            }
+          ],
+          "subresources": [],
+          "standalone": true
+        }
+      ],
+      "standalone": false
+    },
+    {
+      "name": {"written": "enrichments", "words": ["enrichments"]},
+      "path": [{"written": "enrichments", "words": ["enrichments"]}],
+      "order": 4,
+      "methods": [
+        {
+          "name": {"written": "create", "words": ["create"]},
+          "pointer": "#/paths/~1enrichments/post",
+          "http_method": "post",
+          "path": "/enrichments",
+          "summary": "Enrichment",
+          "description": "Enrich documents with an Isaacus enrichment model.",
+          "order": 0,
+          "deprecated": false,
+          "path_params": [],
+          "query_params": [],
+          "header_params": [],
+          "body": {
+            "media_type": "application/json",
+            "required": true,
+            "description": "",
+            "schema_description": "A request to enrich texts with an Isaacus enrichment model.",
+            "ty": {
+              "kind": "object",
+              "bases": [],
+              "fields": [
+                {
+                  "name": {"written": "model", "words": ["model"]},
+                  "wire_name": "model",
+                  "required": true,
+                  "deprecated": false,
+                  "read_only": false,
+                  "description": "The ID of the [model](https://docs.isaacus.com/models#enrichment) to use for enrichment.",
+                  "default": null,
+                  "ty": {
+                    "kind": "enum",
+                    "members": [
+                      {
+                        "value": "kanon-2-enricher",
+                        "name": {
+                          "written": "kanon-2-enricher",
+                          "words": ["kanon", "2", "enricher"]
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "name": {"written": "overflow_strategy", "words": ["overflow", "strategy"]},
+                  "wire_name": "overflow_strategy",
+                  "required": false,
+                  "deprecated": false,
+                  "read_only": false,
+                  "description": "The strategy for handling content exceeding the model's maximum input length.\n\n`auto`, which is the recommended setting, currently behaves the same as `chunk`, which intelligently breaks the input up into smaller chunks and then stitches the results back together into a single prediction. In the future `auto` may implement even more sophisticated strategies for handling long contexts such as leveraging chunk overlap and/or a specialized stitching model.\n\n`chunk` breaks the input up into smaller chunks that fit within the model's context window and then intelligently merges the results into a single prediction at the cost of a minor accuracy drop.\n\n`drop_end` drops tokens from the end of input exceeding the model's maximum input length.\n\n`null`, which is the default setting, raises an error if the input exceeds the model's maximum input length.",
+                  "default": null,
+                  "ty": {
+                    "kind": "nullable",
+                    "inner": {
+                      "kind": "enum",
+                      "members": [
+                        {"value": "auto", "name": {"written": "auto", "words": ["auto"]}},
+                        {
+                          "value": "drop_end",
+                          "name": {"written": "drop_end", "words": ["drop", "end"]}
+                        },
+                        {"value": "chunk", "name": {"written": "chunk", "words": ["chunk"]}}
+                      ]
+                    }
+                  }
+                },
+                {
+                  "name": {"written": "texts", "words": ["texts"]},
+                  "wire_name": "texts",
+                  "required": true,
+                  "deprecated": false,
+                  "read_only": false,
+                  "description": "A text or array of texts to be enriched, each containing at least one non-whitespace character.\n\nNo more than 8 texts can be enriched in a single request.",
+                  "default": null,
+                  "ty": {
+                    "kind": "union",
+                    "variants": [
+                      {
+                        "name": null,
+                        "discriminator_value": null,
+                        "ty": {"kind": "array", "items": {"kind": "scalar", "scalar": "string"}}
+                      },
+                      {
+                        "name": null,
+                        "discriminator_value": null,
+                        "ty": {"kind": "scalar", "scalar": "string"}
+                      }
+                    ],
+                    "discriminator": null,
+                    "exclusive": true
+                  }
+                }
+              ],
+              "extra": null,
+              "description": "A request to enrich texts with an Isaacus enrichment model.",
+              "origin": "EnrichmentRequest"
+            }
+          },
+          "response": {
+            "status": "200",
+            "media_type": "application/json",
+            "ty": {
+              "kind": "ref",
+              "schema": "EnrichmentResponse",
+              "path": [{"written": "enrichment_response", "words": ["enrichment", "response"]}],
+              "name": {"written": "EnrichmentResponse", "words": ["enrichment", "response"]}
+            }
+          },
+          "pagination": null,
+          "streaming": null
+        }
+      ],
+      "subresources": [],
+      "standalone": false
+    },
+    {
+      "name": {"written": "ilgs", "words": ["ilgs"]},
+      "path": [{"written": "ilgs", "words": ["ilgs"]}],
+      "order": 5,
+      "methods": [],
+      "subresources": [
+        {
+          "name": {"written": "v1", "words": ["v1"]},
+          "path": [{"written": "ilgs", "words": ["ilgs"]}, {"written": "v1", "words": ["v1"]}],
+          "order": 0,
+          "methods": [],
+          "subresources": [],
+          "standalone": true
+        }
+      ],
+      "standalone": false
+    }
+  ],
+  "client_methods": [],
+  "models": [
+    {
+      "ref": {
+        "schema": "UniversalClassificationResponse",
+        "path": [
+          {"written": "classifications", "words": ["classifications"]},
+          {"written": "universal", "words": ["universal"]},
+          {
+            "written": "universal_classification_response",
+            "words": ["universal", "classification", "response"]
+          }
+        ],
+        "name": {
+          "written": "UniversalClassificationResponse",
+          "words": ["universal", "classification", "response"]
+        }
+      },
+      "description": "Universal classification response",
+      "deprecated": false,
+      "ty": {
+        "kind": "object",
+        "bases": [],
+        "fields": [
+          {
+            "name": {"written": "classifications", "words": ["classifications"]},
+            "wire_name": "classifications",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "The classifications of the texts, by relevance to the query, in order from highest to lowest confidence score.",
+            "default": null,
+            "ty": {
+              "kind": "array",
+              "items": {
+                "kind": "object",
+                "bases": [],
+                "fields": [
+                  {
+                    "name": {"written": "chunks", "words": ["chunks"]},
+                    "wire_name": "chunks",
+                    "required": true,
+                    "deprecated": false,
+                    "read_only": false,
+                    "description": "The text as broken into chunks by [semchunk](https://github.com/isaacus-dev/semchunk), each chunk with its own confidence score, ordered from highest to lowest score.\n\nIf no chunking occurred, this will be `null`.",
+                    "default": null,
+                    "ty": {
+                      "kind": "nullable",
+                      "inner": {
+                        "kind": "array",
+                        "items": {
+                          "kind": "object",
+                          "bases": [],
+                          "fields": [
+                            {
+                              "name": {"written": "end", "words": ["end"]},
+                              "wire_name": "end",
+                              "required": true,
+                              "deprecated": false,
+                              "read_only": false,
+                              "description": "The index of the character immediately after the last character of the chunk in the original text, beginning from `0` (such that, in Python, the chunk is equivalent to `text[start:end]`).",
+                              "default": null,
+                              "ty": {"kind": "scalar", "scalar": "int"}
+                            },
+                            {
+                              "name": {"written": "index", "words": ["index"]},
+                              "wire_name": "index",
+                              "required": true,
+                              "deprecated": false,
+                              "read_only": false,
+                              "description": "The original position of the chunk in the outputted list of chunks before sorting, starting from `0` (and, therefore, ending at the number of chunks minus `1`).",
+                              "default": null,
+                              "ty": {"kind": "scalar", "scalar": "int"}
+                            },
+                            {
+                              "name": {"written": "score", "words": ["score"]},
+                              "wire_name": "score",
+                              "required": true,
+                              "deprecated": false,
+                              "read_only": false,
+                              "description": "The model's score of the likelihood that the query expressed about the chunk is supported by the chunk.\n\nA score greater than `0.5` indicates that the chunk supports the query, while a score less than `0.5` indicates that the chunk does not support the query.",
+                              "default": null,
+                              "ty": {"kind": "scalar", "scalar": "double"}
+                            },
+                            {
+                              "name": {"written": "start", "words": ["start"]},
+                              "wire_name": "start",
+                              "required": true,
+                              "deprecated": false,
+                              "read_only": false,
+                              "description": "The index of the character in the original text where the chunk starts, beginning from `0`.",
+                              "default": null,
+                              "ty": {"kind": "scalar", "scalar": "int"}
+                            },
+                            {
+                              "name": {"written": "text", "words": ["text"]},
+                              "wire_name": "text",
+                              "required": true,
+                              "deprecated": false,
+                              "read_only": false,
+                              "description": "The text of the chunk.",
+                              "default": null,
+                              "ty": {"kind": "scalar", "scalar": "string"}
+                            }
+                          ],
+                          "extra": null,
+                          "description": "Universal classification chunk",
+                          "origin": "UniversalClassificationChunk"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "name": {"written": "index", "words": ["index"]},
+                    "wire_name": "index",
+                    "required": true,
+                    "deprecated": false,
+                    "read_only": false,
+                    "description": "The index of the text in the input array of texts, starting from `0` (and, therefore, ending at the number of texts minus `1`).",
+                    "default": null,
+                    "ty": {"kind": "scalar", "scalar": "int"}
+                  },
+                  {
+                    "name": {"written": "score", "words": ["score"]},
+                    "wire_name": "score",
+                    "required": true,
+                    "deprecated": false,
+                    "read_only": false,
+                    "description": "A score of the likelihood that the query expressed about the text is supported by the text.\n\nA score greater than `0.5` indicates that the text supports the query, while a score less than `0.5` indicates that the text does not support the query.",
+                    "default": null,
+                    "ty": {"kind": "scalar", "scalar": "double"}
+                  }
+                ],
+                "extra": null,
+                "description": "Universal classification",
+                "origin": "UniversalClassification"
+              }
+            }
+          },
+          {
+            "name": {"written": "usage", "words": ["usage"]},
+            "wire_name": "usage",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "Statistics about the usage of resources in the process of classifying the text.",
+            "default": null,
+            "ty": {
+              "kind": "object",
+              "bases": [],
+              "fields": [
+                {
+                  "name": {"written": "input_tokens", "words": ["input", "tokens"]},
+                  "wire_name": "input_tokens",
+                  "required": true,
+                  "deprecated": false,
+                  "read_only": false,
+                  "description": "The number of tokens inputted to the model.",
+                  "default": null,
+                  "ty": {"kind": "scalar", "scalar": "int"}
+                }
+              ],
+              "extra": null,
+              "description": "Statistics about the usage of resources in the process of classifying the text.",
+              "origin": "UniversalClassificationUsage"
+            }
+          }
+        ],
+        "extra": null,
+        "description": null,
+        "origin": null
+      }
+    },
+    {
+      "ref": {
+        "schema": "EmbeddingResponse",
+        "path": [{"written": "embedding_response", "words": ["embedding", "response"]}],
+        "name": {"written": "EmbeddingResponse", "words": ["embedding", "response"]}
+      },
+      "description": "Embedding response",
+      "deprecated": false,
+      "ty": {
+        "kind": "object",
+        "bases": [],
+        "fields": [
+          {
+            "name": {"written": "embeddings", "words": ["embeddings"]},
+            "wire_name": "embeddings",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "The embeddings of the inputs.",
+            "default": null,
+            "ty": {
+              "kind": "array",
+              "items": {
+                "kind": "object",
+                "bases": [],
+                "fields": [
+                  {
+                    "name": {"written": "embedding", "words": ["embedding"]},
+                    "wire_name": "embedding",
+                    "required": true,
+                    "deprecated": false,
+                    "read_only": false,
+                    "description": "The embedding of the content represented as an array of floating point numbers.",
+                    "default": null,
+                    "ty": {"kind": "array", "items": {"kind": "scalar", "scalar": "double"}}
+                  },
+                  {
+                    "name": {"written": "index", "words": ["index"]},
+                    "wire_name": "index",
+                    "required": true,
+                    "deprecated": false,
+                    "read_only": false,
+                    "description": "The position of the content in the input array of contents, starting from `0` (and, therefore, ending at the number of contents minus `1`).",
+                    "default": null,
+                    "ty": {"kind": "scalar", "scalar": "int"}
+                  }
+                ],
+                "extra": null,
+                "description": "Embedding",
+                "origin": "Embedding"
+              }
+            }
+          },
+          {
+            "name": {"written": "usage", "words": ["usage"]},
+            "wire_name": "usage",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "Statistics about the usage of resources in the process of embedding the inputs.",
+            "default": null,
+            "ty": {
+              "kind": "object",
+              "bases": [],
+              "fields": [
+                {
+                  "name": {"written": "input_tokens", "words": ["input", "tokens"]},
+                  "wire_name": "input_tokens",
+                  "required": true,
+                  "deprecated": false,
+                  "read_only": false,
+                  "description": "The number of tokens inputted to the model.",
+                  "default": null,
+                  "ty": {"kind": "scalar", "scalar": "int"}
+                }
+              ],
+              "extra": null,
+              "description": "Statistics about the usage of resources in the process of embedding the inputs.",
+              "origin": "EmbeddingUsage"
+            }
+          }
+        ],
+        "extra": null,
+        "description": null,
+        "origin": null
+      }
+    },
+    {
+      "ref": {
+        "schema": "EnrichmentResponse",
+        "path": [{"written": "enrichment_response", "words": ["enrichment", "response"]}],
+        "name": {"written": "EnrichmentResponse", "words": ["enrichment", "response"]}
+      },
+      "description": "Enrichment response",
+      "deprecated": false,
+      "ty": {
+        "kind": "object",
+        "bases": [],
+        "fields": [
+          {
+            "name": {"written": "results", "words": ["results"]},
+            "wire_name": "results",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "The enriched documents alongside, and in order of, their indices in the input array of texts.",
+            "default": null,
+            "ty": {
+              "kind": "array",
+              "items": {
+                "kind": "object",
+                "bases": [],
+                "fields": [
+                  {
+                    "name": {"written": "document", "words": ["document"]},
+                    "wire_name": "document",
+                    "required": true,
+                    "deprecated": false,
+                    "read_only": false,
+                    "description": "The document enriched into version 1.0.0 of the [Isaacus Legal Document Graph Schema (ILDGS)](https://docs.isaacus.com/ildgs).\n\nAll spans in an enriched document graph are indexed into the Unicode code point space of a source document.\n\nThe start and end indices of spans are zero-based (i.e., the first Unicode code point in the document is at index 0) and half-open (i.e., the end index is exclusive).\n\nAll spans are globally laminar and well-nested similar to XML—it is impossible for any two spans to partially overlap; they can only be disjoint, adjacent, or wholly nested.\n\nSpans of the exact same type (e.g., segments) will never be duplicated.\n\nSpans cannot be empty and will never start or end at whitespace.\n\nWhen using programming languages other than Python (which uses zero-based, half-open, Unicode code point-spaced string indexing), indices may need to be translated accordingly (for example, JavaScript slices into UTF-16 code units instead of Unicode code points).",
+                    "default": null,
+                    "ty": {
+                      "kind": "ref",
+                      "schema": "ILGSv1Document",
+                      "path": [
+                        {"written": "ilgs", "words": ["ilgs"]},
+                        {"written": "v1", "words": ["v1"]},
+                        {"written": "document", "words": ["document"]}
+                      ],
+                      "name": {"written": "Document", "words": ["document"]}
+                    }
+                  },
+                  {
+                    "name": {"written": "index", "words": ["index"]},
+                    "wire_name": "index",
+                    "required": true,
+                    "deprecated": false,
+                    "read_only": false,
+                    "description": "The index of this document in the input array of texts, starting at `0` (and, therefore, ending at the number of inputs minus `1`).",
+                    "default": null,
+                    "ty": {"kind": "scalar", "scalar": "int"}
+                  }
+                ],
+                "extra": null,
+                "description": "An enriched document alongside its index in the input array of texts.",
+                "origin": "EnrichmentResult"
+              }
+            }
+          },
+          {
+            "name": {"written": "usage", "words": ["usage"]},
+            "wire_name": "usage",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "Statistics about the usage of resources in the process of enriching the input.",
+            "default": null,
+            "ty": {
+              "kind": "object",
+              "bases": [],
+              "fields": [
+                {
+                  "name": {"written": "input_tokens", "words": ["input", "tokens"]},
+                  "wire_name": "input_tokens",
+                  "required": true,
+                  "deprecated": false,
+                  "read_only": false,
+                  "description": "The total number of tokens inputted to the model.",
+                  "default": null,
+                  "ty": {"kind": "scalar", "scalar": "int"}
+                }
+              ],
+              "extra": null,
+              "description": "Statistics about the usage of resources in the process of enriching the input.",
+              "origin": "EnrichmentUsage"
+            }
+          }
+        ],
+        "extra": null,
+        "description": null,
+        "origin": null
+      }
+    },
+    {
+      "ref": {
+        "schema": "AnswerExtractionResponse",
+        "path": [
+          {"written": "extractions", "words": ["extractions"]},
+          {"written": "qa", "words": ["qa"]},
+          {"written": "answer_extraction_response", "words": ["answer", "extraction", "response"]}
+        ],
+        "name": {
+          "written": "AnswerExtractionResponse",
+          "words": ["answer", "extraction", "response"]
+        }
+      },
+      "description": "Answer extraction response",
+      "deprecated": false,
+      "ty": {
+        "kind": "object",
+        "bases": [],
+        "fields": [
+          {
+            "name": {"written": "extractions", "words": ["extractions"]},
+            "wire_name": "extractions",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "The results of extracting answers from the texts, ordered from highest to lowest answer confidence score (or else lowest to highest inextractability score if there are no answers for a text).",
+            "default": null,
+            "ty": {
+              "kind": "array",
+              "items": {
+                "kind": "object",
+                "bases": [],
+                "fields": [
+                  {
+                    "name": {"written": "answers", "words": ["answers"]},
+                    "wire_name": "answers",
+                    "required": true,
+                    "deprecated": false,
+                    "read_only": false,
+                    "description": "Answers extracted from the text, ordered from highest to lowest score.",
+                    "default": null,
+                    "ty": {
+                      "kind": "array",
+                      "items": {
+                        "kind": "object",
+                        "bases": [],
+                        "fields": [
+                          {
+                            "name": {"written": "end", "words": ["end"]},
+                            "wire_name": "end",
+                            "required": true,
+                            "deprecated": false,
+                            "read_only": false,
+                            "description": "The index of the character immediately after the last character of the answer in the text, starting from `0` (such that, in Python, the answer is equivalent to `text[start:end]`).",
+                            "default": null,
+                            "ty": {"kind": "scalar", "scalar": "int"}
+                          },
+                          {
+                            "name": {"written": "score", "words": ["score"]},
+                            "wire_name": "score",
+                            "required": true,
+                            "deprecated": false,
+                            "read_only": false,
+                            "description": "A score between `0` and `1`, inclusive, representing the strength of the answer.",
+                            "default": null,
+                            "ty": {"kind": "scalar", "scalar": "double"}
+                          },
+                          {
+                            "name": {"written": "start", "words": ["start"]},
+                            "wire_name": "start",
+                            "required": true,
+                            "deprecated": false,
+                            "read_only": false,
+                            "description": "The index of the first character of the answer in the text, starting from `0` (and, therefore, ending at the number of characters in the text minus `1`).",
+                            "default": null,
+                            "ty": {"kind": "scalar", "scalar": "int"}
+                          },
+                          {
+                            "name": {"written": "text", "words": ["text"]},
+                            "wire_name": "text",
+                            "required": true,
+                            "deprecated": false,
+                            "read_only": false,
+                            "description": "The text of the answer.",
+                            "default": null,
+                            "ty": {"kind": "scalar", "scalar": "string"}
+                          }
+                        ],
+                        "extra": null,
+                        "description": "An answer extracted from a text.",
+                        "origin": "Answer"
+                      }
+                    }
+                  },
+                  {
+                    "name": {"written": "index", "words": ["index"]},
+                    "wire_name": "index",
+                    "required": true,
+                    "deprecated": false,
+                    "read_only": false,
+                    "description": "The index of the text in the input array of texts that this result represents, starting from `0` (and, therefore, ending at the number of texts minus `1`).",
+                    "default": null,
+                    "ty": {"kind": "scalar", "scalar": "int"}
+                  },
+                  {
+                    "name": {
+                      "written": "inextractability_score",
+                      "words": ["inextractability", "score"]
+                    },
+                    "wire_name": "inextractability_score",
+                    "required": true,
+                    "deprecated": false,
+                    "read_only": false,
+                    "description": "A score between `0` and `1`, inclusive, representing the likelihood that an answer can not be extracted from the text.\n\nWhere this score is greater than the highest score of all possible answers, the text should be regarded as not having an extractable answer to the query. If that is the case and `ignore_inextractability` is `false`, no answers will be returned.",
+                    "default": null,
+                    "ty": {"kind": "scalar", "scalar": "double"}
+                  }
+                ],
+                "extra": null,
+                "description": "The result of extracting answers from a text.",
+                "origin": "AnswerExtraction"
+              }
+            }
+          },
+          {
+            "name": {"written": "usage", "words": ["usage"]},
+            "wire_name": "usage",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "Statistics about the usage of resources in the process of extracting answers from the texts.",
+            "default": null,
+            "ty": {
+              "kind": "object",
+              "bases": [],
+              "fields": [
+                {
+                  "name": {"written": "input_tokens", "words": ["input", "tokens"]},
+                  "wire_name": "input_tokens",
+                  "required": true,
+                  "deprecated": false,
+                  "read_only": false,
+                  "description": "The number of tokens inputted to the model.",
+                  "default": null,
+                  "ty": {"kind": "scalar", "scalar": "int"}
+                }
+              ],
+              "extra": null,
+              "description": "Statistics about the usage of resources in the process of extracting answers from the texts.",
+              "origin": "AnswerExtractionUsage"
+            }
+          }
+        ],
+        "extra": null,
+        "description": null,
+        "origin": null
+      }
+    },
+    {
+      "ref": {
+        "schema": "ILGSv1 Crossreference",
+        "path": [
+          {"written": "ilgs", "words": ["ilgs"]},
+          {"written": "v1", "words": ["v1"]},
+          {"written": "crossreference", "words": ["crossreference"]}
+        ],
+        "name": {"written": "Crossreference", "words": ["crossreference"]}
+      },
+      "description": "A cross-reference within the document pointing to one or more segments.",
+      "deprecated": false,
+      "ty": {
+        "kind": "object",
+        "bases": [],
+        "fields": [
+          {
+            "name": {"written": "end", "words": ["end"]},
+            "wire_name": "end",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "The unique identifier of the latest segment in the span of segments being cross-referenced with ties broken in favor of the least-nested (i.e., largest) segment. If the cross-reference points to a single segment, `start` and `end` will be identical.",
+            "default": null,
+            "ty": {"kind": "scalar", "scalar": "string"}
+          },
+          {
+            "name": {"written": "span", "words": ["span"]},
+            "wire_name": "span",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "A zero-based, half-open span into the Unicode code point space of input text.\n\nAll spans are globally laminar and well-nested similar to XML—it is impossible for any two spans to partially overlap; they can only be disjoint, adjacent, or wholly nested. Spans of the exact same type (e.g., segments) will never be duplicated.\n\nA span cannot be empty and will never start or end at whitespace (though a span's `end` index, being an exclusive index, may obviosuly land on a whitespace character).\n\nNote that, when using programming languages other than Python (which uses zero-based, half-open, Unicode code point-spaced string indexing), indices may need to be translated accordingly (for example, JavaScript slices into UTF-16 code units instead of Unicode code points).",
+            "default": null,
+            "ty": {
+              "kind": "ref",
+              "schema": "ILGSv1 Span",
+              "path": [
+                {"written": "ilgs", "words": ["ilgs"]},
+                {"written": "v1", "words": ["v1"]},
+                {"written": "span", "words": ["span"]}
+              ],
+              "name": {"written": "Span", "words": ["span"]}
+            }
+          },
+          {
+            "name": {"written": "start", "words": ["start"]},
+            "wire_name": "start",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "The unique identifier of the earliest segment in the span of segments being cross-referenced with ties broken in favor of the least-nested (i.e., largest) segment. If the cross-reference points to a single segment, `start` and `end` will be identical.",
+            "default": null,
+            "ty": {"kind": "scalar", "scalar": "string"}
+          }
+        ],
+        "extra": null,
+        "description": null,
+        "origin": null
+      }
+    },
+    {
+      "ref": {
+        "schema": "ILGSv1 Date",
+        "path": [
+          {"written": "ilgs", "words": ["ilgs"]},
+          {"written": "v1", "words": ["v1"]},
+          {"written": "date", "words": ["date"]}
+        ],
+        "name": {"written": "Date", "words": ["date"]}
+      },
+      "description": "An array of dates identified in the document belonging to one of the following types: `creation`, `signature`, `effective`, `expiry`, `delivery`, `renewal`, `payment`, `birth`, or `death`.\n\nOnly full Gregorian dates (i.e., including a day, month, and year) between the years 1000 and 9999 (inclusive) fitting into one of the supported date types are extractable.",
+      "deprecated": false,
+      "ty": {
+        "kind": "object",
+        "bases": [],
+        "fields": [
+          {
+            "name": {"written": "mentions", "words": ["mentions"]},
+            "wire_name": "mentions",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "An array of one or more spans within the document's text where the date is mentioned.",
+            "default": null,
+            "ty": {
+              "kind": "array",
+              "items": {
+                "kind": "ref",
+                "schema": "ILGSv1 Span",
+                "path": [
+                  {"written": "ilgs", "words": ["ilgs"]},
+                  {"written": "v1", "words": ["v1"]},
+                  {"written": "span", "words": ["span"]}
+                ],
+                "name": {"written": "Span", "words": ["span"]}
+              }
+            }
+          },
+          {
+            "name": {"written": "person", "words": ["person"]},
+            "wire_name": "person",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "The unique identifier of the legal person that this date is associated with or `null` if the date is not associated with any legal person.\n\nFor `birth` and `death` dates, this field will always be populated.",
+            "default": null,
+            "ty": {"kind": "nullable", "inner": {"kind": "scalar", "scalar": "string"}}
+          },
+          {
+            "name": {"written": "type", "words": ["type"]},
+            "wire_name": "type",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "The type of the date, being one of `creation`, `signature`, `effective`, `expiry`, `delivery`, `renewal`, `payment`, `birth`, or `death`. If a date is mentioned in a document that does not fit into a supported type, it will not be extracted.\n\n`creation` denotes the date the document was created or last updated. There may only be one `creation` date per document.\n\n`signature` denotes the date the document was signed.\n\n`effective` denotes the date when the document or a part thereof comes into effect (e.g., commencement or enactment dates).\n\n`expiry` denotes the date when the document or a part thereof is no longer in effect.\n\n`delivery` denotes the date when goods or services are to be delivered under the document.\n\n`renewal` denotes the date when one or more of the document's terms are to be renewed.\n\n`payment` denotes the date when payment is to be made under the document.\n\n`birth` denotes the birth date of a natural person or establishment (e.g., incorporation) date of a non-natural legal person identified in the document. There can only be one `birth` date linked to a single person and all `birth` dates must be linked to a person. A person's `birth` date will never be after their `death` date.\n\n`death` denotes the death date of a natural person or dissolution date of a non-natural legal person identified in the document. There can only be one `death` date linked to a single person and all `death` dates must be linked to a person. A person's `death` date will never be before their `birth` date.",
+            "default": null,
+            "ty": {
+              "kind": "enum",
+              "members": [
+                {"value": "creation", "name": {"written": "creation", "words": ["creation"]}},
+                {"value": "signature", "name": {"written": "signature", "words": ["signature"]}},
+                {"value": "effective", "name": {"written": "effective", "words": ["effective"]}},
+                {"value": "expiry", "name": {"written": "expiry", "words": ["expiry"]}},
+                {"value": "delivery", "name": {"written": "delivery", "words": ["delivery"]}},
+                {"value": "renewal", "name": {"written": "renewal", "words": ["renewal"]}},
+                {"value": "payment", "name": {"written": "payment", "words": ["payment"]}},
+                {"value": "birth", "name": {"written": "birth", "words": ["birth"]}},
+                {"value": "death", "name": {"written": "death", "words": ["death"]}}
+              ]
+            }
+          },
+          {
+            "name": {"written": "value", "words": ["value"]},
+            "wire_name": "value",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "The date in ISO 8601 format (YYYY-MM-DD).",
+            "default": null,
+            "ty": {"kind": "scalar", "scalar": "string"}
+          }
+        ],
+        "extra": null,
+        "description": null,
+        "origin": null
+      }
+    },
+    {
+      "ref": {
+        "schema": "ILGSv1Document",
+        "path": [
+          {"written": "ilgs", "words": ["ilgs"]},
+          {"written": "v1", "words": ["v1"]},
+          {"written": "document", "words": ["document"]}
+        ],
+        "name": {"written": "Document", "words": ["document"]}
+      },
+      "description": "The document enriched into version 1.0.0 of the [Isaacus Legal Document Graph Schema (ILDGS)](https://docs.isaacus.com/ildgs).\n\nAll spans in an enriched document graph are indexed into the Unicode code point space of a source document.\n\nThe start and end indices of spans are zero-based (i.e., the first Unicode code point in the document is at index 0) and half-open (i.e., the end index is exclusive).\n\nAll spans are globally laminar and well-nested similar to XML—it is impossible for any two spans to partially overlap; they can only be disjoint, adjacent, or wholly nested.\n\nSpans of the exact same type (e.g., segments) will never be duplicated.\n\nSpans cannot be empty and will never start or end at whitespace.\n\nWhen using programming languages other than Python (which uses zero-based, half-open, Unicode code point-spaced string indexing), indices may need to be translated accordingly (for example, JavaScript slices into UTF-16 code units instead of Unicode code points).",
+      "deprecated": false,
+      "ty": {
+        "kind": "object",
+        "bases": [],
+        "fields": [
+          {
+            "name": {"written": "crossreferences", "words": ["crossreferences"]},
+            "wire_name": "crossreferences",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "An array of cross-references within the document pointing to a single segment or a span of segments.",
+            "default": null,
+            "ty": {
+              "kind": "array",
+              "items": {
+                "kind": "ref",
+                "schema": "ILGSv1 Crossreference",
+                "path": [
+                  {"written": "ilgs", "words": ["ilgs"]},
+                  {"written": "v1", "words": ["v1"]},
+                  {"written": "crossreference", "words": ["crossreference"]}
+                ],
+                "name": {"written": "Crossreference", "words": ["crossreference"]}
+              }
+            }
+          },
+          {
+            "name": {"written": "dates", "words": ["dates"]},
+            "wire_name": "dates",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "An array of dates identified in the document belonging to one of the following types: `creation`, `signature`, `effective`, `expiry`, `delivery`, `renewal`, `payment`, `birth`, or `death`.\n\nOnly full Gregorian dates (i.e., including a day, month, and year) between the years 1000 and 9999 (inclusive) fitting into one of the supported date types are extractable.",
+            "default": null,
+            "ty": {
+              "kind": "array",
+              "items": {
+                "kind": "ref",
+                "schema": "ILGSv1 Date",
+                "path": [
+                  {"written": "ilgs", "words": ["ilgs"]},
+                  {"written": "v1", "words": ["v1"]},
+                  {"written": "date", "words": ["date"]}
+                ],
+                "name": {"written": "Date", "words": ["date"]}
+              }
+            }
+          },
+          {
+            "name": {"written": "emails", "words": ["emails"]},
+            "wire_name": "emails",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "An array of email addresses identified in the document belonging to legal persons.\n\nEmail addresses mentioned in the document that are not attributable to legal persons will not be extracted.",
+            "default": null,
+            "ty": {
+              "kind": "array",
+              "items": {
+                "kind": "ref",
+                "schema": "ILGSv1 Email",
+                "path": [
+                  {"written": "ilgs", "words": ["ilgs"]},
+                  {"written": "v1", "words": ["v1"]},
+                  {"written": "email", "words": ["email"]}
+                ],
+                "name": {"written": "Email", "words": ["email"]}
+              }
+            }
+          },
+          {
+            "name": {"written": "external_documents", "words": ["external", "documents"]},
+            "wire_name": "external_documents",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "An array of documents identified within the document.",
+            "default": null,
+            "ty": {
+              "kind": "array",
+              "items": {
+                "kind": "ref",
+                "schema": "ILGSv1 External Document",
+                "path": [
+                  {"written": "ilgs", "words": ["ilgs"]},
+                  {"written": "v1", "words": ["v1"]},
+                  {"written": "external_document", "words": ["external", "document"]}
+                ],
+                "name": {"written": "ExternalDocument", "words": ["external", "document"]}
+              }
+            }
+          },
+          {
+            "name": {"written": "headings", "words": ["headings"]},
+            "wire_name": "headings",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "An array of spans within the document's text constituting headings.",
+            "default": null,
+            "ty": {
+              "kind": "array",
+              "items": {
+                "kind": "ref",
+                "schema": "ILGSv1 Span",
+                "path": [
+                  {"written": "ilgs", "words": ["ilgs"]},
+                  {"written": "v1", "words": ["v1"]},
+                  {"written": "span", "words": ["span"]}
+                ],
+                "name": {"written": "Span", "words": ["span"]}
+              }
+            }
+          },
+          {
+            "name": {"written": "id_numbers", "words": ["id", "numbers"]},
+            "wire_name": "id_numbers",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "An array of identification numbers identified in the document belonging to legal persons.\n\nIdentification numbers mentioned in the document that are not attributable to legal persons will not be extracted.",
+            "default": null,
+            "ty": {
+              "kind": "array",
+              "items": {
+                "kind": "ref",
+                "schema": "ILGSv1 ID Number",
+                "path": [
+                  {"written": "ilgs", "words": ["ilgs"]},
+                  {"written": "v1", "words": ["v1"]},
+                  {"written": "id_number", "words": ["id", "number"]}
+                ],
+                "name": {"written": "IDNumber", "words": ["id", "number"]}
+              }
+            }
+          },
+          {
+            "name": {"written": "junk", "words": ["junk"]},
+            "wire_name": "junk",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "An array of spans within the document's text constituting non-operative, non-substantive 'junk' content such as headers, footers, page numbers, and OCR artifacts.",
+            "default": null,
+            "ty": {
+              "kind": "array",
+              "items": {
+                "kind": "ref",
+                "schema": "ILGSv1 Span",
+                "path": [
+                  {"written": "ilgs", "words": ["ilgs"]},
+                  {"written": "v1", "words": ["v1"]},
+                  {"written": "span", "words": ["span"]}
+                ],
+                "name": {"written": "Span", "words": ["span"]}
+              }
+            }
+          },
+          {
+            "name": {"written": "jurisdiction", "words": ["jurisdiction"]},
+            "wire_name": "jurisdiction",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "The jurisdiction of the document or `null` if the jurisdiction is unknown.\n\nJurisdictions are composed of a country code and, where applicable, a subdivision code prefixed by a hyphen.\n\nAll 249 ISO 3166-1 alpha-2 country codes are representable in addition to special `INT` and `EU` codes for international and European Union law, respectively.\n\nAll 5,046 ISO 3166-2 codes are also representable in addition to a special `FED` code for federal law.",
+            "default": null,
+            "ty": {"kind": "nullable", "inner": {"kind": "scalar", "scalar": "string"}}
+          },
+          {
+            "name": {"written": "locations", "words": ["locations"]},
+            "wire_name": "locations",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "An array of locations identified in the document.",
+            "default": null,
+            "ty": {
+              "kind": "array",
+              "items": {
+                "kind": "ref",
+                "schema": "ILGSv1 Location",
+                "path": [
+                  {"written": "ilgs", "words": ["ilgs"]},
+                  {"written": "v1", "words": ["v1"]},
+                  {"written": "location", "words": ["location"]}
+                ],
+                "name": {"written": "Location", "words": ["location"]}
+              }
+            }
+          },
+          {
+            "name": {"written": "persons", "words": ["persons"]},
+            "wire_name": "persons",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "An array of legal persons identified in the document.",
+            "default": null,
+            "ty": {
+              "kind": "array",
+              "items": {
+                "kind": "ref",
+                "schema": "ILGSv1 Person",
+                "path": [
+                  {"written": "ilgs", "words": ["ilgs"]},
+                  {"written": "v1", "words": ["v1"]},
+                  {"written": "person", "words": ["person"]}
+                ],
+                "name": {"written": "Person", "words": ["person"]}
+              }
+            }
+          },
+          {
+            "name": {"written": "phone_numbers", "words": ["phone", "numbers"]},
+            "wire_name": "phone_numbers",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "An array of valid phone numbers identified in the document belonging to legal persons.\n\nPhone numbers mentioned in the document that are not valid, possible, or attributable to legal persons will not be extracted.",
+            "default": null,
+            "ty": {
+              "kind": "array",
+              "items": {
+                "kind": "ref",
+                "schema": "ILGSv1 Phone Number",
+                "path": [
+                  {"written": "ilgs", "words": ["ilgs"]},
+                  {"written": "v1", "words": ["v1"]},
+                  {"written": "phone_number", "words": ["phone", "number"]}
+                ],
+                "name": {"written": "PhoneNumber", "words": ["phone", "number"]}
+              }
+            }
+          },
+          {
+            "name": {"written": "quotes", "words": ["quotes"]},
+            "wire_name": "quotes",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "An array of quotations within the document.",
+            "default": null,
+            "ty": {
+              "kind": "array",
+              "items": {
+                "kind": "ref",
+                "schema": "ILGSv1 Quote",
+                "path": [
+                  {"written": "ilgs", "words": ["ilgs"]},
+                  {"written": "v1", "words": ["v1"]},
+                  {"written": "quote", "words": ["quote"]}
+                ],
+                "name": {"written": "Quote", "words": ["quote"]}
+              }
+            }
+          },
+          {
+            "name": {"written": "segments", "words": ["segments"]},
+            "wire_name": "segments",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "An array of segments within the document representing structurally distinct portions of its content.",
+            "default": null,
+            "ty": {
+              "kind": "array",
+              "items": {
+                "kind": "ref",
+                "schema": "ILGSv1 Segment",
+                "path": [
+                  {"written": "ilgs", "words": ["ilgs"]},
+                  {"written": "v1", "words": ["v1"]},
+                  {"written": "segment", "words": ["segment"]}
+                ],
+                "name": {"written": "Segment", "words": ["segment"]}
+              }
+            }
+          },
+          {
+            "name": {"written": "subtitle", "words": ["subtitle"]},
+            "wire_name": "subtitle",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "The span defining the subtitle of the document or `null` if the document has no subtitle, its subtitle cannot be resolved, or has no `title`. The document must have a `title` for it to have a `subtitle`.",
+            "default": null,
+            "ty": {
+              "kind": "nullable",
+              "inner": {
+                "kind": "ref",
+                "schema": "ILGSv1 Span",
+                "path": [
+                  {"written": "ilgs", "words": ["ilgs"]},
+                  {"written": "v1", "words": ["v1"]},
+                  {"written": "span", "words": ["span"]}
+                ],
+                "name": {"written": "Span", "words": ["span"]}
+              }
+            }
+          },
+          {
+            "name": {"written": "terms", "words": ["terms"]},
+            "wire_name": "terms",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "An array of terms assigned definite meanings within the document.",
+            "default": null,
+            "ty": {
+              "kind": "array",
+              "items": {
+                "kind": "ref",
+                "schema": "ILGSv1 Term",
+                "path": [
+                  {"written": "ilgs", "words": ["ilgs"]},
+                  {"written": "v1", "words": ["v1"]},
+                  {"written": "term", "words": ["term"]}
+                ],
+                "name": {"written": "Term", "words": ["term"]}
+              }
+            }
+          },
+          {
+            "name": {"written": "text", "words": ["text"]},
+            "wire_name": "text",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "The text of the document.",
+            "default": null,
+            "ty": {"kind": "scalar", "scalar": "string"}
+          },
+          {
+            "name": {"written": "title", "words": ["title"]},
+            "wire_name": "title",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "The span defining the title of the document or `null` if the document has no title or its title cannot be resolved.",
+            "default": null,
+            "ty": {
+              "kind": "nullable",
+              "inner": {
+                "kind": "ref",
+                "schema": "ILGSv1 Span",
+                "path": [
+                  {"written": "ilgs", "words": ["ilgs"]},
+                  {"written": "v1", "words": ["v1"]},
+                  {"written": "span", "words": ["span"]}
+                ],
+                "name": {"written": "Span", "words": ["span"]}
+              }
+            }
+          },
+          {
+            "name": {"written": "type", "words": ["type"]},
+            "wire_name": "type",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "The type of the document, being one of `statute`, `regulation`, `decision`, `contract`, or `other`.\n\n`statute` denotes primary legislation such as acts, bills, codes, and constitutions.\n\n`regulation` denotes secondary legislation such as rules, statutory instruments, and ordinances.\n\n`decision` denotes judicial or quasi-judicial decisions such as court judgments, judicial opinions, and tribunal rulings.\n\n`contract` denotes contracts, covenants, and agreements.\n\n`other` is used for all other types of legal documents that do not fit into any of the predefined types.",
+            "default": null,
+            "ty": {
+              "kind": "enum",
+              "members": [
+                {"value": "statute", "name": {"written": "statute", "words": ["statute"]}},
+                {"value": "regulation", "name": {"written": "regulation", "words": ["regulation"]}},
+                {"value": "decision", "name": {"written": "decision", "words": ["decision"]}},
+                {"value": "contract", "name": {"written": "contract", "words": ["contract"]}},
+                {"value": "other", "name": {"written": "other", "words": ["other"]}}
+              ]
+            }
+          },
+          {
+            "name": {"written": "version", "words": ["version"]},
+            "wire_name": "version",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "",
+            "default": null,
+            "ty": {
+              "kind": "enum",
+              "members": [
+                {"value": "ilgs@1", "name": {"written": "ilgs@1", "words": ["ilgs", "1"]}}
+              ]
+            }
+          },
+          {
+            "name": {"written": "websites", "words": ["websites"]},
+            "wire_name": "websites",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "An array of websites identified in the document belonging to legal persons.\n\nWebsites mentioned in the document that are not attributable to legal persons will not be extracted.",
+            "default": null,
+            "ty": {
+              "kind": "array",
+              "items": {
+                "kind": "ref",
+                "schema": "ILGSv1 Website",
+                "path": [
+                  {"written": "ilgs", "words": ["ilgs"]},
+                  {"written": "v1", "words": ["v1"]},
+                  {"written": "website", "words": ["website"]}
+                ],
+                "name": {"written": "Website", "words": ["website"]}
+              }
+            }
+          }
+        ],
+        "extra": null,
+        "description": null,
+        "origin": null
+      }
+    },
+    {
+      "ref": {
+        "schema": "ILGSv1 Email",
+        "path": [
+          {"written": "ilgs", "words": ["ilgs"]},
+          {"written": "v1", "words": ["v1"]},
+          {"written": "email", "words": ["email"]}
+        ],
+        "name": {"written": "Email", "words": ["email"]}
+      },
+      "description": "An email address identified in a document belonging to a legal person.\n\nIf an email address was mentioned in the document but is not attributable to a legal person, it will not be extracted.",
+      "deprecated": false,
+      "ty": {
+        "kind": "object",
+        "bases": [],
+        "fields": [
+          {
+            "name": {"written": "address", "words": ["address"]},
+            "wire_name": "address",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "The normalized email address.",
+            "default": null,
+            "ty": {"kind": "scalar", "scalar": "string"}
+          },
+          {
+            "name": {"written": "mentions", "words": ["mentions"]},
+            "wire_name": "mentions",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "An array of one or more spans within the document's text where the email address is mentioned.",
+            "default": null,
+            "ty": {
+              "kind": "array",
+              "items": {
+                "kind": "ref",
+                "schema": "ILGSv1 Span",
+                "path": [
+                  {"written": "ilgs", "words": ["ilgs"]},
+                  {"written": "v1", "words": ["v1"]},
+                  {"written": "span", "words": ["span"]}
+                ],
+                "name": {"written": "Span", "words": ["span"]}
+              }
+            }
+          },
+          {
+            "name": {"written": "person", "words": ["person"]},
+            "wire_name": "person",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "The unique identifier of the person that this email address belongs to.",
+            "default": null,
+            "ty": {"kind": "scalar", "scalar": "string"}
+          }
+        ],
+        "extra": null,
+        "description": null,
+        "origin": null
+      }
+    },
+    {
+      "ref": {
+        "schema": "ILGSv1 External Document",
+        "path": [
+          {"written": "ilgs", "words": ["ilgs"]},
+          {"written": "v1", "words": ["v1"]},
+          {"written": "external_document", "words": ["external", "document"]}
+        ],
+        "name": {"written": "ExternalDocument", "words": ["external", "document"]}
+      },
+      "description": "A document identified within another document.",
+      "deprecated": false,
+      "ty": {
+        "kind": "object",
+        "bases": [],
+        "fields": [
+          {
+            "name": {"written": "id", "words": ["id"]},
+            "wire_name": "id",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "The unique identifier of the external document in the format `exd:{identifier}`.",
+            "default": null,
+            "ty": {"kind": "scalar", "scalar": "string"}
+          },
+          {
+            "name": {"written": "jurisdiction", "words": ["jurisdiction"]},
+            "wire_name": "jurisdiction",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "The jurisdiction of the external document or `null` if the jurisdiction is unknown.\n\nJurisdictions are composed of a country code and, where applicable, a subdivision code prefixed by a hyphen.\n\nAll 249 ISO 3166-1 alpha-2 country codes are representable in addition to special `INT` and `EU` codes for international and European Union law, respectively.\n\nAll 5,046 ISO 3166-2 codes are also representable in addition to a special `FED` code for federal law.",
+            "default": null,
+            "ty": {"kind": "nullable", "inner": {"kind": "scalar", "scalar": "string"}}
+          },
+          {
+            "name": {"written": "mentions", "words": ["mentions"]},
+            "wire_name": "mentions",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "An array of one or more spans within the document's text where the external document is mentioned by name, for example, 'the US Constitution' in 'the Second Amendment to the US Constitution protects freedom of speech'.",
+            "default": null,
+            "ty": {
+              "kind": "array",
+              "items": {
+                "kind": "ref",
+                "schema": "ILGSv1 Span",
+                "path": [
+                  {"written": "ilgs", "words": ["ilgs"]},
+                  {"written": "v1", "words": ["v1"]},
+                  {"written": "span", "words": ["span"]}
+                ],
+                "name": {"written": "Span", "words": ["span"]}
+              }
+            }
+          },
+          {
+            "name": {"written": "name", "words": ["name"]},
+            "wire_name": "name",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "A zero-based, half-open span into the Unicode code point space of input text.\n\nAll spans are globally laminar and well-nested similar to XML—it is impossible for any two spans to partially overlap; they can only be disjoint, adjacent, or wholly nested. Spans of the exact same type (e.g., segments) will never be duplicated.\n\nA span cannot be empty and will never start or end at whitespace (though a span's `end` index, being an exclusive index, may obviosuly land on a whitespace character).\n\nNote that, when using programming languages other than Python (which uses zero-based, half-open, Unicode code point-spaced string indexing), indices may need to be translated accordingly (for example, JavaScript slices into UTF-16 code units instead of Unicode code points).",
+            "default": null,
+            "ty": {
+              "kind": "ref",
+              "schema": "ILGSv1 Span",
+              "path": [
+                {"written": "ilgs", "words": ["ilgs"]},
+                {"written": "v1", "words": ["v1"]},
+                {"written": "span", "words": ["span"]}
+              ],
+              "name": {"written": "Span", "words": ["span"]}
+            }
+          },
+          {
+            "name": {"written": "pinpoints", "words": ["pinpoints"]},
+            "wire_name": "pinpoints",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "An array of spans within the document's text where specific parts of the external document are referenced, for example, 'Section 2' in 'as defined in Section 2 of the US Constitution'.",
+            "default": null,
+            "ty": {
+              "kind": "array",
+              "items": {
+                "kind": "ref",
+                "schema": "ILGSv1 Span",
+                "path": [
+                  {"written": "ilgs", "words": ["ilgs"]},
+                  {"written": "v1", "words": ["v1"]},
+                  {"written": "span", "words": ["span"]}
+                ],
+                "name": {"written": "Span", "words": ["span"]}
+              }
+            }
+          },
+          {
+            "name": {"written": "reception", "words": ["reception"]},
+            "wire_name": "reception",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "The sentiment of the document towards the external document, being one of `positive`, `mixed`, `negative`, or `neutral`.\n\n`positive` indicates that the document expresses a favorable view of the external document whether by endorsing or approving it.\n\n`mixed` indicates that the document expresses both favorable and unfavorable views of the external document, for example, by affirming parts of it and disapproving others.\n\n`negative` indicates that the document expresses an unfavorable view of the external document whether by criticizing, repealing, overruling, or explicitly contradicting it.\n\n`neutral` indicates that the document references the external document without expressing any particular sentiment towards it.",
+            "default": null,
+            "ty": {
+              "kind": "enum",
+              "members": [
+                {"value": "positive", "name": {"written": "positive", "words": ["positive"]}},
+                {"value": "mixed", "name": {"written": "mixed", "words": ["mixed"]}},
+                {"value": "negative", "name": {"written": "negative", "words": ["negative"]}},
+                {"value": "neutral", "name": {"written": "neutral", "words": ["neutral"]}}
+              ]
+            }
+          },
+          {
+            "name": {"written": "type", "words": ["type"]},
+            "wire_name": "type",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "The type of the external document, being one of `statute`, `regulation`, `decision`, `contract`, or `other`.\n\n`statute` denotes primary legislation such as acts, bills, codes, and constitutions.\n\n`regulation` denotes secondary legislation such as rules, statutory instruments, and ordinances.\n\n`decision` denotes judicial or quasi-judicial decisions such as court judgments, judicial opinions, and tribunal rulings.\n\n`other` is used for all other types of legal documents that do not fit into any of the predefined types.",
+            "default": null,
+            "ty": {
+              "kind": "enum",
+              "members": [
+                {"value": "statute", "name": {"written": "statute", "words": ["statute"]}},
+                {"value": "regulation", "name": {"written": "regulation", "words": ["regulation"]}},
+                {"value": "decision", "name": {"written": "decision", "words": ["decision"]}},
+                {"value": "contract", "name": {"written": "contract", "words": ["contract"]}},
+                {"value": "other", "name": {"written": "other", "words": ["other"]}}
+              ]
+            }
+          }
+        ],
+        "extra": null,
+        "description": null,
+        "origin": null
+      }
+    },
+    {
+      "ref": {
+        "schema": "ILGSv1 ID Number",
+        "path": [
+          {"written": "ilgs", "words": ["ilgs"]},
+          {"written": "v1", "words": ["v1"]},
+          {"written": "id_number", "words": ["id", "number"]}
+        ],
+        "name": {"written": "IDNumber", "words": ["id", "number"]}
+      },
+      "description": "An identification number mentioned in a document belonging to a legal person.\n\nIf an identification number was mentioned in the document but is not attributable to a legal person, it will not be extracted.",
+      "deprecated": false,
+      "ty": {
+        "kind": "object",
+        "bases": [],
+        "fields": [
+          {
+            "name": {"written": "mentions", "words": ["mentions"]},
+            "wire_name": "mentions",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "An array of one or more spans within the document's text where the identification number is mentioned.",
+            "default": null,
+            "ty": {
+              "kind": "array",
+              "items": {
+                "kind": "ref",
+                "schema": "ILGSv1 Span",
+                "path": [
+                  {"written": "ilgs", "words": ["ilgs"]},
+                  {"written": "v1", "words": ["v1"]},
+                  {"written": "span", "words": ["span"]}
+                ],
+                "name": {"written": "Span", "words": ["span"]}
+              }
+            }
+          },
+          {
+            "name": {"written": "number", "words": ["number"]},
+            "wire_name": "number",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "The identification number.",
+            "default": null,
+            "ty": {"kind": "scalar", "scalar": "string"}
+          },
+          {
+            "name": {"written": "person", "words": ["person"]},
+            "wire_name": "person",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "The unique identifier of the person that this identification number belongs to.",
+            "default": null,
+            "ty": {"kind": "scalar", "scalar": "string"}
+          }
+        ],
+        "extra": null,
+        "description": null,
+        "origin": null
+      }
+    },
+    {
+      "ref": {
+        "schema": "ILGSv1 Location",
+        "path": [
+          {"written": "ilgs", "words": ["ilgs"]},
+          {"written": "v1", "words": ["v1"]},
+          {"written": "location", "words": ["location"]}
+        ],
+        "name": {"written": "Location", "words": ["location"]}
+      },
+      "description": "A location identified within a document.",
+      "deprecated": false,
+      "ty": {
+        "kind": "object",
+        "bases": [],
+        "fields": [
+          {
+            "name": {"written": "children", "words": ["children"]},
+            "wire_name": "children",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "The unique identifiers of any 'child' locations having this location as their immediate parent.",
+            "default": null,
+            "ty": {"kind": "array", "items": {"kind": "scalar", "scalar": "string"}}
+          },
+          {
+            "name": {"written": "id", "words": ["id"]},
+            "wire_name": "id",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "The unique identifier of the location in the format `loc:{identifier}`.",
+            "default": null,
+            "ty": {"kind": "scalar", "scalar": "string"}
+          },
+          {
+            "name": {"written": "mentions", "words": ["mentions"]},
+            "wire_name": "mentions",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "An array of one or more spans within the document's text where the location is mentioned.",
+            "default": null,
+            "ty": {
+              "kind": "array",
+              "items": {
+                "kind": "ref",
+                "schema": "ILGSv1 Span",
+                "path": [
+                  {"written": "ilgs", "words": ["ilgs"]},
+                  {"written": "v1", "words": ["v1"]},
+                  {"written": "span", "words": ["span"]}
+                ],
+                "name": {"written": "Span", "words": ["span"]}
+              }
+            }
+          },
+          {
+            "name": {"written": "name", "words": ["name"]},
+            "wire_name": "name",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "A zero-based, half-open span into the Unicode code point space of input text.\n\nAll spans are globally laminar and well-nested similar to XML—it is impossible for any two spans to partially overlap; they can only be disjoint, adjacent, or wholly nested. Spans of the exact same type (e.g., segments) will never be duplicated.\n\nA span cannot be empty and will never start or end at whitespace (though a span's `end` index, being an exclusive index, may obviosuly land on a whitespace character).\n\nNote that, when using programming languages other than Python (which uses zero-based, half-open, Unicode code point-spaced string indexing), indices may need to be translated accordingly (for example, JavaScript slices into UTF-16 code units instead of Unicode code points).",
+            "default": null,
+            "ty": {
+              "kind": "ref",
+              "schema": "ILGSv1 Span",
+              "path": [
+                {"written": "ilgs", "words": ["ilgs"]},
+                {"written": "v1", "words": ["v1"]},
+                {"written": "span", "words": ["span"]}
+              ],
+              "name": {"written": "Span", "words": ["span"]}
+            }
+          },
+          {
+            "name": {"written": "parent", "words": ["parent"]},
+            "wire_name": "parent",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "The unique identifier of the 'parent' location immediately containing this location or `null` if the location has no ancestors identified in the document.\n\nLocations with the `address` and `other` types can have locations of any type as their parents.\n\nA location with the `city` type cannot have a location with the `address` type as its parent.\n\nA location with the `state` type cannot have a location with the `address` or `city` types as its parent.\n\nA location with the `country` type cannot have a location with the `address`, `city`, or `state` types as its parent.\n\nIt is impossible for a location to be its own ancestor.",
+            "default": null,
+            "ty": {"kind": "nullable", "inner": {"kind": "scalar", "scalar": "string"}}
+          },
+          {
+            "name": {"written": "type", "words": ["type"]},
+            "wire_name": "type",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "The type of the location, being one of `country`, `state`, `city`, `address`, or `other`.",
+            "default": null,
+            "ty": {
+              "kind": "enum",
+              "members": [
+                {"value": "country", "name": {"written": "country", "words": ["country"]}},
+                {"value": "state", "name": {"written": "state", "words": ["state"]}},
+                {"value": "city", "name": {"written": "city", "words": ["city"]}},
+                {"value": "address", "name": {"written": "address", "words": ["address"]}},
+                {"value": "other", "name": {"written": "other", "words": ["other"]}}
+              ]
+            }
+          }
+        ],
+        "extra": null,
+        "description": null,
+        "origin": null
+      }
+    },
+    {
+      "ref": {
+        "schema": "ILGSv1 Person",
+        "path": [
+          {"written": "ilgs", "words": ["ilgs"]},
+          {"written": "v1", "words": ["v1"]},
+          {"written": "person", "words": ["person"]}
+        ],
+        "name": {"written": "Person", "words": ["person"]}
+      },
+      "description": "A legal person identified in a document.",
+      "deprecated": false,
+      "ty": {
+        "kind": "object",
+        "bases": [],
+        "fields": [
+          {
+            "name": {"written": "children", "words": ["children"]},
+            "wire_name": "children",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "The unique identifiers of any persons having this person as their immediate parent.",
+            "default": null,
+            "ty": {"kind": "array", "items": {"kind": "scalar", "scalar": "string"}}
+          },
+          {
+            "name": {"written": "id", "words": ["id"]},
+            "wire_name": "id",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "The unique identifier of the person in the format `per:{identifier}`.",
+            "default": null,
+            "ty": {"kind": "scalar", "scalar": "string"}
+          },
+          {
+            "name": {"written": "mentions", "words": ["mentions"]},
+            "wire_name": "mentions",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "An array of one or more spans within the document's text where the person is mentioned.",
+            "default": null,
+            "ty": {
+              "kind": "array",
+              "items": {
+                "kind": "ref",
+                "schema": "ILGSv1 Span",
+                "path": [
+                  {"written": "ilgs", "words": ["ilgs"]},
+                  {"written": "v1", "words": ["v1"]},
+                  {"written": "span", "words": ["span"]}
+                ],
+                "name": {"written": "Span", "words": ["span"]}
+              }
+            }
+          },
+          {
+            "name": {"written": "name", "words": ["name"]},
+            "wire_name": "name",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "A zero-based, half-open span into the Unicode code point space of input text.\n\nAll spans are globally laminar and well-nested similar to XML—it is impossible for any two spans to partially overlap; they can only be disjoint, adjacent, or wholly nested. Spans of the exact same type (e.g., segments) will never be duplicated.\n\nA span cannot be empty and will never start or end at whitespace (though a span's `end` index, being an exclusive index, may obviosuly land on a whitespace character).\n\nNote that, when using programming languages other than Python (which uses zero-based, half-open, Unicode code point-spaced string indexing), indices may need to be translated accordingly (for example, JavaScript slices into UTF-16 code units instead of Unicode code points).",
+            "default": null,
+            "ty": {
+              "kind": "ref",
+              "schema": "ILGSv1 Span",
+              "path": [
+                {"written": "ilgs", "words": ["ilgs"]},
+                {"written": "v1", "words": ["v1"]},
+                {"written": "span", "words": ["span"]}
+              ],
+              "name": {"written": "Span", "words": ["span"]}
+            }
+          },
+          {
+            "name": {"written": "parent", "words": ["parent"]},
+            "wire_name": "parent",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "The unique identifier of the immediate legal entity that owns or controls this person (e.g., a parent company) or that this person represents if this person is identified only in their capacity as a representative (e.g., a director) of that entity or `null` if the person has no parent entity mentioned in the document or their parentage is unknown.\n\nIt is impossible for a person to be their own parent.",
+            "default": null,
+            "ty": {"kind": "nullable", "inner": {"kind": "scalar", "scalar": "string"}}
+          },
+          {
+            "name": {"written": "residence", "words": ["residence"]},
+            "wire_name": "residence",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "The unique identifier of the location at which the person primarily resides or `null` if the person's residence is unknown or not mentioned in the document.",
+            "default": null,
+            "ty": {"kind": "nullable", "inner": {"kind": "scalar", "scalar": "string"}}
+          },
+          {
+            "name": {"written": "role", "words": ["role"]},
+            "wire_name": "role",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "The role of the person in relation to the subject of the document.\n\nThe following roles are currently supported:\n|                          |                                                                                                                                                                                                                                                                                                                                      |\n| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |\n| `plaintiff`              | A party initiating the case that is the subject of the document.                                                                                                                                                                                                                                                                     |\n| `petitioner`             | A party initiating the petition that is the subject of the document.                                                                                                                                                                                                                                                                 |\n| `applicant`              | A party initiating the application that is the subject of the document.                                                                                                                                                                                                                                                              |\n| `appellant`              | A party appealing the decision that is the subject of the document.                                                                                                                                                                                                                                                                  |\n| `appellee`               | A party responding to the appeal that is the subject of the document if they are explicitly referred to as an 'appellee'.                                                                                                                                                                                                            |\n| `claimant`               | A party making a claim in the case that is the subject of the document.                                                                                                                                                                                                                                                              |\n| `complainant`            | A party making a complaint in the case that is the subject of the document.                                                                                                                                                                                                                                                          |\n| `defendant`              | A party defending against the case that is the subject of the document.                                                                                                                                                                                                                                                              |\n| `respondent`             | A party responding to the petition, appeal, or application that is the subject of the document.                                                                                                                                                                                                                                      |\n| `prior_authority`        | An authority (e.g., judge, tribunal, court) that made a prior decision in the case that is the subject of the document. Both individual judges and courts should be annotated with this role where applicable. This is not to be used for authorities cited as precedent, only for those that made prior decisions in the same case. |\n| `prosecutor`             | A lawyer prosecuting the case that is the subject of the document.                                                                                                                                                                                                                                                                   |\n| `defense_counsel`        | A lawyer defending the case that is the subject of the document.                                                                                                                                                                                                                                                                     |\n| `amicus`                 | A party filing an amicus curiae brief in the case that is the subject of the document.                                                                                                                                                                                                                                               |\n| `intervener`             | A party attempting to or that has intervened in the case that is the subject of the document.                                                                                                                                                                                                                                        |\n| `borrower`               | A party borrowing money or other assets under the agreement that is the subject of the document, including 'mortgagors' and 'debtors'.                                                                                                                                                                                               |\n| `lender`                 | A party lending money or other assets under the agreement that is the subject of the document, including 'mortgagees' and 'creditors'.                                                                                                                                                                                               |\n| `guarantor`              | A party guaranteeing obligations under the agreement that is the subject of the document, including 'sureties'.                                                                                                                                                                                                                      |\n| `lessee`                 | A party leasing goods or services under the agreement that is the subject of the document, including 'tenants'.                                                                                                                                                                                                                      |\n| `lessor`                 | A party leasing goods or services under the agreement that is the subject of the document, including 'landlords'.                                                                                                                                                                                                                    |\n| `employer`               | A party employing personnel under the agreement that is the subject of the document.                                                                                                                                                                                                                                                 |\n| `employee`               | A party employed under the agreement that is the subject of the document.                                                                                                                                                                                                                                                            |\n| `licensor`               | A party licensing intellectual property or other rights under the agreement that are the subject of the document.                                                                                                                                                                                                                    |\n| `licensee`               | A party licensed to use intellectual property or other rights under the agreement that are the subject of the document.                                                                                                                                                                                                              |\n| `franchisor`             | A party granting a franchise under the agreement that is the subject of the document.                                                                                                                                                                                                                                                |\n| `franchisee`             | A party granted a franchise under the agreement that is the subject of the document.                                                                                                                                                                                                                                                 |\n| `buyer`                  | A party purchasing goods or services under the agreement that is the subject of the document, including 'purchasers', 'customers', and 'clients'.                                                                                                                                                                                    |\n| `seller`                 | A party selling or providing goods or services under the agreement that is the subject of the document, including 'Vendors', 'Suppliers', and 'Service Providers' (where such parties are actually providing goods or services under the agreement).                                                                                 |\n| `contractor`             | A party contracted to perform work or services under the agreement that is the subject of the document, including 'consultants'.                                                                                                                                                                                                     |\n| `shareholder`            | A party holding shares or equity under the agreement that is the subject of the document.                                                                                                                                                                                                                                            |\n| `joint_venturer`         | A party participating in a joint venture under the agreement that is the subject of the document.                                                                                                                                                                                                                                    |\n| `investor`               | A party investing money or assets under the agreement that is the subject of the document.                                                                                                                                                                                                                                           |\n| `insurer`                | A party providing insurance under the agreement that is the subject of the document.                                                                                                                                                                                                                                                 |\n| `insured`                | A party insured under the agreement that is the subject of the document.                                                                                                                                                                                                                                                             |\n| `settlor`                | A party establishing the trust that is the subject of the document.                                                                                                                                                                                                                                                                  |\n| `trustee`                | A party managing the trust that is the subject of the document.                                                                                                                                                                                                                                                                      |\n| `beneficiary`            | A party benefiting from the trust that is the subject of the document.                                                                                                                                                                                                                                                               |\n| `enacting_authority`     | An authority (e.g., legislature, regulator, Minister/Secretary, President/Prime Minister, tribunal, court, judge) giving legal effect to or authorizing the document. All relevant individuals and bodies should be annotated with this role where applicable.                                                                       |\n| `empowered_authority`    | An authority (e.g., government agency, regulator, Minister/Secretary, President/Prime Minister, tribunal, court) empowered by the document to carry out functions or duties.                                                                                                                                                         |\n| `debater`                | A person participating in the debate that is the subject of the document.                                                                                                                                                                                                                                                            |\n| `governing_jurisdiction` | The jurisdiction whose laws govern the document.                                                                                                                                                                                                                                                                                     |\n| `director`               | A director or other officer of a corporate legal person mentioned in the document.                                                                                                                                                                                                                                                   |\n| `clerk`                  | A clerk, notary, or other official certifying, witnessing, filing, recording, registering, or otherwise administering the document.                                                                                                                                                                                                  |\n| `witness`                | A witness witnessing the signing of the document, or whose testimony is part of the case that is the subject of the document.                                                                                                                                                                                                        |\n| `other`                  | A party to the case, agreement, legislation, or regulation that is the subject of the document that does not fit into any of the other roles.                                                                                                                                                                                        |\n| `non_party`              | A legal person mentioned in the document that is not a party to the case, agreement, legislation, or regulation that is the subject of the document.                                                                                                                                                                                 |",
+            "default": null,
+            "ty": {
+              "kind": "enum",
+              "members": [
+                {"value": "plaintiff", "name": {"written": "plaintiff", "words": ["plaintiff"]}},
+                {"value": "petitioner", "name": {"written": "petitioner", "words": ["petitioner"]}},
+                {"value": "applicant", "name": {"written": "applicant", "words": ["applicant"]}},
+                {"value": "appellant", "name": {"written": "appellant", "words": ["appellant"]}},
+                {"value": "appellee", "name": {"written": "appellee", "words": ["appellee"]}},
+                {"value": "claimant", "name": {"written": "claimant", "words": ["claimant"]}},
+                {
+                  "value": "complainant",
+                  "name": {"written": "complainant", "words": ["complainant"]}
+                },
+                {"value": "defendant", "name": {"written": "defendant", "words": ["defendant"]}},
+                {"value": "respondent", "name": {"written": "respondent", "words": ["respondent"]}},
+                {
+                  "value": "prior_authority",
+                  "name": {"written": "prior_authority", "words": ["prior", "authority"]}
+                },
+                {"value": "prosecutor", "name": {"written": "prosecutor", "words": ["prosecutor"]}},
+                {
+                  "value": "defense_counsel",
+                  "name": {"written": "defense_counsel", "words": ["defense", "counsel"]}
+                },
+                {"value": "amicus", "name": {"written": "amicus", "words": ["amicus"]}},
+                {"value": "intervener", "name": {"written": "intervener", "words": ["intervener"]}},
+                {"value": "borrower", "name": {"written": "borrower", "words": ["borrower"]}},
+                {"value": "lender", "name": {"written": "lender", "words": ["lender"]}},
+                {"value": "guarantor", "name": {"written": "guarantor", "words": ["guarantor"]}},
+                {"value": "lessee", "name": {"written": "lessee", "words": ["lessee"]}},
+                {"value": "lessor", "name": {"written": "lessor", "words": ["lessor"]}},
+                {"value": "employer", "name": {"written": "employer", "words": ["employer"]}},
+                {"value": "employee", "name": {"written": "employee", "words": ["employee"]}},
+                {"value": "licensor", "name": {"written": "licensor", "words": ["licensor"]}},
+                {"value": "licensee", "name": {"written": "licensee", "words": ["licensee"]}},
+                {"value": "franchisor", "name": {"written": "franchisor", "words": ["franchisor"]}},
+                {"value": "franchisee", "name": {"written": "franchisee", "words": ["franchisee"]}},
+                {"value": "buyer", "name": {"written": "buyer", "words": ["buyer"]}},
+                {"value": "seller", "name": {"written": "seller", "words": ["seller"]}},
+                {"value": "contractor", "name": {"written": "contractor", "words": ["contractor"]}},
+                {
+                  "value": "shareholder",
+                  "name": {"written": "shareholder", "words": ["shareholder"]}
+                },
+                {
+                  "value": "joint_venturer",
+                  "name": {"written": "joint_venturer", "words": ["joint", "venturer"]}
+                },
+                {"value": "investor", "name": {"written": "investor", "words": ["investor"]}},
+                {"value": "insurer", "name": {"written": "insurer", "words": ["insurer"]}},
+                {"value": "insured", "name": {"written": "insured", "words": ["insured"]}},
+                {
+                  "value": "enacting_authority",
+                  "name": {"written": "enacting_authority", "words": ["enacting", "authority"]}
+                },
+                {
+                  "value": "empowered_authority",
+                  "name": {"written": "empowered_authority", "words": ["empowered", "authority"]}
+                },
+                {"value": "settlor", "name": {"written": "settlor", "words": ["settlor"]}},
+                {"value": "trustee", "name": {"written": "trustee", "words": ["trustee"]}},
+                {
+                  "value": "beneficiary",
+                  "name": {"written": "beneficiary", "words": ["beneficiary"]}
+                },
+                {"value": "debater", "name": {"written": "debater", "words": ["debater"]}},
+                {"value": "director", "name": {"written": "director", "words": ["director"]}},
+                {
+                  "value": "governing_jurisdiction",
+                  "name": {
+                    "written": "governing_jurisdiction",
+                    "words": ["governing", "jurisdiction"]
+                  }
+                },
+                {"value": "clerk", "name": {"written": "clerk", "words": ["clerk"]}},
+                {"value": "witness", "name": {"written": "witness", "words": ["witness"]}},
+                {"value": "other", "name": {"written": "other", "words": ["other"]}},
+                {"value": "non_party", "name": {"written": "non_party", "words": ["non", "party"]}}
+              ]
+            }
+          },
+          {
+            "name": {"written": "type", "words": ["type"]},
+            "wire_name": "type",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "The legal entity type of the person, being one of `natural`, `corporate`, or `politic`.\n\n`natural` denotes a human being in their capacity as a natural legal person, including when representing unincorporated entities such as partnerships and trusts.\n\n`corporate` denotes a body corporate such as a company, incorporated partnership, or statutory corporation.\n\n`politic` denotes a body politic, political entity, or part thereof such as a court, state, government, or intergovernmental organization.",
+            "default": null,
+            "ty": {
+              "kind": "enum",
+              "members": [
+                {"value": "natural", "name": {"written": "natural", "words": ["natural"]}},
+                {"value": "corporate", "name": {"written": "corporate", "words": ["corporate"]}},
+                {"value": "politic", "name": {"written": "politic", "words": ["politic"]}}
+              ]
+            }
+          }
+        ],
+        "extra": null,
+        "description": null,
+        "origin": null
+      }
+    },
+    {
+      "ref": {
+        "schema": "ILGSv1 Phone Number",
+        "path": [
+          {"written": "ilgs", "words": ["ilgs"]},
+          {"written": "v1", "words": ["v1"]},
+          {"written": "phone_number", "words": ["phone", "number"]}
+        ],
+        "name": {"written": "PhoneNumber", "words": ["phone", "number"]}
+      },
+      "description": "A valid phone number identified in a document belonging to a legal person.\n\nIf a phone number was mentioned in the document but is not valid, possible, or attributable to a legal person, it will not be extracted.",
+      "deprecated": false,
+      "ty": {
+        "kind": "object",
+        "bases": [],
+        "fields": [
+          {
+            "name": {"written": "mentions", "words": ["mentions"]},
+            "wire_name": "mentions",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "An array of one or more spans within the document's text where the phone number is mentioned.",
+            "default": null,
+            "ty": {
+              "kind": "array",
+              "items": {
+                "kind": "ref",
+                "schema": "ILGSv1 Span",
+                "path": [
+                  {"written": "ilgs", "words": ["ilgs"]},
+                  {"written": "v1", "words": ["v1"]},
+                  {"written": "span", "words": ["span"]}
+                ],
+                "name": {"written": "Span", "words": ["span"]}
+              }
+            }
+          },
+          {
+            "name": {"written": "number", "words": ["number"]},
+            "wire_name": "number",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "The normalized phone number in E.123 international notation conforming with local conventions on the use of spaces and hyphens as separators.",
+            "default": null,
+            "ty": {"kind": "scalar", "scalar": "string"}
+          },
+          {
+            "name": {"written": "person", "words": ["person"]},
+            "wire_name": "person",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "The unique identifier of the person that this phone number belongs to.",
+            "default": null,
+            "ty": {"kind": "scalar", "scalar": "string"}
+          }
+        ],
+        "extra": null,
+        "description": null,
+        "origin": null
+      }
+    },
+    {
+      "ref": {
+        "schema": "ILGSv1 Quote",
+        "path": [
+          {"written": "ilgs", "words": ["ilgs"]},
+          {"written": "v1", "words": ["v1"]},
+          {"written": "quote", "words": ["quote"]}
+        ],
+        "name": {"written": "Quote", "words": ["quote"]}
+      },
+      "description": "A quotation within a document.",
+      "deprecated": false,
+      "ty": {
+        "kind": "object",
+        "bases": [],
+        "fields": [
+          {
+            "name": {"written": "amending", "words": ["amending"]},
+            "wire_name": "amending",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "Whether the quote is being used to amend or modify content, typically in other documents.",
+            "default": null,
+            "ty": {"kind": "scalar", "scalar": "boolean"}
+          },
+          {
+            "name": {"written": "source_document", "words": ["source", "document"]},
+            "wire_name": "source_document",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "The unique identifier of the external document that is the source of the quote or `null` if the quote is not from or attributable to an external document.\n\nIt is not possible for a quote to be simultaneously from a segment and an external document.",
+            "default": null,
+            "ty": {"kind": "nullable", "inner": {"kind": "scalar", "scalar": "string"}}
+          },
+          {
+            "name": {"written": "source_person", "words": ["source", "person"]},
+            "wire_name": "source_person",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "The unique identifier of the legal person that is the source of the quote or `null` if the quote is not from or attributable to a mentioned legal person.",
+            "default": null,
+            "ty": {"kind": "nullable", "inner": {"kind": "scalar", "scalar": "string"}}
+          },
+          {
+            "name": {"written": "source_segment", "words": ["source", "segment"]},
+            "wire_name": "source_segment",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "The unique identifier of the segment that is the source of the quote or `null` if the quote is not from or attributable to a segment within the document.\n\nIt is not possible for a quote to be simultaneously from a segment and an external document.",
+            "default": null,
+            "ty": {"kind": "nullable", "inner": {"kind": "scalar", "scalar": "string"}}
+          },
+          {
+            "name": {"written": "span", "words": ["span"]},
+            "wire_name": "span",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "A zero-based, half-open span into the Unicode code point space of input text.\n\nAll spans are globally laminar and well-nested similar to XML—it is impossible for any two spans to partially overlap; they can only be disjoint, adjacent, or wholly nested. Spans of the exact same type (e.g., segments) will never be duplicated.\n\nA span cannot be empty and will never start or end at whitespace (though a span's `end` index, being an exclusive index, may obviosuly land on a whitespace character).\n\nNote that, when using programming languages other than Python (which uses zero-based, half-open, Unicode code point-spaced string indexing), indices may need to be translated accordingly (for example, JavaScript slices into UTF-16 code units instead of Unicode code points).",
+            "default": null,
+            "ty": {
+              "kind": "ref",
+              "schema": "ILGSv1 Span",
+              "path": [
+                {"written": "ilgs", "words": ["ilgs"]},
+                {"written": "v1", "words": ["v1"]},
+                {"written": "span", "words": ["span"]}
+              ],
+              "name": {"written": "Span", "words": ["span"]}
+            }
+          }
+        ],
+        "extra": null,
+        "description": null,
+        "origin": null
+      }
+    },
+    {
+      "ref": {
+        "schema": "ILGSv1 Segment",
+        "path": [
+          {"written": "ilgs", "words": ["ilgs"]},
+          {"written": "v1", "words": ["v1"]},
+          {"written": "segment", "words": ["segment"]}
+        ],
+        "name": {"written": "Segment", "words": ["segment"]}
+      },
+      "description": "A segment within the document representing a structurally distinct portion of the document's content.",
+      "deprecated": false,
+      "ty": {
+        "kind": "object",
+        "bases": [],
+        "fields": [
+          {
+            "name": {"written": "category", "words": ["category"]},
+            "wire_name": "category",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "The functional 'category' of the segment within the document, being one of `front_matter`, `scope`, `main`, `annotation`, `back_matter`, or `other`.\n\n`front_matter` denotes non-operative contextualizing content occurring at the start of a document such as a preamble or recitals.\n\n`scope` denotes operative content defining the application or interpretation of a document such as definition sections and governing law clauses.\n\n`main` denotes operative, non-scopal content.\n\n`annotation` denotes non-operative annotative content providing explanatory or referential information such as commentary, footnotes, and endnotes.\n\n`back_matter` denotes non-operative contextualizing content occurring at the end of a document such as authority statements.\n\n`other` denotes content that does not fit into any of the other categories.",
+            "default": null,
+            "ty": {
+              "kind": "enum",
+              "members": [
+                {
+                  "value": "front_matter",
+                  "name": {"written": "front_matter", "words": ["front", "matter"]}
+                },
+                {"value": "scope", "name": {"written": "scope", "words": ["scope"]}},
+                {"value": "main", "name": {"written": "main", "words": ["main"]}},
+                {"value": "annotation", "name": {"written": "annotation", "words": ["annotation"]}},
+                {
+                  "value": "back_matter",
+                  "name": {"written": "back_matter", "words": ["back", "matter"]}
+                },
+                {"value": "other", "name": {"written": "other", "words": ["other"]}}
+              ]
+            }
+          },
+          {
+            "name": {"written": "children", "words": ["children"]},
+            "wire_name": "children",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "The unique identifiers of any segments having this segment as their immediate parent.",
+            "default": null,
+            "ty": {"kind": "array", "items": {"kind": "scalar", "scalar": "string"}}
+          },
+          {
+            "name": {"written": "code", "words": ["code"]},
+            "wire_name": "code",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "The span within the segment defining its code (for example, '2' in 'Section 2 - Definitions') or `null` if no such span exists.",
+            "default": null,
+            "ty": {
+              "kind": "nullable",
+              "inner": {
+                "kind": "ref",
+                "schema": "ILGSv1 Span",
+                "path": [
+                  {"written": "ilgs", "words": ["ilgs"]},
+                  {"written": "v1", "words": ["v1"]},
+                  {"written": "span", "words": ["span"]}
+                ],
+                "name": {"written": "Span", "words": ["span"]}
+              }
+            }
+          },
+          {
+            "name": {"written": "id", "words": ["id"]},
+            "wire_name": "id",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "The unique identifier of the segment in the format `seg:{identifier}`.",
+            "default": null,
+            "ty": {"kind": "scalar", "scalar": "string"}
+          },
+          {
+            "name": {"written": "kind", "words": ["kind"]},
+            "wire_name": "kind",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "The structural 'kind' of the segment, being one of `container`, `unit`, `item`, or `figure`.\n\nA `container` is a structural or semantic grouping of content such as a chapter. It can contain segments of any kind or none at all.\n\nA `unit` is a single syntactically independent unit of text such as a paragraph. It can only contain `item`s and `figure`s.\n\nAn `item` is a syntactically subordinate unit of text such as an item in a run-in list. It can only contain other `item`s. Note that an `item` is conceptually distinct from a list item—it is perfectly possible to encounter list items that are syntactically independent of their surrounding items just as it is possible to encounter dependent clauses that do not appear as part of a list.\n\nA `figure` is a visually structured or tabular unit of content such as a diagram, equation, or table. It cannot contain segments.",
+            "default": null,
+            "ty": {
+              "kind": "enum",
+              "members": [
+                {"value": "container", "name": {"written": "container", "words": ["container"]}},
+                {"value": "unit", "name": {"written": "unit", "words": ["unit"]}},
+                {"value": "item", "name": {"written": "item", "words": ["item"]}},
+                {"value": "figure", "name": {"written": "figure", "words": ["figure"]}}
+              ]
+            }
+          },
+          {
+            "name": {"written": "level", "words": ["level"]},
+            "wire_name": "level",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "The level of the segment within the document's segment hierarchy starting from `0` for root-level segments.",
+            "default": null,
+            "ty": {"kind": "scalar", "scalar": "int"}
+          },
+          {
+            "name": {"written": "parent", "words": ["parent"]},
+            "wire_name": "parent",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "The unique identifier of the 'parent' segment immediately containing this segment or `null` if the segment has no parent (i.e., it is a root-level segment).\n\nA segment with the `container` kind can be the parent of segments of any kind, including other `container`s.\n\nA segment with the `unit` kind can only be the parent of `item`s and `figure`s.\n\nA segment with the `item` kind can only be the parent of other `item`s.\n\nA segment with the `figure` kind cannot be the parent of any segments.",
+            "default": null,
+            "ty": {"kind": "nullable", "inner": {"kind": "scalar", "scalar": "string"}}
+          },
+          {
+            "name": {"written": "span", "words": ["span"]},
+            "wire_name": "span",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "A zero-based, half-open span into the Unicode code point space of input text.\n\nAll spans are globally laminar and well-nested similar to XML—it is impossible for any two spans to partially overlap; they can only be disjoint, adjacent, or wholly nested. Spans of the exact same type (e.g., segments) will never be duplicated.\n\nA span cannot be empty and will never start or end at whitespace (though a span's `end` index, being an exclusive index, may obviosuly land on a whitespace character).\n\nNote that, when using programming languages other than Python (which uses zero-based, half-open, Unicode code point-spaced string indexing), indices may need to be translated accordingly (for example, JavaScript slices into UTF-16 code units instead of Unicode code points).",
+            "default": null,
+            "ty": {
+              "kind": "ref",
+              "schema": "ILGSv1 Span",
+              "path": [
+                {"written": "ilgs", "words": ["ilgs"]},
+                {"written": "v1", "words": ["v1"]},
+                {"written": "span", "words": ["span"]}
+              ],
+              "name": {"written": "Span", "words": ["span"]}
+            }
+          },
+          {
+            "name": {"written": "title", "words": ["title"]},
+            "wire_name": "title",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "The span within the segment defining its title (for example, 'Definitions' in 'Section 2 - Definitions') or `null` if no such span exists.",
+            "default": null,
+            "ty": {
+              "kind": "nullable",
+              "inner": {
+                "kind": "ref",
+                "schema": "ILGSv1 Span",
+                "path": [
+                  {"written": "ilgs", "words": ["ilgs"]},
+                  {"written": "v1", "words": ["v1"]},
+                  {"written": "span", "words": ["span"]}
+                ],
+                "name": {"written": "Span", "words": ["span"]}
+              }
+            }
+          },
+          {
+            "name": {"written": "type", "words": ["type"]},
+            "wire_name": "type",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "The addressable 'type' of the segment within the document's referential scheme and hierarchy, whether defined explicitly (e.g., by headings, such as 'Section 2. Definitions'), implicitly (e.g., by way of reference, such as 'as defined in Section 2'), or by convention (e.g., [42] in a judgment often denotes a `paragraph`, independent provisions in statute are often `section`s, etc.). If the type is not known or not applicable, it will be set to `null`.\n\nNote that, although many segment types may coincide with syntactic constructs, they should be thought of purely as distinct formal citable units. Most paragraphs (in the syntactic sense) will not have the `paragraph` type, for example. That type is reserved for segments that would formally be cited as a 'Paragraph' within the document's referential scheme.\n\nThe following types are currently supported: `title`, `book`, `part`, `chapter`, `subchapter`, `division`, `subdivision`, `subpart`, `subtitle`, `table_of_contents`, `article`, `section`, `regulation`, `rule`, `clause`, `paragraph`, `subarticle`, `subsection`, `subregulation`, `subrule`, `subclause`, `subparagraph`, `item`, `subitem`, `point`, `indent`, `schedule`, `annex`, `appendix`, `exhibit`, `recital`, `signature`, `note`, `figure`, `table`, and `formula`.\n\nThe `title`, `book`, `part`, `chapter`, `subchapter`, `division`, `subdivision`, `subpart`, `subtitle`, and `table_of_contents` types are exclusive to the `container` kind.\n\nThe `figure` kind only supports the `figure`, `table`, and `formula` types, all of which are exclusive to it.",
+            "default": null,
+            "ty": {
+              "kind": "nullable",
+              "inner": {
+                "kind": "enum",
+                "members": [
+                  {"value": "title", "name": {"written": "title", "words": ["title"]}},
+                  {"value": "book", "name": {"written": "book", "words": ["book"]}},
+                  {"value": "part", "name": {"written": "part", "words": ["part"]}},
+                  {"value": "chapter", "name": {"written": "chapter", "words": ["chapter"]}},
+                  {
+                    "value": "subchapter",
+                    "name": {"written": "subchapter", "words": ["subchapter"]}
+                  },
+                  {"value": "division", "name": {"written": "division", "words": ["division"]}},
+                  {
+                    "value": "subdivision",
+                    "name": {"written": "subdivision", "words": ["subdivision"]}
+                  },
+                  {"value": "subpart", "name": {"written": "subpart", "words": ["subpart"]}},
+                  {"value": "subtitle", "name": {"written": "subtitle", "words": ["subtitle"]}},
+                  {
+                    "value": "table_of_contents",
+                    "name": {"written": "table_of_contents", "words": ["table", "of", "contents"]}
+                  },
+                  {"value": "article", "name": {"written": "article", "words": ["article"]}},
+                  {"value": "section", "name": {"written": "section", "words": ["section"]}},
+                  {
+                    "value": "regulation",
+                    "name": {"written": "regulation", "words": ["regulation"]}
+                  },
+                  {"value": "rule", "name": {"written": "rule", "words": ["rule"]}},
+                  {"value": "clause", "name": {"written": "clause", "words": ["clause"]}},
+                  {"value": "paragraph", "name": {"written": "paragraph", "words": ["paragraph"]}},
+                  {
+                    "value": "subarticle",
+                    "name": {"written": "subarticle", "words": ["subarticle"]}
+                  },
+                  {
+                    "value": "subsection",
+                    "name": {"written": "subsection", "words": ["subsection"]}
+                  },
+                  {
+                    "value": "subregulation",
+                    "name": {"written": "subregulation", "words": ["subregulation"]}
+                  },
+                  {"value": "subrule", "name": {"written": "subrule", "words": ["subrule"]}},
+                  {"value": "subclause", "name": {"written": "subclause", "words": ["subclause"]}},
+                  {
+                    "value": "subparagraph",
+                    "name": {"written": "subparagraph", "words": ["subparagraph"]}
+                  },
+                  {"value": "item", "name": {"written": "item", "words": ["item"]}},
+                  {"value": "subitem", "name": {"written": "subitem", "words": ["subitem"]}},
+                  {"value": "point", "name": {"written": "point", "words": ["point"]}},
+                  {"value": "indent", "name": {"written": "indent", "words": ["indent"]}},
+                  {"value": "schedule", "name": {"written": "schedule", "words": ["schedule"]}},
+                  {"value": "annex", "name": {"written": "annex", "words": ["annex"]}},
+                  {"value": "appendix", "name": {"written": "appendix", "words": ["appendix"]}},
+                  {"value": "exhibit", "name": {"written": "exhibit", "words": ["exhibit"]}},
+                  {"value": "recital", "name": {"written": "recital", "words": ["recital"]}},
+                  {"value": "signature", "name": {"written": "signature", "words": ["signature"]}},
+                  {"value": "note", "name": {"written": "note", "words": ["note"]}},
+                  {"value": "figure", "name": {"written": "figure", "words": ["figure"]}},
+                  {"value": "table", "name": {"written": "table", "words": ["table"]}},
+                  {"value": "formula", "name": {"written": "formula", "words": ["formula"]}}
+                ]
+              }
+            }
+          },
+          {
+            "name": {"written": "type_name", "words": ["type", "name"]},
+            "wire_name": "type_name",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "The span within the segment defining its type (for example, 'Section' in 'Section 2 - Definitions') or `null` if no such span exists.",
+            "default": null,
+            "ty": {
+              "kind": "nullable",
+              "inner": {
+                "kind": "ref",
+                "schema": "ILGSv1 Span",
+                "path": [
+                  {"written": "ilgs", "words": ["ilgs"]},
+                  {"written": "v1", "words": ["v1"]},
+                  {"written": "span", "words": ["span"]}
+                ],
+                "name": {"written": "Span", "words": ["span"]}
+              }
+            }
+          }
+        ],
+        "extra": null,
+        "description": null,
+        "origin": null
+      }
+    },
+    {
+      "ref": {
+        "schema": "ILGSv1 Span",
+        "path": [
+          {"written": "ilgs", "words": ["ilgs"]},
+          {"written": "v1", "words": ["v1"]},
+          {"written": "span", "words": ["span"]}
+        ],
+        "name": {"written": "Span", "words": ["span"]}
+      },
+      "description": "A zero-based, half-open span into the Unicode code point space of input text.\n\nAll spans are globally laminar and well-nested similar to XML—it is impossible for any two spans to partially overlap; they can only be disjoint, adjacent, or wholly nested. Spans of the exact same type (e.g., segments) will never be duplicated.\n\nA span cannot be empty and will never start or end at whitespace (though a span's `end` index, being an exclusive index, may obviosuly land on a whitespace character).\n\nNote that, when using programming languages other than Python (which uses zero-based, half-open, Unicode code point-spaced string indexing), indices may need to be translated accordingly (for example, JavaScript slices into UTF-16 code units instead of Unicode code points).",
+      "deprecated": false,
+      "ty": {
+        "kind": "object",
+        "bases": [],
+        "fields": [
+          {
+            "name": {"written": "end", "words": ["end"]},
+            "wire_name": "end",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "The zero-based end index of the half-open span (i.e., the end is exclusive) of Unicode code points in the input text.",
+            "default": null,
+            "ty": {"kind": "scalar", "scalar": "int"}
+          },
+          {
+            "name": {"written": "start", "words": ["start"]},
+            "wire_name": "start",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "The zero-based start index of the half-open span of Unicode code points in the input text.",
+            "default": null,
+            "ty": {"kind": "scalar", "scalar": "int"}
+          }
+        ],
+        "extra": null,
+        "description": null,
+        "origin": null
+      }
+    },
+    {
+      "ref": {
+        "schema": "ILGSv1 Term",
+        "path": [
+          {"written": "ilgs", "words": ["ilgs"]},
+          {"written": "v1", "words": ["v1"]},
+          {"written": "term", "words": ["term"]}
+        ],
+        "name": {"written": "Term", "words": ["term"]}
+      },
+      "description": "A term assigned a definite meaning within a document.",
+      "deprecated": false,
+      "ty": {
+        "kind": "object",
+        "bases": [],
+        "fields": [
+          {
+            "name": {"written": "id", "words": ["id"]},
+            "wire_name": "id",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "The unique identifier of the term in the format `term:{identifier}`.",
+            "default": null,
+            "ty": {"kind": "scalar", "scalar": "string"}
+          },
+          {
+            "name": {"written": "meaning", "words": ["meaning"]},
+            "wire_name": "meaning",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "A zero-based, half-open span into the Unicode code point space of input text.\n\nAll spans are globally laminar and well-nested similar to XML—it is impossible for any two spans to partially overlap; they can only be disjoint, adjacent, or wholly nested. Spans of the exact same type (e.g., segments) will never be duplicated.\n\nA span cannot be empty and will never start or end at whitespace (though a span's `end` index, being an exclusive index, may obviosuly land on a whitespace character).\n\nNote that, when using programming languages other than Python (which uses zero-based, half-open, Unicode code point-spaced string indexing), indices may need to be translated accordingly (for example, JavaScript slices into UTF-16 code units instead of Unicode code points).",
+            "default": null,
+            "ty": {
+              "kind": "ref",
+              "schema": "ILGSv1 Span",
+              "path": [
+                {"written": "ilgs", "words": ["ilgs"]},
+                {"written": "v1", "words": ["v1"]},
+                {"written": "span", "words": ["span"]}
+              ],
+              "name": {"written": "Span", "words": ["span"]}
+            }
+          },
+          {
+            "name": {"written": "mentions", "words": ["mentions"]},
+            "wire_name": "mentions",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "An array of spans within the document's text where the term is mentioned outside of its definition.\n\nIt is possible for the term to have no mentions if, outside of its definition, it is never referred to in the document.",
+            "default": null,
+            "ty": {
+              "kind": "array",
+              "items": {
+                "kind": "ref",
+                "schema": "ILGSv1 Span",
+                "path": [
+                  {"written": "ilgs", "words": ["ilgs"]},
+                  {"written": "v1", "words": ["v1"]},
+                  {"written": "span", "words": ["span"]}
+                ],
+                "name": {"written": "Span", "words": ["span"]}
+              }
+            }
+          },
+          {
+            "name": {"written": "name", "words": ["name"]},
+            "wire_name": "name",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "A zero-based, half-open span into the Unicode code point space of input text.\n\nAll spans are globally laminar and well-nested similar to XML—it is impossible for any two spans to partially overlap; they can only be disjoint, adjacent, or wholly nested. Spans of the exact same type (e.g., segments) will never be duplicated.\n\nA span cannot be empty and will never start or end at whitespace (though a span's `end` index, being an exclusive index, may obviosuly land on a whitespace character).\n\nNote that, when using programming languages other than Python (which uses zero-based, half-open, Unicode code point-spaced string indexing), indices may need to be translated accordingly (for example, JavaScript slices into UTF-16 code units instead of Unicode code points).",
+            "default": null,
+            "ty": {
+              "kind": "ref",
+              "schema": "ILGSv1 Span",
+              "path": [
+                {"written": "ilgs", "words": ["ilgs"]},
+                {"written": "v1", "words": ["v1"]},
+                {"written": "span", "words": ["span"]}
+              ],
+              "name": {"written": "Span", "words": ["span"]}
+            }
+          }
+        ],
+        "extra": null,
+        "description": null,
+        "origin": null
+      }
+    },
+    {
+      "ref": {
+        "schema": "ILGSv1 Website",
+        "path": [
+          {"written": "ilgs", "words": ["ilgs"]},
+          {"written": "v1", "words": ["v1"]},
+          {"written": "website", "words": ["website"]}
+        ],
+        "name": {"written": "Website", "words": ["website"]}
+      },
+      "description": "A website identified in a document belonging to a legal person.\n\nIf a website was mentioned in the document but is not attributable to a legal person, it will not be extracted.",
+      "deprecated": false,
+      "ty": {
+        "kind": "object",
+        "bases": [],
+        "fields": [
+          {
+            "name": {"written": "mentions", "words": ["mentions"]},
+            "wire_name": "mentions",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "An array of one or more spans within the document's text where the website is mentioned (including paths and slugs which are not part of the website's normalized URL).",
+            "default": null,
+            "ty": {
+              "kind": "array",
+              "items": {
+                "kind": "ref",
+                "schema": "ILGSv1 Span",
+                "path": [
+                  {"written": "ilgs", "words": ["ilgs"]},
+                  {"written": "v1", "words": ["v1"]},
+                  {"written": "span", "words": ["span"]}
+                ],
+                "name": {"written": "Span", "words": ["span"]}
+              }
+            }
+          },
+          {
+            "name": {"written": "person", "words": ["person"]},
+            "wire_name": "person",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "The unique identifier of the person that this website belongs to.",
+            "default": null,
+            "ty": {"kind": "scalar", "scalar": "string"}
+          },
+          {
+            "name": {"written": "url", "words": ["url"]},
+            "wire_name": "url",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "The normalized URL of the website in the form `https://{host}/`.",
+            "default": null,
+            "ty": {"kind": "scalar", "scalar": "string"}
+          }
+        ],
+        "extra": null,
+        "description": null,
+        "origin": null
+      }
+    },
+    {
+      "ref": {
+        "schema": "RerankingResponse",
+        "path": [{"written": "reranking_response", "words": ["reranking", "response"]}],
+        "name": {"written": "RerankingResponse", "words": ["reranking", "response"]}
+      },
+      "description": "Reranking response",
+      "deprecated": false,
+      "ty": {
+        "kind": "object",
+        "bases": [],
+        "fields": [
+          {
+            "name": {"written": "results", "words": ["results"]},
+            "wire_name": "results",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "The texts reranked by relevance to the query, in order from highest to lowest relevance score.",
+            "default": null,
+            "ty": {
+              "kind": "array",
+              "items": {
+                "kind": "object",
+                "bases": [],
+                "fields": [
+                  {
+                    "name": {"written": "index", "words": ["index"]},
+                    "wire_name": "index",
+                    "required": true,
+                    "deprecated": false,
+                    "read_only": false,
+                    "description": "The index of the text in the input array of texts, starting from `0` (and, therefore, ending at the number of texts minus `1`).",
+                    "default": null,
+                    "ty": {"kind": "scalar", "scalar": "int"}
+                  },
+                  {
+                    "name": {"written": "score", "words": ["score"]},
+                    "wire_name": "score",
+                    "required": true,
+                    "deprecated": false,
+                    "read_only": false,
+                    "description": "A score between `0` and `1`, inclusive, representing the relevance of the text to the query.",
+                    "default": null,
+                    "ty": {"kind": "scalar", "scalar": "double"}
+                  }
+                ],
+                "extra": null,
+                "description": "Reranking result",
+                "origin": "RerankingResult"
+              }
+            }
+          },
+          {
+            "name": {"written": "usage", "words": ["usage"]},
+            "wire_name": "usage",
+            "required": true,
+            "deprecated": false,
+            "read_only": false,
+            "description": "Statistics about the usage of resources in the process of reranking the texts.",
+            "default": null,
+            "ty": {
+              "kind": "object",
+              "bases": [],
+              "fields": [
+                {
+                  "name": {"written": "input_tokens", "words": ["input", "tokens"]},
+                  "wire_name": "input_tokens",
+                  "required": true,
+                  "deprecated": false,
+                  "read_only": false,
+                  "description": "The number of tokens inputted to the model.",
+                  "default": null,
+                  "ty": {"kind": "scalar", "scalar": "int"}
+                }
+              ],
+              "extra": null,
+              "description": "Statistics about the usage of resources in the process of reranking the texts.",
+              "origin": "RerankingUsage"
+            }
+          }
+        ],
+        "extra": null,
+        "description": null,
+        "origin": null
+      }
+    }
+  ],
+  "style": []
+}

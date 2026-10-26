@@ -1,0 +1,62 @@
+organization:
+  name: petstore
+  docs: https://docs.petstore.test
+  contact: support@petstore.test
+
+targets:
+  python:
+    package_name: petstore
+    publish:
+      pypi: false
+  typescript:
+    package_name: petstore
+    production_repo: petstore/petstore-typescript
+    publish:
+      npm: true
+
+environments:
+  production: https://api.petstore.test/v1
+
+client_settings:
+  opts:
+    api_key:
+      type: string
+      description: Your Petstore API key.
+      nullable: false
+      read_env: PETSTORE_API_KEY
+      auth:
+        security_scheme: BearerAuth
+
+resources:
+  $shared:
+    models:
+      owner: Owner
+  pets:
+    models:
+      pet: Pet
+    methods:
+      list: get /pets
+      create: post /pets
+      retrieve: get /pets/{pet_id}
+    subresources:
+      photos:
+        methods:
+          delete: delete /pets/{pet_id}/photos/{photo_id}
+
+settings:
+  license: Apache-2.0
+
+readme:
+  example_requests:
+    default:
+      type: request
+      endpoint: post /pets
+      params:
+        name: Rex
+        species: dog
+    headline:
+      type: request
+      endpoint: post /pets
+      params:
+        name: Rex
+        species: dog
