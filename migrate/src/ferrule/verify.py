@@ -181,6 +181,26 @@ def _member(root: griffe.Object, path: str) -> griffe.Object | None:
     return _target(found)
 
 
+def _counterpart(old: griffe.Object, new: griffe.Object, path: str) -> griffe.Object | None:
+    """Return the old object at ``path`` of the new tree, also when its class moved module.
+
+    ``acme.Client`` may be defined in ``acme._client`` before and ``acme.lib._client`` after (an
+    adopted SDK's custom client); griffe reports the new path, so it is mapped back through the
+    public name both trees export.
+    """
+    found = _member(old, path)
+    if found is not None:
+        return found
+    for name, member in new.members.items():
+        target = _target(member)
+        if target is None or not path.startswith(f"{target.path}."):
+            continue
+        before = _member(old, f"{old.path}.{name}")
+        if before is not None:
+            return _member(old, before.path + path.removeprefix(target.path))
+    return None
+
+
 def _is_property(obj: griffe.Object) -> bool:
     if isinstance(obj, griffe.Attribute):
         return "property" in obj.labels
@@ -211,7 +231,7 @@ def _same_api(b: griffe.Breakage, old: griffe.Object, new: griffe.Object) -> boo
         )
     if b.kind is not griffe.BreakageKind.OBJECT_CHANGED_KIND:
         return False
-    before, after = _member(old, b.obj.path), _member(new, b.obj.path)
+    before, after = _counterpart(old, new, b.obj.path), _member(new, b.obj.path)
     if before is None or after is None:
         return False
     return (_is_property(before) and _is_property(after)) or (
