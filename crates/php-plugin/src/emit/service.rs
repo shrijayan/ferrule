@@ -308,6 +308,11 @@ fn raw_body(g: &Gen<'_>, m: &Meth<'_>, imp: &mut Imports) -> String {
     let ind3 = indent(3);
     let mut out = String::new();
     let class = params_class(m);
+    let body = m.method.body.is_some() && class.is_some();
+    // With a body as well, the query parameters are picked out of the parsed params by their
+    // wire names (the keys `parseRequest` dumps) and the body is the rest, as Stainless's PHP
+    // SDKs split them (courier-php, telnyx-php).
+    let split = body && !m.args.query.is_empty();
     let options = if let Some(c) = class {
         let name = imp.class(&c.path);
         let _ = write!(
@@ -321,6 +326,10 @@ fn raw_body(g: &Gen<'_>, m: &Meth<'_>, imp: &mut Imports) -> String {
                 p.name
             );
         }
+        if split {
+            let keys: Vec<String> = m.args.query.iter().map(|f| format!("'{}'", f.wire)).collect();
+            let _ = writeln!(out, "{ind2}$query_params = array_flip([{}]);", keys.join(", "));
+        }
         out.push('\n');
         "$options"
     } else {
@@ -330,7 +339,9 @@ fn raw_body(g: &Gen<'_>, m: &Meth<'_>, imp: &mut Imports) -> String {
     let _ = writeln!(out, "{ind2}return $this->client->request(");
     let _ = writeln!(out, "{ind3}method: '{}',", m.method.http_method.as_str());
     let _ = writeln!(out, "{ind3}path: {},", path_expr(m));
-    if !m.args.query.is_empty() {
+    if split {
+        let _ = writeln!(out, "{ind3}query: array_intersect_key($parsed, $query_params),");
+    } else if !m.args.query.is_empty() {
         let _ = writeln!(out, "{ind3}query: $parsed,");
     }
     if m.method
@@ -340,7 +351,9 @@ fn raw_body(g: &Gen<'_>, m: &Meth<'_>, imp: &mut Imports) -> String {
     {
         let _ = writeln!(out, "{ind3}headers: ['Content-Type' => 'multipart/form-data'],");
     }
-    if m.method.body.is_some() && class.is_some() {
+    if split {
+        let _ = writeln!(out, "{ind3}body: (object) array_diff_key($parsed, $query_params),");
+    } else if body {
         let _ = writeln!(out, "{ind3}body: (object) $parsed,");
     }
     let _ = writeln!(out, "{ind3}options: {options},");
