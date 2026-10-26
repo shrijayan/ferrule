@@ -12,6 +12,7 @@
 
 use std::collections::{HashMap, HashSet};
 
+use crate::emit::common::typed_extra;
 use crate::model::{SdkModelDecl, SdkObject, SdkRef, SdkType};
 
 /// Which named models take part in reference cycles.
@@ -38,11 +39,15 @@ pub fn refs_of(ty: &SdkType, out: &mut Vec<SdkRef>) {
     }
 }
 
-/// [`refs_of`] for an object: its bases and the types of its fields.
+/// [`refs_of`] for an object: its bases, the types of its fields and of the extra values it
+/// declares (`__pydantic_extra__`).
 pub fn object_refs(obj: &SdkObject, out: &mut Vec<SdkRef>) {
     out.extend(obj.bases.iter().cloned());
     for f in &obj.fields {
         refs_of(&f.ty, out);
+    }
+    if let Some(extra) = typed_extra(obj) {
+        refs_of(extra, out);
     }
 }
 
