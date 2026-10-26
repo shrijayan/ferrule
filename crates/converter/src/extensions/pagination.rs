@@ -22,6 +22,15 @@ pub const PAGINATION_SCHEMES: [&str; 6] = [
 /// Name given to the single-object `pagination:` form, which has no `name`.
 pub const UNNAMED_PAGE: &str = "page";
 
+/// The `x-ferrule-pagination` field maps written in config order instead of sorted: Stainless
+/// declares a page's fields in the order stainless.yml lists them (knock-go `MsTeamsPagination`
+/// has `SkipToken`, then `MsTeamsTeams`).
+pub const CONFIG_ORDER_MAPS: [(&str, &str); 3] = [
+    ("x-ferrule-pagination", "request"),
+    ("x-ferrule-pagination", "response"),
+    ("x-ferrule-pagination", "headers"),
+];
+
 #[derive(Default)]
 struct Flat {
     body: Map,
