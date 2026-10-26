@@ -177,10 +177,11 @@ pins). Open PRs, with what is proven:
 | TypeScript, node layout | #29 | onebusaway 36/36 | onebusaway-typescript 108/109 |
 | TypeScript pagination | #34 | | every oracle pagination file byte-identical, both layouts |
 | Go v1 | #19, #23 | onebusaway-go 25/25 | onebusaway-go 65/69 (4 need spec examples, gap G18); builds, tests pass |
+| Go pagination, v2 layout | #37 | imagekit-go, knock-mgmt-go, ogx-go 54/54 | imagekit-go 17/45, knock-mgmt-go 8/50 (floors); knock-go cursor pages 3/4 |
 | Java, Kotlin | #25, #32 | onebusaway-kotlin 61/61, imagekit-java 67/67 | onebusaway-java 328/343, onebusaway-kotlin 282/338, imagekit-java 186/291 |
 | Ruby | #25, #35 | onebusaway-ruby 58/58 | onebusaway-ruby 326/329, imagekit-ruby 348/432; both gems' own tests pass |
 
-In progress: Go pagination and the v2 layout (imagekit, ogx, knock-mgmt), PHP (imagekit-php). C#
-has no oracle that pairs with our configs yet; a search is under way. Then CLI and Terraform. Python moves onto `sdk-model` once the Phase 4 PRs
+In progress: PHP (imagekit-php) and C# (imagekit-dotnet, which pairs with the `csharp` branch of
+imagekit's config repo; stagehand-net, MIT, for comparison). Then CLI and Terraform. Python moves onto `sdk-model` once the Phase 4 PRs
 land (`crates/sdk-model/MIGRATION.md`).
 
