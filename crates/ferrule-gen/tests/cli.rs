@@ -136,18 +136,18 @@ fn generates_python_for_an_explicit_python_target() {
 
 #[test]
 fn reports_targets_without_a_plugin_as_fer202() {
-    let dir = scratch("target-go");
+    let dir = scratch("target-terraform");
     let output = bin()
         .arg("generate")
         .arg(plugin_dir().join("tests/fixtures/cursor-page.json"))
-        .args(["--target=go", "--out"])
+        .args(["--target=terraform", "--out"])
         .arg(dir.join("out"))
         .output()
         .expect("runs");
     assert_eq!(output.status.code(), Some(1));
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(
-        stderr.starts_with("ferrule-gen: FER202 at --target: target go is not supported yet. Fix: "),
+        stderr.starts_with("ferrule-gen: FER202 at --target: target terraform is not supported yet. Fix: "),
         "{stderr}"
     );
     assert!(!dir.join("out").exists());
