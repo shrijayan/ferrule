@@ -66,6 +66,11 @@ pagination schemes) would shape it. Option 3 leaves a common request unanswered.
   page JSON; the plugin emits one `PageConfig` constant per config scheme (the purposes and
   field paths). `send()` returns the first `Page<T>`; `paginate()` returns a
   `futures::Stream<Item = Result<T>>` (async) or an `Iterator` (blocking) over every item.
+- **Uploads**: a `multipart/form-data` body's fields are params like a JSON body's; a `binary`
+  field is a `FileUpload` (name, bytes, optional media type). The runtime encodes the parts
+  itself, so a retried request sends the same body.
+- **Client options** the client neither sends nor uses for auth (a webhook secret) are kept on
+  the client, with an accessor each.
 - **Streaming**: SSE and JSON Lines, as a `Stream` of typed events from `stream()` (an
   `Iterator` when blocking); an SSE `error` event becomes an error, `[DONE]` ends the stream. A
   method with a `param_discriminator` gives two calls, `<name>` and `<name>_streaming`.
@@ -127,7 +132,9 @@ There is no oracle to match byte for byte, so the target is proven by:
    method against the fake server (`testing` feature, the Rust counterpart of
    [ADR 0016](./0016-sdk-testing-fake-server.md)): a local HTTP server that answers each route
    with a JSON body built from its response schema and records the requests.
-3. Public API: `cargo-semver-checks` between releases of the generated crate, as the other
+3. Real specs: every config oracle in `oracles/cache` (11 APIs) generates a crate that passes
+   the same clippy and test checks; run by hand while there is no corpus job for Rust.
+4. Public API: `cargo-semver-checks` between releases of the generated crate, as the other
    targets use their own languages' checkers.
 
 ### Consequences
