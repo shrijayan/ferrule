@@ -285,6 +285,7 @@ None of these tools is copied into Ferrule; they are only run.
 | Ruby | no standard tool | the generated `sig/**/*.rbs`, parsed with the `rbs` gem (`RBS::Parser`) and compared by class, method and type signature; the `.rbi` files are a second check |
 | PHP | roave/backward-compatibility-check (MIT) | |
 | C# | Microsoft.DotNet.ApiCompat / package validation (MIT) | |
+| Rust | `cargo-semver-checks` (Apache-2.0/MIT), run between two releases of the generated crate; Rust is a Ferrule-original target with no Stainless oracle (ADR 0019) | the crate's public API from rustdoc JSON, with semver lints (removed items, changed signatures, new required fields) |
 | Python | griffe (ISC), static load, never imports the SDK | modules, classes, functions and parameters (in use since Phase 3) |
 | CLI (Go) | `apidiff` for the Go package, plus a diff of the command and flag tree dumped by the built binary (`--help` per command, or cobra's doc generator) | commands, flags, defaults |
 | Terraform (Go) | `terraform providers schema -json` from the old and new provider builds, diffed by resource, attribute, type and required/optional | resources, data sources, attributes |
