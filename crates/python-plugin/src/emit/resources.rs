@@ -996,9 +996,12 @@ pub fn emit_resource_file(client: &SdkClient, resource: &SdkResource) -> Result<
         outputs: shared_outputs(Some(resource), &resource.methods),
     };
     p.import_from("__future__", "annotations");
-    p.import_module("httpx");
-    for name in ["Body", "Query", "Headers", "NotGiven", client.style.not_given()] {
-        imp(&s, &mut p, "_types", name);
+    // Only methods take request options (groq-python `chat.py` has subresources alone).
+    if !resource.methods.is_empty() {
+        p.import_module("httpx");
+        for name in ["Body", "Query", "Headers", "NotGiven", client.style.not_given()] {
+            imp(&s, &mut p, "_types", name);
+        }
     }
     // Imports render above the body whatever order they are registered in.
     for l in all_list(&[
