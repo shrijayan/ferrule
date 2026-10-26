@@ -19,6 +19,7 @@ ferrule-sdk-model.workspace = true
 ferrule-ts-plugin.workspace = true
 forge.workspace = true
 serde_json.workspace = true
+sha2 = "0.11.1"
 
 [lints]
 workspace = true

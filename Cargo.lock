@@ -233,6 +233,7 @@ dependencies = [
  "ferrule-ts-plugin",
  "forge",
  "serde_json",
+ "sha2",
 ]
 
 [[package]]
