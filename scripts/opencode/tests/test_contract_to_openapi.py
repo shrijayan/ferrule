@@ -215,7 +215,11 @@ def test_binary_and_stream() -> None:
     assert read["parameters"][0]["in"] == "path"
     assert "application/octet-stream" in read["responses"]["200"]["content"]
     events = paths["/api/fs/events"]["put"]
-    assert "application/octet-stream" in events["requestBody"]["content"]
+    # A binary payload is bytes (`format: binary`), as generators read raw request content.
+    assert events["requestBody"]["content"]["application/octet-stream"]["schema"] == {
+        "type": "string",
+        "format": "binary",
+    }
     assert "text/event-stream" in events["responses"]["200"]["content"]
 
 
