@@ -56,7 +56,7 @@ when the Command Line Tools' SDK is newer than their linker; point `SDKROOT` at 
 - onebusaway-ruby (`46a574dd`, the generation of the proven Python pin): 326 of 329 generated
   files byte-identical; the three others are Forge gap G18 (a path param's `example` is not in
   the model).
-- imagekit-ruby (`65401086`): 348 of 432 identical; each of the 84 others is listed with its
+- imagekit-ruby (`65401086`): 349 of 432 identical; each of the 83 others is listed with its
   reason: model and Forge gaps (webhooks, `x-stainless-variantName`, union variant order,
   multi-value discriminator mappings, operation-level path param docs, G18 examples, schema
   titles), converter gap FER1004, imagekit's hand edits and older project files, and three
