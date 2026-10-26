@@ -85,9 +85,6 @@ pub fn service_test(g: &Gen<'_>, s: &Svc<'_>) -> Option<(String, String)> {
     let mut body = String::new();
     let mut examples = Examples::new(g);
     for (i, m) in s.methods.iter().enumerate() {
-        if i > 0 {
-            body.push('\n');
-        }
         let mut args = Vec::new();
         let mut inits = Vec::new();
         if let Some(last) = m.path_params.len().checked_sub(1) {
@@ -98,6 +95,7 @@ pub fn service_test(g: &Gen<'_>, s: &Svc<'_>) -> Option<(String, String)> {
         }
         let si = g.services.iter().position(|x| std::ptr::eq(x, s)).unwrap_or_default();
         let params = g.files.files.iter().find(|f| f.kind == Kind::Params(si, i));
+        let mut buildable = true;
         if let Some(file) = params
             && let Some(Decl::Object(o)) = file.decls.first()
         {
@@ -106,10 +104,19 @@ pub fn service_test(g: &Gen<'_>, s: &Svc<'_>) -> Option<(String, String)> {
                 .iter()
                 .filter(|p| p.required && p.constant.is_none() && p.loc != Loc::Path)
             {
-                if let Some(v) = examples.value(&p.ty, &p.wire, file, false, 0) {
-                    inits.push(format!("{} = {v}", p.name));
+                match examples.value(&p.ty, &p.wire, file, false, 0) {
+                    Some(v) => inits.push(format!("{} = {v}", p.name)),
+                    None => buildable = false,
                 }
             }
+        }
+        // Without a value for a required argument the test would not compile (CS9035), so the
+        // method has none.
+        if !buildable {
+            continue;
+        }
+        if !body.is_empty() {
+            body.push('\n');
         }
         args.push(if inits.is_empty() {
             "new()".to_owned()
