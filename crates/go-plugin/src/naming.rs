@@ -12,9 +12,7 @@ use ferrule_sdk_model::model::{Casing, CustomCasing, Name};
 /// Words Stainless spells upper-case in Go identifiers; a plural `s` stays lower-case (`IDs`).
 /// `json` is not one: ogx-go and knock-mgmt-go spell it `Json` (`JsonSchema`, `JsonBody`), which
 /// also keeps a property named `json` clear of a response's `JSON` metadata field.
-const INITIALISMS: [&str; 10] = [
-    "id", "ids", "url", "uri", "api", "http", "https", "ip", "uuid", "sdk",
-];
+const INITIALISMS: [&str; 10] = ["id", "ids", "url", "uri", "api", "http", "https", "ip", "uuid", "sdk"];
 
 /// Go's keywords, which no identifier may be.
 const KEYWORDS: [&str; 25] = [
