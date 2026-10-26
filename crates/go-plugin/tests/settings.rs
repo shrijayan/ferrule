@@ -150,3 +150,34 @@ fn a_bearer_scheme_keyword_replaces_bearer() {
         "{options}"
     );
 }
+
+fn api_key_scheme(location: &str) -> String {
+    format!(
+        "    BearerAuth:
+      type: apiKey
+      in: {location}
+      name: key"
+    )
+}
+
+#[test]
+fn an_api_key_scheme_is_sent_where_it_says() {
+    let out = go(&spec(OBJECT, &api_key_scheme("query")), &config(API_KEY));
+    let options = &out.runtime.client_options;
+    assert!(options.contains("r.Apply(WithQuery(\"key\", *r.APIKey))"), "{options}");
+    let out = go(&spec(OBJECT, &api_key_scheme("header")), &config(API_KEY));
+    let options = &out.runtime.client_options;
+    assert!(options.contains("r.Apply(WithHeader(\"key\", *r.APIKey))"), "{options}");
+}
+
+#[test]
+fn an_api_key_in_a_cookie_is_reported() {
+    let converted =
+        ferrule_converter::convert_text(&spec(OBJECT, &api_key_scheme("cookie")), &config(API_KEY))
+            .expect("converts");
+    let Err(err) = generate(&common::model(&converted.output), &GoMeta::default()) else {
+        panic!("an API key in a cookie generates");
+    };
+    assert_eq!(err.code, ferrule_sdk_model::FerCode::Fer201, "{err}");
+    assert_eq!(err.pointer, "#/components/securitySchemes/BearerAuth", "{err}");
+}
