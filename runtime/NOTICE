@@ -82,6 +82,12 @@ runtime/go-v2/template/ is derived from the Stainless-generated ImageKit Go SDK 
               option/requestoption.go replaced by slots. Marks are recorded here and in
               runtime/README.md instead of in the files (ADR 0004 amendment).
 
+runtime/go-v2/template/internal/encoding/json/ is Go's encoding/json package as imagekit-go
+vendors it ("Vendored from Go 1.24.0-pre-release", with its shims/ and sentinel/ packages):
+BSD-3-Clause, Copyright 2009 The Go Authors, as the files' headers note. The licence text is
+runtime/go-v2/LICENSE-go (Go's LICENSE, unchanged). imagekit-go and knock-mgmt-go ship these
+files without that licence file, and so do the SDKs rendered from the template.
+
 runtime/java/template/ is derived from Stainless-generated Java and Kotlin SDKs:
   Repository: https://github.com/OneBusAway/java-sdk
   Commit:     c29c48ad95f08e9a6042bfb4b620bb93b7a5f0ab (release 0.1.0-alpha.60)

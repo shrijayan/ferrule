@@ -46,7 +46,9 @@ Sources:
     Copyright 2026 Image Kit): the Go v2 runtime (internal/, option/, packages/param/,
     packages/respjson/, field.go, default_http_client.go), copied to runtime/go-v2/template/.
     Modified by The Ferrule Authors (names replaced by tokens, //ferrule: directives and
-    slots); marks kept in runtime/README.md and runtime/NOTICE.
+    slots); marks kept in runtime/README.md and runtime/NOTICE. Its internal/encoding/json/
+    embeds Go's encoding/json (BSD-3-Clause, Copyright 2009 The Go Authors), as its headers
+    note; the licence text is runtime/go-v2/LICENSE-go.
   - OneBusAway/java-sdk @ c29c48ad95f08e9a6042bfb4b620bb93b7a5f0ab and OneBusAway/kotlin-sdk
     @ 6923446778f92f8867c591064019eec24c685c1d (Apache-2.0, Copyright 2026 Onebusaway SDK),
     with imagekit-developer/imagekit-java @ f96c35e8d1e552eeee326e2c0a25a51436b36e37
