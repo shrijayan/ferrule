@@ -1,5 +1,5 @@
 name: Ferrule regenerate
-description: Regenerate a Python SDK with Ferrule, verify its public API, label the semver bump and open a PR.
+description: Regenerate a Python SDK with Ferrule, merge it with the custom code, verify its public API, label the semver bump and open a PR.
 author: Ferrule contributors
 branding:
   icon: refresh-cw
@@ -85,7 +85,8 @@ runs:
         fi
         uv tool install --force ruff==0.17.1
 
-    - name: Generate and verify
+    - name: Regenerate, merge and verify
+      id: regenerate
       shell: bash
       env:
         INPUT_SPEC: ${{ inputs.spec }}
@@ -93,9 +94,7 @@ runs:
         INPUT_AGAINST: ${{ inputs.against }}
         FERRULE_VERSION: ${{ inputs.ferrule-version }}
         WORKSPACE: ${{ github.workspace }}
-        OUT: ${{ runner.temp }}/ferrule-out
         REPORT: ${{ runner.temp }}/ferrule-verify.json
-        MANIFEST: ${{ runner.temp }}/ferrule-manifest.txt
       run: bash "$GITHUB_ACTION_PATH/scripts/regenerate.sh"
 
     - name: Label
@@ -124,8 +123,16 @@ runs:
         ADDITIVE: ${{ steps.label.outputs.additive }}
         WORKSPACE: ${{ github.workspace }}
         GH_TOKEN: ${{ inputs.github-token }}
-        MANIFEST: ${{ runner.temp }}/ferrule-manifest.txt
+        CHANGED: ${{ steps.regenerate.outputs.changed }}
+        CONFLICT: ${{ steps.regenerate.outputs.conflict }}
       run: bash "$GITHUB_ACTION_PATH/scripts/open_pr.sh"
+
+    - name: Fail on a merge conflict
+      if: steps.regenerate.outputs.conflict == 'true'
+      shell: bash
+      run: |
+        echo "::error::the regeneration conflicts with custom code; resolve it on the PR" >&2
+        exit 1
 
     # Last, so the PR above exists for a maintainer to add ferrule:allow-breaking to.
     - name: Fail on unlabeled breaking changes
