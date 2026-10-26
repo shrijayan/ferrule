@@ -47,7 +47,7 @@ TARGETS = ("onebusaway", "isaacus", "lumaai", "honcho", "knock-mgmt")
 ADOPTED: dict[str, dict[str, object]] = {
     "opencode-python-sdk": {
         "url": "https://github.com/shrijayan/opencode-python-sdk.git",
-        "sha": "855f6b838dd8492386e324c539944cb9c73967b5",  # ferrule/adopt (PR #25)
+        "sha": "16df5c9ec7ded52274fedbd05cd3647a17c2a400",  # ferrule/adopt (PR #25)
         "base": "7bc98edc5566f7a791bbab5cbad7eb4afd786e84",  # main before Ferrule
         "package": "opencode",
         "breaking": 697,
