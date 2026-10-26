@@ -155,6 +155,8 @@ def keep_files(config_text: str) -> frozenset[str]:
             found.update(v.strip().strip("'\"") for v in inline[1:-1].split(",") if v.strip())
             continue
         for item_line in lines[i + 1 :]:
+            if not item_line.strip() or item_line.lstrip().startswith("#"):
+                continue
             item = _ITEM.match(item_line)
             if item is None or len(item["indent"]) < len(match["indent"]):
                 break
