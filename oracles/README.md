@@ -84,9 +84,9 @@ Every entry has `name`, `group`, `kind` (`sdk` or `config`), `repo`, `url`, `sha
 | `layout` | sdk | required for `typescript` (`node` or `typescript`) and `go` (`v1` or `v2`), absent otherwise |
 | `config_path` | config | path of the Stainless config in the repo; its md5 must be in `verify_md5` |
 | `spec` | config | `{"path": ...}` (also in `verify_md5`) or `{"url": ..., "md5": ...}` (https) |
-| `paired` | config | `proven` or `nearest` (below), for the Python SDK it names |
+| `paired` | config | `proven` or `nearest` (below), for the Python SDK it names; absent when `pairs_with` is `null` |
 | `paired` | non-Python sdk | `proven` or `nearest`, for this SDK against the config it names |
-| `pairs_with` | config | required: the Python `sdk` entry this config produced |
+| `pairs_with` | config | the Python `sdk` entry this config produced, or `null` for a config with no Python target, which another language's SDK must name |
 | `pairs_with` | non-Python sdk | the `config` entry this SDK was generated from (same group) |
 
 The Python entries predate `language` and keep their shape: no `language`, and the pairing lives

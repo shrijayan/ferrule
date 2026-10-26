@@ -66,7 +66,7 @@ def resolve_pair(oracles: Sequence[Oracle], wanted: str, language: str | None = 
     if language is None:
         language = sdk_language(named) if named and named.kind == "sdk" else DEFAULT_LANGUAGE
     for config in oracles:
-        if config.kind != "config" or config.pairs_with is None:
+        if config.kind != "config":
             continue
         sdks = [o for o in paired_sdks(oracles, config) if sdk_language(o) == language]
         if sdks and wanted in {config.name, config.group, *(o.name for o in sdks)}:
