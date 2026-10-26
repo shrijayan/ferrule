@@ -622,6 +622,35 @@ mod client_order_streaming {
     }
 
     #[test]
+    fn writes_x_ferrule_client_for_a_config_without_a_python_target() {
+        // imagekit's csharp-branch config has only `targets.csharp`: the neutral model still
+        // needs the client settings and the custom casings, but there is no Python package.
+        let r = convert(
+            &make_spec(),
+            &v(&json!({
+                "organization": {"name": "acme"},
+                "targets": {"csharp": {"package_name": "Acme", "production_repo": "acme/acme-csharp"}},
+                "client_settings": {"idempotency": {"header": "Idempotency-Key"}},
+                "custom_casings": {"acme": {"pascal": "ACME"}},
+                "resources": {"users": {"methods": {"create": "post /users", "retrieve": "get /users/{id}"}}}
+            })),
+        );
+        assert_eq!(r.diagnostics, none());
+        let root = r.spec.get("x-ferrule-client").expect("client");
+        assert!(matches_object(
+            root,
+            &v(&json!({"name": "acme", "envPrefix": "ACME", "idempotencyHeader": "Idempotency-Key"}))
+        ));
+        let post = op(&r.spec, "/users", "post");
+        assert_eq!(post.get("x-ferrule-client"), Some(root));
+        assert!(post.get("x-ferrule-casings").is_some());
+        assert!(post.get("x-ferrule-targets").is_some());
+        // Python's settings stay Python's.
+        assert!(post.get("x-ferrule-package").is_none());
+        assert!(r.spec.get("x-ferrule-config").is_none());
+    }
+
+    #[test]
     fn passes_client_diagnostics_through() {
         let r = convert(
             &make_spec(),
