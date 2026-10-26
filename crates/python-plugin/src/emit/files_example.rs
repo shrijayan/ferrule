@@ -6,7 +6,7 @@
 use serde_json::Value;
 
 use super::common::{method_params, py_string, return_model, stainless_method_order};
-use super::files::api_tests::{Uses, example_value};
+use super::files::api_tests::{EXAMPLE_DATE, EXAMPLE_DATETIME, Uses, example_value};
 use super::files::input::{ExampleArg, ExampleRequest};
 use super::files_input::ReadmeRequest;
 use crate::js;
@@ -228,18 +228,26 @@ fn walk<'a>(resources: &'a [SdkResource], out: &mut Vec<(&'a SdkResource, &'a Sd
 }
 
 /// `p`'s value in the generated tests: the spec's example, else a placeholder by type; query
-/// parameters ignore the example, as in the oracles.
+/// parameters ignore the example, as in the oracles. A date or datetime goes as its ISO string,
+/// which the `Union[str, date]` parameter accepts: `tests/test_client.py` and README.md do not
+/// import `parse_date` or `parse_datetime`.
 fn test_value(p: &SdkParam, query: bool) -> String {
     let mut uses = Uses::new();
     let example = if query { None } else { p.example.as_ref() };
-    one_line(&example_value(
+    let text = one_line(&example_value(
         &p.ty,
         &mut uses,
         "",
         example,
         &p.wire_name,
         p.minimum.or(p.maximum),
-    ))
+    ));
+    if uses.is_empty() {
+        return text;
+    }
+    let (date, datetime) = (py_string(EXAMPLE_DATE), py_string(EXAMPLE_DATETIME));
+    text.replace(&format!("parse_datetime({datetime})"), &datetime)
+        .replace(&format!("parse_date({date})"), &date)
 }
 
 /// The retry probe's path: `m`'s with the values [`required_args`] passes.
