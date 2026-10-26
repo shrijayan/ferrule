@@ -10,7 +10,7 @@ use super::resources::{Mode, class_name, emit_client_methods};
 use crate::diagnostics::{FerCode, FerruleError};
 use crate::js;
 use crate::model::{
-    ApiKeyLocation, HttpAuthScheme, OptType, SdkClient, SdkClientOpt, SdkClientSettings, SdkResource,
+    ApiKeyLocation, AuthRole, HttpAuthScheme, OptType, SdkClient, SdkClientOpt, SdkClientSettings, SdkResource,
     SdkSecurityScheme, SendLocation,
 };
 use crate::naming::{snake_case, split_words};
@@ -443,16 +443,69 @@ fn auth_property(name: &str) -> String {
 
 /// `auth_headers`: one scheme's header inline; several merged from a property per scheme,
 /// empty while a nullable option is unset (papr-python and stagehand-python `_client.py`).
+/// The username and password options of an HTTP basic scheme the client is secured with.
+fn basic_auth<'a>(s: &ClientState<'a>) -> Option<(&'a SdkClientOpt, &'a SdkClientOpt)> {
+    let settings = s.settings;
+    let opt = |scheme: &str, role: AuthRole| {
+        settings.opts.iter().find(|o| {
+            o.auth
+                .as_ref()
+                .is_some_and(|a| a.security_scheme == scheme && a.role == role)
+        })
+    };
+    settings.security.iter().flatten().find_map(|name| {
+        let basic = settings.security_schemes.iter().any(|(k, v)| {
+            k == name
+                && matches!(
+                    v,
+                    SdkSecurityScheme::Http {
+                        scheme: HttpAuthScheme::Basic,
+                        ..
+                    }
+                )
+        });
+        if !basic {
+            return None;
+        }
+        Some((opt(name, AuthRole::Username)?, opt(name, AuthRole::Password)?))
+    })
+}
+
+/// `auth_headers` for HTTP basic auth, as modern-treasury-python writes it.
+fn print_basic_auth(p: &mut PythonPrinter, user: &SdkClientOpt, password: &SdkClientOpt) {
+    p.import_module("base64");
+    let nullable: Vec<String> = [user, password]
+        .iter()
+        .filter(|o| o.nullable)
+        .map(|o| format!("self.{} is None", o.name))
+        .collect();
+    if !nullable.is_empty() {
+        p.block(&format!("if {}:", nullable.join(" or ")), |p| {
+            p.line("return {}");
+        });
+    }
+    p.line(&format!(
+        "credentials = f\"{{self.{}}}:{{self.{}}}\".encode(\"ascii\")",
+        user.name, password.name
+    ));
+    p.line("header = f\"Basic {base64.b64encode(credentials).decode('ascii')}\"");
+    p.line("return {\"Authorization\": header}");
+}
+
 fn emit_auth_headers(s: &ClientState<'_>, p: &mut PythonPrinter) {
     let schemes = auth_schemes(s);
+    let basic = basic_auth(s);
     p.blank();
     p.line("@property");
     p.line("@override");
     p.block("def auth_headers(self) -> dict[str, str]:", |p| {
         match schemes.as_slice() {
-            [] => {
-                p.line("return {}");
-            }
+            [] => match basic {
+                Some((user, password)) => print_basic_auth(p, user, password),
+                None => {
+                    p.line("return {}");
+                }
+            },
             [(_, scheme, opt)] => {
                 p.line(&format!("{0} = self.{0}", opt.name));
                 p.line(&format!("return {}", auth_header(scheme, opt)));
