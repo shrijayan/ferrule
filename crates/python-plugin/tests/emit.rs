@@ -814,6 +814,36 @@ fn resolves_the_retry_probe_path_as_the_client_sends_it() {
 }
 
 #[test]
+fn writes_date_arguments_the_example_files_can_run_without_imports() {
+    // tests/test_client.py and README.md import no `parse_date`, so a required date or datetime
+    // goes as its ISO string, which the `Union[str, date]` parameter accepts.
+    let mut m = method(Some(SdkType::Object(obj_with("id"))));
+    m.name = "create".into();
+    m.http_method = HttpVerb::Post;
+    m.body_params = vec![
+        SdkParam {
+            required: true,
+            ty: SdkType::Primitive(SdkPrimitive::Date),
+            ..param("since", "since")
+        },
+        SdkParam {
+            required: true,
+            ty: SdkType::Primitive(SdkPrimitive::Datetime),
+            ..param("until", "until")
+        },
+    ];
+    let c = sdk(vec![m]);
+    let input = to_project_files_input(&c, &placeholder_meta()).expect("an input");
+    assert_eq!(
+        arg_pairs(&input.retry_probe),
+        [("since", "\"2019-12-27\""), ("until", "\"2019-12-27T18:11:19.117Z\"")]
+    );
+    for path in ["tests/test_client.py", "README.md"] {
+        assert!(!project_file(&c, path).contains("parse_date"), "{path}");
+    }
+}
+
+#[test]
 fn names_the_path_arguments_of_a_retry_probe_with_several() {
     // `retrieve(self, project_id, file_id, *, ...)`: positionally, the last-first order the tests
     // use would swap them.
