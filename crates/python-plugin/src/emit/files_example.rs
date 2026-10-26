@@ -55,6 +55,91 @@ fn one_line(text: &str) -> String {
     out
 }
 
+/// `literal` as Python's `str()` of it: a string literal [`py_string`] wrote unescaped,
+/// `True`/`False`/`None` as `path_template` writes them, anything else as written.
+fn str_of(literal: &str) -> String {
+    match literal {
+        "True" => return "true".to_owned(),
+        "False" => return "false".to_owned(),
+        "None" => return "null".to_owned(),
+        _ => {}
+    }
+    let Some(inner) = literal.strip_prefix('"').and_then(|s| s.strip_suffix('"')) else {
+        return literal.to_owned();
+    };
+    let mut out = String::with_capacity(inner.len());
+    let mut chars = inner.chars();
+    while let Some(c) = chars.next() {
+        if c != '\\' {
+            out.push(c);
+            continue;
+        }
+        match chars.next() {
+            Some('b') => out.push('\u{8}'),
+            Some('f') => out.push('\u{c}'),
+            Some('n') => out.push('\n'),
+            Some('r') => out.push('\r'),
+            Some('t') => out.push('\t'),
+            Some('u') => {
+                let hex: String = chars.by_ref().take(4).collect();
+                out.extend(u32::from_str_radix(&hex, 16).ok().and_then(char::from_u32));
+            }
+            Some(other) => out.push(other),
+            None => {}
+        }
+    }
+    out
+}
+
+/// A JSON value as Python's `str()` of it, as `path_template` formats a path argument.
+fn str_of_json(value: &Value) -> String {
+    match value {
+        Value::String(s) => s.clone(),
+        other => str_of(&py_literal(other, false)),
+    }
+}
+
+/// `text` percent-encoded as `path_template` encodes a path segment: RFC 3986 `pchar` is safe.
+fn quote_segment(text: &str) -> String {
+    use std::fmt::Write as _;
+    let mut out = String::with_capacity(text.len());
+    for b in text.bytes() {
+        if b.is_ascii_alphanumeric() || b"-._~!$&'()*+,;=:@".contains(&b) {
+            out.push(char::from(b));
+        } else {
+            let _ = write!(out, "%{b:02X}");
+        }
+    }
+    out
+}
+
+/// `m`'s path with each path parameter `value` gives filled in, as the client sends it and respx
+/// matches it (knock's probe mocks `/v1/users/user_id`); the others stay placeholders.
+fn resolved_path(m: &SdkMethod, value: impl Fn(&SdkParam) -> Option<String>) -> String {
+    let mut path = m.path.clone();
+    for p in &m.path_params {
+        if let Some(v) = value(p) {
+            path = path.replacen(&format!("{{{}}}", p.wire_name), &quote_segment(&v), 1);
+        }
+    }
+    path
+}
+
+/// A path argument: positional when it is the method's only path parameter (knock's
+/// `get("user_id")`), else by keyword, since the call order (last path parameter first) is not
+/// the signature's.
+fn path_arg(m: &SdkMethod, p: &SdkParam, value: String, readme_value: String) -> ExampleArg {
+    let named = arg(p, value, readme_value);
+    if m.path_params.len() == 1 {
+        ExampleArg {
+            name: String::new(),
+            ..named
+        }
+    } else {
+        named
+    }
+}
+
 fn arg(p: &SdkParam, value: String, readme_value: String) -> ExampleArg {
     ExampleArg {
         name: p.py_name.clone(),
@@ -117,14 +202,14 @@ fn result_names(client: &SdkClient, r: &SdkResource, m: &SdkMethod, has_args: bo
     }
 }
 
-fn request(client: &SdkClient, r: &SdkResource, m: &SdkMethod, args: Vec<ExampleArg>) -> ExampleRequest {
+fn request(client: &SdkClient, r: &SdkResource, m: &SdkMethod, args: Vec<ExampleArg>, path: String) -> ExampleRequest {
     let names = result_names(client, r, m, !args.is_empty());
     ExampleRequest {
         accessor: r.path.join("."),
         method: m.name.clone(),
         args,
         http_method: m.http_method,
-        path: m.path.clone(),
+        path,
         result: names.result,
         parsed: names.parsed,
         print_property: names.print_property,
@@ -142,16 +227,30 @@ fn walk<'a>(resources: &'a [SdkResource], out: &mut Vec<(&'a SdkResource, &'a Sd
     }
 }
 
+/// `p`'s value in the generated tests: the spec's example, else a placeholder by type; query
+/// parameters ignore the example, as in the oracles.
+fn test_value(p: &SdkParam, query: bool) -> String {
+    let mut uses = Uses::new();
+    let example = if query { None } else { p.example.as_ref() };
+    one_line(&example_value(
+        &p.ty,
+        &mut uses,
+        "",
+        example,
+        &p.wire_name,
+        p.minimum.or(p.maximum),
+    ))
+}
+
+/// The retry probe's path: `m`'s with the values [`required_args`] passes.
+fn probe_path(m: &SdkMethod) -> String {
+    resolved_path(m, |p| Some(str_of(&test_value(p, false))))
+}
+
 /// The required arguments of `m` with the values its generated tests use (the spec's example,
-/// else a placeholder by type), path parameters first and positional: the retry probe's, as in
+/// else a placeholder by type), path parameters first ([`path_arg`]): the retry probe's, as in
 /// the oracles (imagekit's probe sends `file_name="fileName"`, not its README's value).
 fn required_args(m: &SdkMethod) -> Vec<ExampleArg> {
-    let mut uses = Uses::new();
-    let mut value = |p: &SdkParam, query: bool| {
-        let example = if query { None } else { p.example.as_ref() };
-        let text = example_value(&p.ty, &mut uses, "", example, &p.wire_name, p.minimum.or(p.maximum));
-        one_line(&text)
-    };
     let mut args: Vec<ExampleArg> = Vec::new();
     // The last path parameter first, as the tests call it.
     let mut path: Vec<&SdkParam> = m.path_params.iter().collect();
@@ -159,17 +258,14 @@ fn required_args(m: &SdkMethod) -> Vec<ExampleArg> {
         path.insert(0, last);
     }
     for p in path {
-        let v = value(p, false);
-        args.push(ExampleArg {
-            name: String::new(),
-            ..arg(p, v.clone(), v)
-        });
+        let v = test_value(p, false);
+        args.push(path_arg(m, p, v.clone(), v));
     }
     let mut kwargs: Vec<&SdkParam> = method_params(m).into_iter().filter(|p| p.required).collect();
     kwargs.sort_by(|a, b| js::cmp(&a.py_name, &b.py_name));
     for p in kwargs {
         let query = m.query_params.iter().any(|q| std::ptr::eq(q, p));
-        let v = value(p, query);
+        let v = test_value(p, query);
         args.push(arg(p, v.clone(), v));
     }
     args
@@ -179,7 +275,7 @@ fn required_args(m: &SdkMethod) -> Vec<ExampleArg> {
 fn from_config<'a>(
     client: &'a SdkClient,
     req: &ReadmeRequest,
-) -> Option<(&'a SdkResource, &'a SdkMethod, Vec<ExampleArg>)> {
+) -> Option<(&'a SdkResource, &'a SdkMethod, Vec<ExampleArg>, String)> {
     let (verb, path) = req.endpoint.split_once(' ')?;
     let mut all = Vec::new();
     walk(&client.resources, &mut all);
@@ -189,10 +285,7 @@ fn from_config<'a>(
     let mut args: Vec<ExampleArg> = Vec::new();
     for p in &m.path_params {
         if let Some(v) = req.params.get(&p.wire_name) {
-            args.push(ExampleArg {
-                name: String::new(),
-                ..arg(p, py_literal(v, false), py_literal(v, true))
-            });
+            args.push(path_arg(m, p, py_literal(v, false), py_literal(v, true)));
         }
     }
     for p in method_params(m) {
@@ -200,22 +293,23 @@ fn from_config<'a>(
             args.push(arg(p, py_literal(v, false), py_literal(v, true)));
         }
     }
-    Some((r, m, args))
+    let path = resolved_path(m, |p| req.params.get(&p.wire_name).map(str_of_json));
+    Some((r, m, args, path))
 }
 
 /// The first method with no required arguments; else the first one without path parameters,
 /// with its required arguments.
-fn fallback(client: &SdkClient) -> Option<(&SdkResource, &SdkMethod, Vec<ExampleArg>)> {
+fn fallback(client: &SdkClient) -> Option<(&SdkResource, &SdkMethod, Vec<ExampleArg>, String)> {
     let mut all = Vec::new();
     walk(&client.resources, &mut all);
     if let Some(&(r, m)) = all
         .iter()
         .find(|(_, m)| m.path_params.is_empty() && method_params(m).iter().all(|p| !p.required))
     {
-        return Some((r, m, Vec::new()));
+        return Some((r, m, Vec::new(), m.path.clone()));
     }
     let (r, m) = all.into_iter().find(|(_, m)| m.path_params.is_empty())?;
-    Some((r, m, required_args(m)))
+    Some((r, m, required_args(m), m.path.clone()))
 }
 
 /// The README example (`prebuilt`, else `config`, else a fallback) and the retry probe: the same
@@ -231,17 +325,20 @@ pub fn examples(
         probe.args.retain(|a| a.required);
         return Some((example.clone(), probe));
     }
-    let (r, m, args) = config
+    let (r, m, args, path) = config
         .and_then(|c| from_config(client, c))
         .or_else(|| fallback(client))?;
-    Some((request(client, r, m, args), request(client, r, m, required_args(m))))
+    Some((
+        request(client, r, m, args, path),
+        request(client, r, m, required_args(m), probe_path(m)),
+    ))
 }
 
 #[cfg(test)]
 mod tests {
     use serde_json::json;
 
-    use super::{one_line, py_literal};
+    use super::{one_line, py_literal, quote_segment, str_of};
 
     #[test]
     fn writes_json_as_python() {
@@ -255,6 +352,14 @@ mod tests {
             "{\"a\": [1, 0.1, \"x\"], \"b\": None, \"c\": False,}"
         );
         assert_eq!(py_literal(&json!({}), true), "{}");
+    }
+
+    #[test]
+    fn reads_a_literal_as_python_str_and_quotes_it_as_a_segment() {
+        assert_eq!(str_of("\"a \\\"b\\\" \\u0001\""), "a \"b\" \u{1}");
+        assert_eq!(str_of("True"), "true");
+        assert_eq!(str_of("0"), "0");
+        assert_eq!(quote_segment("a b/c@d~\u{e9}"), "a%20b%2Fc@d~%C3%A9");
     }
 
     #[test]
