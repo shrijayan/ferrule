@@ -75,10 +75,6 @@ pub struct McpServer {
 
 /// What the TypeScript project needs that the annotated spec does not carry yet.
 #[derive(Debug, Clone, PartialEq)]
-#[expect(
-    clippy::struct_excessive_bools,
-    reason = "independent stainless.yml switches, each read by one template directive"
-)]
 pub struct TsMeta {
     /// The SDK version (`package.json`, `src/version.ts`).
     pub version: String,
@@ -90,8 +86,9 @@ pub struct TsMeta {
     pub security_contact: Option<String>,
     /// The year in `LICENSE`.
     pub copyright_year: u32,
-    /// `targets.typescript.publish.npm.auth_method: oidc` (`publish` is not in the model).
-    pub npm_oidc: bool,
+    /// The targets (`typescript`, `node`) with `publish.npm.auth_method: oidc` (`publish` is not
+    /// in the model); [`ts_settings`] reads the generated layout's own.
+    pub npm_oidc_targets: Vec<String>,
     pub stats: Option<Stats>,
     /// `readme.example_requests` by key (`default`, `headline`, `nested_params`).
     pub readme_examples: Vec<(String, ExampleRequest)>,
@@ -121,7 +118,7 @@ impl TsMeta {
             contact: None,
             security_contact: None,
             copyright_year: 2026,
-            npm_oidc: false,
+            npm_oidc_targets: Vec::new(),
             stats: None,
             readme_examples: Vec::new(),
             license: "Apache-2.0".to_owned(),
@@ -143,12 +140,16 @@ impl TsMeta {
         meta.docs_url = s(org.and_then(|o| o.get("docs")));
         meta.contact = s(org.and_then(|o| o.get("contact")));
         meta.security_contact = s(org.and_then(|o| o.get("security_contact")));
-        meta.npm_oidc = [TARGET, NODE_TARGET].iter().any(|t| {
-            config
-                .pointer(&format!("/targets/{t}/publish/npm/auth_method"))
-                .and_then(Value::as_str)
-                == Some("oidc")
-        });
+        meta.npm_oidc_targets = [TARGET, NODE_TARGET]
+            .into_iter()
+            .filter(|t| {
+                config
+                    .pointer(&format!("/targets/{t}/publish/npm/auth_method"))
+                    .and_then(Value::as_str)
+                    == Some("oidc")
+            })
+            .map(str::to_owned)
+            .collect();
         let settings = config.get("settings");
         if let Some(l) = s(settings.and_then(|v| v.get("license"))) {
             meta.license = l;
@@ -306,7 +307,7 @@ pub fn ts_settings(client: &Client, meta: &TsMeta, layout: Layout) -> TsSettings
         contact: meta.contact.clone(),
         security_contact: meta.security_contact.clone(),
         copyright_year: meta.copyright_year,
-        npm_oidc: meta.npm_oidc,
+        npm_oidc: meta.npm_oidc_targets.iter().any(|t| t == layout.target()),
         stats: meta.stats.clone(),
         readme_examples: meta.readme_examples.clone(),
         mcp_server,
