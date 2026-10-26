@@ -758,7 +758,7 @@
       "commit_message": "codegen metadata",
       "pairs_with": "imagekit-config",
       "paired": "proven",
-      "license": "MIT",
+      "license": "Apache-2.0",
       "stats": {
         "configured_endpoints": 47,
         "openapi_spec_url": "https://storage.googleapis.com/stainless-sdk-openapi-specs/imagekit-inc/imagekit-a8f005109bd8f1fa42d080ed43b4f7b67eacad5aea113fe5223306c3f217556a.yml",

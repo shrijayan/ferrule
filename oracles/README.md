@@ -203,7 +203,7 @@ group's config with `pairs_with`. All are Apache-2.0 or MIT.
 | imagekit-go | imagekit-developer/imagekit-go | go (`v2`) | `bc22fec79994` | 2026-05-17 | codegen metadata | main | proven | Apache-2.0 |
 | imagekit-java | imagekit-developer/imagekit-java | java | `f96c35e8d1e5` | 2026-05-17 | codegen metadata | main | proven | Apache-2.0 |
 | imagekit-ruby | imagekit-developer/imagekit-ruby | ruby | `65401086b818` | 2026-05-17 | codegen metadata | main | proven | Apache-2.0 |
-| imagekit-php | imagekit-developer/imagekit-php | php | `9f9309d5b8a6` | 2026-05-17 | codegen metadata | next | proven | MIT |
+| imagekit-php | imagekit-developer/imagekit-php | php | `9f9309d5b8a6` | 2026-05-17 | codegen metadata | next | proven | Apache-2.0 |
 | knock-typescript | knocklabs/knock-node | typescript (`typescript`) | `e2c0f18ad312` | 2025-06-06 | release: 1.7.0 (#100) | main | proven | Apache-2.0 |
 | knock-go | knocklabs/knock-go | go (`v1`) | `4b86a0d68f0a` | 2025-06-06 | release: 1.5.0 (#49) | main | proven | Apache-2.0 |
 | knock-ruby | knocklabs/knock-ruby | ruby | `5bc0a747b8dc` | 2025-06-06 | release: 1.6.0 (#34) | main | proven | Apache-2.0 |
