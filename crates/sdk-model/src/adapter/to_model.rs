@@ -430,6 +430,7 @@ impl Context<'_> {
                     media_type: c.media_type().to_owned(),
                     required: b.is_required(),
                     description: b.description().to_owned(),
+                    schema_description: c.description().to_owned(),
                     ty: self.read_type(c.ty())?,
                 }),
             },
