@@ -7,9 +7,11 @@ resources:
   $shared:
     models:
       session_id: Session.ID
+      model_ref: ModelRef
   sessions:
     methods:
       retrieve: get /sessions/{sessionID}
+      switch_model: post /sessions/{sessionID}/model
 readme:
   example_requests:
     default: {type: request, endpoint: 'get /sessions/{sessionID}', params: {sessionID: ses_1}}
