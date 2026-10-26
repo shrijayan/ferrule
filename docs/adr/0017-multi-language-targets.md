@@ -51,7 +51,7 @@ Chosen option 2.
   optional, named union variants and enum members, and the client, pagination and streaming
   settings.
 - One plugin crate per language (`crates/python-plugin`, `crates/ts-plugin`, `crates/go-plugin`,
-  `crates/jvm-plugin` for Java and Kotlin, `crates/ruby-plugin`, …): a namer, emitters with a
+  `crates/jvm-plugin` for Java and Kotlin, `crates/ruby-plugin`, `crates/rust-plugin`, …): a namer, emitters with a
   mode flag per variant (sync/async, Java/Kotlin, TypeScript layouts), and a printer.
 - `ferrule-gen --target <lang>` selects the plugin; `ferrule-gen model` prints the neutral model.
   The converter honours each target's edition and the `skip`/`only` lists per target.
@@ -66,8 +66,8 @@ Chosen option 2.
   own checker, never a port of it: griffe (Python), api-extractor or a declaration
   assignability check (TypeScript), `apidiff`/`gorelease` (Go), japicmp (Java), Kotlin's
   binary-compatibility validator (Kotlin), an RBS signature diff (Ruby),
-  roave/backward-compatibility-check (PHP), ApiCompat package validation (C#), the command and
-  flag tree (CLI) and `terraform providers schema -json` (Terraform). The table in the research
+  roave/backward-compatibility-check (PHP), ApiCompat package validation (C#),
+  `cargo-semver-checks` (Rust), the command and flag tree (CLI) and `terraform providers schema -json` (Terraform). The table in the research
   doc is the source of truth. merge keeps libcst for Python and falls back to a three-way text
   merge elsewhere.
 
@@ -80,6 +80,8 @@ Order, by oracle availability and demand:
 5. Ruby (onebusaway, knock, imagekit).
 6. PHP and C#.
 7. CLI and Terraform.
+8. Rust, the first Ferrule-original target: Stainless has no Rust target, so there is no oracle;
+   [ADR 0019](./0019-rust-sdk-ferrule-original-target.md) records its shape and its proof.
 
 Python moves onto `sdk-model` as a separate step, after the Phase 4 changes to its adapter land.
 Until then Python keeps its own adapter: a deliberate, temporary duplication. The exit criterion
