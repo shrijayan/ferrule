@@ -247,7 +247,11 @@ pub struct Body {
     /// Such as `application/json` or `multipart/form-data`.
     pub media_type: String,
     pub required: bool,
+    /// The description of the body as a whole.
     pub description: String,
+    /// The description of the body's schema in this media type (its own, else that of the schema
+    /// it refers to): what Stainless documents a map or array body argument with.
+    pub schema_description: String,
     pub ty: Type,
 }
 
