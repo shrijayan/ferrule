@@ -4,16 +4,18 @@
 use std::collections::HashSet;
 
 use super::common::{
-    HEADER, args_docstring, has_inline_object, header_params, is_binary_body, is_header, is_param_switched,
-    keyword_path_params, leaf, method_args, method_ref, py_fstring, py_string, rel_import, resource_class_base,
-    resource_module, return_model, stainless_method_order, stream_event_model, stream_switch, with_bool_literal,
+    HEADER, ReturnModel, args_docstring, example_type, has_inline_object, header_params, is_binary_body, is_header,
+    is_param_switched, keyword_path_params, leaf, method_args, method_ref, py_fstring, py_string, rel_import,
+    resource_class_base, resource_module, return_model, stainless_method_order, stream_event_model, stream_switch,
+    with_bool_literal,
 };
 use super::format::{Bracket, Cond, Expr, bracket, call, flat, print_expr};
 use super::models::all_list;
 use super::params::{ParamsContext, UnionBody, name_params, name_union_body};
 use crate::diagnostics::{FerCode, FerruleError};
 use crate::model::{
-    HttpVerb, ParamLocation, SdkClient, SdkLiteral, SdkMethod, SdkParam, SdkPrimitive, SdkResource, SdkType,
+    HttpVerb, ParamLocation, SdkClient, SdkLiteral, SdkMethod, SdkModelDecl, SdkParam, SdkPrimitive, SdkResource,
+    SdkType,
 };
 use crate::naming::{pascal_case, split_words};
 use crate::printer::PythonPrinter;
@@ -547,6 +549,7 @@ fn push_options_and_cast(
     paged: bool,
     no_content: bool,
     model: &str,
+    union: bool,
 ) {
     imp(s, p, "_base_client", "make_request_options");
     let mut options: Vec<Expr> = OPTIONS_ARGS.iter().map(|&a| a.into()).collect();
@@ -557,7 +560,12 @@ fn push_options_and_cast(
         options.push(format!("post_parser={w}[{model}]._unwrapper").into());
     }
     items.push(call("options=make_request_options(", options, multiline).into());
-    if paged {
+    if union {
+        p.import_from("typing", "Any");
+        p.import_from("typing", "cast");
+        let key = if paged { "model" } else { "cast_to" };
+        items.push(format!("{key}=cast(Any, {model}){UNION_COMMENT}").into());
+    } else if paged {
         items.push(format!("model={model}").into());
     } else if no_content {
         imp(s, p, "_types", "NoneType");
@@ -570,6 +578,19 @@ fn push_options_and_cast(
     } else {
         items.push(format!("cast_to={model}").into());
     }
+}
+
+/// Stainless's note on a union passed where the request helpers take a type.
+const UNION_COMMENT: &str = "  # Union types cannot be passed in as arguments in the type system";
+
+/// Whether a method returns a union (inline, or a named alias of one), which the request helpers
+/// cannot take as a type (knock-mgmt-python `audiences.retrieve`).
+fn returns_union(models: &[SdkModelDecl], ret: &ReturnModel<'_>) -> bool {
+    let ty = match ret.inline {
+        Some(t) => t,
+        None => &example_type(&SdkType::Ref(ret.r#ref.clone()), models),
+    };
+    matches!(ty, SdkType::Union { .. })
 }
 
 /// The wrapper class of an unwrapped envelope field: `data` -> `DataWrapper`.
@@ -816,6 +837,11 @@ fn emit_method(
             awaits,
         ))
     });
+    // A union is cast unless the response streams or is unwrapped through a wrapper.
+    let union = stream.is_none()
+        && switch.is_none()
+        && method.unwrap.is_none()
+        && ret.as_ref().is_some_and(|r| returns_union(&s.client.models, r));
     push_options_and_cast(
         s,
         p,
@@ -825,6 +851,7 @@ fn emit_method(
         page.is_some(),
         ret.is_none() && stream.is_none(),
         &model,
+        union,
     );
     if page.is_some() && method.http_method != HttpVerb::Get {
         items.push(format!("method=\"{}\"", method.http_method.as_str()).into());
@@ -847,12 +874,15 @@ fn emit_method(
     } else {
         format!("_{}", method.http_method.as_str())
     };
-    print_expr(
-        p,
-        &call(&format!("self.{f}("), items, true).into(),
-        &format!("return {}", if awaits { "await " } else { "" }),
-        "",
-    );
+    let aw = if awaits { "await " } else { "" };
+    let request = call(&format!("{aw}self.{f}("), items, true);
+    if union && page.is_none() {
+        // `return cast(Model, self._get(...))`, as knock-mgmt-python writes it.
+        let cast = call("cast(", vec![model.clone().into(), request.into()], false);
+        print_expr(p, &cast.into(), "return ", "");
+    } else {
+        print_expr(p, &request.into(), "return ", "");
+    }
     p.close(opened);
     Ok(())
 }
