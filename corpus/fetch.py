@@ -31,6 +31,7 @@ CACHE = ROOT / "cache"
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 NAME_RE = re.compile(r"^[a-z0-9][a-z0-9-]*$")
+REPO_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9-]*/[A-Za-z0-9._-]+$")
 FORMATS = {"json": "json", "yaml": "yaml"}
 TIMEOUT_S = 300
 CHUNK = 1 << 20
@@ -69,6 +70,16 @@ class Spec:
     sha256: str
     size: int
     source_sha: str | None
+    compare: Compare | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class Compare:
+    """An official Stainless-generated SDK the corpus output is compared with (never run)."""
+
+    repo: str
+    sha: str
+    package: str
 
 
 @dataclass(frozen=True, slots=True)
@@ -153,7 +164,33 @@ def parse_spec(raw: object) -> Spec:
     elif urlparse(url).netloc in {"github.com", "raw.githubusercontent.com"}:
         msg = f"{name}: GitHub-hosted specs must record a pinned source"
         raise ManifestError(msg)
-    return Spec(name=name, url=url, format=fmt, sha256=digest, size=size, source_sha=source_sha)
+    return Spec(
+        name=name,
+        url=url,
+        format=fmt,
+        sha256=digest,
+        size=size,
+        source_sha=source_sha,
+        compare=parse_compare(name, entry.get("compare")),
+    )
+
+
+def parse_compare(name: str, raw: object) -> Compare | None:
+    """Validate a spec's optional ``compare``: ``{repo, sha, package}``, pinned by full SHA."""
+    if raw is None:
+        return None
+    entry = _obj(raw, f"{name}: compare")
+    repo, sha, package = _str(entry, "repo"), _str(entry, "sha"), _str(entry, "package")
+    if not SHA_RE.match(sha):
+        msg = f"{name}: compare.sha must be a full 40-char commit SHA"
+        raise ManifestError(msg)
+    if not REPO_RE.match(repo):
+        msg = f"{name}: compare.repo must be owner/name"
+        raise ManifestError(msg)
+    if not package.isidentifier():
+        msg = f"{name}: compare.package must be a Python identifier"
+        raise ManifestError(msg)
+    return Compare(repo=repo, sha=sha, package=package)
 
 
 def parse_git(raw: object) -> GitSource:

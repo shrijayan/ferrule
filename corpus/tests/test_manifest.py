@@ -105,3 +105,24 @@ def test_cached_file_short_circuits(tmp_path: Path) -> None:
     path.write_bytes(body)
     # A verified cached copy is reused without touching the (unreachable) URL.
     assert fetch.fetch_spec(parsed, tmp_path) == path
+
+
+def test_compare_is_optional_and_validated() -> None:
+    assert fetch.parse_spec(spec()).compare is None
+    good = {"repo": "acme/acme-python", "sha": SHA, "package": "acme"}
+    assert fetch.parse_spec(spec(compare=good)).compare == fetch.Compare(
+        "acme/acme-python", SHA, "acme"
+    )
+    for bad in ({**good, "sha": "main"}, {**good, "repo": "acme"}, {**good, "package": "a-b"}):
+        with pytest.raises(fetch.ManifestError):
+            fetch.parse_spec(spec(compare=bad))
+
+
+def test_real_manifest_pins_compared_sdks() -> None:
+    manifest = fetch.parse_manifest(fetch.MANIFEST.read_text(encoding="utf-8"))
+    compared = {s.name: s.compare.repo for s in manifest.tier1 if s.compare}
+    assert compared == {
+        "openai": "openai/openai-python",
+        "cloudflare": "cloudflare/cloudflare-python",
+        "digitalocean": "digitalocean/gradient-python",
+    }
