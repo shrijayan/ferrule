@@ -519,6 +519,41 @@ fn rejects_untrusted_pagination_fields() {
 }
 
 #[test]
+fn accepts_dollar_prefixed_pagination_request_params() {
+    // Sent as written: knock's `query_options.$skiptoken`. Response paths stay plain identifiers.
+    let ext = |side: &str, map: Value| {
+        let mut page = json!({ "scheme": "cursor", "page": "p", "request": {}, "response": {} });
+        page.as_object_mut().expect("an object").insert(side.to_owned(), map);
+        pairs(&json!({
+            "x-ferrule-resource": { "path": ["a"] },
+            "x-ferrule-method-name": "list",
+            "x-ferrule-package": { "name": "acme", "repo": "" },
+            "x-ferrule-pagination": page,
+        }))
+    };
+    let e = read(&ext(
+        "request",
+        json!({ "query_options.$skiptoken": "next_cursor_param" }),
+    ))
+    .expect("valid");
+    assert!(e.pagination.is_some());
+    for map in [
+        json!({ "$a-b": "next_cursor_param" }),
+        json!({ "$": "next_cursor_param" }),
+    ] {
+        assert_eq!(
+            code(read(&ext("request", map.clone()))),
+            "FER101 #/p/x-ferrule-pagination",
+            "{map}"
+        );
+    }
+    assert_eq!(
+        code(read(&ext("response", json!({ "$next": "next_cursor" })))),
+        "FER101 #/p/x-ferrule-pagination"
+    );
+}
+
+#[test]
 fn visits_integer_like_keys_first_as_javascript_does() {
     let mut c = client();
     c.as_object_mut()
