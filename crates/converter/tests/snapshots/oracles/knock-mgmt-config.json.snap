@@ -1,5 +1,5 @@
 {
-  "sha256": "9fa01e4961c837e46d04b4da4a0eeface896ab9392fc7c56e98b57950d2795c7",
+  "sha256": "bfaeb9eaeaddc2371179a5a2d135972cd2b66a1001a07bbcbc2d6ce5cd19e1db",
   "root": {
     "x-ferrule-client": {
       "defaultEnvironment": "production",
@@ -56,44 +56,43 @@
     },
     "x-ferrule-page-schemes": [
       {
+        "className": "EntriesCursor",
+        "kind": "cursor",
         "name": "entries_cursor",
-        "request": {
-          "after": {
-            "type": "string",
-            "x-stainless-pagination-property": {
-              "purpose": "next_cursor_param"
-            }
+        "request": [
+          {
+            "name": "after",
+            "purpose": "next_cursor_param",
+            "type": "string"
           },
-          "before": {
-            "type": "string",
-            "x-stainless-pagination-property": {
-              "purpose": "previous_cursor_param"
-            }
+          {
+            "name": "before",
+            "purpose": "previous_cursor_param",
+            "type": "string"
           },
-          "limit": {
+          {
+            "name": "limit",
             "type": "integer"
           }
-        },
-        "response": {
-          "entries": {
-            "items": {
-              "type": "object"
-            },
+        ],
+        "response": [
+          {
+            "name": "entries",
+            "purpose": "items",
             "type": "array"
           },
-          "page_info": {
-            "properties": {
-              "after": {
-                "type": "string",
-                "x-stainless-pagination-property": {
-                  "purpose": "next_cursor_field"
-                }
+          {
+            "fields": [
+              {
+                "name": "after",
+                "purpose": "next_cursor_field",
+                "type": "string"
               }
-            },
+            ],
+            "name": "page_info",
             "type": "object"
           }
-        },
-        "type": "cursor"
+        ]
       }
     ],
     "x-ferrule-targets": {

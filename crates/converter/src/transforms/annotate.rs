@@ -8,7 +8,7 @@ use crate::extensions::casings::{Casings, read_casings};
 use crate::extensions::client::build_client;
 use crate::extensions::groups::{CLIENT_GROUP, collides_with_client_group, forge_group_path};
 use crate::extensions::json::{empty, obj, obj_of};
-use crate::extensions::pagination::{Scheme, best_match, operation_shape, read_schemes};
+use crate::extensions::pagination::{Scheme, best_match, operation_shape, page_scheme_extension, read_schemes};
 use crate::extensions::streaming::{StreamingInput, build_streaming, read_on_event};
 use crate::extensions::targets::{Targets, build_targets, targets_only};
 use crate::value::{Map, Value, is_js_space};
@@ -566,13 +566,8 @@ pub fn annotate(spec: &Value, config: &Value) -> (Value, Vec<Diagnostic>) {
     if let (Some(t), Some(root)) = (&targets, out.as_object_mut()) {
         root.insert("x-ferrule-targets", t.clone());
     }
-    // The configured page schemes, as a list: the runtime renders `pagination.py` from their
-    // response fields when it is not copied from an adopted SDK.
-    let page_schemes = match config.get("pagination") {
-        Some(Value::Array(list)) => Some(Value::Array(list.clone())),
-        Some(single @ Value::Object(_)) => Some(Value::Array(vec![single.clone()])),
-        _ => None,
-    };
+    // The runtime renders `pagination.py` from these when it is not copied from an adopted SDK.
+    let page_schemes = page_scheme_extension(config, |name| ctx.casings.class_name(name));
     if let (Some(schemes), Some(root)) = (page_schemes, out.as_object_mut()) {
         root.insert("x-ferrule-page-schemes", schemes);
     }

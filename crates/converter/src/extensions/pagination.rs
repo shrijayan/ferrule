@@ -168,6 +168,69 @@ fn to_scheme(raw: &Map, name: &str, ty: &str) -> Scheme {
     }
 }
 
+/// One configured field as an ordered entry: `{name, type?, purpose?, fields?}`, its object
+/// properties as `fields` in config order.
+fn field_entries(fields: &Map) -> Vec<Value> {
+    fields
+        .iter()
+        .map(|(name, raw)| {
+            let def = obj_of(Some(raw));
+            let mut entry = Map::new();
+            entry.insert("name", Value::from(name.as_str()));
+            if let Some(ty) = str_(def, "type") {
+                entry.insert("type", Value::from(ty));
+            }
+            if let Some(purpose) = str_(obj(def, "x-stainless-pagination-property"), "purpose") {
+                entry.insert("purpose", Value::from(purpose));
+            }
+            let props = obj(def, "properties");
+            if !props.is_empty() {
+                entry.insert("fields", Value::Array(field_entries(props)));
+            }
+            Value::Object(entry)
+        })
+        .collect()
+}
+
+/// `x-ferrule-page-schemes`: every configured scheme with its class name (spelled with the
+/// custom casings) and its request and response fields as lists, so they keep config order in
+/// the annotated spec. The implicit items field gets the purpose `items`.
+#[must_use]
+pub fn page_scheme_extension(config: &Value, class_name: impl Fn(&str) -> String) -> Option<Value> {
+    let list: Vec<&Value> = match config.get("pagination") {
+        Some(Value::Array(a)) => a.iter().collect(),
+        Some(v @ Value::Object(_)) => vec![v],
+        _ => return None,
+    };
+    let schemes = list
+        .into_iter()
+        .map(|entry| {
+            let raw = obj_of(Some(entry));
+            let name = str_(raw, "name").unwrap_or(UNNAMED_PAGE);
+            let response = obj(raw, "response");
+            let mut flat = Flat::default();
+            flatten(response, "", &mut flat, 0);
+            let implicit = implicit_items(response, &flat.body);
+            let mut fields = field_entries(response);
+            for field in &mut fields {
+                if let Value::Object(f) = field
+                    && implicit.as_deref() == str_(f, "name")
+                {
+                    f.insert("purpose", Value::from("items"));
+                }
+            }
+            let mut out = Map::new();
+            out.insert("name", Value::from(name));
+            out.insert("className", Value::from(class_name(name).as_str()));
+            out.insert("kind", raw.get("type").cloned().unwrap_or(Value::Null));
+            out.insert("request", Value::Array(field_entries(obj(raw, "request"))));
+            out.insert("response", Value::Array(fields));
+            Value::Object(out)
+        })
+        .collect();
+    Some(Value::Array(schemes))
+}
+
 /// Normalize `pagination` (a list, or the single-object form) into schemes, in config order.
 #[must_use]
 pub fn read_schemes(config: &Value) -> (Vec<Scheme>, Vec<Diagnostic>) {
