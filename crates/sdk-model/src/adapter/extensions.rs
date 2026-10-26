@@ -20,7 +20,7 @@ use crate::js;
 use crate::model::{
     ApiKeyLocation, ArrayFormat, Auth, AuthRole, Casing, ClientOpt, CustomCasing, Environment, Header, HttpAuthScheme,
     Name, NamedSecurityScheme, NestedFormat, OptType, Package, PaginationScheme, ParamLocation, Purpose,
-    SecurityScheme, Send, SendLocation, StreamFormat, TypeRef,
+    SecurityScheme, Send, SendLocation, StreamFormat, StyleSwitch, TypeRef,
 };
 
 /// An extension value of the wrong shape; the caller builds the FER101 diagnostic.
@@ -91,10 +91,12 @@ pub struct MethodExtensions {
     /// Mirrored from the root (Forge gap G2): every `standalone_api` resource, including ones
     /// without methods; empty without.
     pub standalone: Vec<ResourcePosition>,
+    /// Mirrored from the root (Forge gap G2): `x-ferrule-style`; empty for today's runtime.
+    pub style: Vec<StyleSwitch>,
 }
 
 /// Operation-level extensions the adapter reads. Root and schema ones never reach it.
-const KNOWN: [&str; 10] = [
+const KNOWN: [&str; 11] = [
     "x-ferrule-resource",
     "x-ferrule-method-name",
     "x-ferrule-method-order",
@@ -105,6 +107,7 @@ const KNOWN: [&str; 10] = [
     "x-ferrule-client",
     "x-ferrule-casings",
     "x-ferrule-standalone",
+    "x-ferrule-style",
 ];
 
 /// The member `key` of `v` if `v` is an object, else `None` (`undefined`).
@@ -329,25 +332,13 @@ pub fn read_method_extensions(extensions: &[(&str, &Json)], pointer: &str) -> Re
     let models = read_models(or_null(get("x-ferrule-models")))
         .map_err(|Malformed| bad("x-ferrule-models", "Record<schema, { name, module? }>"))?;
 
-    let pagination = match get("x-ferrule-pagination") {
-        None => None,
-        Some(raw) => Some(read_pagination(raw).ok_or_else(|| {
-            bad(
-                "x-ferrule-pagination",
-                "{ scheme, page, paramLocation?, request: Record<string,string>, response: Record<string,string>, headers? }",
-            )
-        })?),
-    };
+    let pagination = get("x-ferrule-pagination")
+        .map(|raw| read_pagination(raw).ok_or_else(|| bad("x-ferrule-pagination", PAGINATION_SHAPE)))
+        .transpose()?;
 
-    let streaming = match get("x-ferrule-streaming") {
-        None => None,
-        Some(raw) => Some(read_streaming(raw).ok_or_else(|| {
-            bad(
-                "x-ferrule-streaming",
-                "{ format: \"sse\" | \"jsonl\", paramDiscriminator, eventSchema? }",
-            )
-        })?),
-    };
+    let streaming = get("x-ferrule-streaming")
+        .map(|raw| read_streaming(raw).ok_or_else(|| bad("x-ferrule-streaming", STREAMING_SHAPE)))
+        .transpose()?;
 
     let client = match get("x-ferrule-client") {
         None => None,
@@ -362,6 +353,7 @@ pub fn read_method_extensions(extensions: &[(&str, &Json)], pointer: &str) -> Re
     })?;
     let standalone = read_standalone(get("x-ferrule-standalone"))
         .map_err(|Malformed| bad("x-ferrule-standalone", "{ path: string[], order: number[] }[]"))?;
+    let style = read_style(get("x-ferrule-style")).map_err(|Malformed| bad("x-ferrule-style", STYLE_SHAPE))?;
 
     Ok(MethodExtensions {
         resource,
@@ -375,7 +367,49 @@ pub fn read_method_extensions(extensions: &[(&str, &Json)], pointer: &str) -> Re
         streaming,
         casings,
         standalone,
+        style,
     })
+}
+
+const PAGINATION_SHAPE: &str =
+    "{ scheme, page, paramLocation?, request: Record<string,string>, response: Record<string,string>, headers? }";
+
+const STREAMING_SHAPE: &str = "{ format: \"sse\" | \"jsonl\", paramDiscriminator, eventSchema? }";
+
+const STYLE_SHAPE: &str = "{ sentinel?: \"omit\" | \"NOT_GIVEN\", resources?: \"lazy\" | \"eager\", paths?: \"path_template\" | \"fstring\", multipart?: \"deepcopy_with_paths\" | \"deepcopy_minimal\" }";
+
+/// The target whose runtime `--runtime-from` reads `x-ferrule-style` from.
+const STYLE_TARGET: &str = "python";
+
+/// Each `x-ferrule-style` key with today's spelling and the older one (ADR 0018).
+const STYLE_SWITCHES: [(&str, &str, &str); 4] = [
+    ("sentinel", "omit", "NOT_GIVEN"),
+    ("resources", "lazy", "eager"),
+    ("paths", "path_template", "fstring"),
+    ("multipart", "deepcopy_with_paths", "deepcopy_minimal"),
+];
+
+/// `x-ferrule-style`: every key optional and either spelling allowed, kept as written; anything
+/// else is FER101, as in the Python plugin's reader.
+fn read_style(raw: Option<&Json>) -> Result<Vec<StyleSwitch>, Malformed> {
+    let Some(raw) = raw else { return Ok(Vec::new()) };
+    let Json::Object(members) = raw else {
+        return Err(Malformed);
+    };
+    js::entries(members)
+        .into_iter()
+        .map(|(key, value)| {
+            let &(_, today, older) = STYLE_SWITCHES.iter().find(|(k, _, _)| *k == key).ok_or(Malformed)?;
+            match value.as_str() {
+                Some(v) if v == today || v == older => Ok(StyleSwitch {
+                    target: STYLE_TARGET.to_owned(),
+                    key: key.to_owned(),
+                    value: v.to_owned(),
+                }),
+                _ => Err(Malformed),
+            }
+        })
+        .collect()
 }
 
 /// `x-ferrule-standalone`: each entry as `x-ferrule-resource` reads.
