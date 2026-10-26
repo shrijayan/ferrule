@@ -1,5 +1,5 @@
 {
-  "sha256": "986a6c1d19f30ee792656381c46c4bf00841d8e8ba4d3c3c050b057a4ac1b1cf",
+  "sha256": "81a56774ad1123e1c84bb02bb4d0e4c3a93a2a52c570ef7468b72dddd5230504",
   "root": {
     "x-ferrule-client": {
       "defaultEnvironment": "production",
@@ -57,7 +57,6 @@
     },
     "x-ferrule-page-schemes": [
       {
-        "className": "OpenaiCursorPage",
         "kind": "cursor",
         "name": "openai_cursor_page",
         "request": [

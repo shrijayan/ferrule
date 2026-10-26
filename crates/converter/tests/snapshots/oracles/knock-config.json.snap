@@ -1,5 +1,5 @@
 {
-  "sha256": "9698cfb9bd88fe9afbfdc6b99e38422f3768ceacb46cdc1887b9bbc6a801127b",
+  "sha256": "d11612d71eea334226fca9d8c9a1da06828cdedc1f3622690ba8c22751ef972d",
   "root": {
     "x-ferrule-client": {
       "defaultEnvironment": "production",
@@ -56,7 +56,6 @@
     },
     "x-ferrule-page-schemes": [
       {
-        "className": "EntriesCursor",
         "kind": "cursor",
         "name": "entries_cursor",
         "request": [
@@ -95,7 +94,6 @@
         ]
       },
       {
-        "className": "ItemsCursor",
         "kind": "cursor",
         "name": "items_cursor",
         "request": [
@@ -117,6 +115,7 @@
         "response": [
           {
             "name": "items",
+            "purpose": "items",
             "type": "array"
           },
           {
@@ -133,7 +132,6 @@
         ]
       },
       {
-        "className": "SlackChannelsCursor",
         "kind": "cursor",
         "name": "slack_channels_cursor",
         "request": [
@@ -161,7 +159,6 @@
         ]
       },
       {
-        "className": "MsTeamsPagination",
         "kind": "cursor",
         "name": "ms_teams_pagination",
         "request": [

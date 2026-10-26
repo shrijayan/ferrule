@@ -1,5 +1,5 @@
 {
-  "sha256": "7ca77c55c2b7d79ae32e333e8df5804a90070134f7a37fa53b832cd9f82d0159",
+  "sha256": "df1106e66ad16fce27d9a4a9775aad94ef7bd7cef55c7c83f10c30a14e146df4",
   "root": {
     "x-ferrule-client": {
       "defaultEnvironment": "demo",
@@ -65,7 +65,6 @@
     },
     "x-ferrule-page-schemes": [
       {
-        "className": "Page",
         "kind": "page_number",
         "name": "page",
         "request": [
