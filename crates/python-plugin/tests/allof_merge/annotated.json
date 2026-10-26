@@ -1,0 +1,181 @@
+{
+  "components": {
+    "schemas": {
+      "Base": {
+        "properties": {
+          "top_logprobs": {
+            "description": "Base description.",
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        },
+        "type": "object"
+      },
+      "CreateRequest": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Middle"
+          },
+          {
+            "properties": {
+              "model": {
+                "type": "string"
+              },
+              "top_logprobs": {
+                "description": "Outer description.",
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "model"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "Middle": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Base"
+          },
+          {
+            "properties": {
+              "top_logprobs": {
+                "description": "Middle description.",
+                "type": "integer"
+              }
+            },
+            "type": "object"
+          }
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "fx",
+    "version": "1"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/completions": {
+      "post": {
+        "operationId": "createCompletion",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "ok"
+          }
+        },
+        "x-fern-sdk-group-name": [
+          "completions"
+        ],
+        "x-fern-sdk-method-name": "create",
+        "x-ferrule-client": {
+          "defaultEnvironment": "production",
+          "defaultHeaders": {},
+          "envPrefix": "FX",
+          "environments": [
+            {
+              "name": "production",
+              "url": "https://api.example.com"
+            }
+          ],
+          "name": "fx",
+          "omitPlatformHeaders": false,
+          "opts": [],
+          "query": {
+            "arrayFormat": "comma",
+            "nestedFormat": "brackets"
+          },
+          "retries": {
+            "initialDelaySeconds": 0.5,
+            "maxDelaySeconds": 8,
+            "maxRetries": 2
+          },
+          "security": [],
+          "securitySchemes": {},
+          "timeoutSeconds": 60
+        },
+        "x-ferrule-method-name": "create",
+        "x-ferrule-method-order": 0,
+        "x-ferrule-models": {},
+        "x-ferrule-package": {
+          "name": "fx",
+          "repo": "fx/fx-python"
+        },
+        "x-ferrule-resource": {
+          "order": [
+            0
+          ],
+          "path": [
+            "completions"
+          ]
+        }
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.example.com"
+    }
+  ],
+  "x-ferrule-client": {
+    "defaultEnvironment": "production",
+    "defaultHeaders": {},
+    "envPrefix": "FX",
+    "environments": [
+      {
+        "name": "production",
+        "url": "https://api.example.com"
+      }
+    ],
+    "name": "fx",
+    "omitPlatformHeaders": false,
+    "opts": [],
+    "query": {
+      "arrayFormat": "comma",
+      "nestedFormat": "brackets"
+    },
+    "retries": {
+      "initialDelaySeconds": 0.5,
+      "maxDelaySeconds": 8,
+      "maxRetries": 2
+    },
+    "security": [],
+    "securitySchemes": {},
+    "timeoutSeconds": 60
+  },
+  "x-ferrule-config": {
+    "edition": "2025-10-08",
+    "packageName": "fx",
+    "projectName": "fx",
+    "pythonEdition": "python.2025-10-08",
+    "version": 1
+  }
+}

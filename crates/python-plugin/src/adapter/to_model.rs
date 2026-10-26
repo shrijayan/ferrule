@@ -120,7 +120,9 @@ impl Context<'_> {
         }))
     }
 
-    /// `allOf`: named members become base classes, object members contribute fields.
+    /// `allOf`: named members become base classes, object members contribute fields. A property
+    /// several members declare is one field where it first appears, typed and described by the
+    /// last (openai `CreateChatCompletionRequest.top_logprobs`).
     fn read_intersection<'f>(&mut self, members: impl Iterator<Item = Type<'f>>) -> Result<SdkObject, FerruleError> {
         let mut out = SdkObject::default();
         for member in members {
@@ -128,7 +130,15 @@ impl Context<'_> {
                 SdkType::Ref(r) => out.bases.push(r),
                 SdkType::Object(o) => {
                     out.bases.extend(o.bases);
-                    out.fields.extend(o.fields);
+                    for f in o.fields {
+                        match out.fields.iter_mut().find(|g| g.wire_name == f.wire_name) {
+                            Some(g) => {
+                                let required = g.required || f.required;
+                                *g = SdkField { required, ..f };
+                            }
+                            None => out.fields.push(f),
+                        }
+                    }
                 }
                 SdkType::Unknown => {}
                 t => return Err(self.unsupported(&format!("an allOf member of kind {}", sdk_kind(&t)))),
@@ -405,7 +415,7 @@ impl Context<'_> {
             "delete" => HttpVerb::Delete,
             _ => return Err(self.unsupported(&format!("HTTP method {http}"))),
         };
-        let (path_params, query_params) = self.read_params(method)?;
+        let (mut path_params, mut query_params) = self.read_params(method)?;
         let content = method.body().and_then(|b| b.json().or_else(|| b.contents().next()));
         let body = content.map(|c| self.read_type(c.ty())).transpose()?;
         let response_type = method
@@ -416,11 +426,11 @@ impl Context<'_> {
         if let Some(clash) = response.as_ref().and_then(attribute_clash) {
             return Err(clash_error(self.pointer, &clash));
         }
-        let header_params = match method.headers() {
+        let mut header_params = match method.headers() {
             None => Vec::new(),
             Some(h) => h.fields().map(|f| self.read_param(f)).collect::<Result<_, _>>()?,
         };
-        let (body_variants, body_discriminator) = self.union_variants(body.as_ref());
+        let (mut body_variants, body_discriminator) = self.union_variants(body.as_ref());
         let body_params = if body_variants.is_empty() {
             self.object_of(body.as_ref())
                 .map(|o| o.fields.iter().map(field_param).collect())
@@ -444,7 +454,19 @@ impl Context<'_> {
             _ => None,
         };
         let body_whole = whole.is_some();
-        let body_params = whole.map_or(body_params, |p| vec![p]);
+        let mut body_params = whole.map_or(body_params, |p| vec![p]);
+        rename_clashes([
+            ("path_", path_params.iter_mut().collect()),
+            ("query_", query_params.iter_mut().collect()),
+            ("header_", header_params.iter_mut().collect()),
+            (
+                "body_",
+                body_params
+                    .iter_mut()
+                    .chain(body_variants.iter_mut().flat_map(|v| v.params.iter_mut()))
+                    .collect(),
+            ),
+        ]);
         let pagination = self.to_pagination(response.as_ref())?;
         let streaming = self.read_streaming(method, response.as_ref())?;
         Ok(SdkMethod {
@@ -533,6 +555,37 @@ fn file_paths(ty: Type<'_>) -> Vec<Vec<String>> {
             }
         })
         .collect()
+}
+
+/// The names a method already binds besides its parameters: `self` and the request options.
+const BOUND_NAMES: [&str; 5] = ["self", "extra_headers", "extra_query", "extra_body", "timeout"];
+
+/// Renames the parameters that would share a Python name, keeping the wire name (ADR 0020). One
+/// named like a [`BOUND_NAMES`] entry is `api_<name>` (browserbase-python `api_timeout`); then each
+/// whose name another location also has is prefixed with its location (gcore-python
+/// `dns.zones.replace(path_name, *, body_name)`, cloudflare-python
+/// `recipients.create(share_id, *, path_account_id, body_account_id)`).
+pub fn rename_clashes<const N: usize>(mut locations: [(&str, Vec<&mut SdkParam>); N]) {
+    for p in locations.iter_mut().flat_map(|(_, ps)| ps.iter_mut()) {
+        if BOUND_NAMES.contains(&p.py_name.as_str()) {
+            p.py_name = format!("api_{}", p.py_name);
+        }
+    }
+    let names: Vec<Vec<String>> = locations
+        .iter()
+        .map(|(_, ps)| ps.iter().map(|p| p.py_name.clone()).collect())
+        .collect();
+    for (i, (prefix, params)) in locations.iter_mut().enumerate() {
+        for p in params.iter_mut() {
+            let elsewhere = names
+                .iter()
+                .enumerate()
+                .any(|(j, other)| j != i && other.contains(&p.py_name));
+            if elsewhere {
+                p.py_name = format!("{prefix}{}", p.py_name);
+            }
+        }
+    }
 }
 
 /// A body field as a keyword argument.

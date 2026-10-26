@@ -1,0 +1,55 @@
+openapi: 3.1.0
+info: {title: fx, version: '1'}
+servers: [{url: 'https://api.example.com'}]
+
+paths:
+  /zones/{name}:
+    put:
+      operationId: replaceZone
+      parameters:
+        - {name: name, in: path, required: true, schema: {type: string}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: {type: string, description: name of DNS zone}
+                contact: {type: string}
+      responses:
+        '200': {description: ok, content: {application/json: {schema: {type: object, properties: {id: {type: string}}}}}}
+  /accounts/{account_id}/shares/{share_id}/recipients:
+    post:
+      operationId: createRecipient
+      parameters:
+        - {name: account_id, in: path, required: true, description: Account identifier., schema: {type: string}}
+        - {name: share_id, in: path, required: true, schema: {type: string}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                account_id: {type: string}
+                organization_id: {type: string}
+      responses:
+        '200': {description: ok, content: {application/json: {schema: {type: object, properties: {id: {type: string}}}}}}
+  /pods/{name}:
+    delete:
+      operationId: deletePod
+      parameters:
+        - {name: name, in: path, required: true, schema: {type: string}}
+        - {name: dryRun, in: query, schema: {type: string}}
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                dryRun: {type: array, items: {type: string}}
+                kind: {type: string}
+      responses:
+        '200': {description: ok, content: {application/json: {schema: {type: object, properties: {id: {type: string}}}}}}

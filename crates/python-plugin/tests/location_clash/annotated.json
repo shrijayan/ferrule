@@ -1,0 +1,354 @@
+{
+  "info": {
+    "title": "fx",
+    "version": "1"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/accounts/{account_id}/shares/{share_id}/recipients": {
+      "post": {
+        "operationId": "createRecipient",
+        "parameters": [
+          {
+            "description": "Account identifier.",
+            "in": "path",
+            "name": "account_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "share_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "account_id": {
+                    "type": "string"
+                  },
+                  "organization_id": {
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "ok"
+          }
+        },
+        "x-fern-sdk-group-name": [
+          "recipients"
+        ],
+        "x-fern-sdk-method-name": "create",
+        "x-ferrule-client": {
+          "defaultEnvironment": "production",
+          "defaultHeaders": {},
+          "envPrefix": "FX",
+          "environments": [
+            {
+              "name": "production",
+              "url": "https://api.example.com"
+            }
+          ],
+          "name": "fx",
+          "omitPlatformHeaders": false,
+          "opts": [],
+          "query": {
+            "arrayFormat": "comma",
+            "nestedFormat": "brackets"
+          },
+          "retries": {
+            "initialDelaySeconds": 0.5,
+            "maxDelaySeconds": 8,
+            "maxRetries": 2
+          },
+          "security": [],
+          "securitySchemes": {},
+          "timeoutSeconds": 60
+        },
+        "x-ferrule-method-name": "create",
+        "x-ferrule-method-order": 0,
+        "x-ferrule-models": {},
+        "x-ferrule-package": {
+          "name": "fx",
+          "repo": "fx/fx-python"
+        },
+        "x-ferrule-resource": {
+          "order": [
+            1
+          ],
+          "path": [
+            "recipients"
+          ]
+        }
+      }
+    },
+    "/pods/{name}": {
+      "delete": {
+        "operationId": "deletePod",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "dryRun",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "dryRun": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "kind": {
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "ok"
+          }
+        },
+        "x-fern-sdk-group-name": [
+          "pods"
+        ],
+        "x-fern-sdk-method-name": "delete",
+        "x-ferrule-client": {
+          "defaultEnvironment": "production",
+          "defaultHeaders": {},
+          "envPrefix": "FX",
+          "environments": [
+            {
+              "name": "production",
+              "url": "https://api.example.com"
+            }
+          ],
+          "name": "fx",
+          "omitPlatformHeaders": false,
+          "opts": [],
+          "query": {
+            "arrayFormat": "comma",
+            "nestedFormat": "brackets"
+          },
+          "retries": {
+            "initialDelaySeconds": 0.5,
+            "maxDelaySeconds": 8,
+            "maxRetries": 2
+          },
+          "security": [],
+          "securitySchemes": {},
+          "timeoutSeconds": 60
+        },
+        "x-ferrule-method-name": "delete",
+        "x-ferrule-method-order": 0,
+        "x-ferrule-models": {},
+        "x-ferrule-package": {
+          "name": "fx",
+          "repo": "fx/fx-python"
+        },
+        "x-ferrule-resource": {
+          "order": [
+            2
+          ],
+          "path": [
+            "pods"
+          ]
+        }
+      }
+    },
+    "/zones/{name}": {
+      "put": {
+        "operationId": "replaceZone",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "contact": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "description": "name of DNS zone",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "ok"
+          }
+        },
+        "x-fern-sdk-group-name": [
+          "zones"
+        ],
+        "x-fern-sdk-method-name": "replace",
+        "x-ferrule-client": {
+          "defaultEnvironment": "production",
+          "defaultHeaders": {},
+          "envPrefix": "FX",
+          "environments": [
+            {
+              "name": "production",
+              "url": "https://api.example.com"
+            }
+          ],
+          "name": "fx",
+          "omitPlatformHeaders": false,
+          "opts": [],
+          "query": {
+            "arrayFormat": "comma",
+            "nestedFormat": "brackets"
+          },
+          "retries": {
+            "initialDelaySeconds": 0.5,
+            "maxDelaySeconds": 8,
+            "maxRetries": 2
+          },
+          "security": [],
+          "securitySchemes": {},
+          "timeoutSeconds": 60
+        },
+        "x-ferrule-method-name": "replace",
+        "x-ferrule-method-order": 0,
+        "x-ferrule-models": {},
+        "x-ferrule-package": {
+          "name": "fx",
+          "repo": "fx/fx-python"
+        },
+        "x-ferrule-resource": {
+          "order": [
+            0
+          ],
+          "path": [
+            "zones"
+          ]
+        }
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.example.com"
+    }
+  ],
+  "x-ferrule-client": {
+    "defaultEnvironment": "production",
+    "defaultHeaders": {},
+    "envPrefix": "FX",
+    "environments": [
+      {
+        "name": "production",
+        "url": "https://api.example.com"
+      }
+    ],
+    "name": "fx",
+    "omitPlatformHeaders": false,
+    "opts": [],
+    "query": {
+      "arrayFormat": "comma",
+      "nestedFormat": "brackets"
+    },
+    "retries": {
+      "initialDelaySeconds": 0.5,
+      "maxDelaySeconds": 8,
+      "maxRetries": 2
+    },
+    "security": [],
+    "securitySchemes": {},
+    "timeoutSeconds": 60
+  },
+  "x-ferrule-config": {
+    "edition": "2025-10-08",
+    "packageName": "fx",
+    "projectName": "fx",
+    "pythonEdition": "python.2025-10-08",
+    "version": 1
+  }
+}

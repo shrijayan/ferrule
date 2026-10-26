@@ -158,7 +158,9 @@ impl Context<'_> {
         }))
     }
 
-    /// `allOf`: named members become bases, object members contribute fields.
+    /// `allOf`: named members become bases, object members contribute fields. A property
+    /// several members declare is one field where it first appears, typed and described by the
+    /// last (openai `CreateChatCompletionRequest.top_logprobs`).
     fn read_intersection<'f>(&mut self, members: impl Iterator<Item = ForgeType<'f>>) -> Result<Object, FerruleError> {
         let mut out = Object::default();
         for member in members {
@@ -166,7 +168,15 @@ impl Context<'_> {
                 Type::Ref(r) => out.bases.push(r),
                 Type::Object(o) => {
                     out.bases.extend(o.bases);
-                    out.fields.extend(o.fields);
+                    for f in o.fields {
+                        match out.fields.iter_mut().find(|g| g.wire_name == f.wire_name) {
+                            Some(g) => {
+                                let required = g.required || f.required;
+                                *g = Field { required, ..f };
+                            }
+                            None => out.fields.push(f),
+                        }
+                    }
                     if out.extra.is_none() {
                         out.extra = o.extra;
                     }

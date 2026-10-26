@@ -1,0 +1,29 @@
+openapi: 3.1.0
+info: {title: fx, version: '1'}
+servers: [{url: 'https://api.example.com'}]
+
+paths:
+  /containers/{id}/stop:
+    post:
+      operationId: stopContainer
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string}}
+        - {name: timeout, in: query, description: Seconds to wait., schema: {type: integer}}
+      responses:
+        '204': {description: stopped}
+  /calls:
+    post:
+      operationId: createCall
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [to]
+              properties:
+                to: {type: string}
+                Timeout: {type: integer, description: Seconds to ring.}
+                self: {type: string, description: The URL of the call.}
+      responses:
+        '200': {description: ok, content: {application/json: {schema: {type: object, properties: {sid: {type: string}}}}}}

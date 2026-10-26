@@ -5,7 +5,7 @@
 
 mod common;
 
-use ferrule_python_plugin::adapter::to_model::client_class_name_with;
+use ferrule_python_plugin::adapter::to_model::{client_class_name_with, rename_clashes};
 use ferrule_python_plugin::model as py;
 use ferrule_python_plugin::naming::{self, Casing as PyCasing, class_segment_with, pascal_case, singular, snake_case};
 use ferrule_sdk_model::model as n;
@@ -334,7 +334,25 @@ impl Python<'_> {
             _ => None,
         };
         let body_whole = whole.is_some();
-        let body_params = whole.map_or(body_params, |p| vec![p]);
+        let mut body_params = whole.map_or(body_params, |p| vec![p]);
+        let (mut path_params, mut query_params, mut header_params) = (
+            self.params(&m.path_params),
+            self.params(&m.query_params),
+            self.params(&m.header_params),
+        );
+        let mut body_variants = body_variants;
+        rename_clashes([
+            ("path_", path_params.iter_mut().collect()),
+            ("query_", query_params.iter_mut().collect()),
+            ("header_", header_params.iter_mut().collect()),
+            (
+                "body_",
+                body_params
+                    .iter_mut()
+                    .chain(body_variants.iter_mut().flat_map(|v| v.params.iter_mut()))
+                    .collect(),
+            ),
+        ]);
         let body_file_paths = m
             .body
             .as_ref()
@@ -357,9 +375,9 @@ impl Python<'_> {
             description: m.description.clone(),
             order: m.order,
             deprecated: m.deprecated,
-            path_params: self.params(&m.path_params),
-            query_params: self.params(&m.query_params),
-            header_params: self.params(&m.header_params),
+            path_params,
+            query_params,
+            header_params,
             body,
             body_params,
             body_media_type: m.body.as_ref().map(|b| b.media_type.clone()),

@@ -29,3 +29,4 @@ Stainless output needs an ADR.
 | [0017](https://github.com/shrijayan/ferrule/blob/main/docs/adr/0017-multi-language-targets.md)                          | Generate every major SDK language, from one language-neutral model                     | Proposed | 2026-10-26 |
 | [0018](https://github.com/shrijayan/ferrule/blob/main/docs/adr/0018-older-generator-styles-from-the-adopted-runtime.md) | Emit an older generator's style when the adopted runtime is older                      | Proposed | 2026-10-26 |
 | [0019](https://github.com/shrijayan/ferrule/blob/main/docs/adr/0019-rust-sdk-ferrule-original-target.md)              | Generate Rust SDKs as a Ferrule-original target                                        | Proposed | 2026-10-26 |
+| [0020](https://github.com/shrijayan/ferrule/blob/main/docs/adr/0020-parameter-name-clashes.md) | Parameter names that clash in a generated method | Proposed | 2026-10-26 |
