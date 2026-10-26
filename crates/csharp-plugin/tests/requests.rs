@@ -6,12 +6,17 @@ mod common;
 
 use std::collections::HashMap;
 
-use ferrule_csharp_plugin::{CSharpMeta, generate};
+use ferrule_csharp_plugin::{CSharpMeta, CSharpOutput, generate};
 
 /// The files generated for `paths` and `components` (OpenAPI YAML fragments, `components` holding
 /// at least the security scheme `Key`) with the resource `things` binding `methods`, and the
 /// client option `api_key` authenticating with `Key`.
 fn files(paths: &str, components: &str, methods: &str) -> HashMap<String, String> {
+    generated(paths, components, methods).files.into_iter().collect()
+}
+
+/// What generating [`files`]'s inputs returns.
+fn generated(paths: &str, components: &str, methods: &str) -> CSharpOutput {
     let openapi = format!(
         "openapi: 3.1.0\ninfo:\n  title: Acme\n  version: 1.0.0\nservers:\n  - url: https://api.acme.test\nsecurity:\n  - Key: []\npaths:\n{paths}components:\n{components}"
     );
@@ -20,11 +25,7 @@ fn files(paths: &str, components: &str, methods: &str) -> HashMap<String, String
     );
     let converted = ferrule_converter::convert_text(&openapi, &stainless).expect("converts");
     assert!(!converted.output.is_empty(), "{:?}", converted.diagnostics);
-    generate(&common::model(&converted.output), &CSharpMeta::default())
-        .expect("generates")
-        .files
-        .into_iter()
-        .collect()
+    generate(&common::model(&converted.output), &CSharpMeta::default()).expect("generates")
 }
 
 const BEARER: &str = "  securitySchemes:\n    Key:\n      type: http\n      scheme: bearer\n";
@@ -49,6 +50,33 @@ fn required_dictionary_and_json_properties_get_test_values() {
     assert!(test.contains("Payload = JsonSerializer.SerializeToElement(\"bar\")"), "{test}");
     assert!(test.contains("using System.Collections.Generic;"), "{test}");
     assert!(test.contains("using System.Text.Json;"), "{test}");
+}
+
+/// An API key in the query (OneBusAway's `key`) is added to every request's query by the runtime's
+/// `auth_query` slot, not dropped; a header key stays in `auth_headers`.
+#[test]
+fn a_query_api_key_is_sent_in_the_query() {
+    let get = "  /things:\n    get:\n      responses:\n        '204':\n          description: Done.\n";
+    let out = generated(
+        get,
+        "  securitySchemes:\n    Key:\n      type: apiKey\n      in: query\n      name: key\n",
+        "      list: get /things\n",
+    );
+    assert_eq!(
+        out.runtime.auth_query,
+        "        if (options.ApiKey != null)\n        {\n            collection.Add(\"key\", options.ApiKey);\n        }\n"
+    );
+    assert_eq!(out.runtime.auth_headers, "");
+    assert!(out.runtime.to_json().contains("\"auth_query\""));
+    let out = generated(
+        get,
+        "  securitySchemes:\n    Key:\n      type: apiKey\n      in: header\n      name: X-Api-Key\n",
+        "      list: get /things\n",
+    );
+    assert_eq!(out.runtime.auth_query, "");
+    assert!(out.runtime.auth_headers.contains("request.Headers.Add(\"X-Api-Key\", options.ApiKey);"));
+    // The options of an SDK without a query key are as before.
+    assert!(!out.runtime.to_json().contains("auth_query"));
 }
 
 /// A method whose required argument the test cannot build (here a dictionary of enum values) has
