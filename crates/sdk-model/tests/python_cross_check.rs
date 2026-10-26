@@ -318,22 +318,33 @@ impl Python<'_> {
         } else {
             merge_variants(&body_variants)
         };
-        // A map or array body is one `body` argument, described by the body's schema.
+        // A map or array body is one `body` argument, described by the body's schema, and so is
+        // a raw-bytes body.
+        let body_binary = m.body.as_ref().is_some_and(|b| {
+            matches!(
+                b.ty,
+                n::Type::Scalar {
+                    scalar: n::Scalar::Binary
+                }
+            )
+        });
         let whole = match (&body, &m.body) {
-            (Some(ty @ (py::SdkType::Map(_) | py::SdkType::Array(_))), Some(b)) => Some(py::SdkParam {
-                wire_name: "body".to_owned(),
-                py_name: "body".to_owned(),
-                required: b.required,
-                description: b.schema_description.clone(),
-                ty: ty.clone(),
-                deprecated: false,
-                example: None,
-                minimum: None,
-                maximum: None,
-            }),
+            (Some(ty @ (py::SdkType::Map(_) | py::SdkType::Array(_))), Some(b)) => Some((ty, b)),
+            (Some(ty), Some(b)) if body_binary => Some((ty, b)),
             _ => None,
-        };
-        let body_whole = whole.is_some();
+        }
+        .map(|(ty, b)| py::SdkParam {
+            wire_name: "body".to_owned(),
+            py_name: "body".to_owned(),
+            required: b.required,
+            description: b.schema_description.clone(),
+            ty: ty.clone(),
+            deprecated: false,
+            example: None,
+            minimum: None,
+            maximum: None,
+        });
+        let body_whole = whole.is_some() && !body_binary;
         let body_params = whole.map_or(body_params, |p| vec![p]);
         let body_file_paths = m
             .body
@@ -364,6 +375,7 @@ impl Python<'_> {
             body_params,
             body_media_type: m.body.as_ref().map(|b| b.media_type.clone()),
             body_whole,
+            body_binary,
             body_variants,
             body_discriminator,
             body_file_paths,

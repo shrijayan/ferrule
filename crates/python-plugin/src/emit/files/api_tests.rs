@@ -112,8 +112,14 @@ pub fn example_value(
     }
 }
 
+/// The example of a raw-bytes body, Stainless's for file content.
+pub const BINARY_EXAMPLE: &str = "b\"raw file contents\"";
+
 /// A parameter's example; query parameters ignore the spec's `example`, as in the oracles.
 fn example_of(p: &FilesParam, uses: &mut Uses, indent: &str) -> String {
+    if p.binary {
+        return BINARY_EXAMPLE.to_owned();
+    }
     let example = if p.location == ParamLocation::Query {
         None
     } else {

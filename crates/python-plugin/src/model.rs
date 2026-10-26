@@ -220,6 +220,10 @@ pub struct SdkMethod {
     /// A map or array body (honcho `sessions.peers.add/remove`): `body_params` is then the one
     /// keyword argument `body`, sent as the whole request body.
     pub body_whole: bool,
+    /// A body that is raw bytes (`format: binary`, such as `application/octet-stream`): `body_params`
+    /// is then the one keyword argument `body`, sent as the request content with the body's
+    /// media type.
+    pub body_binary: bool,
     /// A body that is a union of objects (imagekit `files.update`, knock-mgmt `guides.activate`):
     /// one overload per variant, in spec order. `body_params` then holds every variant's fields
     /// once, required only where every variant requires them.

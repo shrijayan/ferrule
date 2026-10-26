@@ -4,9 +4,9 @@
 use std::collections::HashSet;
 
 use super::common::{
-    HEADER, args_docstring, has_inline_object, header_params, is_header, is_param_switched, keyword_path_params, leaf,
-    method_args, method_ref, py_fstring, py_string, rel_import, resource_class_base, resource_module, return_model,
-    stainless_method_order, stream_event_model, stream_switch, with_bool_literal,
+    HEADER, args_docstring, has_inline_object, header_params, is_binary_body, is_header, is_param_switched,
+    keyword_path_params, leaf, method_args, method_ref, py_fstring, py_string, rel_import, resource_class_base,
+    resource_module, return_model, stainless_method_order, stream_event_model, stream_switch, with_bool_literal,
 };
 use super::format::{Bracket, Cond, Expr, bracket, call, flat, print_expr};
 use super::models::all_list;
@@ -84,6 +84,35 @@ fn arg_of(p: &mut PythonPrinter, q: &SdkParam, ctx: &dyn AnnotationContext) -> A
     Arg {
         name: q.py_name.clone(),
         ann,
+        required: q.required,
+    }
+}
+
+/// A keyword argument: the raw-bytes body as [`binary_arg`], any other as [`arg_of`].
+fn keyword_arg(
+    s: &FileState<'_>,
+    p: &mut PythonPrinter,
+    method: &SdkMethod,
+    q: &SdkParam,
+    is_async: bool,
+    ctx: &dyn AnnotationContext,
+) -> Arg {
+    if is_binary_body(method, q) {
+        binary_arg(s, p, q, is_async)
+    } else {
+        arg_of(p, q, ctx)
+    }
+}
+
+/// The argument of a raw-bytes body: file content (a path is read) or bytes, an async iterable
+/// of them for the async client.
+fn binary_arg(s: &FileState<'_>, p: &mut PythonPrinter, q: &SdkParam, is_async: bool) -> Arg {
+    let bytes = if is_async { "AsyncBinaryTypes" } else { "BinaryTypes" };
+    imp(s, p, "_types", "FileContent");
+    imp(s, p, "_types", bytes);
+    Arg {
+        name: q.py_name.clone(),
+        ann: format!("FileContent | {bytes}"),
         required: q.required,
     }
 }
@@ -458,6 +487,31 @@ fn print_header_merge(s: &FileState<'_>, p: &mut PythonPrinter, method: &SdkMeth
     print_expr(p, &merged.into(), "extra_headers = ", "");
 }
 
+/// The content type of a raw-bytes body: the body's media type.
+fn print_binary_prelude(p: &mut PythonPrinter, method: &SdkMethod) {
+    let media = method.body_media_type.as_deref().unwrap_or("application/octet-stream");
+    p.line(&format!(
+        "extra_headers = {{\"Content-Type\": {}, **(extra_headers or {{}})}}",
+        py_string(media)
+    ));
+}
+
+/// `content=`: a raw-bytes body as it is, or the file a path names, read.
+fn binary_content(s: &FileState<'_>, p: &mut PythonPrinter, awaits: bool) -> Expr {
+    p.import_module("os");
+    let read = if awaits {
+        "async_read_file_content"
+    } else {
+        "read_file_content"
+    };
+    imp(s, p, "_files", read);
+    format!(
+        "content={}{read}(body) if isinstance(body, os.PathLike) else body",
+        if awaits { "await " } else { "" }
+    )
+    .into()
+}
+
 /// FER201 for a method shape [`emit_method`] does not generate yet.
 fn check_supported(method: &SdkMethod) -> Result<(), FerruleError> {
     let switch = stream_switch(method);
@@ -517,7 +571,7 @@ fn emit_method(
     let union = name_union_body(method);
     let params = union.as_ref().map_or_else(|| method_args(method), |u| u.args.clone());
     // Header parameters alone make no params file (ogx `models.retrieve`).
-    let params_ref = if params.iter().all(|q| is_header(method, q)) {
+    let params_ref = if params.iter().all(|q| is_header(method, q) || is_binary_body(method, q)) {
         None
     } else {
         Some(method_ref(holder, method, "Params"))
@@ -585,7 +639,7 @@ fn emit_method(
         (None, None) => keyword_path_params(method)
             .iter()
             .chain(params.iter().copied())
-            .map(|q| arg_of(p, q, &ctx))
+            .map(|q| keyword_arg(s, p, method, q, is_async, &ctx))
             .collect(),
     };
     print_signature(s, p, &method.name, awaits, &path, &args, &returns);
@@ -645,6 +699,10 @@ fn emit_method(
     if multipart {
         print_multipart_prelude(s, p, method, &body);
     }
+    let binary = method.body_binary && !body.is_empty();
+    if binary {
+        print_binary_prelude(p, method);
+    }
     let mut items: Vec<Expr> = vec![path_expr(s, p, method)];
     if let Some(page) = page {
         items.push(format!("page={sync_or_async}{}[{model}]", page.page).into());
@@ -659,6 +717,8 @@ fn emit_method(
         let open = format!("body={}{f}(", if awaits { "await " } else { "" });
         items.push(call(&open, vec!["body".into(), params_name.clone().into()], false).into());
         items.push("files=files".into());
+    } else if binary {
+        items.push(binary_content(s, p, awaits));
     } else if let ([whole], true) = (body.as_slice(), method.body_whole) {
         // Stainless checks a map against the method's params, an array against its own type.
         let against = if matches!(whole.ty, SdkType::Map(_)) {

@@ -138,6 +138,7 @@ fn param(v: &Value) -> FilesParam {
         example: v.get("example").cloned(),
         minimum: v.get("minimum").map(|n| n.as_f64().expect("a number")),
         maximum: v.get("maximum").map(|n| n.as_f64().expect("a number")),
+        binary: false,
     }
 }
 

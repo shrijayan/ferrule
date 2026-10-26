@@ -428,22 +428,26 @@ impl Context<'_> {
         } else {
             merge_variants(&body_variants)
         };
-        // A map or array body is one `body` argument, described by the body schema (Stainless).
+        // A map or array body is one `body` argument, described by the body schema (Stainless),
+        // and so is a raw-bytes body, sent as the request content.
+        let body_binary = content.is_some_and(|c| matches!(c.ty(), Type::Scalar(Scalar::Binary)));
         let whole = match (&body, content) {
-            (Some(ty @ (SdkType::Map(_) | SdkType::Array(_))), Some(c)) => Some(SdkParam {
-                wire_name: "body".to_owned(),
-                py_name: "body".to_owned(),
-                required: method.body().is_some_and(forge::Body::is_required),
-                description: c.description().to_owned(),
-                ty: ty.clone(),
-                deprecated: false,
-                example: None,
-                minimum: None,
-                maximum: None,
-            }),
+            (Some(ty @ (SdkType::Map(_) | SdkType::Array(_))), Some(c)) => Some((ty, c)),
+            (Some(ty), Some(c)) if body_binary => Some((ty, c)),
             _ => None,
-        };
-        let body_whole = whole.is_some();
+        }
+        .map(|(ty, c)| SdkParam {
+            wire_name: "body".to_owned(),
+            py_name: "body".to_owned(),
+            required: method.body().is_some_and(forge::Body::is_required),
+            description: c.description().to_owned(),
+            ty: ty.clone(),
+            deprecated: false,
+            example: None,
+            minimum: None,
+            maximum: None,
+        });
+        let body_whole = whole.is_some() && !body_binary;
         let body_params = whole.map_or(body_params, |p| vec![p]);
         let pagination = self.to_pagination(response.as_ref())?;
         let streaming = self.read_streaming(method, response.as_ref())?;
@@ -463,6 +467,7 @@ impl Context<'_> {
             body_params,
             body_media_type: content.map(|c| c.media_type().to_owned()),
             body_whole,
+            body_binary,
             body_variants,
             body_discriminator,
             body_file_paths: content

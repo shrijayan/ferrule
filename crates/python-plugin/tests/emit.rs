@@ -77,6 +77,7 @@ fn method(response: Option<SdkType>) -> SdkMethod {
         body_params: Vec::new(),
         body_media_type: None,
         body_whole: false,
+        body_binary: false,
         body_variants: Vec::new(),
         body_discriminator: None,
         body_file_paths: Vec::new(),

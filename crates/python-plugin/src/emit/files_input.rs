@@ -5,8 +5,8 @@
 use serde_json::{Map, Value};
 
 use super::common::{
-    header_params, leaf, method_params, method_ref, resource_class_base, resource_module, resource_tree, return_model,
-    sort_fields, stainless_method_order, stream_switch, types_dir,
+    header_params, is_binary_body, leaf, method_params, method_ref, resource_class_base, resource_module,
+    resource_tree, return_model, sort_fields, stainless_method_order, stream_switch, types_dir,
 };
 use super::files::input::{
     Auth, AuthOpt, AuthScheme, ExampleRequest, FilesMethod, FilesParam, FilesResource, Organization, ParamLocation,
@@ -142,7 +142,7 @@ fn auth(s: &SdkClientSettings) -> Auth {
     Auth { scheme, opts }
 }
 
-fn files_param(p: &SdkParam, location: ParamLocation) -> FilesParam {
+fn files_param(p: &SdkParam, location: ParamLocation, binary: bool) -> FilesParam {
     FilesParam {
         py_name: p.py_name.clone(),
         wire_name: p.wire_name.clone(),
@@ -152,6 +152,7 @@ fn files_param(p: &SdkParam, location: ParamLocation) -> FilesParam {
         example: p.example.clone(),
         minimum: p.minimum,
         maximum: p.maximum,
+        binary,
     }
 }
 
@@ -159,7 +160,7 @@ fn files_method(resource: &SdkResource, m: &SdkMethod) -> FilesMethod {
     let mut params: Vec<FilesParam> = m
         .path_params
         .iter()
-        .map(|p| files_param(p, ParamLocation::Path))
+        .map(|p| files_param(p, ParamLocation::Path, false))
         .collect();
     params.extend(
         sort_fields(m.query_params.iter().chain(&m.body_params))
@@ -173,13 +174,14 @@ fn files_method(resource: &SdkResource, m: &SdkMethod) -> FilesMethod {
                     } else {
                         ParamLocation::Body
                     },
+                    is_binary_body(m, p),
                 )
             }),
     );
     params.extend(
         header_params(m)
             .into_iter()
-            .map(|p| files_param(p, ParamLocation::Header)),
+            .map(|p| files_param(p, ParamLocation::Header, false)),
     );
     let ret = return_model(Some(resource), m);
     FilesMethod {

@@ -73,6 +73,8 @@ pub struct FilesParam {
     /// The schema's `minimum`/`maximum`: a number example is the minimum, else the maximum, else 0.
     pub minimum: Option<f64>,
     pub maximum: Option<f64>,
+    /// A raw-bytes body: its example is bytes.
+    pub binary: bool,
 }
 
 /// A Python name and the dotted module (under the package) that declares it.

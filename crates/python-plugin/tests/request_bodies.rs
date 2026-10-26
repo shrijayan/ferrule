@@ -129,9 +129,7 @@ fn a_multipart_body_sends_its_binary_fields_as_files() {
 fn a_binary_body_is_sent_as_raw_content() {
     let files = generated("binary");
     let resource = files.get("src/fx/resources/file.py").expect("file.py");
-    let sync = r#"        body: FileContent | BinaryTypes,
-        path: str,
-"#;
+    let sync = "        body: FileContent | BinaryTypes,\n        path: str,\n";
     let request = r#"        extra_headers = {"Content-Type": "application/octet-stream", **(extra_headers or {})}
         return self._post(
             "/fs/write",
@@ -155,7 +153,12 @@ fn a_binary_body_is_sent_as_raw_content() {
                 query=await async_maybe_transform({"path": path}, file_write_params.FileWriteParams),
             ),
 "#;
-    for want in [sync, request, async_request, "        body: FileContent | AsyncBinaryTypes,\n"] {
+    for want in [
+        sync,
+        request,
+        async_request,
+        "        body: FileContent | AsyncBinaryTypes,\n",
+    ] {
         assert!(resource.contains(want), "{want}\n---\n{resource}");
     }
     for import in [
@@ -164,6 +167,8 @@ fn a_binary_body_is_sent_as_raw_content() {
     ] {
         assert!(resource.contains(import), "{import}\n---\n{resource}");
     }
-    let params = files.get("src/fx/types/file_write_params.py").expect("file_write_params.py");
+    let params = files
+        .get("src/fx/types/file_write_params.py")
+        .expect("file_write_params.py");
     assert!(!params.contains("body"), "{params}");
 }

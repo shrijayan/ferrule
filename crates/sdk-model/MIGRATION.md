@@ -88,6 +88,8 @@ empty `Object` in Python but as "any value" after the mapping. No fixture or ora
     declares). Body params carry `deprecated: false`, as the Python adapter has them.
   - `body_whole`: `b` is a `Map` or `Array`. `body_params` is then the one param `body`
     (`required: Body.required`, `description: Body.schema_description`, `ty: b`).
+  - `body_binary`: `Body.ty` is `Scalar { scalar: binary }`. `body_params` is then that same one param
+    `body` (its `ty` is `Unknown`), and `body_whole` is false.
   - `body_file_paths`: for a `multipart/form-data` body (any case), each field of
     `client.object_of(Body.ty)` that is `Scalar` `binary` (`[name]`) or an `Array` of it
     (`[name, "<array>"]`); empty otherwise.

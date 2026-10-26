@@ -5,8 +5,8 @@ use std::collections::{HashMap, HashSet};
 use std::ops::Range;
 
 use super::common::{
-    FieldLike, HEADER, header_params, keyword_path_params, method_args, method_ref, py_string, rel_import, sort_fields,
-    stream_switch, typed_extra, with_bool_literal,
+    FieldLike, HEADER, header_params, is_binary_body, keyword_path_params, method_args, method_ref, py_string,
+    rel_import, sort_fields, stream_switch, typed_extra, with_bool_literal,
 };
 use super::format::{bracket, print_expr};
 use super::models::{all_list, docstring};
@@ -438,7 +438,8 @@ pub fn emit_params_file(resource: Option<&SdkResource>, method: &SdkMethod) -> S
         emit_union_params(&mut p, &r.name, &body, here);
         return p.render();
     }
-    let params = method_args(method);
+    let mut params = method_args(method);
+    params.retain(|q| !is_binary_body(method, q));
     let named = name_params(&params, "");
     // The path parameters before the last lead the fields, in path order.
     let mut fields: Vec<&SdkParam> = keyword_path_params(method).iter().collect();
