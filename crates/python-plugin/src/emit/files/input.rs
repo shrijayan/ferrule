@@ -100,6 +100,11 @@ pub struct FilesMethod {
     /// The Python name of the body parameter that switches a param-switched streaming method to
     /// streaming (one of `params`): its tests come in two overloads.
     pub stream_switch: Option<String>,
+    /// The page class without its `Sync`/`Async` prefix, such as `CursorPage`, for a paginated
+    /// method: `response` is then the item type.
+    pub page: Option<String>,
+    /// Whether the method always returns a stream, which its tests close instead of checking.
+    pub streaming: bool,
 }
 
 #[derive(Debug, Clone, PartialEq)]
