@@ -4,8 +4,9 @@
 //! The templates are the files of isaacus-dev/isaacus-typescript@c56af182 (Apache-2.0, see
 //! `NOTICE`). Modified by The Ferrule Authors: per-SDK names and values replaced by `%%TOKEN%%`s;
 //! `%%if mcp%%` (an MCP server package, from knock-mgmt-node's output without one), `%%if oidc%%`
-//! (npm publishing by OIDC, from knock-mgmt-node@ca88fdba) and `%%if qs%%`; Stainless branding
-//! replaced as `BRANDING.md` lists.
+//! (npm publishing by OIDC, from knock-mgmt-node@ca88fdba), `%%if mock%%` (resource tests against
+//! the mock server: `scripts/mock` and its lines in `scripts/test` and `CONTRIBUTING.md`, from
+//! OneBusAway/js-sdk@f3ca3f47) and `%%if qs%%`; Stainless branding replaced as `BRANDING.md` lists.
 
 use std::fmt::Write as _;
 
@@ -54,6 +55,7 @@ const TEMPLATES: &[(&str, &str)] = templates![
     "scripts/fast-format",
     "scripts/format",
     "scripts/lint",
+    "scripts/mock",
     "scripts/publish-packages.ts",
     "scripts/test",
     "scripts/utils/attw-report.cjs",
@@ -81,6 +83,10 @@ const TEMPLATES: &[(&str, &str)] = templates![
 
 /// Files only an SDK with an MCP server package has.
 const MCP_ONLY: &[&str] = &[".dockerignore", "scripts/build-all", "scripts/publish-packages.ts"];
+
+/// Files only an SDK whose resource tests run against the mock server has (no
+/// `settings.disable_mock_tests`).
+const MOCK_ONLY: &[&str] = &["scripts/mock"];
 
 const MCP_SECTION: &str = include_str!("templates/project/readme_mcp.md.tmpl");
 
@@ -309,6 +315,26 @@ fn docs_label(url: &str) -> String {
     rest.split('/').next().unwrap_or(rest).to_owned()
 }
 
+/// The mock server's `--validator-*-array-format` and `--validator-*-object-format`: how the client
+/// serialises array and nested query parameters.
+fn query_formats(ctx: &Ctx<'_>) -> (&'static str, &'static str) {
+    use ferrule_sdk_model::model::{ArrayFormat, NestedFormat};
+    let Some(cs) = ctx.client.settings.as_ref() else {
+        return ("repeat", "brackets");
+    };
+    let array = match cs.array_format {
+        ArrayFormat::Comma => "comma",
+        ArrayFormat::Repeat => "repeat",
+        ArrayFormat::Indices => "indices",
+        ArrayFormat::Brackets => "brackets",
+    };
+    let object = match cs.nested_format {
+        NestedFormat::Brackets => "brackets",
+        NestedFormat::Dots => "dots",
+    };
+    (array, object)
+}
+
 /// Every project file.
 #[must_use]
 pub fn project_files(ctx: &Ctx<'_>) -> Vec<File> {
@@ -336,7 +362,9 @@ pub fn project_files(ctx: &Ctx<'_>) -> Vec<File> {
     let contact = s.contact.clone().unwrap_or_default();
     let security_contact = s.security_contact.clone().unwrap_or_else(|| contact.clone());
     let qs = crate::emit::client::uses_qs(ctx);
-    let flags = [("mcp", mcp.is_some()), ("oidc", s.npm_oidc), ("qs", qs)];
+    let mock = !s.disable_mock_tests;
+    let flags = [("mcp", mcp.is_some()), ("oidc", s.npm_oidc), ("qs", qs), ("mock", mock)];
+    let (array_format, object_format) = query_formats(ctx);
     let eslint_globs = if mcp.is_some() {
         "'tests/**', 'examples/**', 'packages/**'"
     } else {
@@ -361,6 +389,8 @@ pub fn project_files(ctx: &Ctx<'_>) -> Vec<File> {
         ("PACKAGE", s.package_name.clone()),
         ("VERSION", s.version.clone()),
         ("CI_NODE", "22".to_owned()),
+        ("ARRAY_FORMAT", array_format.to_owned()),
+        ("OBJECT_FORMAT", object_format.to_owned()),
         ("ESLINT_TEST_GLOBS", eslint_globs.to_owned()),
         ("MCP_CURSOR_CONFIG", base64(json(&cursor).as_bytes())),
         ("MCP_VSCODE_CONFIG", uri_component(&json(&vscode))),
@@ -379,6 +409,7 @@ pub fn project_files(ctx: &Ctx<'_>) -> Vec<File> {
     let mut out: Vec<File> = TEMPLATES
         .iter()
         .filter(|(p, _)| mcp.is_some() || !MCP_ONLY.contains(p))
+        .filter(|(p, _)| mock || !MOCK_ONLY.contains(p))
         .map(|(p, t)| ((*p).to_owned(), render(t, &vars, &flags)))
         .collect();
     if let Some(stats) = &s.stats {
