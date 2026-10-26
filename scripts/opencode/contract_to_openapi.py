@@ -215,6 +215,9 @@ def convert_endpoint(group: str, endpoint: Json) -> Json:
     status, success = _success(endpoint)
     operation["responses"] = {status: success, **_errors(endpoint)}
     operation["x-opencode-client-path"] = list(endpoint["clientPath"])
+    if cast("Json", endpoint["success"]).get("unwrapData"):
+        # The SDK returns the `data` of this envelope (config_models.py: `unwrap_response`).
+        operation["x-opencode-unwrap-data"] = True
     return operation
 
 

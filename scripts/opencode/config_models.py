@@ -9,7 +9,8 @@ under the name its own generator gave it (``Agent.Info`` -> ``AgentInfo``,
 writes one model per component schema, under ``$shared``, keyed by that name in snake case, and
 the ``custom_casings`` that spell the keys back as the SDK does (``ConfigLSPServer``,
 ``MoneyUSD``). Both go between marker comments, so a new spec is applied by running it again;
-the rest of the config is left as written.
+the rest of the config is left as written, except that a method of an endpoint whose ``data``
+the SDK returns (``x-opencode-unwrap-data``) gets ``unwrap_response: data``.
 
 ``apply`` is pure and deterministic; only ``main`` touches files. See ADR 0015.
 """
@@ -153,12 +154,43 @@ def _replace(text: str, markers: tuple[str, str], block: str, anchor: str, *, af
     return text.replace(anchor, placed, 1)
 
 
+_METHOD_LINE = re.compile(
+    r"^(?P<indent> +)(?P<name>\w+): (?P<verb>get|post|put|patch|delete) (?P<path>\S+)$",
+    re.MULTILINE,
+)
+
+
+def unwrapped(spec: Json) -> set[str]:
+    """Return the ``verb path`` endpoints whose ``data`` the SDK returns."""
+    found: set[str] = set()
+    for path, item in cast("Json", spec.get("paths", {})).items():
+        for verb, op in cast("Json", item).items():
+            if isinstance(op, dict) and cast("Json", op).get("x-opencode-unwrap-data"):
+                found.add(f"{verb} {path}")
+    return found
+
+
+def unwrap_methods(config: str, spec: Json) -> str:
+    """Write each method of an unwrapped endpoint as ``{endpoint, unwrap_response: data}``."""
+    wanted = unwrapped(spec)
+
+    def rewrite(m: re.Match[str]) -> str:
+        endpoint = f"{m['verb']} {m['path']}"
+        if endpoint not in wanted or m["name"] == "endpoint":
+            return m.group(0)
+        pad = m["indent"] + "  "
+        return f"{m['indent']}{m['name']}:\n{pad}endpoint: {endpoint}\n{pad}unwrap_response: data"
+
+    return _METHOD_LINE.sub(rewrite, config)
+
+
 def apply(config: str, spec: Json) -> str:
-    """``config`` with its models and casings rewritten for ``spec``."""
+    """``config`` with its models, casings and unwrapped methods rewritten for ``spec``."""
     models = models_block(spec)
     text = _replace(config, (MODELS_BEGIN, MODELS_END), models, "\nresources:\n", after=True)
     casing = casings_block(spec)
-    return _replace(text, (CASINGS_BEGIN, CASINGS_END), casing, "\nreadme:\n", after=False)
+    text = _replace(text, (CASINGS_BEGIN, CASINGS_END), casing, "\nreadme:\n", after=False)
+    return unwrap_methods(text, spec)
 
 
 def main(argv: list[str] | None = None) -> int:
