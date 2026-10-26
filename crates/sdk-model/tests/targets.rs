@@ -247,3 +247,27 @@ fn prints_the_targets_and_restrictions() {
         "{printed}"
     );
 }
+
+#[test]
+fn a_config_without_a_python_target_has_no_package_but_its_own_target() {
+    // imagekit's csharp-branch config: `targets.csharp` only, so the converter writes no
+    // x-ferrule-package (the Python target's); every other target reads its own settings.
+    let mut d = doc(
+        &[("/things", "things", "list", json!({}), json!({ "type": "string" }))],
+        &json!({ "x-ferrule-targets": {
+            "csharp": { "package_name": "Acme", "edition": "csharp.2025-10-08", "production_repo": "acme/acme-csharp#main", "options": {} },
+        } }),
+        &json!({}),
+    );
+    d["paths"]["/things"]["get"]
+        .as_object_mut()
+        .expect("an object")
+        .remove("x-ferrule-package");
+    let c = client(&d);
+    assert_eq!((c.package.name.as_str(), c.package.repo.as_str()), ("", ""));
+    assert_eq!(
+        c.target("csharp").and_then(|t| t.package_name.as_deref()),
+        Some("Acme")
+    );
+    assert_eq!(c.for_target("csharp").resources.len(), 1);
+}
