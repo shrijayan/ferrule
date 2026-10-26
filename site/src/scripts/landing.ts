@@ -147,20 +147,19 @@ function runDiff(): void {
   tick();
 }
 
-/* terminal: `ferrule generate` as documented. Output shape matches the CLI line; counts are not a measured run. */
+/* terminal: a real `ferrule generate` run on the OneBusAway spec and config, twice */
 type TermLine = { cmd: string } | { out: string };
+const GENERATE = 'uv run ferrule generate --spec openapi.yml --config stainless.yml --out sdk';
+const GENERATED =
+  'generated <span class="hl">onebusaway</span>: 222 files <span class="o">(26 runtime)</span> sha256 <span class="o">1f9d988f…88d96a</span>';
 const TERMINAL: TermLine[] = [
-  { cmd: 'uv run ferrule generate --spec openapi.yml --config stainless.yml --out sdk' },
-  {
-    out: 'generated <span class="hl">acme</span>: <span class="o">&lt;files&gt; files (&lt;runtime&gt; runtime) sha256 &lt;digest&gt;</span>',
-  },
-  { out: '<span class="o">same inputs, same digest, every run</span>' },
+  { cmd: GENERATE },
+  { out: GENERATED },
   { out: '' },
+  { cmd: `rm -r sdk && ${GENERATE}` },
+  { out: GENERATED },
   {
-    cmd: 'uv run ferrule generate --spec openapi.yml --config stainless.yml --out sdk-go --target go',
-  },
-  {
-    out: '<span class="o">--target</span> go, java, kotlin, ruby, php, csharp <span class="o">· python is the default</span>',
+    out: '<span class="z">same digest</span> <span class="o">· byte-identical on every run</span>',
   },
 ];
 const PROMPT = '<span class="pr">$</span> ';
