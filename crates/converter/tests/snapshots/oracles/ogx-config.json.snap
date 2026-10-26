@@ -1,5 +1,5 @@
 {
-  "sha256": "af9c370432492e167add8bc7318b453a859e90910cd70eef63ac06a53cebb6c5",
+  "sha256": "986a6c1d19f30ee792656381c46c4bf00841d8e8ba4d3c3c050b057a4ac1b1cf",
   "root": {
     "x-ferrule-client": {
       "defaultEnvironment": "production",
@@ -57,34 +57,36 @@
     },
     "x-ferrule-page-schemes": [
       {
+        "className": "OpenaiCursorPage",
+        "kind": "cursor",
         "name": "openai_cursor_page",
-        "request": {
-          "after": {
-            "type": "string",
-            "x-stainless-pagination-property": {
-              "purpose": "next_cursor_param"
-            }
-          },
-          "limit": {
+        "request": [
+          {
+            "name": "limit",
             "type": "integer"
+          },
+          {
+            "name": "after",
+            "purpose": "next_cursor_param",
+            "type": "string"
           }
-        },
-        "response": {
-          "data": {
-            "items": {},
+        ],
+        "response": [
+          {
+            "name": "data",
+            "purpose": "items",
             "type": "array"
           },
-          "has_more": {
+          {
+            "name": "has_more",
             "type": "boolean"
           },
-          "last_id": {
-            "type": "string",
-            "x-stainless-pagination-property": {
-              "purpose": "next_cursor_field"
-            }
+          {
+            "name": "last_id",
+            "purpose": "next_cursor_field",
+            "type": "string"
           }
-        },
-        "type": "cursor"
+        ]
       }
     ],
     "x-ferrule-targets": {

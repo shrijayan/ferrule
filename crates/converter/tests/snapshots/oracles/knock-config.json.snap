@@ -1,5 +1,5 @@
 {
-  "sha256": "e0a43ad6025133b747cf722ce821d5966b4960849584621621fff21643e5f151",
+  "sha256": "9698cfb9bd88fe9afbfdc6b99e38422f3768ceacb46cdc1887b9bbc6a801127b",
   "root": {
     "x-ferrule-client": {
       "defaultEnvironment": "production",
@@ -56,146 +56,137 @@
     },
     "x-ferrule-page-schemes": [
       {
+        "className": "EntriesCursor",
+        "kind": "cursor",
         "name": "entries_cursor",
-        "request": {
-          "after": {
-            "type": "string",
-            "x-stainless-pagination-property": {
-              "purpose": "next_cursor_param"
-            }
+        "request": [
+          {
+            "name": "after",
+            "purpose": "next_cursor_param",
+            "type": "string"
           },
-          "before": {
-            "type": "string",
-            "x-stainless-pagination-property": {
-              "purpose": "previous_cursor_param"
-            }
+          {
+            "name": "before",
+            "purpose": "previous_cursor_param",
+            "type": "string"
           },
-          "page_size": {
+          {
+            "name": "page_size",
             "type": "integer"
           }
-        },
-        "response": {
-          "entries": {
-            "items": {
-              "additionalProperties": true,
-              "type": "object"
-            },
+        ],
+        "response": [
+          {
+            "name": "entries",
+            "purpose": "items",
             "type": "array"
           },
-          "page_info": {
-            "properties": {
-              "after": {
-                "type": "string",
-                "x-stainless-pagination-property": {
-                  "purpose": "next_cursor_field"
-                }
+          {
+            "fields": [
+              {
+                "name": "after",
+                "purpose": "next_cursor_field",
+                "type": "string"
               }
-            },
+            ],
+            "name": "page_info",
             "type": "object"
           }
-        },
-        "type": "cursor"
+        ]
       },
       {
+        "className": "ItemsCursor",
+        "kind": "cursor",
         "name": "items_cursor",
-        "request": {
-          "after": {
-            "type": "string",
-            "x-stainless-pagination-property": {
-              "purpose": "next_cursor_param"
-            }
+        "request": [
+          {
+            "name": "after",
+            "purpose": "next_cursor_param",
+            "type": "string"
           },
-          "before": {
-            "type": "string",
-            "x-stainless-pagination-property": {
-              "purpose": "previous_cursor_param"
-            }
+          {
+            "name": "before",
+            "purpose": "previous_cursor_param",
+            "type": "string"
           },
-          "page_size": {
+          {
+            "name": "page_size",
             "type": "integer"
           }
-        },
-        "response": {
-          "items": {
-            "items": {
-              "additionalProperties": true,
-              "type": "object"
-            },
+        ],
+        "response": [
+          {
+            "name": "items",
             "type": "array"
           },
-          "page_info": {
-            "properties": {
-              "after": {
-                "type": "string",
-                "x-stainless-pagination-property": {
-                  "purpose": "next_cursor_field"
-                }
+          {
+            "fields": [
+              {
+                "name": "after",
+                "purpose": "next_cursor_field",
+                "type": "string"
               }
-            },
+            ],
+            "name": "page_info",
             "type": "object"
           }
-        },
-        "type": "cursor"
+        ]
       },
       {
+        "className": "SlackChannelsCursor",
+        "kind": "cursor",
         "name": "slack_channels_cursor",
-        "request": {
-          "query_options.cursor": {
-            "type": "string",
-            "x-stainless-pagination-property": {
-              "purpose": "next_cursor_param"
-            }
+        "request": [
+          {
+            "name": "query_options.cursor",
+            "purpose": "next_cursor_param",
+            "type": "string"
           },
-          "query_options.limit": {
+          {
+            "name": "query_options.limit",
             "type": "integer"
           }
-        },
-        "response": {
-          "next_cursor": {
-            "type": "string",
-            "x-stainless-pagination-property": {
-              "purpose": "next_cursor_field"
-            }
+        ],
+        "response": [
+          {
+            "name": "next_cursor",
+            "purpose": "next_cursor_field",
+            "type": "string"
           },
-          "slack_channels": {
-            "items": {
-              "additionalProperties": true,
-              "type": "object"
-            },
+          {
+            "name": "slack_channels",
+            "purpose": "items",
             "type": "array"
           }
-        },
-        "type": "cursor"
+        ]
       },
       {
+        "className": "MsTeamsPagination",
+        "kind": "cursor",
         "name": "ms_teams_pagination",
-        "request": {
-          "query_options.$skiptoken": {
-            "type": "string",
-            "x-stainless-pagination-property": {
-              "purpose": "next_cursor_param"
-            }
+        "request": [
+          {
+            "name": "query_options.$skiptoken",
+            "purpose": "next_cursor_param",
+            "type": "string"
           },
-          "query_options.$top": {
+          {
+            "name": "query_options.$top",
             "type": "integer"
           }
-        },
-        "response": {
-          "ms_teams_teams": {
-            "items": {
-              "additionalProperties": true,
-              "type": "object"
-            },
-            "type": "array"
+        ],
+        "response": [
+          {
+            "name": "skip_token",
+            "purpose": "next_cursor_field",
+            "type": "string"
           },
-          "skip_token": {
-            "type": "string",
-            "x-stainless-pagination-property": {
-              "purpose": "next_cursor_field"
-            }
+          {
+            "name": "ms_teams_teams",
+            "purpose": "items",
+            "type": "array"
           }
-        },
-        "type": "cursor"
+        ]
       }
     ],
     "x-ferrule-targets": {
