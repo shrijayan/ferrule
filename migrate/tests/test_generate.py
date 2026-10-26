@@ -411,3 +411,47 @@ def test_symlink_helpers(tmp_path: Path) -> None:
     assert ensure_inside(root, P("a/b.py")) == root / "a/b.py"
     with pytest.raises(FerruleError, match="FER4007"):
         ensure_inside(root, P("link.py"))
+
+
+def foreign_sdk(root: Path) -> Path:
+    """An SDK whose runtime another generator wrote: no ``_utils/`` (opencode-python-sdk)."""
+    sdk = root / "foreign"
+    write(sdk / "src/acme/__init__.py", "old\n")
+    write(sdk / "src/acme/_base_client.py", "class RequestOptions: ...\n")
+    write(sdk / "src/acme/_types.py", "NOT_GIVEN = object()\n")
+    write(sdk / "src/acme/_rpc.py", "custom rpc\n")
+    write(sdk / "src/acme/types/_generated.py", "old types\n")
+    return sdk
+
+
+def test_generate_renders_ferrule_runtime_for_a_foreign_runtime(
+    inputs: tuple[GenerateRequest, Path],
+) -> None:
+    # The runtime of a non-Stainless SDK can't run Stainless-style resources: Ferrule's own
+    # runtime is rendered, the generator's style is today's, and the SDK's other modules stay.
+    request, tmp = inputs
+    request = replace(request, runtime_from=foreign_sdk(tmp))
+    calls: list[tuple[str, ...]] = []
+    rendered: list[str] = []
+
+    def render(package: str, package_dir: Path, /) -> None:
+        rendered.append(package)
+        write(package_dir / "_base_client.py", "ferrule runtime\n")
+        write(package_dir / "_utils/__init__.py", "ferrule utils\n")
+
+    result = generate(request, runner=fake_runner(calls), renderer=render)
+    assert "--runtime-from" not in calls[0]
+    assert rendered == ["acme"]
+    out = request.out / "src/acme"
+    assert (out / "_base_client.py").read_text() == "ferrule runtime\n"
+    assert (out / "_types.py").read_text() == "# generated wins\n"
+    assert (out / "_rpc.py").read_text() == "custom rpc\n"
+    assert (out / "types/_generated.py").read_text() == "old types\n"
+    assert result.runtime_files == 2
+
+
+def test_generate_foreign_runtime_needs_the_renderer(inputs: tuple[GenerateRequest, Path]) -> None:
+    request, tmp = inputs
+    request = replace(request, runtime_from=foreign_sdk(tmp))
+    with pytest.raises(FerruleError, match="FER4004"):
+        generate(request, runner=fake_runner([]))
