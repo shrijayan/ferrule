@@ -11,7 +11,7 @@ Stainless never generated).
 | --- | --- |
 | Repository | <https://github.com/shrijayan/opencode-python-sdk> |
 | Base | `main` at `7bc98edc5566f7a791bbab5cbad7eb4afd786e84` (release `v0.2.3`) |
-| Adoption branch | `ferrule/adopt` at `16df5c9ec7ded52274fedbd05cd3647a17c2a400`, with `generated` |
+| Adoption branch | `ferrule/adopt` at `a1432fac142a4aba5a297340d81828a6a33d2aaa`, with `generated` |
 | API covered | OpenCode 2.1.2: 142 operations in 31 groups |
 | Lineage | not Stainless: built by the SDK's own `codegen/` from `spec/contract.json` until now |
 
