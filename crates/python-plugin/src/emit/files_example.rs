@@ -15,7 +15,7 @@ use crate::naming::{singular, snake_case, split_words};
 
 /// A JSON value as a one-line Python literal; `trailing` adds the trailing comma Stainless writes
 /// in a README dict (lists have none).
-fn py_literal(value: &Value, trailing: bool) -> String {
+pub(crate) fn py_literal(value: &Value, trailing: bool) -> String {
     match value {
         Value::Null => "None".to_owned(),
         Value::Bool(true) => "True".to_owned(),
