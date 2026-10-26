@@ -135,3 +135,18 @@ fn non_string_client_settings_are_sent_as_strings() {
     // A string option is sent as it is.
     assert!(options.contains("r.Apply(WithHeader(\"X-Region\", *r.Region))"), "{options}");
 }
+
+#[test]
+fn a_bearer_scheme_keyword_replaces_bearer() {
+    let schemes = "    BearerAuth:
+      type: http
+      scheme: bearer
+      x-stainless-auth:
+        scheme_keyword: Token";
+    let out = go(&spec(OBJECT, schemes), &config(API_KEY));
+    let options = &out.runtime.client_options;
+    assert!(
+        options.contains("WithHeader(\"authorization\", fmt.Sprintf(\"Token %s\", *r.APIKey))"),
+        "{options}"
+    );
+}
