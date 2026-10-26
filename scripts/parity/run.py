@@ -25,15 +25,19 @@ from __future__ import annotations
 
 import argparse
 import contextlib
+import fcntl
 import json
 import os
+import select
 import shutil
 import signal
 import socket
 import subprocess
 import sys
+import tempfile
 import time
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from ferrule.errors import FerruleError
 from ferrule.generate import GenerateRequest, generate, resolve_tools, symlinks, tree_digest
@@ -50,12 +54,18 @@ from scripts.parity.harness import (
     resolve_pair,
 )
 
+if TYPE_CHECKING:
+    from collections.abc import Generator
+
 ROOT = Path(__file__).resolve().parents[2]
 WORK = ROOT / ".cache" / "parity"
 REPORTS = ROOT / "reports" / "parity"
 PYTHON = "3.12"
 TEST_TIMEOUT_S = 1800
 MOCK_START_TIMEOUT_S = 180
+MOCK_STOP_TIMEOUT_S = 30
+# Long enough for another run to start its mock, run its tests and stop it.
+MOCK_LOCK_TIMEOUT_S = MOCK_START_TIMEOUT_S + TEST_TIMEOUT_S + MOCK_STOP_TIMEOUT_S
 
 
 def log(msg: str) -> None:
@@ -92,11 +102,40 @@ def generate_once(spec: Path, config: Path, out: Path, sdk_dir: Path) -> dict[st
     }
 
 
+def launcher_exited(proc: subprocess.Popen[bytes]) -> bool:
+    """Whether the mock's launcher has exited, without reaping it.
+
+    An unreaped launcher keeps its pid, and so its process group's id, from being reused, which
+    lets :func:`stop_mock` signal the group even after the launcher is gone.
+    """
+    if proc.returncode is not None:
+        return True
+    if sys.platform != "darwin":
+        flags = os.WEXITED | os.WNOHANG | os.WNOWAIT
+        return os.waitid(os.P_PID, proc.pid, flags) is not None
+    # macOS has no os.waitid; kqueue reports an exited (or already exited) process without
+    # reaping it.
+    kq = select.kqueue()
+    try:
+        event = select.kevent(
+            proc.pid,
+            filter=select.KQ_FILTER_PROC,
+            flags=select.KQ_EV_ADD | select.KQ_EV_ONESHOT,
+            fflags=select.KQ_NOTE_EXIT,
+        )
+        try:
+            return bool(kq.control([event], 1, 0))
+        except ProcessLookupError:
+            return True
+    finally:
+        kq.close()
+
+
 def wait_for_port(port: int, proc: subprocess.Popen[bytes], timeout: float) -> bool:
-    """Poll until something listens on ``port`` or ``proc`` exits."""
+    """Poll until something listens on ``port`` or ``proc`` exits (``proc`` is not reaped)."""
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
-        if proc.poll() is not None:
+        if launcher_exited(proc):
             return False
         with socket.socket() as s:
             s.settimeout(0.5)
@@ -113,12 +152,59 @@ def port_in_use(port: int) -> bool:
         return s.connect_ex((MOCK_HOST, port)) == 0
 
 
-def stop_mock(proc: subprocess.Popen[bytes]) -> None:
-    """Stop the mock's process group; a mock that already exited needs nothing."""
-    if proc.poll() is None:
+def stop_mock(proc: subprocess.Popen[bytes], port: int = MOCK_PORT) -> None:
+    """Stop the mock's whole process group, launcher and any descendant that outlived it.
+
+    The launcher is reaped only at the end, so until then the group's id can't belong to anyone
+    else. A launcher reaped before this call (nothing here does that) is left alone: its group's
+    id may have been reused.
+    """
+    if proc.returncode is not None:
+        return
+
+    def signal_group(sig: signal.Signals) -> None:
         with contextlib.suppress(ProcessLookupError, PermissionError):
-            os.killpg(proc.pid, signal.SIGTERM)
-    proc.wait(timeout=30)
+            os.killpg(proc.pid, sig)
+
+    signal_group(signal.SIGTERM)
+    deadline = time.monotonic() + MOCK_STOP_TIMEOUT_S
+    while time.monotonic() < deadline and not (launcher_exited(proc) and not port_in_use(port)):
+        time.sleep(0.1)
+    signal_group(signal.SIGKILL)
+    proc.wait(timeout=MOCK_STOP_TIMEOUT_S)
+    deadline = time.monotonic() + MOCK_STOP_TIMEOUT_S
+    while time.monotonic() < deadline and port_in_use(port):
+        time.sleep(0.1)
+
+
+@contextlib.contextmanager
+def own_port(port: int, timeout: float) -> Generator[bool, None, None]:
+    """Hold this machine's lock on ``port`` (yields False if another run kept it ``timeout`` s).
+
+    Parity and adopt runs all start their mock on the same fixed port; checking that the port is
+    free is not enough, since two runs can both see it free before either mock starts. The lock
+    is held from that check until the mock is stopped.
+    """
+    path = Path(tempfile.gettempdir()) / f"ferrule-mock-{port}.lock"
+    with path.open("a") as lock:
+        deadline = time.monotonic() + timeout
+        waited = False
+        while True:
+            try:
+                fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                break
+            except BlockingIOError:
+                if time.monotonic() >= deadline:
+                    yield False
+                    return
+                if not waited:
+                    log(f"waiting for another run to release {MOCK_HOST}:{port}")
+                    waited = True
+                time.sleep(min(1.0, timeout))
+        try:
+            yield True
+        finally:
+            fcntl.flock(lock, fcntl.LOCK_UN)
 
 
 def refusal(sdk_dir: Path) -> dict[str, object] | None:
@@ -138,7 +224,21 @@ def refusal(sdk_dir: Path) -> dict[str, object] | None:
 def run_tests(
     out: Path, sdk_dir: Path, spec: Path, work: Path, package_dist: str
 ) -> dict[str, object]:
-    """Run step 4 (venv, mock, pytest); return counts or the failing step."""
+    """Run step 4 (venv, mock, pytest) holding the mock port; return counts or the failing step."""
+    with own_port(MOCK_PORT, MOCK_LOCK_TIMEOUT_S) as owned:
+        if not owned:
+            return {
+                "status": "mock-port-busy",
+                "error": f"FER4021 another parity or adopt run kept {MOCK_HOST}:{MOCK_PORT} "
+                f"for {MOCK_LOCK_TIMEOUT_S} s; rerun when it has finished.",
+            }
+        return run_tests_owned(out, sdk_dir, spec, work, package_dist)
+
+
+def run_tests_owned(
+    out: Path, sdk_dir: Path, spec: Path, work: Path, package_dist: str
+) -> dict[str, object]:
+    """:func:`run_tests` once this run owns the mock port."""
     refused = refusal(sdk_dir)
     if refused is not None:
         return refused
