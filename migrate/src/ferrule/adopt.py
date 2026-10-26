@@ -7,7 +7,9 @@ ADR 0011), record every hand edit a generated file still carries (made by a main
 or after that commit: Stainless carries custom code into each generation) as a
 ``.ferrule/patches/NNNN-<slug>.patch``, re-apply them three-way on the regenerated tree, write
 ``ferrule.lock`` and ``.github/workflows/sdk.yml``, and commit all of it on a new local branch
-``ferrule/adopt``. Nothing is pushed and no PR is opened.
+``ferrule/adopt``. The pristine generation goes on a local ``generated`` branch, named in the
+adopt commit's ``Ferrule-Generated-From`` trailer: ``ferrule regenerate`` merges from it. Nothing
+is pushed and no PR is opened.
 
 Every git call runs with hooks, fsmonitor, submodule recursion, LFS smudging and remote
 protocols disabled, inside the given repository only; the work happens in a temporary
@@ -43,6 +45,7 @@ from ferrule.generate import (
 from ferrule.hand_edit import revert
 from ferrule.lock import LOCK_FILE, Lock, sha256_bytes, sha256_file
 from ferrule.merge import KeepRules, merge_trees
+from ferrule.merge.gitio import GENERATED_BRANCH, TRAILER, commit_tree
 from ferrule.rescue import Fetcher, https_fetch, rescue
 
 if TYPE_CHECKING:
@@ -295,13 +298,14 @@ def _check_repo(git: Git) -> None:
             "REPO",
             "replace the symlinks with regular files",
         )
-    if git.run("rev-parse", "--verify", "--quiet", f"refs/heads/{BRANCH}", check=False).stdout:
-        raise fail(
-            NOT_ADOPTABLE,
-            f"branch {BRANCH} already exists",
-            "REPO",
-            f"delete it (git branch -D {BRANCH}) to adopt again",
-        )
+    for branch in (BRANCH, GENERATED_BRANCH):
+        if git.run("rev-parse", "--verify", "--quiet", f"refs/heads/{branch}", check=False).stdout:
+            raise fail(
+                NOT_ADOPTABLE,
+                f"branch {branch} already exists",
+                "REPO",
+                f"delete it (git branch -D {branch}) to adopt again",
+            )
 
 
 def _recording(runner: Runner, tools: Tools, seen: list[PurePosixPath]) -> Runner:
@@ -558,6 +562,10 @@ def _commit(  # noqa: PLR0913 - one call site
     patches: Sequence[HandEdit],
 ) -> None:
     name, email = _identity(git)
+    # The pristine generation, base of the next `ferrule regenerate` (its three-way merge).
+    pristine = {rel: (out / rel).read_bytes() for rel in lock.files}
+    pristine[LOCK_FILE] = lock.render().encode()
+    generation = commit_tree(git.repo, pristine, None, "Ferrule generation (adopt)")
     wt = tmp / "worktree"
     git.run("worktree", "add", "--quiet", "-b", BRANCH, str(wt), "HEAD")
     committed = False
@@ -577,8 +585,10 @@ def _commit(  # noqa: PLR0913 - one call site
         git.run(
             "-c", f"user.name={name}", "-c", f"user.email={email}",
             "commit", "--quiet", "--no-verify", "-s", "-m", COMMIT_MESSAGE,
+            "-m", f"{TRAILER}: {generation}",
             cwd=wt,
         )  # fmt: skip
+        git.run("update-ref", f"refs/heads/{GENERATED_BRANCH}", generation)
         committed = True
     finally:
         git.run("worktree", "remove", "--force", str(wt), check=False)
