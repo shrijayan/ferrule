@@ -18,12 +18,15 @@ jobs:
   publish:
     name: publish
     runs-on: ubuntu-latest
-    permissions:
 %%if oidc%%
+    permissions:
       contents: read
       id-token: write
 %%else%%
+%%if mcp%%
+    permissions:
       contents: write
+%%endif%%
 %%endif%%
 
     steps:
@@ -59,4 +62,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 %%else%%
           bash ./bin/publish-npm
+%%if !oidc%%
+        env:
+          NPM_TOKEN: ${{ secrets.%%ENV%%_NPM_TOKEN || secrets.NPM_TOKEN }}
+%%endif%%
 %%endif%%
