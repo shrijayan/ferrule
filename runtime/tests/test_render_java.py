@@ -114,3 +114,10 @@ def test_optional_files() -> None:
 def test_rejects_bad_options(kwargs: dict[str, Any], match: str) -> None:
     with pytest.raises(RenderError, match=match):
         render_java_files(_with(**kwargs))
+
+
+def test_rejects_a_client_name_whose_exception_is_a_fixed_one() -> None:
+    # __FerruleClient__Exception.kt would overwrite BadRequestException.kt, whose builder()
+    # ErrorHandler.kt calls.
+    with pytest.raises(RenderError, match=r"both render to .*/errors/BadRequestException\.kt"):
+        render_java_files(_with(client_name="BadRequest"))

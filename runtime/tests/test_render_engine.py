@@ -100,3 +100,16 @@ def test_render_tree_replaces_path_tokens_and_measures_rendered_lines(tmp_path: 
 
     assert render("Acme") == {"org/acme/Acme.kt": "val Acme\n"}
     assert render("AcmeClient") == {"org/acme/AcmeClient.kt": "val\n    AcmeClient\n"}
+
+
+def test_render_tree_rejects_two_templates_rendering_to_one_path(tmp_path: Path) -> None:
+    (tmp_path / "BadRequestException.kt").write_text("class BadRequestException\n")
+    (tmp_path / "__FerruleClient__Exception.kt").write_text("class __FerruleClient__Exception\n")
+    with pytest.raises(
+        RenderError,
+        match=r"__FerruleClient__Exception\.kt and BadRequestException\.kt both render to "
+        r"BadRequestException\.kt",
+    ):
+        render_tree(
+            tmp_path, replacements={"__FerruleClient__": "BadRequest"}, flags={}, comment="//"
+        )
