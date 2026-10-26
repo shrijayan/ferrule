@@ -184,6 +184,29 @@ mod resources_and_methods {
         assert!(unbound.get("responses").is_some());
     }
 
+    /// Cloudflare's spec also carries `x-forge-aliases` with Fern grouping inside: on an
+    /// operation the config leaves out, Forge made a method of each alias.
+    #[test]
+    #[should_panic(expected = "keeps the spec's x-forge-aliases")]
+    fn drops_spec_forge_aliases_from_operations_not_in_the_config() {
+        let mut spec = make_spec_json();
+        let alias = json!([{"x-fern-sdk-group-name": "a.b", "x-fern-sdk-method-name": "c"}]);
+        spec["paths"]["/unconfigured"]["get"]["x-forge-aliases"] = alias.clone();
+        spec["paths"]["/users"]["post"]["x-forge-aliases"] = alias;
+        let r = convert(&v(&spec), &config());
+        let unbound = op(&r.spec, "/unconfigured", "get");
+        assert!(
+            unbound.get("x-forge-aliases").is_none(),
+            "unconfigured operation keeps the spec's x-forge-aliases"
+        );
+        let bound = op(&r.spec, "/users", "post");
+        assert!(
+            bound.get("x-forge-aliases").is_none(),
+            "configured operation keeps the spec's x-forge-aliases"
+        );
+        assert!(matches_object(bound, &v(&json!({"x-ferrule-method-name": "create"}))));
+    }
+
     #[test]
     fn reports_fer1001_with_a_pointer_for_missing_operations() {
         let r = convert(
