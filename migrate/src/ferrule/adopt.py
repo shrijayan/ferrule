@@ -308,7 +308,7 @@ def _check_repo(git: Git) -> None:
             )
 
 
-def _recording(runner: Runner, tools: Tools, seen: list[PurePosixPath]) -> Runner:
+def recording(runner: Runner, tools: Tools, seen: list[PurePosixPath]) -> Runner:
     """Wrap ``runner`` to note the files ``ferrule-gen generate`` wrote (the generator's paths)."""
 
     def run(argv: Sequence[str]) -> subprocess.CompletedProcess[str]:
@@ -502,7 +502,7 @@ def adopt(  # noqa: PLR0913 - every collaborator is injectable for tests
         out = tmp / "out"
         result = generate(
             GenerateRequest(spec_file, config_file, out, request.tools, runtime_from=repo),
-            runner=_recording(runner, request.tools, seen),
+            runner=recording(runner, request.tools, seen),
             renderer=renderer,
         )
         if result.rendered:

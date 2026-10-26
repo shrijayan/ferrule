@@ -107,7 +107,11 @@ def test_regenerate_conflict_and_cli(
     repo, tools = adopted
     write(repo / "src/acme/resources/foo.py", "mine\n")
     sh(repo, "commit", "-qam", "Edit foo")
-    monkeypatch.setattr("ferrule.cli.resolve_tools", lambda *_a, **_k: tools)
+
+    def resolve(*_a: object, **_k: object) -> Tools:
+        return tools
+
+    monkeypatch.setattr("ferrule.cli.resolve_tools", resolve)
     monkeypatch.setattr("ferrule.cli.load_renderer", lambda: render)
     monkeypatch.setattr("ferrule.regenerate.run_subprocess", runner("theirs\n"))
     for key, value in ENV.items():
