@@ -127,6 +127,52 @@ and plugin work reimplemented in the Rust crates; fake-server and agent-context 
 `mise run check`: green (after deleting stale untracked Astro output in `docs/site/`; the site
 lives in `site/`).
 
+## Tier 1 corpus: end-to-end results (2026-10-26)
+
+All 14 Tier 1 specs ran through `mise run corpus -- --tier 1` (`ferrule-gen 0.0.0`, Forge
+`91f52a40`). The results are published on the site: `docs/real-world` (board, from
+`site/src/data/corpus.json`, built by `mise run board:corpus -- --date 2026-10-26`) and
+`docs/corpus-findings` (each problem with its evidence). cloudflare was rerun alone after the
+second converter fix; the change does not touch the other specs, whose specs carry no Fern or
+Forge extensions.
+
+| Spec | Format | Ops | Generated | Skipped | Stopped at | ruff / pyright / mypy errors | Tests passed / total | Deterministic | Official SDK |
+|---|---|---|---|---|---|---|---|---|---|
+| stripe | openapi 3.0.0 | 612 | 314 | 298 | pyright | 0 / 1,039 / 210 | — | yes | none |
+| github | openapi 3.0.3 | 1,242 | 1,226 | 16 | ruff | 20 / 1,487 / 6 | 8,069 / 22,428 | yes | none |
+| openai | openapi 3.1.0 | 361 | 346 | 15 | ruff | 8 / 136 / 2 | 442 / 7,710 | yes | 260/275 endpoints, 537 breaking |
+| kubernetes | swagger 2.0 | 1,158 | 1,146 | 12 | ruff | 3,500 / — / 24 | 575 / 1,262 | yes | none |
+| twilio | openapi 3.0.1 | 197 | 197 | 0 | ruff | 10 / 39 / 2 | 513 / 5,015 | yes | none |
+| cloudflare | openapi 3.0.3 | 3,767 | 2,368 | 905 | ruff | 94 / 1,714 / 2 | — | yes | 1456/2423 endpoints, 1923 breaking |
+| azure-storage | swagger 2.0 | 139 | — | — | generate | — | — | — | none |
+| slack | swagger 2.0 | 174 | 174 | 0 | pyright | 0 / 11 / 11 | 2,095 / 3,767 | yes | none |
+| plaid | openapi 3.0.0 | 350 | 294 | 56 | pyright | 0 / 33 / 6 | 6,144 / 6,328 | yes | none |
+| square | openapi 3.0.0 | 332 | 332 | 0 | pyright | 0 / 26 / 11 | 7,074 / 7,250 | yes | none |
+| digitalocean | openapi 3.0.0 | 858 | 858 | 0 | pyright | 0 / 5 / 5 | — | yes | 188/193 endpoints, 184 breaking |
+| discord | openapi 3.1.0 | 246 | 242 | 4 | pyright | 0 / 357 / 159 | 5,677 / 5,759 | yes | none |
+| docker | swagger 2.0 | 108 | 100 | 8 | ruff | 2 / 99 / 2 | 1,232 / 2,666 | yes | none |
+| jira | openapi 3.0.1 | 630 | 606 | 24 | ruff | 104 / 1,137 / 4 | — | yes | none |
+
+- Every generation is deterministic (same tree digest twice) and every generated SDK builds a
+  wheel. azure-storage stops in generate on `$ref`s into other files (G29).
+- The compile gate passes for none of them. The largest cause by far is a parameter emitted
+  twice: `allOf` duplicates, path or query parameters clashing with body fields, and body fields
+  named `timeout`. One `SyntaxError` sinks every test that imports the module.
+- digitalocean's 858 methods are empty: every operation is a `$ref` to an unfetched sibling file,
+  and Forge reads that as an empty operation without a diagnostic (new gap G32, issue drafted in
+  HUMAN-ACTIONS.md item 16).
+- Official Stainless SDKs (verified statically, never run): openai 260 of 275 endpoints,
+  cloudflare 1,456 of 2,423, digitalocean gradient 188 of 193 (paths only). The breaking counts
+  are large by construction: the official `stainless.yml` files are private.
+- Fixed test-first on the way: the runtime named after the client, not the package (migrate);
+  Fern grouping and Forge aliases that a spec carries itself, removed from operations the config
+  leaves out (converter, two fixes); the Jira re-pin.
+- Harness: per stage pass/fail with the most frequent causes, refused operations fixed or skipped
+  with their FER code, `--stage compare`, external `$ref` counts.
+
+Next: the open items in `docs/corpus-findings`, in order (duplicate parameters first, then
+form-encoded bodies), and a bundling step for multi-file specs (G29).
+
 ## Rust move (ADR 0014): done (2026-10-25)
 
 The converter and the plugin are Rust: `crates/converter`, `crates/python-plugin` (a native
