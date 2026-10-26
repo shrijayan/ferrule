@@ -169,3 +169,60 @@ def test_missing_new_package_is_empty(trees: tuple[Path, Path], tmp_path: Path) 
         ("OBJECT_REMOVED", "acme.helper"),
     }
     assert report.additive == []
+
+
+# An SDK another generator wrote (opencode-python-sdk v0.2.3) against Ferrule's output: the same
+# API spelled the way each runtime spells it.
+FOREIGN_CLIENT = """\
+from functools import cached_property
+
+from acme._types import NOT_GIVEN, NotGiven
+
+
+class Client:
+    @cached_property
+    def agent(self) -> int:
+        return 1
+
+    def with_options(self, timeout: float | NotGiven = NOT_GIVEN) -> "Client":
+        return self
+
+    copy = with_options
+
+    def list(self, limit: int | NotGiven = NOT_GIVEN, name: str = "a") -> None:
+        pass
+"""
+FERRULE_CLIENT = """\
+from acme._compat import cached_property
+from acme._types import Omit, NotGiven, omit, not_given
+
+
+class Client:
+    @cached_property
+    def agent(self) -> int:
+        return 1
+
+    def copy(self, timeout: float | NotGiven = not_given) -> "Client":
+        return self
+
+    with_options = copy
+
+    def list(self, limit: int | Omit = omit, name: str = "b") -> None:
+        pass
+"""
+
+
+def test_runtime_spellings_are_not_breaking(tmp_path: Path) -> None:
+    old = make(tmp_path / "old", OLD, FOREIGN_CLIENT)
+    new = make(tmp_path / "new", OLD, FERRULE_CLIENT)
+    report = verify(old, new)
+    # Only the real change is left: a default that is not an omitted-argument sentinel.
+    assert [c.path for c in report.breaking] == ["acme._client.Client.list"]
+    assert sorted(c.path for c in report.normalized) == [
+        "acme._client.Client.agent",
+        "acme._client.Client.copy",
+        "acme._client.Client.list",
+        "acme._client.Client.with_options",
+    ]
+    assert report.to_json()["normalized_count"] == 4
+    assert "4 runtime spellings" in report.summary()
