@@ -6,20 +6,21 @@
 use super::agent::emit_agent_files;
 use super::client::emit_client_file;
 use super::common::{
-    HEADER, has_methods, is_package, method_params, method_ref, py_string, resource_module, resource_tree,
+    HEADER, has_methods, is_package, method_args, method_params, method_ref, py_string, resource_module, resource_tree,
     return_model, stainless_method_order,
 };
 use super::cycles::Cycles;
 use super::files::emit_project_files;
 use super::files_input::{ProjectMeta, to_project_files_input};
-use super::models::all_list;
-use super::models::{AliasFile, ModelFile, emit_alias_model_file, emit_model_file};
+use super::models::{
+    AliasFile, ModelFile, all_list, emit_alias_model_file, emit_model_file, emit_twin_alias_file, emit_twin_model_file,
+};
 use super::package_init::{emit_package_init_with, emit_version};
-use super::params::emit_params_file;
+use super::params::{emit_params_file, twin};
 use super::resources::{Mode, class_name, emit_resource_file, wrapper_class};
 use crate::diagnostics::FerruleError;
 use crate::js;
-use crate::model::{SdkClient, SdkMethod, SdkObject, SdkResource, SdkType};
+use crate::model::{SdkClient, SdkMethod, SdkModelDecl, SdkObject, SdkRef, SdkResource, SdkType};
 use crate::naming::{snake_case, split_words};
 use crate::printer::PythonPrinter;
 
@@ -208,6 +209,27 @@ impl Out {
         }
     }
 
+    /// The request twin of every named model a request takes, directly or through another
+    /// twin, exported beside the models (`shared_params/` for shared ones).
+    fn param_twins(&mut self, client: &SdkClient) {
+        for decl in input_models(client) {
+            let t = twin(&decl.r#ref);
+            let content = if let Some(alias) = &decl.alias {
+                emit_twin_alias_file(&decl.r#ref, alias, Some(&self.cycles))
+            } else {
+                // The type's own description wins, as in the model file.
+                let ty = SdkObject {
+                    description: decl.ty.description.clone().or_else(|| Some(decl.description.clone())),
+                    ..decl.ty.clone()
+                };
+                emit_twin_model_file(&decl.r#ref, &ty, Some(&self.cycles))
+            };
+            self.files
+                .set_value(&module_path(&self.pkg, &format!("types.{}", t.module)), content);
+            self.export(&t.module, &t.name);
+        }
+    }
+
     /// `types/__init__.py` and `types/<dir>/__init__.py`, re-exporting what each declares; a
     /// directory that only holds others (`types/extractions/` above `qa/`) gets an empty one.
     fn types_inits(&mut self) {
@@ -324,6 +346,53 @@ fn sorted(files: OrderedMap<String>) -> FileTree {
     out
 }
 
+/// The named models requests take, directly or through other models, in declaration order.
+fn input_models(client: &SdkClient) -> Vec<&SdkModelDecl> {
+    fn refs<'t>(ty: &'t SdkType, out: &mut Vec<&'t SdkRef>) {
+        match ty {
+            SdkType::Ref(r) => out.push(r),
+            SdkType::Array(t) | SdkType::Map(t) => refs(t, out),
+            SdkType::Union { variants, .. } => variants.iter().for_each(|v| refs(v, out)),
+            SdkType::Object(o) => {
+                o.fields.iter().for_each(|f| refs(&f.ty, out));
+                if let Some(extra) = &o.extra {
+                    refs(extra, out);
+                }
+            }
+            _ => {}
+        }
+    }
+    let mut pending: Vec<&SdkRef> = Vec::new();
+    for resource in all_resources(&client.resources) {
+        for method in resource.methods.iter().chain(&client.client_methods) {
+            for q in method_args(method).into_iter().chain(&method.path_params) {
+                refs(&q.ty, &mut pending);
+            }
+            for v in &method.body_variants {
+                v.params.iter().for_each(|q| refs(&q.ty, &mut pending));
+            }
+        }
+    }
+    let mut seen: Vec<&SdkRef> = Vec::new();
+    while let Some(r) = pending.pop() {
+        if seen.contains(&r) {
+            continue;
+        }
+        seen.push(r);
+        if let Some(decl) = client.models.iter().find(|d| d.r#ref == *r) {
+            if let Some(alias) = &decl.alias {
+                refs(alias, &mut pending);
+            } else {
+                decl.ty.fields.iter().for_each(|f| refs(&f.ty, &mut pending));
+                if let Some(extra) = &decl.ty.extra {
+                    refs(extra, &mut pending);
+                }
+            }
+        }
+    }
+    client.models.iter().filter(|d| seen.contains(&&d.r#ref)).collect()
+}
+
 /// `_wrappers.py`, one generic wrapper per unwrapped envelope field (ogx-client-python's
 /// `DataWrapper`), when a method unwraps one.
 fn emit_wrappers_file(client: &SdkClient) -> Option<String> {
@@ -418,6 +487,7 @@ pub fn emit_code_files(client: &SdkClient, meta: Option<&ProjectMeta>) -> Result
             .set_value(&module_path(&pkg, "resources.__init__"), resources_init(&top));
     }
 
+    out.param_twins(client);
     out.types_inits();
     if let Some(wrappers) = emit_wrappers_file(client) {
         out.files.set_value(&module_path(&pkg, "_wrappers"), wrappers);

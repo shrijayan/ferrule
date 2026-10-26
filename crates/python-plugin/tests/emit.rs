@@ -270,7 +270,8 @@ fn marks_required_params_and_imports_named_models() {
     ];
     let out = emit_params_file(Some(&r), &m);
     assert!(out.contains("q: Required[str]"));
-    assert!(out.contains("from .shared.u import U"));
+    // A request takes the model's `TypedDict` twin (`tests/param_twins`).
+    assert!(out.contains("from .shared_params.u import U"));
 }
 
 #[test]
