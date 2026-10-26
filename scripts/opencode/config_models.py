@@ -83,11 +83,49 @@ def python_name(key: str) -> str:
     return name + suffix
 
 
+def _ref_counts(node: object, counts: dict[str, int]) -> dict[str, int]:
+    """Count the ``$ref`` to each component schema under ``node``."""
+    if isinstance(node, dict):
+        ref = cast("Json", node).get("$ref")
+        if isinstance(ref, str) and ref.startswith(SCHEMAS_PREFIX):
+            name = ref.removeprefix(SCHEMAS_PREFIX)
+            counts[name] = counts.get(name, 0) + 1
+        for value in cast("Json", node).values():
+            _ref_counts(value, counts)
+    elif isinstance(node, list):
+        for value in cast("list[object]", node):
+            _ref_counts(value, counts)
+    return counts
+
+
+def envelopes(spec: Json) -> set[str]:
+    """Return the schemas used only as the response of an endpoint whose ``data`` is returned.
+
+    Those are not part of the API once unwrapped, and their names are the ones the unwrapped
+    types get (``GenerateTextResponse``), so they are no models.
+    """
+    as_envelope: dict[str, int] = {}
+    for item in cast("Json", spec.get("paths", {})).values():
+        for op in cast("Json", item).values():
+            if isinstance(op, dict) and cast("Json", op).get("x-opencode-unwrap-data"):
+                content = cast("Json", op).get("responses", {}).get("200", {}).get("content", {})
+                schema = content.get("application/json", {}).get("schema", {})
+                ref = schema.get("$ref", "")
+                if ref.startswith(SCHEMAS_PREFIX):
+                    name = ref.removeprefix(SCHEMAS_PREFIX)
+                    as_envelope[name] = as_envelope.get(name, 0) + 1
+    everywhere = _ref_counts(spec, {})
+    return {name for name, n in as_envelope.items() if everywhere.get(name) == n}
+
+
 def model_entries(spec: Json) -> list[tuple[str, str]]:
-    """``(model key, schema name)`` for every component schema, sorted by key."""
+    """``(model key, schema name)`` for every component schema but the envelopes, by key."""
     schemas = cast("Json", spec.get("components", {})).get("schemas", {})
+    skip = envelopes(spec)
     entries: dict[str, str] = {}
     for schema in sorted(cast("Json", schemas)):
+        if schema in skip:
+            continue
         key = "_".join(w.lower() for w in words(python_name(schema)))
         if key in entries:
             msg = f"{schema} and {entries[key]} are both named {key}"
