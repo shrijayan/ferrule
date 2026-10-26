@@ -468,7 +468,8 @@ mod tests {
     fn rejects_unknown_targets_and_missing_values() {
         let err = parse_generate(&strings(&["a.json", "--out", "sdk", "--target", "cobol"])).expect_err("unknown");
         assert!(err.contains("possible values: python, typescript"), "{err}");
-        assert!(unsupported_target("ruby").fix.contains("python or go"));
+        let fix = unsupported_target("ruby").fix;
+        assert!(fix.contains("python or typescript or node or go"), "{fix}");
         let err = parse_generate(&strings(&["a.json", "--out", "sdk", "--target"])).expect_err("no value");
         assert!(err.contains("'--target <TARGET>'"), "{err}");
     }
