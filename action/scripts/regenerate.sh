@@ -1,15 +1,17 @@
 #!/usr/bin/env bash
 # Copyright 2026 Ferrule contributors
 # SPDX-License-Identifier: Apache-2.0
-# Generate the SDK (runtime taken from the repo itself), verify it against the previous
-# release, then copy it over the working tree. Writes the verify report to $REPORT.
+# Regenerate the SDK on a ferrule/regenerate branch: `ferrule regenerate` merges the new
+# generation three-way into it, from the last generation the branch took, so custom code and
+# keep_files survive. Then verify the merged tree against the previous release; the verify
+# report goes to $REPORT. A merge conflict is left on its own branch, checked out, for the PR.
 #
-# Env: INPUT_SPEC, INPUT_CONFIG, INPUT_AGAINST (optional git ref), WORKSPACE, OUT, REPORT.
-# FERRULE_GEN (a ferrule-gen binary) passes through to `ferrule generate`.
+# Env: INPUT_SPEC, INPUT_CONFIG, INPUT_AGAINST (optional git ref), WORKSPACE, REPORT,
+# GITHUB_OUTPUT (changed, conflict). FERRULE_GEN (a ferrule-gen binary) passes through.
 set -euo pipefail
 
-: "${WORKSPACE:?}" "${OUT:?}" "${REPORT:?}"
-rm -rf "$OUT"
+: "${WORKSPACE:?}" "${REPORT:?}"
+BRANCH="ferrule/regenerate"
 
 if [[ -z "${FERRULE_GEN:-}" ]]; then
   # No released ferrule-gen binary yet: build it from the action's own checkout (the runner's
@@ -28,22 +30,45 @@ if [[ -z "$against" ]]; then
 fi
 echo "verifying against $against"
 
-ferrule generate \
+cd "$WORKSPACE"
+git config user.name >/dev/null || git config user.name "github-actions[bot]"
+git config user.email >/dev/null \
+  || git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+# The generations so far (pushed by earlier runs; `fetch-depth: 0` fetches the branch).
+if git rev-parse --verify --quiet refs/remotes/origin/generated >/dev/null; then
+  git branch --force generated refs/remotes/origin/generated
+fi
+start="$(git rev-parse HEAD)"
+git switch --quiet --force-create "$BRANCH"
+
+output() { if [[ -n "${GITHUB_OUTPUT:-}" ]]; then echo "$1" >> "$GITHUB_OUTPUT"; fi; }
+
+status=0
+ferrule regenerate \
+  --repo "$WORKSPACE" \
   --spec "$WORKSPACE/$INPUT_SPEC" \
-  --config "$WORKSPACE/$INPUT_CONFIG" \
-  --out "$OUT" \
-  --runtime-from "$WORKSPACE"
+  --config "$WORKSPACE/$INPUT_CONFIG" || status=$?
+if [[ "$status" -eq 1 ]]; then
+  conflict="$(git for-each-ref --format='%(refname:short)' 'refs/heads/ferrule/conflict-*' | head -n 1)"
+  [[ -n "$conflict" ]] || { echo "::error::ferrule regenerate failed" >&2; exit 1; }
+  echo "::warning::the regeneration conflicts with custom code; the PR carries the markers"
+  git switch --quiet "$conflict"
+  output "changed=true"
+  output "conflict=true"
+  # Markers don't parse: the PR is for a person to resolve, so verify runs on its next push.
+  echo '{"breaking_count": 0, "additive_count": 0, "breaking": [], "additive": []}' > "$REPORT"
+  exit 0
+elif [[ "$status" -ne 0 ]]; then
+  exit "$status"
+fi
+
+if [[ "$(git rev-parse HEAD)" == "$start" ]]; then output "changed=false"; else output "changed=true"; fi
+output "conflict=false"
 
 # verify exits 1 on breaking changes; the label step owns that decision.
 status=0
-ferrule verify --repo "$WORKSPACE" --against "$against" --new "$OUT" --json "$REPORT" || status=$?
+ferrule verify --repo "$WORKSPACE" --against "$against" --new "$WORKSPACE" --json "$REPORT" || status=$?
 if [[ "$status" -gt 1 || ! -s "$REPORT" ]]; then
   echo "::error::ferrule verify failed (exit $status)" >&2
   exit 1
 fi
-
-# The only paths open_pr.sh may commit.
-(cd "$OUT" && find . -type f ! -path './.git/*' | sed 's#^\./##' | sort) > "${MANIFEST:?}"
-
-# Adopt mode: overlay generated files; never delete hand-written ones (lib/, keep_files).
-(cd "$OUT" && tar --exclude=.git -cf - .) | (cd "$WORKSPACE" && tar -xf -)

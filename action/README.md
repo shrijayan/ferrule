@@ -1,6 +1,6 @@
 # Ferrule GitHub Action
 
-A composite action. It regenerates a Python SDK with Ferrule in adopt mode (the runtime comes from your own repo), checks the public API with `ferrule verify` against the previous release, labels the semver bump and, if you ask it to, opens or updates a PR.
+A composite action. It regenerates a Python SDK adopted with `ferrule adopt` and merges the new generation into a `ferrule/regenerate` branch with `ferrule regenerate`, so custom code (in its own files or in generated ones) and `keep_files` survive. It checks the public API with `ferrule verify` against the previous release, labels the semver bump and, if you ask it to, opens or updates a PR.
 
 Reference it as `shrijayan/ferrule/action@<sha>`, pinned to a full commit SHA.
 
@@ -179,143 +179,22 @@ to `ferrule generate`.
 | `breaking` | Number of breaking public API changes |
 | `additive` | Number of additive public API changes |
 
-## Bring your own GitHub App token
+## How custom code survives
 
-Ferrule runs no bot of its own. The action runs in your repository, and `GITHUB_TOKEN` is enough
-to push the branch and open the PR. Two limits of `GITHUB_TOKEN` make a GitHub App token worth it:
-
-- **CI does not run on the regenerate PR.** GitHub does not start other workflows for pushes and
-  PRs made with `GITHUB_TOKEN`, so the PR arrives with no test results.
-- **It cannot reach another repository.** When the spec lives in your API repo and the SDK in its
-  own repo, `GITHUB_TOKEN` in one cannot write to the other.
-
-Create a GitHub App in your own organization (Settings, Developer settings, GitHub Apps). It
-needs no webhook. Give it the repository permissions **Contents: read and write** and **Pull
-requests: read and write**, then install it on the SDK repo (and the API repo, for the cross-repo
-setup below). Store its client ID as the variable `SDK_BOT_CLIENT_ID` and its private key as
-the secret `SDK_BOT_PRIVATE_KEY`. Then mint a token in the job and pass it as `github-token`:
-
-```yaml
-    steps:
-      - uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
-        id: app-token
-        with:
-          client-id: ${{ vars.SDK_BOT_CLIENT_ID }}
-          private-key: ${{ secrets.SDK_BOT_PRIVATE_KEY }}
-          permission-contents: write
-          permission-pull-requests: write
-      # checkout as in Usage, then:
-      - uses: shrijayan/ferrule/action@<sha>
-        with:
-          spec: openapi.json
-          config: stainless.yml
-          open-pr: true
-          github-token: ${{ steps.app-token.outputs.token }}
-```
-
-The PR is now opened by `<your-app>[bot]`, and your CI runs on it. The token expires when the job
-ends. Commits are still authored as `github-actions[bot]` and signed off.
-
-### Spec in one repo, SDK in another
-
-The API repo tells the SDK repo that the spec changed, with a `repository_dispatch` event. The SDK
-repo checks out the spec at that commit and runs the action. In the API repo:
-
-```yaml
-# acme-api: .github/workflows/sdk-dispatch.yml
-name: sdk-dispatch
-on:
-  push:
-    branches: [main]
-    paths: [openapi.json, stainless.yml]
-
-permissions: {}
-
-jobs:
-  dispatch:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
-        id: app-token
-        with:
-          client-id: ${{ vars.SDK_BOT_CLIENT_ID }}
-          private-key: ${{ secrets.SDK_BOT_PRIVATE_KEY }}
-          repositories: acme-python
-          permission-contents: write   # repository_dispatch needs contents: write
-      - env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-          SHA: ${{ github.sha }}
-        run: |
-          gh api repos/acme/acme-python/dispatches \
-            -f event_type=spec-updated -f "client_payload[sha]=$SHA"
-```
-
-In the SDK repo:
-
-```yaml
-# acme-python: .github/workflows/sdk.yml
-name: sdk
-on:
-  repository_dispatch:
-    types: [spec-updated]
-  pull_request:            # re-runs verify when a maintainer adds ferrule:allow-breaking
-    types: [opened, synchronize, labeled]
-    branches: [main]
-  workflow_dispatch:
-
-permissions: {}
-
-jobs:
-  regenerate:
-    if: github.event_name != 'pull_request' || github.head_ref == 'ferrule/regenerate'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
-        id: spec-token
-        with:
-          client-id: ${{ vars.SDK_BOT_CLIENT_ID }}
-          private-key: ${{ secrets.SDK_BOT_PRIVATE_KEY }}
-          repositories: acme-api
-          permission-contents: read
-      - uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
-        id: sdk-token
-        with:
-          client-id: ${{ vars.SDK_BOT_CLIENT_ID }}
-          private-key: ${{ secrets.SDK_BOT_PRIVATE_KEY }}
-          permission-contents: write
-          permission-pull-requests: write
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          repository: acme/acme-api
-          ref: ${{ github.event.client_payload.sha || 'main' }}
-          path: .api
-          token: ${{ steps.spec-token.outputs.token }}
-          persist-credentials: false
-      # Keep the spec checkout out of the commit: the action refuses files it did not generate.
-      - run: echo ".api/" >> .git/info/exclude
-      - uses: shrijayan/ferrule/action@<sha>
-        with:
-          spec: .api/openapi.json
-          config: .api/stainless.yml
-          verify: true
-          open-pr: true
-          github-token: ${{ steps.sdk-token.outputs.token }}
-```
-
-One token per repository keeps each to least privilege: read on the API repo, write on the SDK
-repo. A fine-grained personal access token also works in place of the App, but it acts as a
-person and outlives the job, so prefer the App.
+`ferrule adopt` keeps the generation it committed on a `generated` branch and names it in its
+commit's `Ferrule-Generated-From` trailer. Each run commits the new generation on `generated`
+and merges it three-way into `ferrule/regenerate`, from the last generation that branch took (the
+newest trailer). Push `generated` along with the adopt branch, keep `fetch-depth: 0` on checkout
+so the action sees it, and keep the trailer when you merge the PR (a squash merge keeps it in
+the message body). A change that conflicts with custom code opens the PR with the conflict
+markers, and the job fails until someone resolves them.
 
 ## Breaking changes
 
 When `verify: true` finds a breaking change and no PR label overrides it, the PR is still opened (if `open-pr` is on), and then the job fails. The override is read only from the PR that triggered the run, and only when that PR's head is in the same repository. To accept a change, run the workflow on `pull_request` (types `opened`, `synchronize`, `labeled`) for the `ferrule/regenerate` PR, and have a maintainer add `ferrule:allow-breaking` to it. Each force-push of new content removes that label, so every new breaking diff must be approved again.
 
 - Only same-repository PRs are updated. A fork PR whose head branch is also named `ferrule/regenerate` is ignored.
-- Only the paths the generator wrote are committed. If anything else in the working tree has changed, the action refuses to commit or push.
+- Only the merge `ferrule regenerate` committed is pushed, with the `generated` branch it merged from.
 
 ## Security
 
@@ -332,4 +211,4 @@ action/scripts/dry_run.sh action/scripts/tests/fixtures/breaking.json           
 action/scripts/dry_run.sh action/scripts/tests/fixtures/breaking.json ferrule:allow-breaking  # passes
 ```
 
-The dry run validates the inputs, runs `label.py` against the fixture report and prints the git and `gh` commands that `open_pr.sh` would run. It uses no network. It does not need [`act`](https://github.com/nektos/act), which this repo does not install.
+The dry run validates the inputs, runs `label.py` against the fixture report and prints the git and `gh` commands that `open_pr.sh` would run (it assumes a new generation). It uses no network. It does not need [`act`](https://github.com/nektos/act), which this repo does not install.
