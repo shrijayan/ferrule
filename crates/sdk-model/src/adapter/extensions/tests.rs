@@ -410,6 +410,34 @@ fn reads_every_member_of_the_client() {
     );
 }
 
+/// A client option is named by the words of its config key, which need not be an identifier
+/// itself (stagehand `BROWSERBASE_API_KEY`, papr `X-Session-Token`); one with no words is not.
+#[test]
+fn reads_client_option_keys_that_are_not_identifiers_by_their_words() {
+    let opts = json!([
+        { "name": "BROWSERBASE_API_KEY", "type": "string", "nullable": false },
+        { "name": "X-Session-Token", "type": "string", "nullable": true },
+    ]);
+    let c = client_with("opts", Some(opts)).expect("valid");
+    let names: Vec<(&str, Vec<&str>)> = c
+        .opts
+        .iter()
+        .map(|o| {
+            (
+                o.name.written.as_str(),
+                o.name.words.iter().map(String::as_str).collect(),
+            )
+        })
+        .collect();
+    assert_eq!(
+        names,
+        [
+            ("BROWSERBASE_API_KEY", vec!["browserbase", "api", "key"]),
+            ("X-Session-Token", vec!["x", "session", "token"]),
+        ]
+    );
+}
+
 #[test]
 fn rejects_a_bad_client_member() {
     let cases = [
@@ -420,7 +448,8 @@ fn rejects_a_bad_client_member() {
         ("retries", json!({ "initialDelaySeconds": "x" })),
         ("query", json!({ "arrayFormat": "pipes" })),
         ("query", json!({ "nestedFormat": "pipes" })),
-        ("opts", json!([{ "name": "a-b", "type": "string", "nullable": false }])),
+        ("opts", json!([{ "name": "--", "type": "string", "nullable": false }])),
+        ("opts", json!([{ "name": "3d", "type": "string", "nullable": false }])),
         (
             "opts",
             json!([{ "name": "a", "type": "string", "nullable": false, "auth": { "role": "x" } }]),
