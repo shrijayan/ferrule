@@ -144,6 +144,26 @@ fn auth(g: &Gen<'_>, opts: &[(String, &ClientOpt)]) -> Option<(AuthIn, String)> 
     }
 }
 
+/// `authHeaders()` or `authQuery()`, and the `buildRequest()` that merges what it returns; none
+/// without credentials.
+fn auth_members(g: &Gen<'_>, opts: &[(String, &ClientOpt)], request_options: &str) -> Vec<String> {
+    let Some((into, body)) = auth(g, opts) else {
+        return Vec::new();
+    };
+    let (func, query, headers) = match into {
+        AuthIn::Headers => ("authHeaders", "$query", "[...$this->authHeaders(), ...$headers]"),
+        AuthIn::Query => ("authQuery", "[...$this->authQuery(), ...$query]", "$headers"),
+    };
+    vec![
+        format!(
+            "    /** @return array<string,string> */\n    protected function {func}(): array\n    {{\n{body}    }}\n"
+        ),
+        format!(
+            "    /**\n     * @internal\n     *\n     * @param string|list<string> $path\n     * @param array<string,mixed> $query\n     * @param array<string,string|int|list<string|int>|null> $headers\n     * @param RequestOpts|null $opts\n     *\n     * @return array{{NormalizedRequest, {request_options}}}\n     */\n    protected function buildRequest(\n        string $method,\n        string|array $path,\n        array $query,\n        array $headers,\n        mixed $body,\n        {request_options}|array|null $opts,\n    ): array {{\n        return parent::buildRequest(\n            method: $method,\n            path: $path,\n            query: {query},\n            headers: {headers},\n            body: $body,\n            opts: $opts,\n        );\n    }}\n"
+        ),
+    ]
+}
+
 fn client(g: &Gen<'_>) -> String {
     let path = ClassPath::new(vec!["Client".to_owned()]);
     let mut imp = g.imports(&[], Some(&path));
@@ -224,18 +244,7 @@ fn client(g: &Gen<'_>) -> String {
     }
     ctor.push_str("    }\n");
     members.push(ctor);
-    if let Some((into, body)) = auth(g, &opts) {
-        let (func, query, headers) = match into {
-            AuthIn::Headers => ("authHeaders", "$query", "[...$this->authHeaders(), ...$headers]"),
-            AuthIn::Query => ("authQuery", "[...$this->authQuery(), ...$query]", "$headers"),
-        };
-        members.push(format!(
-            "    /** @return array<string,string> */\n    protected function {func}(): array\n    {{\n{body}    }}\n"
-        ));
-        members.push(format!(
-            "    /**\n     * @internal\n     *\n     * @param string|list<string> $path\n     * @param array<string,mixed> $query\n     * @param array<string,string|int|list<string|int>|null> $headers\n     * @param RequestOpts|null $opts\n     *\n     * @return array{{NormalizedRequest, {request_options}}}\n     */\n    protected function buildRequest(\n        string $method,\n        string|array $path,\n        array $query,\n        array $headers,\n        mixed $body,\n        {request_options}|array|null $opts,\n    ): array {{\n        return parent::buildRequest(\n            method: $method,\n            path: $path,\n            query: {query},\n            headers: {headers},\n            body: $body,\n            opts: $opts,\n        );\n    }}\n"
-        ));
-    }
+    members.extend(auth_members(g, &opts, &request_options));
     let head = vec![
         format!(
             "@phpstan-import-type NormalizedRequest from \\{}\\Core\\BaseClient",
