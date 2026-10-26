@@ -3,8 +3,8 @@
 use ferrule_python_plugin::diagnostics::FerCode;
 use ferrule_python_plugin::emit::client::emit_client_file;
 use ferrule_python_plugin::emit::common::{args_docstring, stainless_method_order};
-use ferrule_python_plugin::emit::files::input::{AuthScheme, ParamLocation as FilesLocation};
-use ferrule_python_plugin::emit::files_input::{placeholder_meta, to_project_files_input};
+use ferrule_python_plugin::emit::files::input::{AuthScheme, ExampleRequest, ParamLocation as FilesLocation};
+use ferrule_python_plugin::emit::files_input::{ProjectMeta, ReadmeRequest, placeholder_meta, to_project_files_input};
 use ferrule_python_plugin::emit::params::emit_params_file;
 use ferrule_python_plugin::emit::project::emit_root_files;
 use ferrule_python_plugin::emit::resources::emit_resource_file;
@@ -763,4 +763,68 @@ fn shows_a_placeholder_for_a_credential_without_read_env() {
     assert!(readme.contains("client = AsyncAcme(\n    api_key=\"My API Key\",\n)\n"));
     assert!(readme.contains("    async with AsyncAcme(\n        api_key=\"My API Key\",\n        http_client="));
     assert!(!readme.contains("python-dotenv"));
+}
+
+fn path_param(name: &str) -> SdkParam {
+    SdkParam {
+        required: true,
+        ..param(name, name)
+    }
+}
+
+/// `retrieve` at `path`, the README example by `readme.example_requests.default`.
+fn probe_of(path: &str, path_params: Vec<SdkParam>, params: &serde_json::Value) -> ExampleRequest {
+    let mut m = method(Some(SdkType::Object(obj_with("id"))));
+    m.name = "retrieve".into();
+    m.path = path.into();
+    m.path_params = path_params;
+    let meta = ProjectMeta {
+        readme_request: Some(ReadmeRequest {
+            endpoint: format!("get {path}"),
+            params: params.as_object().expect("an object").clone(),
+        }),
+        ..placeholder_meta()
+    };
+    to_project_files_input(&sdk(vec![m]), &meta)
+        .expect("an input")
+        .retry_probe
+}
+
+fn arg_pairs(e: &ExampleRequest) -> Vec<(&str, &str)> {
+    e.args.iter().map(|a| (a.name.as_str(), a.value.as_str())).collect()
+}
+
+#[test]
+fn resolves_the_retry_probe_path_as_the_client_sends_it() {
+    // knock: `respx_mock.get("/v1/users/user_id")` for `client.users.with_raw_response.get("user_id")`.
+    let probe = probe_of(
+        "/v1/users/{user_id}",
+        vec![path_param("user_id")],
+        &serde_json::json!({"user_id": "u"}),
+    );
+    assert_eq!(probe.path, "/v1/users/user_id");
+    assert_eq!(arg_pairs(&probe), [("", "\"user_id\"")]);
+    // Percent-encoded as `path_template` encodes a path segment.
+    let odd = SdkParam {
+        example: Some(serde_json::json!("a b/c@d")),
+        ..path_param("user_id")
+    };
+    let probe = probe_of("/v1/users/{user_id}", vec![odd], &serde_json::json!({}));
+    assert_eq!(probe.path, "/v1/users/a%20b%2Fc@d");
+}
+
+#[test]
+fn names_the_path_arguments_of_a_retry_probe_with_several() {
+    // `retrieve(self, project_id, file_id, *, ...)`: positionally, the last-first order the tests
+    // use would swap them.
+    let probe = probe_of(
+        "/projects/{project_id}/files/{file_id}",
+        vec![path_param("project_id"), path_param("file_id")],
+        &serde_json::json!({"project_id": "p", "file_id": "f"}),
+    );
+    assert_eq!(probe.path, "/projects/project_id/files/file_id");
+    assert_eq!(
+        arg_pairs(&probe),
+        [("file_id", "\"file_id\""), ("project_id", "\"project_id\"")]
+    );
 }
