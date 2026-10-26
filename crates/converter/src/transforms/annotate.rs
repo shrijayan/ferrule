@@ -511,11 +511,12 @@ pub fn annotate(spec: &Value, config: &Value) -> (Value, Vec<Diagnostic>) {
 
 /// The operation keys of a path item that Forge reads as operations.
 const VERBS: [&str; 8] = ["get", "put", "post", "delete", "options", "head", "patch", "trace"];
-/// Fern's grouping extensions: Forge generates any operation that has a group name.
-const FERN_GROUPING: [&str; 2] = ["x-fern-sdk-group-name", "x-fern-sdk-method-name"];
+/// Extensions Forge makes methods from: Fern's grouping (an operation with a group name is
+/// generated) and Forge's own aliases (one method per alias).
+const FERN_GROUPING: [&str; 3] = ["x-fern-sdk-group-name", "x-fern-sdk-method-name", "x-forge-aliases"];
 
-/// Removes Fern's grouping from operations no method is bound to, which a spec may carry
-/// itself (cloudflare's does), so Forge drops them as Stainless leaves out unconfigured
+/// Removes Fern's grouping and Forge aliases from operations no method is bound to, which a
+/// spec may carry itself (cloudflare's does), so Forge drops them as Stainless leaves out unconfigured
 /// endpoints, instead of grouping them without `x-ferrule-resource`.
 fn drop_unbound_groups(out: &mut Value, bound: &[Vec<Seg>]) {
     let Some(Value::Object(paths)) = out.as_object_mut().and_then(|o| o.get_mut("paths")) else {
@@ -555,6 +556,8 @@ fn write_bindings(out: &mut Value, bindings: Vec<(Vec<Seg>, Vec<Map>)>, mirrored
             })
             .collect();
         if defs.len() == 1 {
+            // Aliases the spec carried would make Forge methods beside this one.
+            op.remove("x-forge-aliases");
             for (key, value) in defs.remove(0) {
                 op.insert(key, value);
             }

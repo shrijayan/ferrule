@@ -187,7 +187,6 @@ mod resources_and_methods {
     /// Cloudflare's spec also carries `x-forge-aliases` with Fern grouping inside: on an
     /// operation the config leaves out, Forge made a method of each alias.
     #[test]
-    #[should_panic(expected = "keeps the spec's x-forge-aliases")]
     fn drops_spec_forge_aliases_from_operations_not_in_the_config() {
         let mut spec = make_spec_json();
         let alias = json!([{"x-fern-sdk-group-name": "a.b", "x-fern-sdk-method-name": "c"}]);
