@@ -597,6 +597,45 @@ fn prints_deterministic_json() {
     assert_eq!(ferrule_sdk_model::to_json(None), "null\n");
 }
 
+/// The items of an inlined array schema were inlined from it too, and Stainless names them after it
+/// (knock-mgmt `HeadersRequestTemplateHeadersArray`): their object keeps the schema as its origin.
+#[test]
+fn gives_the_items_of_an_inlined_array_schema_its_origin() {
+    let d = doc(
+        &json!({ "responses": ok_response(&json!({ "type": "object", "properties": {
+            "headers": { "oneOf": [{ "type": "string" }, { "$ref": "#/components/schemas/HeadersArray" }] },
+            "named": { "$ref": "#/components/schemas/Named" },
+        } })) }),
+        &json!({
+            "HeadersArray": { "type": "array", "items": {
+                "type": "object", "properties": { "key": { "type": "string" } },
+            } },
+            "Named": { "type": "array", "items": { "$ref": "#/components/schemas/Item" } },
+            "Item": { "type": "object", "properties": { "id": { "type": "string" } } },
+        }),
+    );
+    let (_, method) = only(&d);
+    let resp = response_object(&method);
+    let Type::Union(u) = field_type(resp, "headers") else {
+        panic!("a union")
+    };
+    let Type::Array { items } = &u.variants[1].ty else {
+        panic!("an array variant, got {:?}", u.variants[1].ty)
+    };
+    let Type::Object(o) = &**items else {
+        panic!("object items")
+    };
+    assert_eq!(o.origin.as_deref(), Some("HeadersArray"));
+    // Items with an origin of their own keep it.
+    let Type::Array { items } = field_type(resp, "named") else {
+        panic!("an array")
+    };
+    let Type::Object(o) = &*items else {
+        panic!("object items")
+    };
+    assert_eq!(o.origin.as_deref(), Some("Item"));
+}
+
 /// The model as the JSON `ferrule-gen model` prints.
 fn printed(d: &Value) -> Value {
     let text = ferrule_sdk_model::to_json(model(d).expect("converts").as_ref());
