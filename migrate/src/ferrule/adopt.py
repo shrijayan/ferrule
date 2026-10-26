@@ -70,7 +70,7 @@ PROTECTED_DIRS = frozenset({"lib", ".git", ".ferrule"})
 
 # Pinned by full commit SHA, as every workflow in this repository is.
 CHECKOUT_SHA = "3d3c42e5aac5ba805825da76410c181273ba90b1"  # actions/checkout v7.0.1
-# ferrule-dev/action has no release yet: replace with its first release commit (see report).
+# The action has no release yet: pin a commit of shrijayan/ferrule that has action/ (see report).
 ACTION_SHA = "0000000000000000000000000000000000000000"
 
 GIT_CONFIG = (
@@ -104,9 +104,11 @@ def workflow_text(spec: str, config: str) -> str:
 
 on:
   push:
+    branches: [main]
     paths: [{spec}, {config}]
   schedule:
     - cron: "0 6 * * *"
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -115,18 +117,20 @@ jobs:
   regenerate:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
-      pull-requests: write
+      contents: write # push ferrule/regenerate and the generated branch
+      pull-requests: write # open the PR and label it
     steps:
       - uses: actions/checkout@{CHECKOUT_SHA} # v7.0.1
         with:
+          fetch-depth: 0 # the previous release and the generated branch
           persist-credentials: false
-      - uses: ferrule-dev/action@{ACTION_SHA}
+      - uses: shrijayan/ferrule/action@{ACTION_SHA}
         with:
           spec: {spec}
           config: {config}
           verify: true # fails on an unlabeled breaking change
           open-pr: true # labels major / minor / patch
+          github-token: ${{{{ secrets.GITHUB_TOKEN }}}}
 """
 
 
