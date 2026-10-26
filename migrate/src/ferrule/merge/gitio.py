@@ -183,6 +183,16 @@ def commit_tree(repo: Path, files: Tree, parent: str | None, message: str) -> st
     return sha.decode().strip()
 
 
+_TRAILER_LINE = re.compile(rf"^{TRAILER}: ([0-9a-f]{{40}})$", re.MULTILINE)
+
+
+def merged_generation(repo: Path, ref: str) -> str | None:
+    """Return the generation named by the newest ``Ferrule-Generated-From`` trailer on ``ref``."""
+    body = _git(repo, "log", "-1", "--format=%B", f"--grep=^{TRAILER}: ", ref).decode()
+    found = _TRAILER_LINE.findall(body)
+    return _rev(repo, found[-1]) if found else None
+
+
 @dataclass(frozen=True)
 class Regeneration:
     """What :func:`regenerate_branch` did; ``conflict_branch`` is set when a PR is needed."""
@@ -226,8 +236,11 @@ def regenerate_branch(  # noqa: PLR0913 - keyword-only knobs with defaults
         raise fail(BAD_REF, f"{branch!r} is not a branch", str(repo), "pass an existing branch")
     previous = _rev(repo, generated)
     ours = read_ref(repo, ours_sha)
-    # First regeneration (adopt): the integrated branch is the baseline, nothing is forced.
-    base = read_ref(repo, previous) if previous else dict(new_tree)
+    # The base is the last generation the branch took (its trailer), so a generation whose PR
+    # was never merged does not count; then the generated branch's tip; on the first
+    # regeneration (adopt) the integrated branch is the baseline and nothing is forced.
+    taken = merged_generation(repo, ours_sha) or previous
+    base = read_ref(repo, taken) if taken else dict(new_tree)
     gen_sha = commit_tree(repo, new_tree, previous, message)
     _git(repo, "update-ref", f"refs/heads/{generated}", gen_sha, previous or "")
     result = merge_trees(base, ours, new_tree, keep=keep)
