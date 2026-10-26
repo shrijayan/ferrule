@@ -1,5 +1,5 @@
 {
-  "sha256": "9acfa99719c58b050126d7ca160ac5c28581c01988102b2095972e7f76bae098",
+  "sha256": "9fa01e4961c837e46d04b4da4a0eeface896ab9392fc7c56e98b57950d2795c7",
   "root": {
     "x-ferrule-client": {
       "defaultEnvironment": "production",
@@ -54,6 +54,48 @@
       "pythonEdition": "python.2025-10-08",
       "version": 1
     },
+    "x-ferrule-page-schemes": [
+      {
+        "name": "entries_cursor",
+        "request": {
+          "after": {
+            "type": "string",
+            "x-stainless-pagination-property": {
+              "purpose": "next_cursor_param"
+            }
+          },
+          "before": {
+            "type": "string",
+            "x-stainless-pagination-property": {
+              "purpose": "previous_cursor_param"
+            }
+          },
+          "limit": {
+            "type": "integer"
+          }
+        },
+        "response": {
+          "entries": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "page_info": {
+            "properties": {
+              "after": {
+                "type": "string",
+                "x-stainless-pagination-property": {
+                  "purpose": "next_cursor_field"
+                }
+              }
+            },
+            "type": "object"
+          }
+        },
+        "type": "cursor"
+      }
+    ],
     "x-ferrule-targets": {
       "go": {
         "edition": "go.2025-10-08",

@@ -566,6 +566,16 @@ pub fn annotate(spec: &Value, config: &Value) -> (Value, Vec<Diagnostic>) {
     if let (Some(t), Some(root)) = (&targets, out.as_object_mut()) {
         root.insert("x-ferrule-targets", t.clone());
     }
+    // The configured page schemes, as a list: the runtime renders `pagination.py` from their
+    // response fields when it is not copied from an adopted SDK.
+    let page_schemes = match config.get("pagination") {
+        Some(Value::Array(list)) => Some(Value::Array(list.clone())),
+        Some(single @ Value::Object(_)) => Some(Value::Array(vec![single.clone()])),
+        _ => None,
+    };
+    if let (Some(schemes), Some(root)) = (page_schemes, out.as_object_mut()) {
+        root.insert("x-ferrule-page-schemes", schemes);
+    }
     // Forge drops root and schema extensions (gaps G2, G3), so mirror them onto every method.
     let mut mirrored = Map::new();
     if let Some(t) = targets {

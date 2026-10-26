@@ -1,5 +1,5 @@
 {
-  "sha256": "a2fcf8d5d2b4be841ee5bd56f34b81fada7536423c67b326854f16dec9cd8886",
+  "sha256": "e24561ac7c14f3e0d795989d671feb70361e4bfee65416b3d9b45aab0f736328",
   "root": {
     "x-ferrule-client": {
       "defaultEnvironment": "demo",
@@ -63,6 +63,52 @@
       "pythonEdition": "python.2025-10-08",
       "version": 1
     },
+    "x-ferrule-page-schemes": [
+      {
+        "name": "page",
+        "request": {
+          "page": {
+            "description": "The page number",
+            "type": "integer",
+            "x-stainless-pagination-property": {
+              "purpose": "page_number_param"
+            }
+          },
+          "size": {
+            "description": "The number of items in a page",
+            "type": "integer"
+          }
+        },
+        "response": {
+          "items": {
+            "items": {},
+            "type": "array",
+            "x-stainless-pagination-property": {
+              "purpose": "items"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "x-stainless-pagination-property": {
+              "purpose": "current_page_number_field"
+            }
+          },
+          "pages": {
+            "type": "integer",
+            "x-stainless-pagination-property": {
+              "purpose": "total_page_count_field"
+            }
+          },
+          "size": {
+            "type": "integer"
+          },
+          "total": {
+            "type": "integer"
+          }
+        },
+        "type": "page_number"
+      }
+    ],
     "x-ferrule-targets": {
       "node": {
         "edition": "node.2025-10-08",
