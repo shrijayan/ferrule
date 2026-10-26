@@ -586,6 +586,24 @@ impl<'a> Builder<'a> {
     }
 }
 
+/// Whether a request body's fields are a method's parameters: an object, or a union of objects
+/// (whose fields [`Builder::method_args`] merges). Another body has no parameters to spread.
+#[must_use]
+pub fn body_spreads(client: &Client, ty: &Type) -> bool {
+    if client.object_of(ty).is_some() {
+        return true;
+    }
+    let u = match ty {
+        Type::Union(u) => u,
+        Type::Ref(r) => match client.model(r).map(|d| &d.ty) {
+            Some(Type::Union(u)) => u,
+            _ => return false,
+        },
+        _ => return false,
+    };
+    u.variants.iter().all(|v| client.object_of(&v.ty).is_some())
+}
+
 /// Where a named model is declared without a better place: its resource's namespace
 /// (`Files\File`), or the root for a `$shared` model.
 #[must_use]
