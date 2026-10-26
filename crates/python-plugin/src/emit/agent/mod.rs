@@ -55,7 +55,7 @@ fn call_args(models: &[SdkModelDecl], method: &SdkMethod, uses: &mut Uses) -> Ve
         .chain(required)
         .map(|p| {
             let value = example_value(
-                example_type(&p.ty, models),
+                &example_type(&p.ty, models),
                 uses,
                 "",
                 p.example.as_ref(),

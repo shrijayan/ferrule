@@ -149,7 +149,7 @@ fn files_param(models: &[SdkModelDecl], p: &SdkParam, location: ParamLocation, b
         wire_name: p.wire_name.clone(),
         required: p.required,
         location,
-        ty: example_type(&p.ty, models).clone(),
+        ty: example_type(&p.ty, models),
         example: p.example.clone(),
         minimum: p.minimum,
         maximum: p.maximum,
