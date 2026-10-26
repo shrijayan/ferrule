@@ -193,6 +193,41 @@ fn rejects_a_casing_that_is_not_an_identifier_fragment() {
     assert!(err.pointer.ends_with("/x-ferrule-casings"), "{}", err.pointer);
 }
 
+/// `types/extractions/__init__.py` is empty, as the oracle has it, so it loads nothing below it:
+/// the rebuild of a recursive model in `types/extractions/qa/` imports that model's module
+/// itself rather than reaching it through `extractions`.
+#[test]
+fn rebuilds_a_recursive_model_of_a_standalone_api_from_its_own_module() {
+    let mut doc = annotated();
+    doc.pointer_mut("/components/schemas/AnswerExtractionResponse/properties")
+        .and_then(Value::as_object_mut)
+        .expect("properties")
+        .insert(
+            "children".into(),
+            serde_json::json!({ "type": "array", "items": { "$ref": "#/components/schemas/AnswerExtractionResponse" } }),
+        );
+    let f = PythonPlugin::default().files(&forge_of(&doc)).expect("emits");
+    let types = get(&f, "src/acme/types/__init__.py");
+    assert!(
+        types.contains("from .extractions.qa import answer_extraction_response\n"),
+        "{types}"
+    );
+    assert!(
+        types.contains(
+            "    answer_extraction_response.AnswerExtractionResponse.model_rebuild(_parent_namespace_depth=0)\n"
+        ),
+        "{types}"
+    );
+    assert!(
+        !types.contains("extractions.qa.answer_extraction_response.AnswerExtractionResponse"),
+        "{types}"
+    );
+    assert_eq!(
+        get(&f, "src/acme/types/extractions/__init__.py"),
+        format!("{HEADER}\n\nfrom __future__ import annotations\n")
+    );
+}
+
 /// A spelling would start `QAResource` as `123Resource`; only a word led by a digit (`3ds`) may
 /// keep a digit first, as it cannot start a class name either way.
 #[test]
