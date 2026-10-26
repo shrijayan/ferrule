@@ -1,4 +1,5 @@
-//! `ferrule-go-plugin`: the neutral SDK model -> a Go SDK in Stainless's Go v1 layout (ADR 0017).
+//! `ferrule-go-plugin`: the neutral SDK model -> a Go SDK in Stainless's Go v1 or v2 layout
+//! ([`Layout`], ADR 0017).
 //!
 //! ```text
 //! model::Client --namer + emitters--> generated files + runtime slots --ferrule_runtime--> SDK
@@ -9,7 +10,8 @@
 //! tests and in `ferrule generate`.
 //!
 //! The runtime (`internal/**` but `version.go`, `option/**`, `field.go`,
-//! `default_http_client.go`) is not emitted here: it is the template in `runtime/go`, rendered by
+//! `default_http_client.go`, and v2's `packages/param` and `packages/respjson`) is not emitted
+//! here: it is the template in `runtime/go` or `runtime/go-v2`, rendered by
 //! `ferrule_runtime.render_go_files` with [`GoOutput::runtime`].
 
 pub mod emit;
