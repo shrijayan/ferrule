@@ -60,3 +60,18 @@ fn header_credentials_are_sent_as_headers() {
     let f = files(GET_THING, BEARER, "      list: get /things\n");
     assert!(f["src/Client.php"].contains("return ['Authorization' => \"Bearer {$this->apiKey}\"];"));
 }
+
+/// A date-time inside a list, a map or a union is converted by `DateTimeInterface`'s class name,
+/// which `Conversion::tryConvert` matches without a leading backslash.
+#[test]
+fn a_nested_date_time_is_converted_by_its_class_name() {
+    let f = files(
+        "  /things:\n    get:\n      responses:\n        '200':\n          description: Done.\n          content:\n            application/json:\n              schema:\n                type: object\n                properties:\n                  seen_at:\n                    type: array\n                    items:\n                      type: string\n                      format: date-time\n                  by_day:\n                    type: object\n                    additionalProperties:\n                      type: string\n                      format: date-time\n",
+        BEARER,
+        "      list: get /things\n",
+    );
+    let response = &f["src/Things/ThingListResponse.php"];
+    assert!(response.contains("list: \\DateTimeInterface::class"), "{response}");
+    assert!(response.contains("map: \\DateTimeInterface::class"), "{response}");
+    assert!(!response.contains("'\\DateTimeInterface'"), "{response}");
+}
