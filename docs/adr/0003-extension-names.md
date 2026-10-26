@@ -202,6 +202,18 @@ An alias does not inherit the operation's extensions, so each carries all of its
 operation bound once is written exactly as before. The plugin needs no change: Forge hands it
 one method per alias, with that alias's extensions.
 
+### Amendment 2026-10-26 (Phase 4): pagination maps keep config order
+
+The annotated spec is still written with sorted keys, except for three objects:
+`x-ferrule-pagination`'s `request`, `response` and `headers` maps, including those inside
+`x-forge-aliases`. These keep the order stainless.yml lists them in, because Stainless declares a
+page's fields in that order (knock-go `MsTeamsPagination` has `SkipToken`, then
+`MsTeamsTeams`; honcho-python's `SyncPage` lists `total`, `items`, `page`, `size`, `pages`).
+Insertion order is deterministic, so the output still is. The list lives in
+`CONFIG_ORDER_MAPS` (`crates/converter/src/extensions/pagination.rs`); a map joins it only when
+an oracle shows Stainless follows config order there. The plugins already read these maps in
+written order, and `version` stays 1, since the shape is unchanged.
+
 ### Consequences
 
 - Good: one place defines the contract between converter and plugin; both sides test against it.
