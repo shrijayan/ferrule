@@ -165,7 +165,8 @@ not merged). Its features are custom code kept by `ferrule regenerate`'s three-w
   pyright, mypy, docs and build clean. `verify` against `main`: 697 breaking (accepted, listed in
   the PR and `docs/opencode-migration.md`), 552 additive, 364 runtime spellings normalised.
 - `mise run adopt:gate` also checks it: regenerate reproduces the branch, its tests pass, breaking
-  stays at most 697.
+  stays at most 697. The gate passes on all six targets (onebusaway 1110, isaacus 472, lumaai 728,
+  honcho 1241, knock-mgmt 468 tests; opencode-python-sdk 3478 + 92).
 - Ferrule gained, test-first: binary bodies, `unwrap_response`, param twins, `skip_test_reason`,
   HTTP basic auth, union casts, page and stream API tests, `ferrule regenerate`, verify
   normalisation, non-Stainless adoption. Details in `docs/opencode-migration.md`.
