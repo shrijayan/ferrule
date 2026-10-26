@@ -124,11 +124,11 @@ credited above. Their licences, as GitHub reports them:
     groq/groq-python, lithic-com/lithic-python, perplexityai/perplexity-py,
     isaacus-dev/isaacus-{python,typescript}, lumalabs/lumaai-{python,node},
     plastic-labs/honcho-{python,node}-core,
-    imagekit-developer/imagekit-{python,nodejs,go,java,ruby},
+    imagekit-developer/imagekit-{python,nodejs,go,java,ruby,php},
     knocklabs/knock-{python,node,go,java,ruby},
     knocklabs/knock-mgmt-{python,node,go},
     Papr-ai/papr-pythonSDK, Papr-ai/papr-TypescriptSDK
   MIT: anomalyco/opencode-sdk-{python,go}, browserbase/stagehand-python,
-    ogx-ai/ogx-client-{python,typescript,go}, imagekit-developer/imagekit-php
+    ogx-ai/ogx-client-{python,typescript,go}
 The config repositories they pair with are fetched the same way and are
 never committed (oracles/README.md); some have no licence or a copyleft one.
