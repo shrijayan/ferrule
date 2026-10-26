@@ -77,11 +77,12 @@ pub fn generate(client: &Client, meta: &GoMeta) -> Result<GoOutput, FerruleError
     files.extend(emit::tests::client_test_file(&g, &name));
     files.sort_by(|a, b| a.0.cmp(&b.0));
     let mut runtime = emit::runtime::runtime_options(&g, &name)?;
-    // v2's `field.go` names its file helper `NewFile` when the root package declares `File`.
+    // v2's `field.go` names its file helper `NewFile` when the root package declares a type
+    // `File` of any kind (struct, alias, enum).
     runtime.new_file = g.target.v2()
         && files
             .iter()
             .filter(|(p, _)| !p.contains('/') && !p.ends_with("_test.go"))
-            .any(|(_, text)| text.contains("\ntype File struct") || text.contains("\ntype File = "));
+            .any(|(_, text)| text.contains("\ntype File "));
     Ok(GoOutput { files, runtime })
 }
