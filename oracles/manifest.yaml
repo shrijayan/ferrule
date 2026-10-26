@@ -527,6 +527,28 @@
       "notes": "Last stainless-app[bot] commit; the repo is archived. The object at openapi_spec_url no longer has openapi_spec_hash, so the in-repo spec is the proof."
     },
     {
+      "name": "stagehand-csharp",
+      "group": "stagehand",
+      "kind": "sdk",
+      "language": "csharp",
+      "repo": "browserbase/stagehand-net",
+      "url": "https://github.com/browserbase/stagehand-net.git",
+      "sha": "06de8bf30afa35ffead7969df2083c3d3ab36450",
+      "commit_date": "2026-07-25T02:00:55Z",
+      "commit_message": "release: 3.22.0",
+      "pairs_with": "stagehand-config",
+      "paired": "proven",
+      "license": "MIT",
+      "stats": {
+        "configured_endpoints": 8,
+        "openapi_spec_url": "https://storage.googleapis.com/stainless-sdk-openapi-specs/browserbase/stagehand-64b47a6dd07208d708130e739a272f7d37d4e42494a7c8e566ef66007f8ff25f.yml",
+        "openapi_spec_hash": "4cdfcfed592c8631fbab9117bf45bb67",
+        "config_hash": "1fb12ae9b478488bc1e56bfbdc210b01"
+      },
+      "verify_md5": {},
+      "notes": "Proven against stagehand-config e0e5c3bc, the same inputs as stagehand-python 9fe6865a. Release 3.22.0 on branch release-please--branches--main--changes--next, never merged to main (whose last Stainless release is 3.21.0, 5de7c5d5, from an older config). The repo is archived (deprecate, 2026-10-22). MIT: compared with, never copied."
+    },
+    {
       "name": "ogx-config",
       "group": "ogx",
       "kind": "config",
@@ -767,6 +789,49 @@
       },
       "verify_md5": {},
       "notes": "Proven: .stats.yml config_hash 493cdeb6... = md5(stainless-config/main.yaml) and openapi_spec_hash 7c103e2d... = md5 of its spec.url at imagekit-config 28534c19. Newest stainless-app[bot] commit on next with this .stats.yml. Only on the `next` branch: the default branch (master) is the older hand-written SDK. The pinned config has no php production_repo, but the hashes prove this tree came from it. Later commits use config_hash c5a7aed2...."
+    },
+    {
+      "name": "imagekit-csharp-config",
+      "group": "imagekit",
+      "kind": "config",
+      "repo": "imagekit-developer/sdk-generation",
+      "url": "https://github.com/imagekit-developer/sdk-generation.git",
+      "sha": "315e53b788dfaedb06d76ab552d74a41473b6ae9",
+      "commit_date": "2026-07-14T08:43:09Z",
+      "commit_message": "feat(usage-analytics): add usage analytics endpoint and response schema",
+      "pairs_with": null,
+      "config_path": "stainless-config/main.yaml",
+      "spec": {
+        "path": "openapi/v1.0.0.yaml"
+      },
+      "stats": null,
+      "verify_md5": {
+        "stainless-config/main.yaml": "90e338d72ae51ba55b67bb54f620e3f0",
+        "openapi/v1.0.0.yaml": "10766adaa4027a354b103cdfe9be7572"
+      },
+      "notes": "Second imagekit config, for C# only: branch csharp (also usage-analytics-csharp), not on main. It lists only targets.csharp (production_repo imagekit-developer/imagekit-dotnet#master), so it has no Python SDK and pairs_with is null; imagekit-csharp names it. The group name imagekit still resolves to imagekit-config and imagekit-python. The spec is in the repo. The config repo has no licence file; it is fetched, never committed."
+    },
+    {
+      "name": "imagekit-csharp",
+      "group": "imagekit",
+      "kind": "sdk",
+      "language": "csharp",
+      "repo": "imagekit-developer/imagekit-dotnet",
+      "url": "https://github.com/imagekit-developer/imagekit-dotnet.git",
+      "sha": "265ab207ce4c7d30a820ed540c0422834f05583e",
+      "commit_date": "2026-07-24T13:38:32Z",
+      "commit_message": "release: 6.3.0",
+      "pairs_with": "imagekit-csharp-config",
+      "paired": "proven",
+      "license": "Apache-2.0",
+      "stats": {
+        "configured_endpoints": 49,
+        "openapi_spec_url": "https://storage.googleapis.com/stainless-sdk-openapi-specs/imagekit-inc/imagekit-diversion-bb6d292886aeece83718e78fef715faf31e39ced5012e49562fb1dfdc27d5f1c.yml",
+        "openapi_spec_hash": "10766adaa4027a354b103cdfe9be7572",
+        "config_hash": "90e338d72ae51ba55b67bb54f620e3f0"
+      },
+      "verify_md5": {},
+      "notes": "Proven: .stats.yml config_hash 90e338d7... = md5(stainless-config/main.yaml) and openapi_spec_hash 10766ada... = md5(openapi/v1.0.0.yaml) at imagekit-csharp-config 315e53b7. The last stainless-app[bot] commit on the default branch (main); later commits are stlc-bot's (chore: migrate to stlc, 2026-07-27). The object at openapi_spec_url does not have openapi_spec_hash, so the in-repo spec is the proof."
     },
     {
       "name": "knock-config",

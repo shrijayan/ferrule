@@ -674,7 +674,8 @@ def main(argv: list[str]) -> int:
             extra = ""
             if oracle.kind == "config":
                 spec = fetch_spec(oracle, dest)
-                extra = f" ({oracle.paired}; config {oracle.config_path}; spec {spec})"
+                paired = oracle.paired or "no python sdk"
+                extra = f" ({paired}; config {oracle.config_path}; spec {spec})"
             elif sdk_language(oracle) != DEFAULT_LANGUAGE:
                 layout = f", {oracle.layout} layout" if oracle.layout else ""
                 extra = f" ({oracle.language}{layout}; {oracle.paired} with {oracle.pairs_with})"
