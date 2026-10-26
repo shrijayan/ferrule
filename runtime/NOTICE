@@ -137,7 +137,8 @@ runtime/csharp/template/ is derived from the Stainless-generated ImageKit .NET S
   Changes:    Modified by The Ferrule Authors: namespace, client name and env prefix replaced
               by tokens (also in directory and file names); line endings stored as LF and
               rendered as CRLF; the credentials block of ParamsBase.AddDefaultHeaders replaced
-              by a //ferrule: slot; a //ferrule: using-order block added to RetriesTest.cs.
+              by a //ferrule: slot, and a //ferrule: slot for a query credential added to
+              ParamsBase.QueryString; a //ferrule: using-order block added to RetriesTest.cs.
               Marks are recorded here and in runtime/README.md instead of in the files
               (ADR 0004 amendment). stagehand-net (MIT) is compared with, never copied.
 

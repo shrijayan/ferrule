@@ -178,6 +178,7 @@ public abstract record class ParamsBase
         {
             ParamsBase.AddQueryElementToCollection(collection, item.Key, item.Value);
         }
+//ferrule:slot auth_query
         StringBuilder sb = new();
         bool first = true;
         foreach (var key in collection.AllKeys)

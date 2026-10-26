@@ -1,6 +1,7 @@
 //! What the C# runtime template needs from the plugin (`runtime/csharp`, rendered by
 //! `ferrule_runtime.render_csharp_files`): its names and the credentials block of
-//! `ParamsBase.AddDefaultHeaders` (the `auth_headers` slot).
+//! `ParamsBase.AddDefaultHeaders` (the `auth_headers` slot) and of `ParamsBase.QueryString` (the
+//! `auth_query` slot).
 
 use std::fmt::Write as _;
 
@@ -16,31 +17,40 @@ pub struct RuntimeOptions {
     pub client_name: String,
     pub env_prefix: String,
     pub auth_headers: String,
+    /// The `auth_query` slot of `ParamsBase.QueryString`; empty without an API key in the query.
+    pub auth_query: String,
 }
 
 impl RuntimeOptions {
     /// The options as the JSON object `ferrule generate` passes to `CSharpOptions(**options)`.
     #[must_use]
     pub fn to_json(&self) -> String {
-        let value = serde_json::json!({
+        let mut value = serde_json::json!({
             "namespace": self.namespace,
             "client_name": self.client_name,
             "env_prefix": self.env_prefix,
             "auth_headers": self.auth_headers,
         });
+        // Written only when set, so the options of an SDK without one are unchanged.
+        if !self.auth_query.is_empty() {
+            value["auth_query"] = serde_json::Value::String(self.auth_query.clone());
+        }
         let mut text = serde_json::to_string_pretty(&value).unwrap_or_default();
         text.push('\n');
         text
     }
 }
 
-/// The statements that add the credentials, in the order the client options name the schemes.
-fn auth_headers(g: &Gen<'_>) -> String {
+/// The statements that add the credentials, in the order the client options name the schemes:
+/// those of `AddDefaultHeaders`, and those of `QueryString` (an API key in the query). An API key
+/// in a cookie is not sent, as in the Python plugin.
+fn credentials(g: &Gen<'_>) -> (String, String) {
     let Some(s) = g.client.settings.as_ref() else {
-        return String::new();
+        return (String::new(), String::new());
     };
     let casings = Casings(&g.client.casings);
     let mut out = String::new();
+    let mut query = String::new();
     let mut done: Vec<&str> = Vec::new();
     for o in &s.opts {
         let Some(auth) = &o.auth else { continue };
@@ -89,19 +99,30 @@ fn auth_headers(g: &Gen<'_>) -> String {
                     "        if (options.{name} != null)\n        {{\n            request.Headers.Add(\"{header}\", options.{name});\n        }}\n"
                 );
             }
+            SecurityScheme::ApiKey {
+                location: ApiKeyLocation::Query,
+                name: param,
+            } => {
+                let _ = write!(
+                    query,
+                    "        if (options.{name} != null)\n        {{\n            collection.Add(\"{param}\", options.{name});\n        }}\n"
+                );
+            }
             _ => {}
         }
     }
-    out
+    (out, query)
 }
 
 /// The runtime's options for this SDK.
 #[must_use]
 pub fn runtime_options(g: &Gen<'_>) -> RuntimeOptions {
+    let (auth_headers, auth_query) = credentials(g);
     RuntimeOptions {
         namespace: g.target.ns.clone(),
         client_name: g.target.client.clone(),
         env_prefix: g.target.env_prefix.clone(),
-        auth_headers: auth_headers(g),
+        auth_headers,
+        auth_query,
     }
 }
