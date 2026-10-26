@@ -618,7 +618,13 @@ fn call_props(ctx: &Ctx<'_>, plan: &MethodPlan<'_>) -> (Option<String>, Vec<(Str
                 names.push("...query".to_owned());
                 props.push(shorthand("query"));
             }
-            let line = render(&specifiers("const ", &names, " = params;"), 4, WIDTH);
+            // Optional params may be `null` (papr-typescript's `memory.deleteAll`).
+            let source = if plan.params_required {
+                " = params;"
+            } else {
+                " = params ?? {};"
+            };
+            let line = render(&specifiers("const ", &names, source), 4, WIDTH);
             (Some(line), props)
         }
     }
