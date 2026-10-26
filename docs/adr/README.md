@@ -26,3 +26,4 @@ Stainless output needs an ADR.
 | [0018](./0018-older-generator-styles-from-the-adopted-runtime.md) | Emit an older generator's style when the adopted runtime is older | Proposed | 2026-10-26 |
 | [0019](./0019-rust-sdk-ferrule-original-target.md) | Generate Rust SDKs as a Ferrule-original target | Proposed | 2026-10-26 |
 | [0020](./0020-one-command-generate-in-ferrule-gen.md) | Generate a Python SDK with `ferrule-gen` alone | Proposed | 2026-10-26 |
+| [0021](./0021-curl-install-and-one-version.md) | Install Ferrule with curl, release it as one version | Proposed | 2026-10-26 |

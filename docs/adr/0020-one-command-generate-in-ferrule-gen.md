@@ -61,12 +61,8 @@ for `ferrule generate --target ...`, adopt and the golden tests.
 
 ### Distribution
 
-- GitHub releases carry `ferrule-gen` archives for macOS, Linux and Windows, plus a shell and a
-  PowerShell installer, built by cargo-dist.
-- PyPI carries `ferrule-gen` as a binary-only wheel (maturin, `bindings = "bin"`), so
-  `uvx ferrule-gen generate ...` works, and `ferrule` depends on it.
-- Release wiring is a separate change: it needs a release-please component for the crate and a
-  PyPI trusted publisher for the new project.
+Superseded by [ADR 0021](./0021-curl-install-and-one-version.md): release archives and a
+`curl | sh` installer, no binary wheel.
 
 ### Consequences
 
