@@ -347,6 +347,38 @@ fn emits_header_api_keys_optional_and_several_env_options() {
     assert!(out.contains("by passing region to the client\""));
 }
 
+/// A client option with a `default` (the opencode SDK's basic-auth `username: opencode`) takes it
+/// when neither the argument nor its environment variable gives one, before the required check.
+#[test]
+fn applies_a_client_option_default_after_the_environment() {
+    let mut c = sdk(vec![method(Some(SdkType::Object(obj_with("id"))))]);
+    let s = c.settings.as_mut().expect("settings");
+    let opt = s.opts[0].clone();
+    s.opts = vec![
+        SdkClientOpt {
+            name: "username".into(),
+            nullable: true,
+            default: Some(serde_json::json!("opencode")),
+            read_env: Some("ACME_USERNAME".into()),
+            auth: None,
+            ..opt.clone()
+        },
+        SdkClientOpt {
+            name: "region".into(),
+            default: Some(serde_json::json!("us")),
+            read_env: None,
+            auth: None,
+            ..opt
+        },
+    ];
+    let out = emit_client_file(&c).expect("emits");
+    let want = "        if username is None:\n            username = os.environ.get(\"ACME_USERNAME\")\n        \
+                if username is None:\n            username = \"opencode\"\n        self.username = username\n";
+    assert!(out.contains(want), "{out}");
+    assert!(out.contains("        if region is None:\n            region = \"us\"\n"), "{out}");
+    assert!(!out.contains("by passing region to the client"), "{out}");
+}
+
 /// Several auth schemes (papr-python `_client.py`: an API key header, a nullable session token
 /// header, a nullable bearer token, each its own security requirement): `auth_headers` merges
 /// one property per scheme, the last requirement first, so the first one wins.
