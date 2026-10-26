@@ -153,6 +153,81 @@
         }
       }
     },
+    "/audiences/watch": {
+      "get": {
+        "operationId": "watchAudiences",
+        "responses": {
+          "200": {
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "$ref": "#/components/schemas/Audience"
+                }
+              }
+            },
+            "description": "ok"
+          }
+        },
+        "x-fern-sdk-group-name": [
+          "audiences"
+        ],
+        "x-fern-sdk-method-name": "watch",
+        "x-ferrule-client": {
+          "defaultEnvironment": "production",
+          "defaultHeaders": {},
+          "envPrefix": "FX",
+          "environments": [
+            {
+              "name": "production",
+              "url": "https://api.example.com"
+            }
+          ],
+          "name": "fx",
+          "omitPlatformHeaders": false,
+          "opts": [],
+          "query": {
+            "arrayFormat": "comma",
+            "nestedFormat": "brackets"
+          },
+          "retries": {
+            "initialDelaySeconds": 0.5,
+            "maxDelaySeconds": 8,
+            "maxRetries": 2
+          },
+          "security": [],
+          "securitySchemes": {},
+          "timeoutSeconds": 60
+        },
+        "x-ferrule-method-name": "watch",
+        "x-ferrule-method-order": 2,
+        "x-ferrule-models": {
+          "Audience": {
+            "module": "audience",
+            "name": "Audience"
+          }
+        },
+        "x-ferrule-package": {
+          "name": "fx",
+          "repo": "fx/fx-python"
+        },
+        "x-ferrule-resource": {
+          "order": [
+            0
+          ],
+          "path": [
+            "audiences"
+          ]
+        },
+        "x-ferrule-streaming": {
+          "eventModel": "audiences.audience",
+          "eventSchema": "Audience",
+          "format": "sse",
+          "onEvent": [],
+          "paramDiscriminator": null,
+          "synthesizeEventAndData": false
+        }
+      }
+    },
     "/audiences/{key}": {
       "get": {
         "operationId": "getAudience",

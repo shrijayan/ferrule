@@ -27,6 +27,12 @@ resources:
       list:
         endpoint: get /audiences
         paginated: cursor_page
+      watch:
+        endpoint: get /audiences/watch
+        type: http
+        streaming:
+          param_discriminator: null
+          stream_event_model: audiences.audience
 readme:
   example_requests:
     default: {type: request, endpoint: 'get /audiences', params: {}}

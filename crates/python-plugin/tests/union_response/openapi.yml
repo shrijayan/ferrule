@@ -9,6 +9,11 @@ paths:
         - {name: key, in: path, required: true, schema: {type: string}}
       responses:
         '200': {description: ok, content: {application/json: {schema: {$ref: '#/components/schemas/Audience'}}}}
+  /audiences/watch:
+    get:
+      operationId: watchAudiences
+      responses:
+        '200': {description: ok, content: {text/event-stream: {schema: {$ref: '#/components/schemas/Audience'}}}}
   /audiences:
     get:
       operationId: listAudiences
