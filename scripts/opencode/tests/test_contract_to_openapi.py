@@ -190,6 +190,16 @@ def test_document_shape() -> None:
     assert doc["components"]["schemas"]["Event"] == {"type": "string"}
 
 
+def test_unwrap_data_is_marked() -> None:
+    # The SDK's own generator returned `data` for these: the config unwraps them the same way.
+    contract = _contract()
+    op = convert(contract)["paths"]["/api/session/{sessionID}"]["get"]
+    assert "x-opencode-unwrap-data" not in op
+    contract["groups"][0]["endpoints"][0]["success"]["unwrapData"] = True
+    op = convert(contract)["paths"]["/api/session/{sessionID}"]["get"]
+    assert op["x-opencode-unwrap-data"] is True
+
+
 def test_value_operation() -> None:
     op = convert(_contract())["paths"]["/api/session/{sessionID}"]["get"]
     assert op["tags"] == ["session"]

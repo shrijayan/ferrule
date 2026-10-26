@@ -136,3 +136,24 @@ def test_main_rewrites_the_config(tmp_path: Path) -> None:
     config.write_text(CONFIG)
     assert main([str(spec), str(config)]) == 0
     assert config.read_text() == apply(CONFIG, SPEC)
+
+
+def test_apply_unwraps_the_operations_the_contract_marks() -> None:
+    spec: Json = {
+        "paths": {
+            "/api/agent/{agentID}": {"get": {"x-opencode-unwrap-data": True}},
+            "/api/agent": {"get": {}},
+        },
+        "components": {"schemas": {}},
+    }
+    config = CONFIG.replace(
+        "      get: get /api/agent/{agentID}\n",
+        "      get: get /api/agent/{agentID}\n      list: get /api/agent\n",
+    )
+    once = apply(config, spec)
+    assert (
+        "      get:\n        endpoint: get /api/agent/{agentID}\n        unwrap_response: data\n"
+        in once
+    )
+    assert "      list: get /api/agent\n" in once
+    assert apply(once, spec) == once
