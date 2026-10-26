@@ -41,3 +41,20 @@ fn body_schemes_read_the_previous_request_from_the_body() {
     );
     assert!(!pagination.contains("this.options.query"), "{pagination}");
 }
+
+/// `buildURL` takes an absolute path as is, so the next URL keeps its origin, and a base URL
+/// ending in `/v1` is not prefixed to a path that already starts with `/v1`.
+#[test]
+fn cursor_url_requests_the_whole_next_url() {
+    let f = files();
+    has(
+        file(&f, "src/core/pagination.ts"),
+        "    const next = new URL(url);
+    return {
+      ...this.options,
+      path: next.toString(),
+      query: Object.fromEntries(next.searchParams),
+    };
+",
+    );
+}
