@@ -65,9 +65,15 @@ fn go_param_type(o: &ClientOpt) -> &'static str {
     }
 }
 
-/// Where a client setting is sent, from its `send` or its security scheme.
+/// Where a client setting is sent, from its `send` or its security scheme. `WithHeader` and
+/// `WithQuery` take strings, so a number or boolean setting goes through `fmt.Sprint` (no
+/// oracle sends one).
 fn apply(g: &Gen<'_>, o: &ClientOpt, field: &str) -> Option<String> {
-    let value = format!("*r.{field}");
+    let value = if o.ty == OptType::String {
+        format!("*r.{field}")
+    } else {
+        format!("fmt.Sprint(*r.{field})")
+    };
     if let Some(send) = &o.send {
         return Some(match send.location {
             SendLocation::Query => format!("WithQuery({}, {value})", quote(&send.name)),
