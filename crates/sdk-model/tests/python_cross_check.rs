@@ -352,6 +352,17 @@ impl Python<'_> {
             .filter(|b| b.media_type.eq_ignore_ascii_case("multipart/form-data"))
             .map(|b| file_paths(self.client, &b.ty))
             .unwrap_or_default();
+        // An unwrapped method returns the envelope field's type (a missing field: the envelope).
+        let envelope = m.response.as_ref().map(|r| self.ty(&r.ty));
+        let inner = m.response.as_ref().and_then(|r| r.unwrap.as_ref()).and_then(|field| {
+            let object = envelope.as_ref().and_then(|e| self.object_of(e))?;
+            let f = object.fields.iter().find(|f| f.wire_name == *field)?;
+            Some((f.ty.clone(), field.clone()))
+        });
+        let (response, unwrap) = match inner {
+            Some((ty, field)) => (Some(ty), Some(field)),
+            None => (envelope, None),
+        };
         py::SdkMethod {
             name: m.name.written.clone(),
             pointer: m.pointer.clone(),
@@ -379,7 +390,8 @@ impl Python<'_> {
             body_variants,
             body_discriminator,
             body_file_paths,
-            response: m.response.as_ref().map(|r| self.ty(&r.ty)),
+            response,
+            unwrap,
             pagination: m.pagination.as_ref().map(|p| self.pagination(p)),
             streaming: m.streaming.as_ref().map(|s| py::SdkStreaming {
                 format: match s.format {

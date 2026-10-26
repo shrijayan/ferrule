@@ -234,8 +234,11 @@ pub struct SdkMethod {
     /// for every item of an array), sent as files (`extract_files(..., paths=[["file"]])`).
     /// Empty for a body sent as JSON.
     pub body_file_paths: Vec<Vec<String>>,
-    /// The decoded `2XX` JSON response, or `None` for none.
+    /// The decoded `2XX` JSON response, or `None` for none: with `unwrap`, the type of that
+    /// envelope field.
     pub response: Option<SdkType>,
+    /// The response envelope field the method returns (`unwrap_response`), by wire name.
+    pub unwrap: Option<String>,
     pub pagination: Option<SdkPagination>,
     pub streaming: Option<SdkStreaming>,
 }

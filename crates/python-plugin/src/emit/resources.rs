@@ -15,6 +15,7 @@ use crate::diagnostics::{FerCode, FerruleError};
 use crate::model::{
     HttpVerb, ParamLocation, SdkClient, SdkLiteral, SdkMethod, SdkParam, SdkPrimitive, SdkResource, SdkType,
 };
+use crate::naming::{pascal_case, split_words};
 use crate::printer::PythonPrinter;
 use crate::type_mapper::{AnnotationContext, is_nullable, to_annotation};
 
@@ -512,6 +513,50 @@ fn binary_content(s: &FileState<'_>, p: &mut PythonPrinter, awaits: bool) -> Exp
     .into()
 }
 
+/// `options=make_request_options(...)` and `cast_to=` (`model=` for a page): an unwrapped envelope
+/// field adds a post-parser and casts through its wrapper, as ogx-client-python's
+/// `providers.list` does (`DataWrapper[ProviderListResponse]`).
+#[allow(clippy::too_many_arguments)]
+fn push_options_and_cast(
+    s: &FileState<'_>,
+    p: &mut PythonPrinter,
+    method: &SdkMethod,
+    items: &mut Vec<Expr>,
+    query: Option<Expr>,
+    paged: bool,
+    no_content: bool,
+    model: &str,
+) {
+    imp(s, p, "_base_client", "make_request_options");
+    let mut options: Vec<Expr> = OPTIONS_ARGS.iter().map(|&a| a.into()).collect();
+    let multiline = query.is_some() || method.unwrap.is_some();
+    options.extend(query);
+    let wrapper = method.unwrap.as_deref().map(wrapper_class);
+    if let Some(w) = &wrapper {
+        options.push(format!("post_parser={w}[{model}]._unwrapper").into());
+    }
+    items.push(call("options=make_request_options(", options, multiline).into());
+    if paged {
+        items.push(format!("model={model}").into());
+    } else if no_content {
+        imp(s, p, "_types", "NoneType");
+        items.push("cast_to=NoneType".into());
+    } else if let Some(w) = &wrapper {
+        p.import_from("typing", "Type");
+        p.import_from("typing", "cast");
+        imp(s, p, "_wrappers", w);
+        items.push(format!("cast_to=cast(Type[{model}], {w}[{model}])").into());
+    } else {
+        items.push(format!("cast_to={model}").into());
+    }
+}
+
+/// The wrapper class of an unwrapped envelope field: `data` -> `DataWrapper`.
+#[must_use]
+pub fn wrapper_class(field: &str) -> String {
+    format!("{}Wrapper", pascal_case(&split_words(field)))
+}
+
 /// FER201 for a method shape [`emit_method`] does not generate yet.
 fn check_supported(method: &SdkMethod) -> Result<(), FerruleError> {
     let switch = stream_switch(method);
@@ -738,23 +783,26 @@ fn emit_method(
         let against = body_against(switch, &params_name);
         items.push(transform_expr(s, p, "body", &body, against, awaits && page.is_none()).into());
     }
-    imp(s, p, "_base_client", "make_request_options");
-    let options: Vec<Expr> = OPTIONS_ARGS.iter().map(|&a| a.into()).collect();
-    if query.is_empty() {
-        items.push(call("options=make_request_options(", options, false).into());
-    } else {
-        let mut options = options;
-        options.push(transform_expr(s, p, "query", &query, params_name.clone().into(), awaits).into());
-        items.push(call("options=make_request_options(", options, true).into());
-    }
-    if page.is_some() {
-        items.push(format!("model={model}").into());
-    } else if ret.is_none() && stream.is_none() {
-        imp(s, p, "_types", "NoneType");
-        items.push("cast_to=NoneType".into());
-    } else {
-        items.push(format!("cast_to={model}").into());
-    }
+    let query_option = (!query.is_empty()).then(|| {
+        Expr::from(transform_expr(
+            s,
+            p,
+            "query",
+            &query,
+            params_name.clone().into(),
+            awaits,
+        ))
+    });
+    push_options_and_cast(
+        s,
+        p,
+        method,
+        &mut items,
+        query_option,
+        page.is_some(),
+        ret.is_none() && stream.is_none(),
+        &model,
+    );
     if page.is_some() && method.http_method != HttpVerb::Get {
         items.push(format!("method=\"{}\"", method.http_method.as_str()).into());
     }

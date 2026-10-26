@@ -397,6 +397,22 @@ impl Context<'_> {
         }))
     }
 
+    /// The envelope field the method returns instead of `envelope` (`x-ferrule-unwrap`), with
+    /// its wire name; `envelope` itself when there is none or the field is missing.
+    fn unwrap(&self, envelope: Option<SdkType>) -> (Option<SdkType>, Option<String>) {
+        let Some(field) = self.ext.unwrap.as_ref() else {
+            return (envelope, None);
+        };
+        let inner = self
+            .object_of(envelope.as_ref())
+            .and_then(|o| o.fields.iter().find(|f| f.wire_name == *field))
+            .map(|f| f.ty.clone());
+        match inner {
+            Some(ty) => (Some(ty), Some(field.clone())),
+            None => (envelope, None),
+        }
+    }
+
     fn read_method(&mut self, method: Method<'_>) -> Result<SdkMethod, FerruleError> {
         let http = method.http_method().as_str();
         let verb = match http.to_lowercase().as_str() {
@@ -414,7 +430,8 @@ impl Context<'_> {
             .responses()
             .find_map(forge::Response::json)
             .map(forge::Content::ty);
-        let response = response_type.map(|t| self.read_type(t)).transpose()?;
+        let envelope = response_type.map(|t| self.read_type(t)).transpose()?;
+        let (response, unwrap) = self.unwrap(envelope);
         if let Some(clash) = response.as_ref().and_then(attribute_clash) {
             return Err(clash_error(self.pointer, &clash));
         }
@@ -477,6 +494,7 @@ impl Context<'_> {
                 .map(|c| file_paths(c.ty()))
                 .unwrap_or_default(),
             response,
+            unwrap,
             pagination,
             streaming,
         })
