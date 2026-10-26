@@ -119,7 +119,7 @@ def tools(tmp_path: Path) -> Tools:
     return Tools(gen=write(tmp_path / "tools/ferrule-gen"), ruff=sys.executable)
 
 
-def render(package: str, package_dir: Path, /) -> None:
+def render(package: str, package_dir: Path, /, **_: object) -> None:
     write(package_dir / "_utils/__init__.py", f"# {package} runtime\n")
 
 

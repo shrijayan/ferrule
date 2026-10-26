@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import hashlib
 import importlib
+import json
 import os
 import re
 import shutil
@@ -21,7 +22,7 @@ import subprocess
 import tempfile
 from dataclasses import dataclass, replace
 from pathlib import Path, PurePosixPath
-from typing import TYPE_CHECKING, Protocol, cast
+from typing import TYPE_CHECKING, Any, Protocol, cast
 
 from ferrule.errors import (
     MISSING_INPUT,
@@ -64,10 +65,12 @@ SKIP_PARTS = frozenset({"__pycache__", ".ruff_cache", ".mypy_cache", ".pytest_ca
 class RuntimeRenderer(Protocol):
     """What ``ferrule_runtime.render`` must look like for ``generate`` to use it.
 
-    It writes the runtime modules for ``package`` into ``package_dir`` (``<out>/src/<package>``).
+    It writes the runtime modules for ``package`` into ``package_dir`` (``<out>/src/<package>``),
+    and ``pagination.py`` when it is given ``pagination``: the annotated spec's
+    ``x-ferrule-page-schemes`` entries.
     """
 
-    def __call__(self, package: str, package_dir: Path, /) -> object:
+    def __call__(self, package: str, package_dir: Path, /, **options: Any) -> object:  # noqa: ANN401 - renderer options
         """Render the runtime for ``package`` into ``package_dir``."""
         ...
 
@@ -280,6 +283,20 @@ def tree_digest(root: Path) -> str:
     return h.hexdigest()
 
 
+def page_schemes(annotated: Path) -> list[object]:
+    """Return the ``x-ferrule-page-schemes`` entries the converter wrote, if any."""
+    try:
+        spec: object = json.loads(annotated.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return []
+    schemes = (
+        cast("dict[str, object]", spec).get("x-ferrule-page-schemes")
+        if isinstance(spec, dict)
+        else None
+    )
+    return list(cast("list[object]", schemes)) if isinstance(schemes, list) else []
+
+
 def load_renderer() -> RuntimeRenderer | None:
     """``ferrule_runtime.render`` when the runtime package provides it."""
     try:
@@ -453,6 +470,7 @@ def generate(
     with tempfile.TemporaryDirectory(prefix="ferrule-") as tmp:
         for step in plan_steps(planned, Path(tmp)):
             _run(step, runner)
+        pages = page_schemes(Path(tmp) / "annotated.json")
     rendered: tuple[PurePosixPath, ...] = ()
     if request.runtime_from is not None and own:
         package, runtime_count = _copy_runtime(request.runtime_from, request.out)
@@ -460,7 +478,10 @@ def generate(
         package = pick_package(_src_packages(request.out), "--out")
         package_dir = request.out / "src" / package
         before = set(relative_files(package_dir))
-        renderer(package, package_dir)
+        if pages:
+            renderer(package, package_dir, pagination=pages)
+        else:
+            renderer(package, package_dir)
         prefix = PurePosixPath("src", package)
         rendered = tuple(prefix / p for p in relative_files(package_dir) if p not in before)
         runtime_count = len(rendered)
