@@ -487,11 +487,12 @@ impl PType {
         }
     }
 
-    /// The converter of a list item or map value: `'string'`, `AITag::class`.
+    /// The converter of a list item or map value: `'string'`, `AITag::class`,
+    /// `\DateTimeInterface::class` (`'DateTimeInterface'`, the name `Conversion` matches).
     pub fn converter(&self, imp: &mut Imports) -> String {
         match self {
             Self::Model(c) | Self::Enum(c) | Self::Union(c, _) => format!("{}::class", imp.class(c)),
-            Self::DateTime => "'\\DateTimeInterface'".to_owned(),
+            Self::DateTime => "\\DateTimeInterface::class".to_owned(),
             Self::Nullable(t) | Self::Rec(t) => t.converter(imp),
             other => format!("'{}'", other.native(imp)),
         }
