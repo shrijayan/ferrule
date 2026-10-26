@@ -76,8 +76,40 @@ impl<'a> Examples<'a> {
                 let (decl, file) = self.find(name, ns.as_deref(), home)?;
                 self.decl(decl, wire, file, typed, depth)
             }
-            CsType::List(_) | CsType::Json | CsType::Dict(_) => None,
+            // As Stainless's tests fill them (imagekit-dotnet's `CustomMetadata`).
+            CsType::Json => {
+                self.usings.insert("System.Text.Json".to_owned());
+                Some("JsonSerializer.SerializeToElement(\"bar\")".to_owned())
+            }
+            CsType::Dict(item) => {
+                let spelled = self.spell(item, home)?;
+                let v = self.value(item, "foo", home, false, depth + 1)?;
+                self.usings.insert("System.Collections.Generic".to_owned());
+                Some(format!("new Dictionary<string, {spelled}>() {{ {{ \"foo\", {v} }} }}"))
+            }
+            CsType::List(_) => None,
             scalar => scalar.example(wire),
+        }
+    }
+
+    /// The type argument a test spells for `ty`, with the `using` it needs; `None` for a type it
+    /// does not spell (a list, a dictionary, an enum or a date-time).
+    fn spell(&mut self, ty: &CsType, home: &'a ModelFile) -> Option<String> {
+        match ty {
+            CsType::String | CsType::Date | CsType::Long | CsType::Double | CsType::Bool => Some(ty.spell()),
+            CsType::Json => {
+                self.usings.insert("System.Text.Json".to_owned());
+                Some(ty.spell())
+            }
+            CsType::Class { name, ns } => {
+                let (decl, file) = self.find(name, ns.as_deref(), home)?;
+                match decl {
+                    Decl::Object(o) => Some(self.named(&o.name, file)),
+                    Decl::Union(u) => Some(self.named(&u.name, file)),
+                    Decl::Enum(_) | Decl::Member(_) => None,
+                }
+            }
+            _ => None,
         }
     }
 
