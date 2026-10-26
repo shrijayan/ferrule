@@ -77,8 +77,8 @@ pub enum PType {
     Map(Box<PType>),
     /// A class using `SdkModel`.
     Model(ClassPath),
-    /// A backed enum.
-    Enum(ClassPath),
+    /// A backed enum, and the type of its values.
+    Enum(ClassPath, Backing),
     /// A class using `SdkUnion`, with its variants' types.
     Union(ClassPath, Vec<PType>),
     /// `inner` or null, inside a list, map or union (a field's own nullability is
@@ -89,6 +89,32 @@ pub enum PType {
     /// A reference to a model on a reference cycle: phpdoc and the native type say `mixed`
     /// (phpstan cannot resolve a recursive type alias); the converter keeps the class.
     Rec(Box<PType>),
+}
+
+/// The type of a backed enum's values: `enum Status: string`, `enum Level: int`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Backing {
+    String,
+    Int,
+}
+
+impl Backing {
+    /// The backing of an enum whose first member is `first`: `int` for a number.
+    #[must_use]
+    pub fn of(first: Option<&Literal>) -> Self {
+        match first {
+            Some(Literal::Number(_)) => Self::Int,
+            _ => Self::String,
+        }
+    }
+
+    #[must_use]
+    pub fn native(self) -> &'static str {
+        match self {
+            Self::String => "string",
+            Self::Int => "int",
+        }
+    }
 }
 
 /// A PHP literal: `'S3'`, `1`, `true`.
@@ -325,7 +351,8 @@ impl PType {
     pub fn native(&self, imp: &mut Imports) -> String {
         match self {
             // A file is stored as its contents; an enum as its value.
-            Self::String | Self::Date | Self::File | Self::Enum(_) => "string".to_owned(),
+            Self::String | Self::Date | Self::File => "string".to_owned(),
+            Self::Enum(_, b) => b.native().to_owned(),
             Self::Int => "int".to_owned(),
             Self::Float => "float".to_owned(),
             Self::Bool => "bool".to_owned(),
@@ -345,12 +372,12 @@ impl PType {
     }
 
     /// The native type of a constructor or setter parameter: a model also takes its shape
-    /// (`array`), an enum its value (`string`).
+    /// (`array`), an enum its value (`string`, `int`).
     pub fn param_native(&self, imp: &mut Imports) -> String {
         match self {
             Self::Model(c) => format!("{}|array", imp.class(c)),
             Self::File => format!("string|{}", imp.runtime(&["Core", "FileParam"])),
-            Self::Enum(c) => format!("{}|string", imp.class(c)),
+            Self::Enum(c, b) => format!("{}|{}", imp.class(c), b.native()),
             Self::Union(_, variants) => join_unique(variants.iter().map(|v| v.param_native(imp)).collect()),
             Self::Nullable(inner) => format!("{}|null", inner.param_native(imp)),
             Self::Rec(_) => "mixed".to_owned(),
@@ -379,7 +406,7 @@ impl PType {
     /// native type says it all.
     pub fn var_doc(&self, imp: &mut Imports) -> Option<String> {
         match self {
-            Self::List(_) | Self::Map(_) | Self::Enum(_) | Self::Union(..) | Self::Const(_) => Some(self.doc(imp)),
+            Self::List(_) | Self::Map(_) | Self::Enum(..) | Self::Union(..) | Self::Const(_) => Some(self.doc(imp)),
             _ => None,
         }
     }
@@ -389,7 +416,7 @@ impl PType {
         match self {
             Self::List(t) => format!("list<{}>", t.doc(imp)),
             Self::Map(t) => format!("array<string,{}>", t.doc(imp)),
-            Self::Enum(c) => format!("value-of<{}>", imp.class(c)),
+            Self::Enum(c, _) => format!("value-of<{}>", imp.class(c)),
             Self::Union(c, _) => imp.type_alias(&Self::alias(c, "Variants"), c, ImportKind::Variants),
             Self::Const(v) => literal(v),
             Self::Nullable(t) => format!("{}|null", t.doc(imp)),
@@ -408,7 +435,7 @@ impl PType {
                 let shape = imp.type_alias(&Self::alias(c, "Shape"), c, ImportKind::Shape);
                 format!("{name}|{shape}")
             }
-            Self::Enum(c) => {
+            Self::Enum(c, _) => {
                 let name = imp.class(c);
                 format!("{name}|value-of<{name}>")
             }
@@ -439,7 +466,7 @@ impl PType {
         match self {
             Self::List(t) => Some(format!("list: {}", t.converter(imp))),
             Self::Map(t) => Some(format!("map: {}", t.converter(imp))),
-            Self::Enum(c) => Some(format!("enum: {}::class", imp.class(c))),
+            Self::Enum(c, _) => Some(format!("enum: {}::class", imp.class(c))),
             Self::Union(c, variants) if variants.iter().any(Self::needs_converter) => {
                 Some(format!("union: {}::class", imp.class(c)))
             }
@@ -491,7 +518,7 @@ impl PType {
     /// `\DateTimeInterface::class` (`'DateTimeInterface'`, the name `Conversion` matches).
     pub fn converter(&self, imp: &mut Imports) -> String {
         match self {
-            Self::Model(c) | Self::Enum(c) | Self::Union(c, _) => format!("{}::class", imp.class(c)),
+            Self::Model(c) | Self::Enum(c, _) | Self::Union(c, _) => format!("{}::class", imp.class(c)),
             Self::DateTime => "\\DateTimeInterface::class".to_owned(),
             Self::Nullable(t) | Self::Rec(t) => t.converter(imp),
             other => format!("'{}'", other.native(imp)),

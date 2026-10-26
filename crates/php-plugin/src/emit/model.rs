@@ -288,10 +288,7 @@ fn class_file(g: &Gen<'_>, c: &Class) -> String {
 
 fn enum_file(g: &Gen<'_>, e: &EnumDecl) -> String {
     let imp = imports(g, &e.path);
-    let backing = match e.members.first().map(|m| &m.value) {
-        Some(ferrule_sdk_model::model::Literal::Number(_)) => "int",
-        _ => "string",
-    };
+    let backing = crate::types::Backing::of(e.members.first().map(|m| &m.value)).native();
     let mut body = docblock(&[text_lines(&e.description)], 0);
     let _ = writeln!(body, "enum {}: {backing}\n{{", e.path.name());
     let cases: Vec<String> = e

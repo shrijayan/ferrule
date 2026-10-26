@@ -7,7 +7,7 @@ use ferrule_sdk_model::model::{Client, Field, Literal, Method, ModelDecl, Object
 use serde_json::Value;
 
 use crate::naming::{Casings, camel, case_name, class_name, class_words, singular, split_words, type_name, words};
-use crate::types::{ClassPath, PType};
+use crate::types::{Backing, ClassPath, PType};
 
 /// A field of a model or a parameter of a method.
 #[derive(Debug, Clone, PartialEq)]
@@ -242,7 +242,7 @@ impl<'a> Builder<'a> {
     fn named_type(&self, r: &TypeRef) -> PType {
         let c = self.model_path(r);
         match self.client.model(r).map(|d| &d.ty) {
-            Some(Type::Enum { .. }) => PType::Enum(c),
+            Some(Type::Enum { members }) => PType::Enum(c, backing(members)),
             Some(Type::Union(u)) => {
                 let mut scratch = self.scratch();
                 let variants = scratch.union(c.clone(), u, String::new()).variants;
@@ -296,7 +296,7 @@ impl<'a> Builder<'a> {
                 let c = parent.child(&type_name(name, self.casings));
                 let e = enum_decl(c.clone(), members, doc.to_owned());
                 self.decls.push(Decl::Enum(e));
-                PType::Enum(c)
+                PType::Enum(c, backing(members))
             }
             Type::Union(u) => {
                 let c = parent.child(&type_name(name, self.casings));
@@ -568,7 +568,7 @@ impl<'a> Builder<'a> {
             Type::Enum { members } => {
                 self.decls
                     .push(Decl::Enum(enum_decl(path.clone(), members, String::new())));
-                PType::Enum(path.clone())
+                PType::Enum(path.clone(), backing(members))
             }
             Type::Union(u) => {
                 let decl = self.union(path.clone(), u, String::new());
@@ -621,6 +621,11 @@ fn enum_decl(path: ClassPath, members: &[ferrule_sdk_model::model::EnumMember], 
         path,
         description,
     }
+}
+
+/// The type of an enum's values, from its first member (as the enum declares it).
+fn backing(members: &[ferrule_sdk_model::model::EnumMember]) -> Backing {
+    Backing::of(members.first().map(|m| &m.value))
 }
 
 /// The type of a literal value: an optional field with one allowed value has it.
