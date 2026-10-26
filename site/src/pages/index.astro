@@ -328,34 +328,9 @@ const testsLabel = (r: BoardRow): string => {
           <a class="btn btn-brass btn-lg" href={`${docs}quickstart/`}>Get started</a>
         </div>
         <p class="hero-note reveal d3">
-          Pre-alpha · then <code>ferrule-gen generate</code> · or paste the prompt into your coding agent: it reads{' '}
-          <a href="/llms.txt">llms.txt</a> and does the setup
+          Pre-alpha · then <code>ferrule-gen generate</code> · or let your coding agent set it up from{' '}
+          <a href="/llms.txt">llms.txt</a>
         </p>
-        <div class="hero-io reveal d3" aria-label="Inputs and outputs">
-          <div class="hio-group hio-in">
-            <span class="hio-label">Reads</span>
-            {
-              inputs.map(([logo, label]) => (
-                <span class="hio-chip">
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d={LOGOS[logo]} /></svg>
-                  {label}
-                </span>
-              ))
-            }
-          </div>
-          <span class="hio-arrow" aria-hidden="true">→</span>
-          <div class="hio-group hio-out">
-            <span class="hio-label">Writes</span>
-            {
-              outputs.map(([logo, label]) => (
-                <span class="hio-chip" title={label}>
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d={LOGOS[logo]} /></svg>
-                  {label}
-                </span>
-              ))
-            }
-          </div>
-        </div>
 
         <div class="stage reveal" id="stage">
           <div class="annot a1"><b>The config</b></div>
@@ -407,10 +382,40 @@ const testsLabel = (r: BoardRow): string => {
           </div>
         </div>
 
-        <div class="stage-foot reveal">
-          <span>OpenAPI 3.x and stainless.yml in</span>
-          <span>SDKs out, in eight languages</span>
-          <span>One Rust binary, Forge built in</span>
+        <div class="lwall reveal" aria-label="What Ferrule reads and writes">
+          <div class="lw-side lw-in">
+            <div class="lw-head"><span>Reads</span><i></i></div>
+            <ul class="lw-grid">
+              {
+                inputs.map(([logo, label]) => (
+                  <li class="lw-tile" style={`--brand: ${LOGOS[logo].color ?? 'var(--text)'}`}>
+                    <span class="lw-well">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d={LOGOS[logo].path} /></svg>
+                    </span>
+                    <span class="lw-name">{label}</span>
+                  </li>
+                ))
+              }
+            </ul>
+          </div>
+          <div class="lw-core" aria-hidden="true">
+            <span class="lw-ring"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14M13 6l6 6-6 6" /></svg></span>
+          </div>
+          <div class="lw-side lw-out">
+            <div class="lw-head"><span>Writes · {outputs.length} languages</span><i></i></div>
+            <ul class="lw-grid">
+              {
+                outputs.map(([logo, label]) => (
+                  <li class="lw-tile" style={`--brand: ${LOGOS[logo].color ?? 'var(--text)'}`}>
+                    <span class="lw-well">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d={LOGOS[logo].path} /></svg>
+                    </span>
+                    <span class="lw-name">{label}</span>
+                  </li>
+                ))
+              }
+            </ul>
+          </div>
         </div>
       </div>
 
