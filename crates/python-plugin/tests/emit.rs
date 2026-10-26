@@ -375,7 +375,10 @@ fn applies_a_client_option_default_after_the_environment() {
     let want = "        if username is None:\n            username = os.environ.get(\"ACME_USERNAME\")\n        \
                 if username is None:\n            username = \"opencode\"\n        self.username = username\n";
     assert!(out.contains(want), "{out}");
-    assert!(out.contains("        if region is None:\n            region = \"us\"\n"), "{out}");
+    assert!(
+        out.contains("        if region is None:\n            region = \"us\"\n"),
+        "{out}"
+    );
     assert!(!out.contains("by passing region to the client"), "{out}");
 }
 

@@ -3,6 +3,7 @@
 //! class with a sync/async mode flag.
 
 use super::common::{HEADER, leaf, py_fstring, py_string, resource_module};
+use super::files_example::py_literal;
 use super::format::{bracket, call, print_expr};
 use super::models::all_list;
 use super::resources::{Mode, class_name, emit_client_methods};
@@ -197,7 +198,12 @@ fn emit_init_body(s: &ClientState<'_>, p: &mut PythonPrinter, mode: Mode) {
                     p.line(&format!("{} = os.environ.get({})", o.name, py_string(env)));
                 });
             }
-            if !o.nullable {
+            if let Some(default) = o.default.as_ref().filter(|d| !d.is_null()) {
+                p.block(&format!("if {} is None:", o.name), |p| {
+                    p.line(&format!("{} = {}", o.name, py_literal(default, false)));
+                });
+            }
+            if !o.nullable && o.default.as_ref().is_none_or(serde_json::Value::is_null) {
                 p.import_from("._exceptions", &s.error_name());
                 let how = o.read_env.as_ref().map_or_else(
                     || format!("by passing {} to the client", o.name),
