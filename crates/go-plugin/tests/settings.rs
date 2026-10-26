@@ -227,3 +227,26 @@ fn default_client_options_carry_configured_defaults() {
 ";
     assert!(client.contains(expected), "{client}");
 }
+
+#[test]
+fn client_retry_tests_expect_the_configured_retries() {
+    let settings = format!(
+        "{API_KEY}
+  default_retries:
+    max_retries: 4
+    initial_delay_seconds: 0.5
+    max_delay_seconds: 8"
+    );
+    let out = go(&spec(OBJECT, BEARER), &config(&settings));
+    assert_eq!(out.runtime.max_retries, 4);
+    let tests = file(&out, "client_test.go");
+    for expected in [
+        "\tif attempts != 5 {\n\t\tt.Errorf(\"Expected %d attempts, got %d\", 5, attempts)\n",
+        "\texpectedRetryCountHeaders := []string{\"0\", \"1\", \"2\", \"3\", \"4\"}\n",
+        "\texpectedRetryCountHeaders := []string{\"\", \"\", \"\", \"\", \"\"}\n",
+        "\texpectedRetryCountHeaders := []string{\"42\", \"42\", \"42\", \"42\", \"42\"}\n",
+        "\tif want := 5; attempts != want {\n",
+    ] {
+        assert!(tests.contains(expected), "{expected}\n{tests}");
+    }
+}
