@@ -1,0 +1,9 @@
+Modified by The Ferrule Authors: imagekit-php's scripts/clean (this line is not emitted).
+#!/usr/bin/env bash
+
+set -e
+
+cd -- "$(dirname -- "$0")/.."
+
+echo "==> Cleaning up..."
+exec -- rm -fr -- ./vendor/ ./.php-cs-fixer.cache
