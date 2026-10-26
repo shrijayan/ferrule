@@ -20,6 +20,32 @@ impl Client {
     /// generate. An `allOf` base left out contributes its fields ahead of the object's own.
     #[must_use]
     pub fn for_target(&self, target: &str) -> Client {
+        let mut out = self.target_view(target);
+        let reachable = reachable(&out);
+        out.models.retain(|d| reachable.contains(&d.r#ref.schema));
+        out
+    }
+
+    /// [`Self::for_target`], but with every model generated for `target` that no kept method
+    /// reaches as well (Stainless declares them all), after the reachable ones and inlined as
+    /// they are. Pure.
+    #[must_use]
+    pub fn for_target_with_models(&self, target: &str) -> Client {
+        let view = self.target_view(target);
+        let mut out = view.clone();
+        let reachable = reachable(&out);
+        out.models.retain(|d| reachable.contains(&d.r#ref.schema));
+        for d in view.models {
+            if !out.models.iter().any(|k| k.r#ref == d.r#ref) {
+                out.models.push(d);
+            }
+        }
+        out
+    }
+
+    /// What `target` generates and every model generated for it, inlined; before the models no
+    /// method reaches are dropped.
+    fn target_view(&self, target: &str) -> Client {
         let dropped: Vec<&ModelDecl> = self.models.iter().filter(|d| !d.is_for(target)).collect();
         let mut inliner = Inliner {
             dropped: &dropped,
@@ -38,8 +64,6 @@ impl Client {
         for d in &mut out.models {
             inliner.ty(&mut d.ty);
         }
-        let reachable = reachable(&out);
-        out.models.retain(|d| reachable.contains(&d.r#ref.schema));
         out
     }
 }

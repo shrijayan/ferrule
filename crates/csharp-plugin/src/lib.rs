@@ -50,15 +50,10 @@ pub struct CSharpOutput {
 /// A FER diagnostic when the C# settings are invalid.
 pub fn generate(client: &Client, meta: &CSharpMeta) -> Result<CSharpOutput, FerruleError> {
     let target = csharp_target(client, meta)?;
-    // Only what stainless.yml generates for C# (`skip`/`only`).
-    let mut csharp = client.for_target("csharp");
-    // Stainless declares every model stainless.yml names for the target, also those no method
-    // reaches (`for_target` drops them; Phase 1 gap list).
-    for d in client.models.iter().filter(|d| d.is_for("csharp")) {
-        if !csharp.models.iter().any(|k| k.r#ref == d.r#ref) {
-            csharp.models.push(d.clone());
-        }
-    }
+    // Only what stainless.yml generates for C# (`skip`/`only`), with every model it names for
+    // C#, also those no method reaches, as Stainless declares them (Phase 1 gap list), each
+    // with the models left out for C# inlined.
+    let csharp = client.for_target_with_models("csharp");
     let client = &csharp;
     let g = Gen::new(client, &target);
     let mut files = vec![
