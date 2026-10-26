@@ -11,6 +11,7 @@ use crate::extensions::json::{empty, obj, obj_of};
 use crate::extensions::pagination::{Scheme, best_match, operation_shape, page_scheme_extension, read_schemes};
 use crate::extensions::streaming::{StreamingInput, build_streaming, read_on_event};
 use crate::extensions::targets::{Targets, build_targets, targets_only};
+use crate::extensions::unwrap::resolve_unwrap;
 use crate::value::{Map, Value, is_js_space};
 use std::collections::HashSet;
 
@@ -196,6 +197,15 @@ impl Ctx<'_> {
         if !matches!(get_at(spec, &op_path), Some(Value::Object(_))) {
             return;
         }
+        // A paginated method returns its page, never an unwrapped field.
+        let unwrap = if pagination.is_some() {
+            None
+        } else {
+            let op = get_at(spec, &op_path).and_then(Value::as_object).unwrap_or(empty());
+            let (field, warning) = resolve_unwrap(spec, self.config, method, op, &pointer);
+            self.diagnostics.extend(warning);
+            field
+        };
         let strings = |v: Vec<String>| Value::Array(v.into_iter().map(Value::String).collect());
         #[expect(clippy::cast_precision_loss, reason = "orders are small indices")]
         let numbers = |v: &[usize]| Value::Array(v.iter().map(|n| Value::Number(*n as f64)).collect());
@@ -211,6 +221,9 @@ impl Ctx<'_> {
         def.insert("x-ferrule-method-order", Value::Number(method_order as f64));
         if let Some(p) = pagination {
             def.insert("x-ferrule-pagination", p);
+        }
+        if let Some(field) = unwrap {
+            def.insert("x-ferrule-unwrap", Value::from(field));
         }
         if let Some((s, ds)) = streaming {
             self.diagnostics.extend(ds);

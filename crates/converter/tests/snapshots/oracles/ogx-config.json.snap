@@ -1,5 +1,5 @@
 {
-  "sha256": "81a56774ad1123e1c84bb02bb4d0e4c3a93a2a52c570ef7468b72dddd5230504",
+  "sha256": "e1bd1cad8595aafaf686ce19b0872158473985a900f40774940dcda1d54deb85",
   "root": {
     "x-ferrule-client": {
       "defaultEnvironment": "production",
@@ -1692,7 +1692,8 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-ferrule-unwrap": "data"
     },
     "POST /v1/messages": {
       "x-codeSamples": [
@@ -2312,7 +2313,8 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-ferrule-unwrap": "data"
     },
     "POST /v1/prompts": {
       "x-fern-sdk-group-name": [
@@ -2591,7 +2593,8 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-ferrule-unwrap": "data"
     },
     "GET /v1/providers": {
       "x-fern-sdk-group-name": [
@@ -2637,7 +2640,8 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-ferrule-unwrap": "data"
     },
     "GET /v1/providers/{provider_id}": {
       "x-fern-sdk-group-name": [
@@ -4193,7 +4197,8 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-ferrule-unwrap": "data"
     },
     "GET /v1alpha/admin/providers": {
       "x-fern-sdk-group-name": [
@@ -4242,7 +4247,8 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-ferrule-unwrap": "data"
     },
     "GET /v1alpha/admin/providers/{provider_id}": {
       "x-fern-sdk-group-name": [
@@ -4389,7 +4395,8 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-ferrule-unwrap": "data"
     },
     "POST /v1alpha/interactions": {
       "x-codeSamples": [
