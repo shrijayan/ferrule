@@ -296,10 +296,24 @@ def generate_stage(spec: Spec) -> dict[str, object]:
 
     A refused operation is fixed as its diagnostic says (a recursive schema named as a model)
     or left out of the config, and recorded; anything that is not an operation refusal fails.
+    What was skipped is recorded whether or not generation ends up passing.
     """
-    raw = spec.work / "raw"
     skipped: list[dict[str, str]] = []
     models: list[str] = []
+    try:
+        rounds = generate_rounds(spec, skipped, models)
+    finally:
+        by_code: dict[str, int] = {}
+        for s in skipped:
+            by_code[s["code"]] = by_code.get(s["code"], 0) + 1
+        spec.extra.update(skipped=skipped, models_added=models)
+        spec.counts.update(skipped=len(skipped), skipped_by_code=dict(sorted(by_code.items())))
+    return {"rounds": rounds, "skipped": len(skipped), "models_added": len(models)}
+
+
+def generate_rounds(spec: Spec, skipped: list[dict[str, str]], models: list[str]) -> int:
+    """Run :func:`generate_stage`'s rounds, appending to ``skipped`` and ``models``."""
+    raw = spec.work / "raw"
     rounds = 0
     deadline = time.monotonic() + TIMEOUTS["generate"]
     while True:
@@ -311,12 +325,11 @@ def generate_stage(spec: Spec) -> dict[str, object]:
         if proc.returncode == 0:
             proc = run(gen.argv, max(1.0, deadline - time.monotonic()))
         if proc.returncode == 0:
-            break
+            return rounds
         text = proc.stdout + proc.stderr
         refused = refusal(text)
         if refused is None or len(skipped) + len(models) >= MAX_REFUSALS:
             spec.outputs.append(text)
-            spec.extra.update(skipped=skipped, models_added=models)
             budget = "" if refused is None else f" (gave up after {MAX_REFUSALS} refusals)"
             by = "plugin" if "ferrule-gen: FER" in text else "forge"
             msg = f"ferrule-gen exited {proc.returncode} in {by}{budget}:\n{text.strip()[-TAIL:]}"
@@ -337,12 +350,6 @@ def generate_stage(spec: Spec) -> dict[str, object]:
             raise StageError(msg)
         spec.outputs.append(f"{refused.code}\n")
         spec.write_config()
-    spec.extra.update(skipped=skipped, models_added=models)
-    by_code: dict[str, int] = {}
-    for s in skipped:
-        by_code[s["code"]] = by_code.get(s["code"], 0) + 1
-    spec.counts.update(skipped=len(skipped), skipped_by_code=dict(sorted(by_code.items())))
-    return {"rounds": rounds, "skipped": len(skipped), "models_added": len(models)}
 
 
 def render_stage(spec: Spec, out: Path) -> dict[str, object]:
