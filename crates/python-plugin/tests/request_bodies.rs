@@ -175,7 +175,7 @@ fn a_binary_body_is_sent_as_raw_content() {
 
 /// A parameter named like a request option (the opencode SDK's `shell.create` body field
 /// `timeout`) is prefixed `api_`, as browserbase-python's `sessions.create(api_timeout=...)`
-/// sends `"timeout"`; the wire name and the params `TypedDict` keep the spec's name.
+/// sends `"timeout"`: the params `TypedDict` declares it with the wire name as its alias.
 #[test]
 fn a_parameter_named_like_a_request_option_is_prefixed_api() {
     let files = generated("option_names");
@@ -184,12 +184,15 @@ fn a_parameter_named_like_a_request_option_is_prefixed_api() {
         "        api_extra_query: str | Omit = omit,\n",
         "        api_timeout: int | Omit = omit,\n",
         "          api_timeout: Seconds before the command is stopped\n",
-        "                    \"timeout\": api_timeout,\n",
-        "                query=maybe_transform({\"extra_query\": api_extra_query}, shell_create_params.ShellCreateParams),\n",
+        "                    \"api_timeout\": api_timeout,\n",
+        "                query=maybe_transform({\"api_extra_query\": api_extra_query}, shell_create_params.ShellCreateParams),\n",
     ] {
         assert!(resource.contains(want), "{want}\n---\n{resource}");
     }
-    assert_eq!(resource.matches("        timeout: ").count(), 2, "{resource}");
+    assert_eq!(resource.matches("\n        timeout: ").count(), 2, "{resource}");
     let params = files.get("src/fx/types/shell_create_params.py").expect("params");
-    assert!(params.contains("    timeout: int\n"), "{params}");
+    assert!(
+        params.contains("    api_timeout: Annotated[int, PropertyInfo(alias=\"timeout\")]\n"),
+        "{params}"
+    );
 }
