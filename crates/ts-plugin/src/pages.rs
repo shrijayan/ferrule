@@ -261,6 +261,20 @@ pub fn inline_item_name(ctx: &Ctx<'_>, prefix: &str, m: &Method) -> String {
     format!("{prefix}{}Response", type_name(&words_of(&m.name), &ctx.client.casings))
 }
 
+/// The module of the first list method (in [`aliases`] order) returning `scheme` pages of the
+/// `$shared` model `t`: the one module that declares that page type.
+fn first_lister(ctx: &Ctx<'_>, scheme: &PageScheme, t: &TypeRef) -> Option<String> {
+    ctx.all().into_iter().find_map(|r| {
+        crate::emit::resource::sorted_methods(r)
+            .into_iter()
+            .any(|m| {
+                page_of(ctx, m).is_some_and(|p| std::ptr::eq(p.scheme, scheme))
+                    && matches!(m.pagination.as_ref().map(|p| &p.item), Some(Type::Ref(u)) if u == t)
+            })
+            .then(|| r.module())
+    })
+}
+
 /// The page type a list method returns, and where it is declared.
 #[must_use]
 pub fn alias_of<'a>(ctx: &Ctx<'a>, r: &crate::ctx::TsResource<'a>, m: &'a Method) -> Option<PageAlias<'a>> {
@@ -270,7 +284,7 @@ pub fn alias_of<'a>(ctx: &Ctx<'a>, r: &crate::ctx::TsResource<'a>, m: &'a Method
     let (item, item_name, module) = if let Type::Ref(t) = item_ty {
         let module = match ctx.home(t) {
             Home::Resource(_) => ctx.model_module(t),
-            Home::Shared => r.module(),
+            Home::Shared => first_lister(ctx, page.scheme, t).unwrap_or_else(|| r.module()),
         };
         (Item::Model(t), ctx.type_of(t), module)
     } else {
