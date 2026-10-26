@@ -66,13 +66,15 @@ pagination schemes) would shape it. Option 3 leaves a common request unanswered.
   page JSON; the plugin emits one `PageConfig` constant per config scheme (the purposes and
   field paths). `send()` returns the first `Page<T>`; `paginate()` returns a
   `futures::Stream<Item = Result<T>>` (async) or an `Iterator` (blocking) over every item.
-- **Streaming**: SSE and JSON Lines, as a `Stream` of typed events (an `Iterator` when
-  blocking); an SSE `error` event becomes an error, `[DONE]` ends the stream.
+- **Streaming**: SSE and JSON Lines, as a `Stream` of typed events from `stream()` (an
+  `Iterator` when blocking); an SSE `error` event becomes an error, `[DONE]` ends the stream. A
+  method with a `param_discriminator` gives two calls, `<name>` and `<name>_streaming`.
 - **Errors**: one `thiserror` enum mirroring the Python runtime's classes: `Connection`,
   `Timeout`, `BadRequest` (400), `Authentication` (401), `PermissionDenied` (403), `NotFound`
   (404), `Conflict` (409), `UnprocessableEntity` (422), `RateLimit` (429), `InternalServer`
-  (≥500), `Status` (any other non-2xx), `Decode` (Python's `APIResponseValidationError`) and
-  `Config` (a missing API key). Status variants carry the status, headers and body.
+  (≥500), `Status` (any other non-2xx), `Decode` (Python's `APIResponseValidationError`),
+  `Encode` (a param that does not serialize), `Stream` (an SSE `error` event) and `Config` (a
+  missing API key). Status variants carry the status, headers and body.
 - **Retries and timeouts**: the Python runtime's defaults and rules, from the same
   `x-ferrule-client` settings: timeout 60 s and 2 retries unless the config says otherwise;
   exponential backoff from 0.5 s to 8 s with up to 25% jitter; retry on connection errors,
@@ -106,10 +108,11 @@ targets:
     crate_name: onebusaway-sdk # default: organization.name
     version: 0.1.0 # default: the spec's info.version
     repository: OneBusAway/rust-sdk # default: none
+    license: Apache-2.0 # default: none
 ```
 
-Every key is optional, and without the file the target uses the defaults. The converter and the
-Stainless schema are unchanged.
+Every key is optional, and without the file the target uses the defaults; an unknown key is
+FER101. The converter and the Stainless schema are unchanged.
 
 ### Proof
 
