@@ -1,5 +1,5 @@
 //! Page schemes no oracle pins yet (`tests/fixtures/body-pages`): `cursor_id` and `offset` with
-//! `param_location: body`, and `cursor_url`, in the current layout.
+//! `param_location: body`, and `cursor_url` listed by two resources, in the current layout.
 
 mod support;
 
@@ -40,6 +40,24 @@ fn body_schemes_read_the_previous_request_from_the_body() {
         "    const offset = Number((this.options.body as Record<string, unknown>)?.['offset'] ?? 0);\n",
     );
     assert!(!pagination.contains("this.options.query"), "{pagination}");
+}
+
+/// `links` and `archive` both list the `$shared` `Note` in `links_url` pages: the first declares
+/// the page type, the other imports it.
+#[test]
+fn a_shared_page_type_is_declared_once_and_imported() {
+    let f = files();
+    has(
+        file(&f, "src/resources/links.ts"),
+        "export type NotesLinksURL = LinksURL<Shared.Note>;\n",
+    );
+    let archive = file(&f, "src/resources/archive.ts");
+    assert!(
+        archive
+            .lines()
+            .any(|l| l.starts_with("import ") && l.contains("NotesLinksURL") && l.ends_with("from './links';")),
+        "{archive}"
+    );
 }
 
 /// `buildURL` takes an absolute path as is, so the next URL keeps its origin, and a base URL
