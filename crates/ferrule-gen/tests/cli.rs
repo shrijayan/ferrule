@@ -381,3 +381,34 @@ fn generates_ruby_with_the_runtime_options() {
     assert_eq!(options["module_name"], "Onebusaway");
     assert_eq!(options["auth_in"], "query");
 }
+
+#[test]
+fn generates_php_with_the_runtime_options() {
+    let out = scratch("target-php");
+    let status = bin()
+        .arg("generate")
+        .arg(plugin_dir().join("tests/fixtures/onebusaway.json"))
+        .args(["--target", "php", "--out"])
+        .arg(&*out)
+        .status()
+        .expect("runs");
+    assert!(status.success());
+    // The fixture has no `x-ferrule-targets`, so the namespace is named after `x-ferrule-package`.
+    let names: Vec<String> = files(&out).into_iter().map(|(p, _)| p).collect();
+    for expected in [
+        "src/Client.php",
+        "src/Version.php",
+        "src/Services/AgencyService.php",
+        "src/ServiceContracts/AgencyRawContract.php",
+        "tests/ClientTest.php",
+        "composer.json",
+        ".php-cs-fixer.dist.php",
+        ".ferrule/php-runtime.json",
+    ] {
+        assert!(names.iter().any(|n| n == expected), "{expected} not in {names:?}");
+    }
+    let options: serde_json::Value =
+        serde_json::from_slice(&fs::read(out.join(".ferrule/php-runtime.json")).expect("options")).expect("JSON");
+    assert_eq!(options["namespace"], "Onebusaway");
+    assert_eq!(options["max_retries"], 2);
+}

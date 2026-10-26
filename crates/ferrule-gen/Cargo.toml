@@ -12,6 +12,7 @@ ferrule-go-plugin.workspace = true
 ferrule-jvm-plugin.workspace = true
 ferrule-python-plugin.workspace = true
 ferrule-ruby-plugin.workspace = true
+ferrule-php-plugin.workspace = true
 ferrule-sdk-model.workspace = true
 ferrule-ts-plugin.workspace = true
 forge.workspace = true
