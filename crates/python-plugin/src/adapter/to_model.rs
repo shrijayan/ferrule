@@ -120,7 +120,9 @@ impl Context<'_> {
         }))
     }
 
-    /// `allOf`: named members become base classes, object members contribute fields.
+    /// `allOf`: named members become base classes, object members contribute fields. A property
+    /// several members declare is one field where it first appears, typed and described by the
+    /// last (openai `CreateChatCompletionRequest.top_logprobs`).
     fn read_intersection<'f>(&mut self, members: impl Iterator<Item = Type<'f>>) -> Result<SdkObject, FerruleError> {
         let mut out = SdkObject::default();
         for member in members {
@@ -128,7 +130,15 @@ impl Context<'_> {
                 SdkType::Ref(r) => out.bases.push(r),
                 SdkType::Object(o) => {
                     out.bases.extend(o.bases);
-                    out.fields.extend(o.fields);
+                    for f in o.fields {
+                        match out.fields.iter_mut().find(|g| g.wire_name == f.wire_name) {
+                            Some(g) => {
+                                let required = g.required || f.required;
+                                *g = SdkField { required, ..f };
+                            }
+                            None => out.fields.push(f),
+                        }
+                    }
                 }
                 SdkType::Unknown => {}
                 t => return Err(self.unsupported(&format!("an allOf member of kind {}", sdk_kind(&t)))),
