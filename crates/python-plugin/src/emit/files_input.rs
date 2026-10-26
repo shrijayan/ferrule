@@ -244,8 +244,15 @@ fn files_resource(client: &SdkClient, r: &SdkResource, parent: Option<&SdkResour
 }
 
 /// The project-file input, or `None` for a client without settings or without a method.
+///
+/// The templates are today's generator's, so a runtime without `omit` (`sentinel: NOT_GIVEN`)
+/// gets none: knock-python's `tests/test_transform.py` imports `NOT_GIVEN` and tests
+/// `PYDANTIC_V2`, where the template imports `omit`/`not_given` and tests `PYDANTIC_V1`.
 #[must_use]
 pub fn to_project_files_input(client: &SdkClient, meta: &ProjectMeta) -> Option<ProjectFilesInput> {
+    if !client.style.omit {
+        return None;
+    }
     let s = client.settings.as_ref()?;
     let (example, probe) = examples(client, meta.readme_example.as_ref(), meta.readme_request.as_ref())?;
     let org = meta.organization.as_ref();
