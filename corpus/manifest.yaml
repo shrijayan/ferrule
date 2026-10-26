@@ -195,7 +195,7 @@
       "url": "https://developer.atlassian.com/cloud/jira/platform/swagger-v3.v3.json",
       "format": "json",
       "source": null,
-      "sha256": "e30922c95a8e036084ce5da6a244e247cb527f3f0eb398f1ba2c973fe4d9e59b",
+      "sha256": "15ceb328f369b367595d0cf4a9afb6c511b16940658ca05decc8352d777fd2f3",
       "size": 2510000,
       "notes": "Not on GitHub; pinned by sha256 only. Atlassian replaces this file in place, so a hash mismatch means re-pin (see corpus/README.md)."
     }
