@@ -442,6 +442,17 @@ impl Context<'_> {
                 ty: self.read_type(c.ty())?,
             }),
         };
+        // An event model the JSON response does not name (an always-streaming endpoint): declare
+        // it from the streaming contents, such as `text/event-stream`.
+        if let Some(schema) = self.ext.streaming.as_ref().and_then(|s| s.event_schema.as_deref())
+            && !self.decls.iter().any(|d| d.r#ref.schema == schema)
+        {
+            for c in method.responses().flat_map(forge::Response::contents) {
+                if !c.is_json() {
+                    self.read_type(c.ty())?;
+                }
+            }
+        }
         let header_params = match method.headers() {
             None => Vec::new(),
             Some(h) => h
