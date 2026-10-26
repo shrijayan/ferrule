@@ -183,6 +183,7 @@ pins). Open PRs, with what is proven:
 | PHP | #38 | imagekit-php 48/48 | imagekit-php 268/336 shared files (86 more under other names); its 87 pest tests pass |
 | C# | #39 | imagekit-dotnet 38/38 | imagekit-csharp 109/184 (38 more differ only in doc wrapping); builds with dotnet, synthetic SDK's 89 tests pass |
 
-Next: CLI and Terraform. Python moves onto `sdk-model` once the Phase 4 PRs
+CLI and Terraform are blocked: no public Stainless-generated CLI or Terraform provider pairs by
+md5 with any public config (35 repos, 360 config versions checked), so neither has an oracle yet. Python moves onto `sdk-model` once the Phase 4 PRs
 land (`crates/sdk-model/MIGRATION.md`).
 
