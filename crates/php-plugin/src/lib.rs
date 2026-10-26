@@ -25,8 +25,8 @@ pub mod naming;
 pub mod tree;
 pub mod types;
 
-use ferrule_sdk_model::FerruleError;
-use ferrule_sdk_model::model::Client;
+use ferrule_sdk_model::{FerCode, FerruleError};
+use ferrule_sdk_model::model::{Client, Resource};
 
 pub use emit::runtime::RuntimeOptions;
 pub use meta::{PhpMeta, PhpTarget, php_target};
@@ -42,11 +42,31 @@ pub struct PhpOutput {
     pub runtime: RuntimeOptions,
 }
 
+/// FER201 for a method whose request body is not an object or a union of objects: its params
+/// class would have nothing to send (the Python plugin reports the same).
+fn unsupported_bodies(client: &Client, resources: &[Resource]) -> Result<(), FerruleError> {
+    for r in resources {
+        for m in &r.methods {
+            if m.body.as_ref().is_some_and(|b| !tree::body_spreads(client, &b.ty)) {
+                return Err(FerruleError::new(
+                    FerCode::Fer201,
+                    m.pointer.clone(),
+                    "a request body that is not an object is not generated yet",
+                    "leave the operation out, or file an issue with the spec fragment",
+                ));
+            }
+        }
+        unsupported_bodies(client, &r.subresources)?;
+    }
+    Ok(())
+}
+
 /// Generates the PHP SDK files of `client`.
 ///
 /// # Errors
 ///
-/// A FER diagnostic when the PHP settings are invalid.
+/// A FER diagnostic when the PHP settings are invalid, and FER201 for a request body that is not
+/// an object.
 pub fn generate(client: &Client, meta: &PhpMeta) -> Result<PhpOutput, FerruleError> {
     let target = php_target(client, meta)?;
     // Only what stainless.yml generates for PHP (`skip`/`only`).
@@ -58,6 +78,8 @@ pub fn generate(client: &Client, meta: &PhpMeta) -> Result<PhpOutput, FerruleErr
             php.models.push(d.clone());
         }
     }
+
+    unsupported_bodies(&php, &php.resources)?;
 
     let g = Gen::new(&php, client, &target);
     let mut files = Vec::new();
