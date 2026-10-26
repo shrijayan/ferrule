@@ -18,6 +18,8 @@ from ferrule.errors import MISSING_INPUT, FerruleError, fail
 from ferrule.generate import GenerateRequest, generate, load_renderer, resolve_tools
 from ferrule.generate_go import GoRequest, generate_go, load_go_renderer
 from ferrule.generate_jvm import JvmRequest, generate_jvm, load_java_renderer, resolve_ktfmt
+from ferrule.generate_php import FORMATTER_BIN as PHP_FORMATTER_BIN
+from ferrule.generate_php import PhpRequest, generate_php, load_php_renderer
 from ferrule.generate_ruby import (
     RubyRequest,
     generate_ruby,
@@ -62,7 +64,7 @@ def build_parser() -> argparse.ArgumentParser:
     gen.add_argument("--gen", type=Path, help="ferrule-gen binary (default: $FERRULE_GEN)")
     gen.add_argument(
         "--target",
-        choices=("python", "go", "java", "kotlin", "ruby"),
+        choices=("python", "go", "java", "kotlin", "ruby", "php"),
         default="python",
         help="SDK language (default: python)",
     )
@@ -202,6 +204,31 @@ def _generate_ruby(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def _generate_php(args: argparse.Namespace) -> int:
+    if args.runtime_from is not None:
+        raise fail(
+            MISSING_INPUT,
+            "--runtime-from is not supported with --target php",
+            "--runtime-from",
+            "drop it: the PHP runtime is rendered from ferrule_runtime",
+        )
+    request = PhpRequest(
+        spec=args.spec,
+        config=args.config,
+        out=args.out,
+        gen=resolve_tools(os.environ, gen=args.gen).gen,
+        fixer=resolve_formatter(
+            os.environ, "FERRULE_PHP_CS_FIXER", "php-cs-fixer", bin_dir=PHP_FORMATTER_BIN
+        ),
+    )
+    result = generate_php(request, renderer=load_php_renderer())
+    sys.stdout.write(
+        f"generated {result.package}: {result.files} files "
+        f"({result.runtime_files} runtime) sha256 {result.digest}\n",
+    )
+    return EXIT_OK
+
+
 def _generate(args: argparse.Namespace) -> int:
     if args.target == "go":
         return _generate_go(args)
@@ -209,6 +236,8 @@ def _generate(args: argparse.Namespace) -> int:
         return _generate_jvm(args)
     if args.target == "ruby":
         return _generate_ruby(args)
+    if args.target == "php":
+        return _generate_php(args)
     request = GenerateRequest(
         spec=args.spec,
         config=args.config,
