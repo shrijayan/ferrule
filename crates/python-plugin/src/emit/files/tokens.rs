@@ -12,10 +12,12 @@ pub fn flag(on: bool) -> String {
 }
 
 /// Whether the tests check the header the credentials go in (`test_validate_headers`): every
-/// scheme but none and a query parameter (OneBusAway has no such test).
+/// scheme but none and a query parameter (OneBusAway has no such test), when a credential is
+/// required, since the test expects the client to raise without it (ogx-client-python, whose
+/// `api_key` is optional, has no such test).
 #[must_use]
 pub fn validates_headers(auth: &Auth) -> bool {
-    !auth.opts.is_empty() && !matches!(auth.scheme, AuthScheme::None | AuthScheme::Query(_))
+    auth.opts.iter().any(|o| !o.nullable) && !matches!(auth.scheme, AuthScheme::None | AuthScheme::Query(_))
 }
 
 fn each(opts: &[AuthOpt], f: impl Fn(&AuthOpt) -> String) -> String {

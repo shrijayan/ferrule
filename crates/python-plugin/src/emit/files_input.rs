@@ -106,6 +106,7 @@ fn auth(s: &SdkClientSettings) -> Auth {
                 value: format!("My {label}"),
                 label,
                 has_default: o.default.is_some(),
+                nullable: o.nullable,
             }
         })
         .collect();
