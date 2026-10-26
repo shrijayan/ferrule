@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://shrijayan.github.io/ferrule/">
+  <a href="https://ferrule.cpluz.com/">
     <img src="site/public/favicon.svg" width="72" height="72" alt="Ferrule">
   </a>
 </p>
@@ -19,7 +19,7 @@
 </p>
 
 <p align="center">
-  <a href="https://shrijayan.github.io/ferrule/"><img alt="Website" src="https://img.shields.io/badge/site-shrijayan.github.io%2Fferrule-d6a660?style=flat-square&labelColor=0b0b0d"></a>
+  <a href="https://ferrule.cpluz.com/"><img alt="Website" src="https://img.shields.io/badge/site-ferrule.cpluz.com-d6a660?style=flat-square&labelColor=0b0b0d"></a>
   <a href="https://github.com/shrijayan/ferrule/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/shrijayan/ferrule/ci.yml?branch=main&style=flat-square&labelColor=0b0b0d&label=ci"></a>
   <a href="./LICENSE"><img alt="Apache-2.0" src="https://img.shields.io/badge/licence-Apache--2.0-d6a660?style=flat-square&labelColor=0b0b0d"></a>
   <img alt="Pre-alpha" src="https://img.shields.io/badge/status-pre--alpha-8a5c2c?style=flat-square&labelColor=0b0b0d">
@@ -29,15 +29,15 @@
 </p>
 
 <p align="center">
-  <a href="https://shrijayan.github.io/ferrule/docs/quickstart/"><b>Quickstart</b></a> ·
-  <a href="https://shrijayan.github.io/ferrule/docs/">Docs</a> ·
-  <a href="https://shrijayan.github.io/ferrule/docs/commands/">Commands</a> ·
-  <a href="https://shrijayan.github.io/ferrule/docs/fidelity/">Fidelity board</a> ·
+  <a href="https://ferrule.cpluz.com/docs/quickstart/"><b>Quickstart</b></a> ·
+  <a href="https://ferrule.cpluz.com/docs/">Docs</a> ·
+  <a href="https://ferrule.cpluz.com/docs/commands/">Commands</a> ·
+  <a href="https://ferrule.cpluz.com/docs/fidelity/">Fidelity board</a> ·
   <a href="./docs/plan.html">Build plan</a>
 </p>
 
 <p align="center">
-  <a href="https://shrijayan.github.io/ferrule/">
+  <a href="https://ferrule.cpluz.com/">
     <img src=".github/assets/hero.jpg" alt="Ferrule landing page: your config unchanged, the engine replaced, your users' code unchanged" width="100%">
   </a>
 </p>
@@ -166,7 +166,7 @@ public API: 0 breaking · 6 additive
 ```
 
 The full walkthrough, from prerequisites to what to do on an error, is in the
-[quickstart](https://shrijayan.github.io/ferrule/docs/quickstart/).
+[quickstart](https://ferrule.cpluz.com/docs/quickstart/).
 
 ## What happens next
 
@@ -189,7 +189,7 @@ The full walkthrough, from prerequisites to what to do on an error, is in the
 - **Hand edits that survive.** Custom changes become patches, re-applied three-way on every
   regeneration. `lib/` and `keep_files` are never touched.
 - **A GitHub Action that keeps it current.** It regenerates, verifies and opens a labelled PR.
-- **A public [fidelity board](https://shrijayan.github.io/ferrule/docs/fidelity/).** Real public
+- **A public [fidelity board](https://ferrule.cpluz.com/docs/fidelity/).** Real public
   Stainless SDKs, regenerated every night, scores published, including the ones that aren't green
   yet.
 - **Docs for coding agents, in the wheel.** `SKILL.md`, `AGENTS.md` and `llms.txt` ship inside the

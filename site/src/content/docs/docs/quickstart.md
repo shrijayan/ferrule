@@ -9,7 +9,7 @@ Ferrule. Your users keep importing the same package, with the same names and arg
 :::caution[Pre-alpha]
 Ferrule is not on PyPI yet, so for now you build it from source (step 1). The 0.1 release is
 planned to bring this down to `uvx ferrule adopt .`. Check the
-[fidelity board](/ferrule/docs/fidelity/) to see how close Ferrule gets on SDKs like yours.
+[fidelity board](/docs/fidelity/) to see how close Ferrule gets on SDKs like yours.
 :::
 
 ## What you need
@@ -109,13 +109,13 @@ regenerates the SDK, runs `verify`, and opens a pull request labelled `major`, `
 Before you merge, replace the `uses:` line of the Ferrule step in `sdk.yml` with
 `shrijayan/ferrule/action@<sha>`, pinned to a commit of this repository. The action has no
 release yet, so `adopt` writes a placeholder. The inputs are described on the
-[GitHub Action](/ferrule/docs/action/) page.
+[GitHub Action](/docs/action/) page.
 :::
 
 ## When something fails
 
 Every error has a `FER` code, the file or setting it refers to, and a suggested fix, for
 example `ferrule adopt: FER4101 …` when the rescued spec doesn't match its hash. The
-[commands](/ferrule/docs/commands/#errors) page lists the families. If you are stuck,
+[commands](/docs/commands/#errors) page lists the families. If you are stuck,
 [open an issue](https://github.com/shrijayan/ferrule/issues) with the FER code and the command you
 ran.

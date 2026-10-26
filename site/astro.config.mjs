@@ -2,16 +2,15 @@ import starlight from '@astrojs/starlight';
 import { defineConfig } from 'astro/config';
 
 export default defineConfig({
-  site: 'https://shrijayan.github.io',
-  base: '/ferrule',
+  site: 'https://ferrule.cpluz.com',
   // The landing page is src/pages/index.astro; the docs moved under /docs. Keep old links alive.
   redirects: {
-    '/getting-started': '/ferrule/docs/quickstart/',
-    '/action': '/ferrule/docs/action/',
-    '/architecture': '/ferrule/docs/architecture/',
-    '/principles': '/ferrule/docs/principles/',
-    '/fidelity': '/ferrule/docs/fidelity/',
-    '/adr': '/ferrule/docs/adr/',
+    '/getting-started': '/docs/quickstart/',
+    '/action': '/docs/action/',
+    '/architecture': '/docs/architecture/',
+    '/principles': '/docs/principles/',
+    '/fidelity': '/docs/fidelity/',
+    '/adr': '/docs/adr/',
   },
   integrations: [
     starlight({

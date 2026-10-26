@@ -17,7 +17,7 @@ account.
 Ferrule is **pre-alpha**. All eight SDK languages are on `main`. In Python the converter, plugin
 and runtime are complete, and the OneBusAway SDK regenerates with 0 breaking changes while all
 1,110 of its own tests pass. Adoption is being hardened against more real SDKs; the
-[fidelity board](/ferrule/docs/fidelity/) shows where each Python SDK stands tonight.
+[fidelity board](/docs/fidelity/) shows where each Python SDK stands tonight.
 
 Each language is proven against real Stainless SDKs; numbers are identical files out of the total.
 
@@ -33,15 +33,15 @@ Each language is proven against real Stainless SDKs; numbers are identical files
 | CLI, Terraform | not started | no public Stainless-generated pair with a public config, so no oracle to prove against |
 
 Ferrule is not on PyPI yet. Until the 0.1 release you run it from a clone of this repository, as
-the [quickstart](/ferrule/docs/quickstart/) shows.
+the [quickstart](/docs/quickstart/) shows.
 
 ## Where to go next
 
 | If you want to | Read |
 | --- | --- |
-| Move an existing Stainless Python SDK to Ferrule | [Quickstart](/ferrule/docs/quickstart/) |
-| Look up a command or a flag | [Commands](/ferrule/docs/commands/) |
-| Keep the SDK regenerating on every spec change | [GitHub Action](/ferrule/docs/action/) |
-| Understand the pipeline | [Architecture](/ferrule/docs/architecture/) |
-| See how close each public SDK is | [Fidelity board](/ferrule/docs/fidelity/) |
+| Move an existing Stainless Python SDK to Ferrule | [Quickstart](/docs/quickstart/) |
+| Look up a command or a flag | [Commands](/docs/commands/) |
+| Keep the SDK regenerating on every spec change | [GitHub Action](/docs/action/) |
+| Understand the pipeline | [Architecture](/docs/architecture/) |
+| See how close each public SDK is | [Fidelity board](/docs/fidelity/) |
 | Contribute | [CONTRIBUTING.md](https://github.com/shrijayan/ferrule/blob/main/CONTRIBUTING.md) |

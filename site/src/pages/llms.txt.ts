@@ -4,7 +4,7 @@
 import { getCollection } from 'astro:content';
 import type { APIRoute } from 'astro';
 
-const SITE = 'https://shrijayan.github.io/ferrule';
+const SITE = 'https://ferrule.cpluz.com';
 
 // Same groups and order as the Starlight sidebar in astro.config.mjs.
 const SECTIONS: [string, string[]][] = [
