@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import json
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -26,7 +27,8 @@ def configured(name: str) -> list[dict[str, object]]:
         ("honcho-config", HONCHO),
         ("knock-config", KNOCK),
         ("knock-mgmt-config", KNOCK_MGMT),
-        ("ogx-config", OGX),
+        # The plugin spells page classes without casings: ogx's oracle has `OpenAICursorPage`.
+        ("ogx-config", (replace(OGX[0], name="OpenaiCursorPage"),)),
     ],
 )
 def test_page_schemes_match_the_oracles(config: str, expected: tuple[PageScheme, ...]) -> None:
@@ -37,7 +39,6 @@ def test_page_schemes_type_other_fields_and_nested_cursors() -> None:
     # The opencode SDK's `{data: [...], cursor: {next, previous}}` page.
     entry = {
         "name": "cursor_page",
-        "className": "CursorPage",
         "kind": "cursor",
         "request": [{"name": "cursor", "type": "string", "purpose": "next_cursor_param"}],
         "response": [
