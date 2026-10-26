@@ -309,10 +309,17 @@ fn raw_body(g: &Gen<'_>, m: &Meth<'_>, imp: &mut Imports) -> String {
     let mut out = String::new();
     let class = params_class(m);
     let body = m.method.body.is_some() && class.is_some();
-    // With a body as well, the query parameters are picked out of the parsed params by their
-    // wire names (the keys `parseRequest` dumps) and the body is the rest, as Stainless's PHP
-    // SDKs split them (courier-php, telnyx-php).
-    let split = body && !m.args.query.is_empty();
+    let headers = !m.args.headers.is_empty();
+    // When the parsed params hold more than the query's, the query and header parameters are
+    // picked out by their wire names (the keys `parseRequest` dumps) and the body is the rest,
+    // as Stainless's PHP SDKs split them (courier-php, telnyx-php).
+    let split = (body || headers) && !m.args.query.is_empty();
+    let picked = match (split, headers) {
+        (true, true) => Some("[...$query_params, ...$header_params]"),
+        (true, false) => Some("$query_params"),
+        (false, true) => Some("$header_params"),
+        (false, false) => None,
+    };
     let options = if let Some(c) = class {
         let name = imp.class(&c.path);
         let _ = write!(
@@ -326,9 +333,15 @@ fn raw_body(g: &Gen<'_>, m: &Meth<'_>, imp: &mut Imports) -> String {
                 p.name
             );
         }
+        let keys = |fields: &[PField]| -> String {
+            let quoted: Vec<String> = fields.iter().map(|f| format!("'{}'", f.wire)).collect();
+            quoted.join(", ")
+        };
         if split {
-            let keys: Vec<String> = m.args.query.iter().map(|f| format!("'{}'", f.wire)).collect();
-            let _ = writeln!(out, "{ind2}$query_params = array_flip([{}]);", keys.join(", "));
+            let _ = writeln!(out, "{ind2}$query_params = array_flip([{}]);", keys(&m.args.query));
+        }
+        if headers {
+            let _ = writeln!(out, "{ind2}$header_params = array_flip([{}]);", keys(&m.args.headers));
         }
         out.push('\n');
         "$options"
@@ -344,17 +357,35 @@ fn raw_body(g: &Gen<'_>, m: &Meth<'_>, imp: &mut Imports) -> String {
     } else if !m.args.query.is_empty() {
         let _ = writeln!(out, "{ind3}query: $parsed,");
     }
-    if m.method
+    let multipart = m
+        .method
         .body
         .as_ref()
-        .is_some_and(|b| b.media_type == "multipart/form-data")
-    {
-        let _ = writeln!(out, "{ind3}headers: ['Content-Type' => 'multipart/form-data'],");
+        .is_some_and(|b| b.media_type == "multipart/form-data");
+    match (headers, multipart) {
+        (true, true) => {
+            let _ = writeln!(
+                out,
+                "{ind3}headers: [...array_intersect_key($parsed, $header_params), 'Content-Type' => 'multipart/form-data'],"
+            );
+        }
+        (true, false) => {
+            let _ = writeln!(out, "{ind3}headers: array_intersect_key($parsed, $header_params),");
+        }
+        (false, true) => {
+            let _ = writeln!(out, "{ind3}headers: ['Content-Type' => 'multipart/form-data'],");
+        }
+        (false, false) => {}
     }
-    if split {
-        let _ = writeln!(out, "{ind3}body: (object) array_diff_key($parsed, $query_params),");
-    } else if body {
-        let _ = writeln!(out, "{ind3}body: (object) $parsed,");
+    if body {
+        match picked {
+            Some(keys) => {
+                let _ = writeln!(out, "{ind3}body: (object) array_diff_key($parsed, {keys}),");
+            }
+            None => {
+                let _ = writeln!(out, "{ind3}body: (object) $parsed,");
+            }
+        }
     }
     let _ = writeln!(out, "{ind3}options: {options},");
     let convert = m

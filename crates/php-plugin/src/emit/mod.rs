@@ -146,6 +146,7 @@ fn names(m: &Method, schema: &str) -> bool {
     m.path_params
         .iter()
         .chain(&m.query_params)
+        .chain(&m.header_params)
         .any(|p| mentions(&p.field.ty, schema))
         || m.body.as_ref().is_some_and(|b| mentions(&b.ty, schema))
         || m.response.as_ref().is_some_and(|r| mentions(&r.ty, schema))

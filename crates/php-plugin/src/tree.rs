@@ -180,13 +180,15 @@ pub struct Args {
     pub path: Vec<PField>,
     pub query: Vec<PField>,
     pub body: Vec<PField>,
+    /// The header parameters: each one's wire name is the header's.
+    pub headers: Vec<PField>,
     /// The params class, when the method has parameters besides `positional`.
     pub params: Option<Class>,
 }
 
 impl Args {
-    /// The parameters besides the positional one: path, query and body, in the params class's
-    /// order.
+    /// The parameters besides the positional one: path, query, body and headers, in the params
+    /// class's order.
     #[must_use]
     pub fn rest(&self) -> Vec<&PField> {
         self.params
@@ -452,8 +454,8 @@ impl<'a> Builder<'a> {
     }
 
     /// A method's arguments and its params class (`path`, collected unless empty): the path
-    /// parameters but the last, then the query parameters and the body's fields in Stainless's
-    /// order. A path parameter's description stays on the method.
+    /// parameters but the last, then the query parameters, the body's fields and the header
+    /// parameters, each in Stainless's order. A path parameter's description stays on the method.
     pub fn method_args(&mut self, path: ClassPath, m: &Method, see: String) -> Args {
         let mut positional = None;
         let mut path_fields: Vec<PField> = m
@@ -481,6 +483,10 @@ impl<'a> Builder<'a> {
             },
             None => Vec::new(),
         };
+        let headers: Vec<PField> = sort_fields(&m.header_params.iter().map(|p| p.field.clone()).collect::<Vec<_>>())
+            .into_iter()
+            .map(|f| self.field(&path, f))
+            .collect();
         let mut fields: Vec<PField> = path_fields
             .iter()
             .cloned()
@@ -491,6 +497,7 @@ impl<'a> Builder<'a> {
             .collect();
         fields.extend(query.iter().cloned());
         fields.extend(body.iter().cloned());
+        fields.extend(headers.iter().cloned());
         let params = (!fields.is_empty()).then(|| Class {
             path,
             description: if m.description.is_empty() {
@@ -507,6 +514,7 @@ impl<'a> Builder<'a> {
             path: path_fields,
             query,
             body,
+            headers,
             params,
         }
     }
