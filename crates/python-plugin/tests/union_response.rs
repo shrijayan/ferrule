@@ -32,4 +32,7 @@ fn casts_a_union_response_and_page_item() {
     let list = format!("            model=cast(Any, Audience),{COMMENT}\n        )\n");
     assert_eq!(text.matches(&list).count(), 2, "{text}");
     assert!(text.contains("from typing import Any, cast\n"), "{text}");
+    // A stream of a union is not cast as a whole (the Stainless opencode SDK's `event.list`).
+    let watch = format!("            cast_to=cast(Any, Audience),{COMMENT}\n            stream=True,\n");
+    assert_eq!(text.matches(&watch).count(), 2, "{text}");
 }
