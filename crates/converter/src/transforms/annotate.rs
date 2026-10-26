@@ -225,6 +225,9 @@ impl Ctx<'_> {
         if let Some(field) = unwrap {
             def.insert("x-ferrule-unwrap", Value::from(field));
         }
+        if let Some(reason) = skip_test_reason(method) {
+            def.insert("x-ferrule-skip-test", Value::from(reason));
+        }
         if let Some((s, ds)) = streaming {
             self.diagnostics.extend(ds);
             if let Some(s) = s {
@@ -451,6 +454,16 @@ fn model_uri(model: &Value) -> ModelUri<'_> {
 /// Whether an item restricted to `only` (`None`: unrestricted) is generated for Python.
 fn for_python(only: Option<&[String]>) -> bool {
     only.is_none_or(|o| o.iter().any(|t| t == "python"))
+}
+
+/// `skip_test_reason`: the reason a method's generated tests are skipped, for every language
+/// (a string) or per language (a map), of which Python's is kept.
+fn skip_test_reason(method: &Value) -> Option<String> {
+    match method.get("skip_test_reason")? {
+        Value::String(reason) => Some(reason.clone()),
+        Value::Object(by_language) => by_language.get("python").and_then(Value::as_str).map(str::to_owned),
+        _ => None,
+    }
 }
 
 /// Whether an `x-ferrule-models` entry is generated for Python.
