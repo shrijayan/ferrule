@@ -1,6 +1,6 @@
 {
   "run_date": "2026-10-26",
-  "generator": null,
+  "generator": "ferrule-gen 0.0.0 forge 91f52a40c746e8a2ac0271d8be0b7c82cdf28798",
   "tier": 1,
   "specs": [
     {
