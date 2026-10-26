@@ -173,7 +173,12 @@ def test_adopt_end_to_end(repo: Path, tools: Tools) -> None:
         "src/acme/_client.py",
         "src/acme/resources/foo.py",
     }
-    assert "ferrule-dev/action@" in show(repo, ".github/workflows/sdk.yml")
+    workflow = show(repo, ".github/workflows/sdk.yml")
+    assert "uses: shrijayan/ferrule/action@" in workflow
+    # The action merges from the `generated` branch, fetched with the full history, and pushes.
+    assert "fetch-depth: 0" in workflow
+    assert "github-token: ${{ secrets.GITHUB_TOKEN }}" in workflow
+    assert "workflow_dispatch:" in workflow
     message = sh(repo, "log", "-1", "--format=%an <%ae>%n%B", BRANCH)
     assert message.startswith("Dev <dev@example.com>\nSwitch SDK generation to Ferrule")
     assert "Signed-off-by: Dev <dev@example.com>" in message
