@@ -49,7 +49,10 @@ fn a_query_api_key_is_sent_in_the_query() {
         client.contains("protected function authQuery(): array\n    {\n        return $this->apiKey ? ['key' => $this->apiKey] : [];\n    }\n"),
         "{client}"
     );
-    assert!(client.contains("query: [...$this->authQuery(), ...$query],"), "{client}");
+    assert!(
+        client.contains("query: [...$this->authQuery(), ...$query],"),
+        "{client}"
+    );
     assert!(!client.contains("authHeaders"), "{client}");
 }
 
@@ -125,8 +128,14 @@ fn query_and_body_parameters_are_split() {
     );
     let raw = &f["src/Services/ThingsRawService.php"];
     assert!(raw.contains("$query_params = array_flip(['dry_run']);"), "{raw}");
-    assert!(raw.contains("query: array_intersect_key($parsed, $query_params),"), "{raw}");
-    assert!(raw.contains("body: (object) array_diff_key($parsed, $query_params),"), "{raw}");
+    assert!(
+        raw.contains("query: array_intersect_key($parsed, $query_params),"),
+        "{raw}"
+    );
+    assert!(
+        raw.contains("body: (object) array_diff_key($parsed, $query_params),"),
+        "{raw}"
+    );
 }
 
 /// A header parameter is a parameter of the method, and the raw service sends it as a header,
@@ -148,10 +157,25 @@ fn header_parameters_are_sent_as_headers() {
     let service = &f["src/Services/ThingsService.php"];
     assert!(service.contains("string $xTraceID"), "{service}");
     let raw = &f["src/Services/ThingsRawService.php"];
-    assert_eq!(raw.matches("$header_params = array_flip(['X-Trace-Id']);").count(), 2, "{raw}");
-    assert_eq!(raw.matches("headers: array_intersect_key($parsed, $header_params),").count(), 2, "{raw}");
-    assert!(raw.contains("query: array_intersect_key($parsed, $query_params),"), "{raw}");
-    assert!(raw.contains("body: (object) array_diff_key($parsed, $header_params),"), "{raw}");
+    assert_eq!(
+        raw.matches("$header_params = array_flip(['X-Trace-Id']);").count(),
+        2,
+        "{raw}"
+    );
+    assert_eq!(
+        raw.matches("headers: array_intersect_key($parsed, $header_params),")
+            .count(),
+        2,
+        "{raw}"
+    );
+    assert!(
+        raw.contains("query: array_intersect_key($parsed, $query_params),"),
+        "{raw}"
+    );
+    assert!(
+        raw.contains("body: (object) array_diff_key($parsed, $header_params),"),
+        "{raw}"
+    );
 }
 
 /// A request body that is not an object (or a union of objects) has no parameters to spread, so

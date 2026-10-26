@@ -25,8 +25,8 @@ pub mod naming;
 pub mod tree;
 pub mod types;
 
-use ferrule_sdk_model::{FerCode, FerruleError};
 use ferrule_sdk_model::model::{Client, Resource};
+use ferrule_sdk_model::{FerCode, FerruleError};
 
 pub use emit::runtime::RuntimeOptions;
 pub use meta::{PhpMeta, PhpTarget, php_target};
