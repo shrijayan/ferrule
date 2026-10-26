@@ -16,7 +16,7 @@ export default defineConfig({
   integrations: [
     starlight({
       title: 'Ferrule',
-      description: 'Leave Stainless without your users noticing.',
+      description: 'Generate SDKs from an OpenAPI spec. Open source, on your machine, no account.',
       logo: { src: './src/assets/ferrule-mark.svg', alt: '' },
       social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/shrijayan/ferrule' }],
       customCss: ['./src/styles/docs.css'],

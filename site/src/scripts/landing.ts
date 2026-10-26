@@ -147,26 +147,21 @@ function runDiff(): void {
   tick();
 }
 
-/* terminal: the real `ferrule adopt` output, then the user's next two commands */
+/* terminal: `ferrule generate` as documented. Output shape matches the CLI line; counts are not a measured run. */
 type TermLine = { cmd: string } | { out: string };
-const ok = '<span class="ok">✓</span>';
 const TERMINAL: TermLine[] = [
-  { cmd: 'uvx ferrule adopt .' },
-  { out: `${ok} read .stats.yml <span class="o">→ spec URL + hash</span>` },
-  { out: `${ok} rescued spec to ./openapi.json <span class="o">(hash ok)</span>` },
-  { out: `${ok} converted stainless.yml <span class="o">→ overlays</span>` },
-  { out: `${ok} copied runtime from your repo <span class="o">(you own it)</span>` },
-  { out: `${ok} found 3 hand edits <span class="o">→ .ferrule/patches/</span>` },
-  { out: `${ok} generated via forge + ferrule-python` },
+  { cmd: 'uv run ferrule generate --spec openapi.yml --config stainless.yml --out sdk' },
   {
-    out: `${ok} committed on local branch <span class="hl">ferrule/adopt</span> <span class="o">(not pushed)</span>`,
+    out: 'generated <span class="hl">acme</span>: <span class="o">&lt;files&gt; files (&lt;runtime&gt; runtime) sha256 &lt;digest&gt;</span>',
   },
-  { out: '<span class="o">ferrule verify --against 1a2b3c4</span>' },
-  { out: 'public API: <span class="z">0 breaking</span> <span class="o">·</span> 6 additive' },
+  { out: '<span class="o">same inputs, same digest, every run</span>' },
   { out: '' },
-  { cmd: 'git push -u origin ferrule/adopt' },
-  { cmd: 'gh pr create --fill' },
-  { out: '<span class="hl">https://github.com/acme/acme-python/pull/42</span>' },
+  {
+    cmd: 'uv run ferrule generate --spec openapi.yml --config stainless.yml --out sdk-go --target go',
+  },
+  {
+    out: '<span class="o">--target</span> go, java, kotlin, ruby, php, csharp <span class="o">· python is the default</span>',
+  },
 ];
 const PROMPT = '<span class="pr">$</span> ';
 const CARET = '<span class="caret"></span>';
@@ -270,3 +265,28 @@ once(
   },
   0.3,
 );
+
+/* One request fills every star count. A failed fetch leaves the labels alone. */
+const slots = all<HTMLElement>('[data-stars]');
+if (slots.length > 0) {
+  void fetch('https://api.github.com/repos/shrijayan/ferrule', {
+    headers: { Accept: 'application/vnd.github+json' },
+  })
+    .then(async (response) => {
+      if (!response.ok) return;
+      const body: unknown = await response.json();
+      if (typeof body !== 'object' || body === null || !('stargazers_count' in body)) return;
+      const count = body.stargazers_count;
+      if (typeof count !== 'number' || !Number.isInteger(count) || count < 0) return;
+      const text = count.toLocaleString('en-US');
+      for (const slot of slots) {
+        const num = slot.querySelector('.gh-count');
+        if (num === null) continue;
+        num.textContent = text;
+        slot.hidden = false;
+      }
+    })
+    .catch(() => {
+      // The buttons already say GitHub / Star on GitHub and already link.
+    });
+}

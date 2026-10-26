@@ -18,10 +18,8 @@ description: Five stages; Forge is stage two.
 Stages 01 to 03 are one native Rust binary, `ferrule-gen` (`crates/ferrule-gen`), 8 MB with
 Forge built in: `ferrule-gen convert` writes the annotated spec and `ferrule-gen generate` runs
 Forge with the plugin. The `ferrule` CLI calls it for `generate` and `adopt`; no Node or
-WebAssembly build is involved (ADR 0014). On an Apple M4 Pro, a release build at `72dd3df`
-converts the OneBusAway spec (30 operations) in about 10 ms and generates its 196 files in about
-20 ms, about 30 ms in all; ruff formatting runs separately. The output is byte-identical on every
-run.
+WebAssembly build is involved (ADR 0014). Ruff formatting runs separately. The output is
+byte-identical on every run.
 
 ## One model, one plugin per language
 

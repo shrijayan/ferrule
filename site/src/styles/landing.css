@@ -165,6 +165,17 @@ body::after {
   width: 16px;
   height: 16px;
 }
+.gh-stars:not([hidden]) {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-variant-numeric: tabular-nums;
+}
+.btn svg.gh-star {
+  width: 12px;
+  height: 12px;
+  color: var(--brass);
+}
 .btn-brass {
   border: 0;
   color: var(--brass-ink);
@@ -301,6 +312,7 @@ h3 {
   align-items: center;
   gap: 14px;
   height: 48px;
+  max-width: 100%;
   padding: 0 8px 0 18px;
   border-radius: 12px;
   font-family: var(--mono);
@@ -2060,6 +2072,28 @@ footer {
   }
 }
 @media (max-width: 860px) {
+  .hero-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .hero-actions .btn-lg {
+    justify-content: center;
+  }
+  .cmd {
+    height: auto;
+    min-height: 48px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+    justify-content: space-between;
+  }
+  .cmd .cmd-text {
+    white-space: normal;
+    line-height: 1.45;
+    text-align: left;
+  }
+  .display {
+    font-size: clamp(44px, 12vw, 72px);
+  }
   .stage {
     aspect-ratio: auto;
     display: flex;
@@ -2112,7 +2146,7 @@ footer {
     order: 3;
   }
   .ferrule::after {
-    content: "engine · replaced";
+    content: "ferrule";
     position: absolute;
     left: 50%;
     bottom: -26px;
@@ -2203,8 +2237,25 @@ footer {
   .hero {
     padding-top: 120px;
   }
+  .hero-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .hero-actions .btn-lg {
+    justify-content: center;
+  }
   .cmd {
+    height: auto;
+    min-height: 48px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+    justify-content: space-between;
     font-size: 13px;
+  }
+  .cmd .cmd-text {
+    white-space: normal;
+    line-height: 1.45;
+    text-align: left;
   }
   .marquee-item {
     padding: 18px 26px;
