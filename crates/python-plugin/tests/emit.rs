@@ -905,3 +905,53 @@ fn defers_a_model_that_refers_to_itself_through_its_extra_values() {
     let init = get("src/acme/types/__init__.py").expect("types/__init__.py");
     assert!(init.contains("Node.model_rebuild("), "{init}");
 }
+
+/// A union of a titled object and an array of inline objects declares a class for the array's
+/// items too, in a response and in params, named `List` after the array as ogx names the array
+/// member of `InterleavedContent` (`List[ListImageContentItemTextContentItem]`).
+#[test]
+fn names_the_items_of_an_array_beside_a_titled_union_member() {
+    let titled = SdkType::Object(SdkObject {
+        hint: Some("Circle".into()),
+        ..obj_with("radius")
+    });
+    let union = SdkType::Union {
+        variants: vec![titled, SdkType::Array(Box::new(SdkType::Object(obj_with("x"))))],
+        discriminator: None,
+    };
+    let response = SdkObject {
+        fields: vec![field("shape", "shape", true, "", union.clone())],
+        ..SdkObject::default()
+    };
+    let mut m = method(Some(SdkType::Object(response)));
+    m.http_method = HttpVerb::Post;
+    m.body_params = vec![SdkParam {
+        ty: union,
+        required: true,
+        ..param("shape", "shape")
+    }];
+    m.body = Some(SdkType::Object(obj_with("id")));
+    let c = client(vec![resource(&["things"], vec![m])], None, "a/b");
+    let files = emit_root_files(&c, None).expect("emits");
+    let get = |path: &str| files.iter().find(|(p, _)| p == path).map(|(_, t)| t.as_str());
+    let response = get("src/acme/types/thing_list_response.py").expect("response module");
+    assert!(
+        response.contains(
+            "ThingListResponseShape: TypeAlias = Union[ThingListResponseShapeCircle, List[ThingListResponseShapeList]]"
+        ),
+        "{response}"
+    );
+    assert!(
+        response.contains("class ThingListResponseShapeList(BaseModel):\n    x: str\n"),
+        "{response}"
+    );
+    let params = get("src/acme/types/thing_list_params.py").expect("params module");
+    assert!(
+        params.contains("Shape: TypeAlias = Union[ShapeCircle, Iterable[ShapeList]]"),
+        "{params}"
+    );
+    assert!(
+        params.contains("class ShapeList(TypedDict, total=False):\n    x: Required[str]\n"),
+        "{params}"
+    );
+}
