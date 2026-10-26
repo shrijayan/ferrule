@@ -1,6 +1,6 @@
 //! Project files that follow stainless.yml settings, on the petstore fixture: the mock server the
-//! resource tests need unless `settings.disable_mock_tests`, as onebusaway-typescript (`f3ca3f47`)
-//! has it.
+//! resource tests need unless `settings.disable_mock_tests`, and the npm token a release by token
+//! needs, as onebusaway-typescript (`f3ca3f47`, no MCP server package) has them.
 
 mod support;
 
@@ -46,4 +46,17 @@ fn disabled_mock_tests_need_no_mock_server() {
     assert!(file(&files, "scripts/mock").is_none());
     let test = file(&files, "scripts/test").expect("scripts/test");
     assert!(!test.contains("mock"), "{test}");
+}
+
+#[test]
+fn token_publishing_passes_the_npm_token() {
+    let files = petstore(|c| c);
+    let workflow = file(&files, ".github/workflows/publish-npm.yml").expect("publish-npm.yml");
+    assert!(
+        workflow.ends_with(
+            "          bash ./bin/publish-npm\n        env:\n          NPM_TOKEN: ${{ secrets.PETSTORE_NPM_TOKEN || secrets.NPM_TOKEN }}\n"
+        ),
+        "{workflow}"
+    );
+    assert!(!workflow.contains("permissions:"), "{workflow}");
 }
