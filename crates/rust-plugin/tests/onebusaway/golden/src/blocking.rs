@@ -33,6 +33,12 @@ impl OnebusawaySdk {
         })
     }
 
+    /// The async client this one wraps, with the same settings.
+    #[must_use]
+    pub fn as_async(&self) -> &crate::OnebusawaySdk {
+        &self.inner
+    }
+
     /// The `agencies_with_coverage` resource.
     pub fn agencies_with_coverage(
         &self,

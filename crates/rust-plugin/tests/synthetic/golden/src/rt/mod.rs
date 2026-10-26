@@ -4,6 +4,7 @@
 
 pub mod error;
 pub mod http;
+pub mod multipart;
 pub mod pagination;
 pub mod query;
 pub mod request;
@@ -11,6 +12,7 @@ pub mod streaming;
 
 pub use error::{ApiError, Error, Result};
 pub use http::{Config, Core};
+pub use multipart::FileUpload;
 pub use pagination::{Page, PageConfig, PageStream, ParamLocation, Scheme, decode_page};
 pub use query::{ArrayFormat, NestedFormat};
 #[cfg(feature = "blocking")]

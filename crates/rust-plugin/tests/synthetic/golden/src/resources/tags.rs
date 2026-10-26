@@ -17,7 +17,10 @@ impl<'a, M: Copy> TagsResource<'a, M> {
     }
 
     pub fn list(&self) -> Request<'a, TagsListParams, M> {
-        let params = TagsListParams { offset: None };
+        let params = TagsListParams {
+            offset: None,
+            r#type: None,
+        };
         Request::new(self.core, params, self.mode)
     }
 }
@@ -26,11 +29,19 @@ impl<'a, M: Copy> TagsResource<'a, M> {
 #[derive(Debug, Clone, PartialEq)]
 pub struct TagsListParams {
     pub offset: Option<i64>,
+    /// Only tags of this kind; a Rust keyword as a param name.
+    pub r#type: Option<String>,
 }
 
 impl<M> Request<'_, TagsListParams, M> {
     pub fn offset(mut self, offset: i64) -> Self {
         self.params_mut().offset = Some(offset);
+        self
+    }
+
+    /// Only tags of this kind; a Rust keyword as a param name.
+    pub fn r#type(mut self, r#type: impl Into<String>) -> Self {
+        self.params_mut().r#type = Some(r#type.into());
         self
     }
 }
@@ -41,6 +52,7 @@ impl Endpoint for TagsListParams {
     fn spec(&self) -> Result<RequestSpec> {
         let mut spec = RequestSpec::new(reqwest::Method::GET, "/v1/tags".to_owned());
         spec.query("offset", &self.offset)?;
+        spec.query("type", &self.r#type)?;
         Ok(spec)
     }
 

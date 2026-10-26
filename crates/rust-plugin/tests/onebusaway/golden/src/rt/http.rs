@@ -191,6 +191,11 @@ impl Core {
         if let Some(body) = &spec.body {
             insert(headers, "content-type", body.content_type)?;
             *request.body_mut() = Some(reqwest::Body::from(body.bytes.clone()));
+        } else if !spec.parts.is_empty() {
+            let boundary = format!("----RustSdkBoundary{:016x}", random());
+            let (content_type, bytes) = super::multipart::encode(&spec.parts, &boundary);
+            insert(headers, "content-type", &content_type)?;
+            *request.body_mut() = Some(reqwest::Body::from(bytes));
         }
         Ok(request)
     }
@@ -458,6 +463,56 @@ pub(crate) mod tests {
         assert!(
             matches!(err, Error::Decode { ref body, .. } if body == "\"text\""),
             "{err:?}"
+        );
+    }
+
+    struct Upload;
+
+    impl Endpoint for Upload {
+        type Output = Value;
+
+        fn spec(&self) -> Result<RequestSpec> {
+            let mut spec = RequestSpec::new(reqwest::Method::POST, "/files".into());
+            spec.multipart_field("purpose", &"notes")?;
+            spec.multipart_files(
+                "file",
+                [&crate::rt::FileUpload::new("a.txt", b"hello".to_vec())],
+            );
+            Ok(spec)
+        }
+
+        async fn decode(response: reqwest::Response, _spec: RequestSpec) -> Result<Value> {
+            decode_json(response).await
+        }
+    }
+
+    #[tokio::test]
+    async fn sends_multipart_bodies_and_resends_them_on_retry() {
+        let server = FakeServer::with_routes(&[]);
+        server.enqueue(Reply::json(503, &json!({})));
+        server.enqueue(Reply::json(200, &json!({"ok": true})));
+        let core = core(&server, 1);
+        Request::new(&core, Upload, Async).await.expect("uploads");
+        let requests = server.requests();
+        assert_eq!(requests.len(), 2);
+        let content_type = requests[0].header("content-type").expect("a content type");
+        let boundary = content_type
+            .strip_prefix("multipart/form-data; boundary=")
+            .expect("a boundary");
+        let body = String::from_utf8_lossy(&requests[0].body).into_owned();
+        assert!(body.starts_with(&format!("--{boundary}\r\n")), "{body}");
+        assert!(body.contains("name=\"file\"; filename=\"a.txt\"\r\nContent-Type: application/octet-stream\r\n\r\nhello"));
+        assert!(body.contains("name=\"purpose\"\r\n\r\nnotes\r\n"));
+        let second = String::from_utf8_lossy(&requests[1].body).into_owned();
+        assert_eq!(
+            second.replace(
+                requests[1]
+                    .header("content-type")
+                    .unwrap_or_default()
+                    .trim_start_matches("multipart/form-data; boundary="),
+                "B"
+            ),
+            body.replace(boundary, "B")
         );
     }
 

@@ -58,6 +58,10 @@ enum Location {
     Json,
     /// The whole body as bytes, with its media type.
     Bytes,
+    /// One non-file field of a `multipart/form-data` body.
+    MultipartField,
+    /// One file field (or list of files) of a `multipart/form-data` body.
+    MultipartFile,
 }
 
 #[derive(Debug, Clone)]
@@ -287,15 +291,20 @@ fn body_fields(
     base: &str,
     idents: &mut Taken,
 ) -> Result<Vec<ParamField>, FerruleError> {
-    if body.media_type.starts_with("multipart/") {
+    let multipart = body.media_type.starts_with("multipart/");
+    if multipart && cx.g.client.object_of(&body.ty).is_none() {
         return Err(FerruleError::new(
             FerCode::Fer201,
             m.pointer.clone(),
-            format!("the Rust target cannot send a {} body yet", body.media_type),
-            "leave the method out of the Rust SDK, or send the body as JSON (ADR 0019)",
+            format!(
+                "the {} body is not an object, so it has no fields to send as parts",
+                body.media_type
+            ),
+            "describe the body as an object whose properties are the form's fields (ADR 0019)",
         ));
     }
-    let binary = matches!(body.ty, Type::Scalar { scalar: Scalar::Binary }) || !body.media_type.contains("json");
+    let binary =
+        !multipart && (matches!(body.ty, Type::Scalar { scalar: Scalar::Binary }) || !body.media_type.contains("json"));
     let description = if body.description.is_empty() {
         &body.schema_description
     } else {
@@ -357,11 +366,56 @@ fn body_fields(
                 field: f.clone(),
                 exploded: None,
             };
-            let mut field = param_field_with(cx, &p, Location::BodyField, base, idents, &declared);
+            if multipart && let Some(many) = file_type(&f.ty) {
+                return file_field(f, many, idents);
+            }
+            let location = if multipart {
+                Location::MultipartField
+            } else {
+                Location::BodyField
+            };
+            let mut field = param_field_with(cx, &p, location, base, idents, &declared);
             field.required = f.required;
             field
         })
         .collect())
+}
+
+/// For a file field of a multipart body (format `binary`), whether it is a list of files.
+fn file_type(ty: &Type) -> Option<bool> {
+    match strip_nullable(ty).0 {
+        Type::Scalar { scalar: Scalar::Binary } => Some(false),
+        Type::Array { items } => {
+            matches!(strip_nullable(items).0, Type::Scalar { scalar: Scalar::Binary }).then_some(true)
+        }
+        _ => None,
+    }
+}
+
+/// A file field of a multipart body: a `FileUpload`, or a list of them when `many`.
+fn file_field(f: &ferrule_sdk_model::model::Field, many: bool, idents: &mut Taken) -> ParamField {
+    let (ty, example) = if many {
+        ("Vec<crate::rt::FileUpload>", "Vec::new()".to_owned())
+    } else {
+        (
+            "crate::rt::FileUpload",
+            "crate::rt::FileUpload::new(\"file.txt\", Vec::<u8>::new())".to_owned(),
+        )
+    };
+    ParamField {
+        ident: idents.claim(&field_name(&f.name.words)),
+        wire: f.wire_name.clone(),
+        location: Location::MultipartFile,
+        rendered: Rendered {
+            ty: ty.to_owned(),
+            path: ty.to_owned(),
+            example,
+            string: false,
+        },
+        required: f.required,
+        nullable: matches!(f.ty, Type::Nullable { .. }),
+        description: f.description.clone(),
+    }
 }
 
 /// The output type of a call and how its response is read.
@@ -406,7 +460,8 @@ fn output(cx: &mut Cx<'_, '_>, m: &Method, base: &str, variant: Variant) -> Outp
             uses_spec: true,
         };
     }
-    let Some(response) = &m.response else {
+    // A 204 has no body, whatever schema the spec gives it.
+    let Some(response) = m.response.as_ref().filter(|r| r.status != "204") else {
         cx.module.rt.insert("decode_bytes");
         return Output {
             ty: "()".to_owned(),
@@ -463,7 +518,8 @@ fn setters(cx: &mut Cx<'_, '_>, params: &str, fields: &[ParamField]) -> Option<S
         }
         first = false;
         item.push_str(&doc(&f.description, "    "));
-        let arg = f.ident.trim_start_matches("r#");
+        // A keyword stays a raw identifier (`r#type`) as an argument too.
+        let arg = f.ident.as_str();
         let (ty, value) = if f.rendered.string {
             ("impl Into<String>".to_owned(), format!("{arg}.into()"))
         } else {
@@ -510,6 +566,16 @@ fn endpoint(
             Location::Path => {}
             Location::Query => statements.push(format!("spec.query({:?}, &self.{ident})?;", f.wire)),
             Location::Header => statements.push(format!("spec.header({:?}, &self.{ident})?;", f.wire)),
+            Location::MultipartField => statements.push(format!("spec.multipart_field({:?}, &self.{ident})?;", f.wire)),
+            Location::MultipartFile => {
+                let many = f.rendered.ty.starts_with("Vec<");
+                let files = match (f.required && !f.nullable, many) {
+                    (true, false) => format!("[&self.{ident}]"),
+                    (false, true) => format!("self.{ident}.iter().flatten()"),
+                    _ => format!("&self.{ident}"),
+                };
+                statements.push(format!("spec.multipart_files({:?}, {files});", f.wire));
+            }
             Location::BodyField => statements.push(format!(
                 "spec.body_field({:?}, &self.{ident}, {})?;",
                 f.wire, f.required
@@ -732,6 +798,7 @@ fn route(cx: &Cx<'_, '_>, m: &Method) -> Route {
     let json = m
         .response
         .as_ref()
+        .filter(|r| r.status != "204")
         .map_or_else(String::new, |r| fake::value(client, &r.ty).to_string());
     let stream = m.streaming.as_ref().map(|s| {
         let event = s.event.as_ref().or(m.response.as_ref().map(|r| &r.ty));

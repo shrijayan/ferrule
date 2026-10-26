@@ -219,9 +219,11 @@ fn serve(stream: TcpStream, routes: &[Route], state: &Mutex<State>) -> std::io::
 }
 
 fn route_reply(routes: &[Route], method: &str, path: &str, body: &[u8]) -> Reply {
+    // The most specific route wins: `/messages/batch` over `/messages/{id}`.
     let Some(route) = routes
         .iter()
-        .find(|r| r.method.eq_ignore_ascii_case(method) && matches(r.path, path))
+        .filter(|r| r.method.eq_ignore_ascii_case(method) && matches(r.path, path))
+        .min_by_key(|r| r.path.matches('{').count())
     else {
         return Reply::json(
             404,
@@ -291,6 +293,33 @@ fn respond(mut stream: TcpStream, reply: &Reply) -> std::io::Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn prefers_the_most_specific_route() {
+        const ROUTES: &[Route] = &[
+            Route {
+                method: "POST",
+                path: "/notes/{id}",
+                status: 200,
+                content_type: "application/json",
+                body: "1",
+                streaming: None,
+            },
+            Route {
+                method: "POST",
+                path: "/notes/archive",
+                status: 204,
+                content_type: "application/json",
+                body: "",
+                streaming: None,
+            },
+        ];
+        assert_eq!(
+            route_reply(ROUTES, "POST", "/notes/archive", b"").status,
+            204
+        );
+        assert_eq!(route_reply(ROUTES, "POST", "/notes/n1", b"").status, 200);
+    }
 
     #[test]
     fn matches_params_inside_segments() {

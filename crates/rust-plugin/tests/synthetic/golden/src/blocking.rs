@@ -33,6 +33,12 @@ impl AcmeNotes {
         })
     }
 
+    /// The async client this one wraps, with the same settings.
+    #[must_use]
+    pub fn as_async(&self) -> &crate::AcmeNotes {
+        &self.inner
+    }
+
     /// The `notes` resource.
     pub fn notes(&self) -> crate::resources::notes::NotesResource<'_, Blocking<'_>> {
         crate::resources::notes::NotesResource::new(&self.inner.core, Blocking(&self.runtime))

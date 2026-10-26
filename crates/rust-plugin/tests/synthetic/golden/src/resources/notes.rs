@@ -7,6 +7,7 @@ use crate::rt::{
     Async, Core, Endpoint, Page, Request, RequestSpec, Result, decode_bytes, decode_json,
     decode_page, path_param,
 };
+use serde::{Deserialize, Serialize};
 
 /// The `notes` resource.
 #[derive(Debug, Clone, Copy)]
@@ -63,6 +64,20 @@ impl<'a, M: Copy> NotesResource<'a, M> {
     /// Delete a note
     pub fn delete(&self, note_id: impl Into<String>) -> Request<'a, NotesDeleteParams, M> {
         let params = NotesDeleteParams {
+            note_id: note_id.into(),
+        };
+        Request::new(self.core, params, self.mode)
+    }
+
+    /// Archive every note
+    pub fn archive(&self) -> Request<'a, NotesArchiveParams, M> {
+        let params = NotesArchiveParams {};
+        Request::new(self.core, params, self.mode)
+    }
+
+    /// Pin a note
+    pub fn pin(&self, note_id: impl Into<String>) -> Request<'a, NotesPinParams, M> {
+        let params = NotesPinParams {
             note_id: note_id.into(),
         };
         Request::new(self.core, params, self.mode)
@@ -195,4 +210,49 @@ impl Endpoint for NotesDeleteParams {
     async fn decode(response: reqwest::Response, _spec: RequestSpec) -> Result<Self::Output> {
         decode_bytes(response).await.map(drop)
     }
+}
+
+/// The params of `archive` (POST `/v1/notes/archive`).
+#[derive(Debug, Clone, PartialEq)]
+pub struct NotesArchiveParams {}
+
+impl Endpoint for NotesArchiveParams {
+    type Output = ();
+
+    fn spec(&self) -> Result<RequestSpec> {
+        Ok(RequestSpec::new(
+            reqwest::Method::POST,
+            "/v1/notes/archive".to_owned(),
+        ))
+    }
+
+    async fn decode(response: reqwest::Response, _spec: RequestSpec) -> Result<Self::Output> {
+        decode_bytes(response).await.map(drop)
+    }
+}
+
+/// The params of `pin` (POST `/v1/notes/{note_id}`).
+#[derive(Debug, Clone, PartialEq)]
+pub struct NotesPinParams {
+    pub note_id: String,
+}
+
+impl Endpoint for NotesPinParams {
+    type Output = NotesPinResponse;
+
+    fn spec(&self) -> Result<RequestSpec> {
+        Ok(RequestSpec::new(
+            reqwest::Method::POST,
+            format!("/v1/notes/{}", path_param(&self.note_id)?),
+        ))
+    }
+
+    async fn decode(response: reqwest::Response, _spec: RequestSpec) -> Result<Self::Output> {
+        decode_json(response).await
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct NotesPinResponse {
+    pub pinned: bool,
 }

@@ -15,4 +15,6 @@ pub mod blocking;
 pub mod testing;
 
 pub use client::{Environment, OnebusawaySdk, OnebusawaySdkBuilder};
-pub use rt::{ApiError, Error, EventStream, Page, PageStream, Request, RequestOptions, Result};
+pub use rt::{
+    ApiError, Error, EventStream, FileUpload, Page, PageStream, Request, RequestOptions, Result,
+};

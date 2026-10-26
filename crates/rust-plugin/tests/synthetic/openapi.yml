@@ -135,6 +135,26 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Note'
+    post:
+      operationId: pinNote
+      summary: Pin a note
+      parameters:
+        - name: note_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The pinned note.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [pinned]
+                properties:
+                  pinned:
+                    type: boolean
     delete:
       operationId: deleteNote
       summary: Delete a note
@@ -147,6 +167,17 @@ paths:
       responses:
         '204':
           description: Deleted.
+  /v1/notes/archive:
+    post:
+      operationId: archiveNotes
+      summary: Archive every note
+      responses:
+        '204':
+          description: Archived; the schema is the empty body.
+          content:
+            application/json:
+              schema:
+                type: string
   /v1/notes/{note_id}/comments:
     get:
       operationId: listComments
@@ -213,6 +244,45 @@ paths:
             text/event-stream:
               schema:
                 type: object
+  /v1/files:
+    post:
+      operationId: createFile
+      summary: Upload a file
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file, purpose]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The file to upload.
+                purpose:
+                  type: string
+                  enum: [notes, attachments]
+                tags:
+                  type: array
+                  items:
+                    type: string
+                extra_files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        '200':
+          description: The file.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [id]
+                properties:
+                  id:
+                    type: string
   /v1/files/{file_id}/content:
     post:
       operationId: uploadFile
@@ -248,6 +318,11 @@ paths:
           in: query
           schema:
             type: integer
+        - name: type
+          in: query
+          description: Only tags of this kind; a Rust keyword as a param name.
+          schema:
+            type: string
       responses:
         '200':
           description: Tags.

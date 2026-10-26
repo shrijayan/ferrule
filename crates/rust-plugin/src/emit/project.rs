@@ -134,7 +134,9 @@ pub fn lib_rs(g: &Gen<'_>, top: &[(String, String)], pages: bool) -> String {
         ""
     };
     let _ = writeln!(out, "pub use client::{{{environment}{client}, {client}Builder}};");
-    out.push_str("pub use rt::{ApiError, Error, EventStream, Page, PageStream, Request, RequestOptions, Result};\n");
+    out.push_str(
+        "pub use rt::{ApiError, Error, EventStream, FileUpload, Page, PageStream, Request, RequestOptions, Result};\n",
+    );
     out
 }
 

@@ -52,6 +52,7 @@ pub struct AcmeNotesHealthResponse {
 #[derive(Debug, Clone)]
 pub struct AcmeNotes {
     pub(crate) core: std::sync::Arc<Core>,
+    webhook_secret: Option<String>,
 }
 
 impl AcmeNotes {
@@ -114,6 +115,12 @@ impl AcmeNotes {
         let params = AcmeNotesHealthParams {};
         Request::new(&self.core, params, Async)
     }
+
+    /// The `webhook_secret` option.
+    #[must_use]
+    pub fn webhook_secret(&self) -> Option<&str> {
+        self.webhook_secret.as_deref()
+    }
 }
 
 /// Options of a [`AcmeNotes`]; each option not set is read from the environment.
@@ -121,6 +128,7 @@ impl AcmeNotes {
 pub struct AcmeNotesBuilder {
     api_key: Option<String>,
     organization: Option<String>,
+    webhook_secret: Option<String>,
     base_url: Option<String>,
     environment: Option<Environment>,
     timeout: Option<std::time::Duration>,
@@ -143,6 +151,14 @@ impl AcmeNotesBuilder {
     /// Read from `ACME_NOTES_ORG` when not set.
     pub fn organization(mut self, value: impl Into<String>) -> Self {
         self.organization = Some(value.into());
+        self
+    }
+
+    /// Sets `webhook_secret`.
+    ///
+    /// Read from `ACME_NOTES_WEBHOOK_SECRET` when not set.
+    pub fn webhook_secret(mut self, value: impl Into<String>) -> Self {
+        self.webhook_secret = Some(value.into());
         self
     }
 
@@ -190,9 +206,11 @@ impl AcmeNotesBuilder {
     ///
     /// [`Error::Config`] when a required option is not set, or both `base_url` and
     /// `environment` are.
-    pub fn build(self) -> Result<AcmeNotes> {
+    pub fn build(mut self) -> Result<AcmeNotes> {
+        let webhook_secret = from_env(self.webhook_secret.take(), "ACME_NOTES_WEBHOOK_SECRET");
         Ok(AcmeNotes {
             core: std::sync::Arc::new(self.core()?),
+            webhook_secret,
         })
     }
 
