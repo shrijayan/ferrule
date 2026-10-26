@@ -141,3 +141,17 @@ def test_write_tree_refuses_paths_outside_out(tmp_path: Path, rel: str) -> None:
     with pytest.raises(FerruleError, match="FER4008"):
         write_tree(tmp_path / "out", {rel: b"x"})
     assert not (tmp_path / "escape.py").exists()
+
+
+def test_regenerate_merges_from_the_last_generation_the_branch_took(repo: Path) -> None:
+    # A generation whose PR was never merged (gen3, on `pr`) must not become the base: gen4
+    # changes a file gen3 had deleted, and main still has it from gen2.
+    regenerate_branch(repo, GEN1, keep=KeepRules())
+    gen2 = {**GEN1, "X.md": b"x2\n"}
+    regenerate_branch(repo, gen2, keep=KeepRules())
+    git(repo, "branch", "pr")
+    regenerate_branch(repo, GEN1, keep=KeepRules(), into="pr")
+    gen4 = {**GEN1, "X.md": b"x4\n"}
+    regen = regenerate_branch(repo, gen4, keep=KeepRules())
+    assert regen.conflict_branch is None
+    assert (repo / "X.md").read_bytes() == b"x4\n"
