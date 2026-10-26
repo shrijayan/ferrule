@@ -112,7 +112,7 @@ def test_apply_inserts_then_replaces_the_blocks() -> None:
         '      agent_info: "#/components/schemas/Agent.Info"',
         '      config_lsp_server: "#/components/schemas/Config.LSP.ServerEncoded"',
     ]
-    assert "custom_casings:\n  lsp: {initialism: true}\n" in once
+    assert "custom_casings:\n  lsp: { initialism: true }\n" in once
     assert once.index("# </ferrule:casings>") < once.index("\nreadme:\n")
     assert "  agent:\n    methods:\n" in once
     smaller: Json = {"components": {"schemas": {"Agent.Info": {}}}}
