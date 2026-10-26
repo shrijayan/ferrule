@@ -484,3 +484,26 @@ def test_generate_renders_the_configured_pagination(inputs: tuple[GenerateReques
 
     generate(request, runner=runner, renderer=render)
     assert seen == [[entry]]
+
+
+def test_generate_renders_the_configured_timeout_and_retries(
+    inputs: tuple[GenerateRequest, Path],
+) -> None:
+    request, tmp = inputs
+    request = replace(request, runtime_from=foreign_sdk(tmp))
+    client = {"name": "acme", "timeoutSeconds": 600, "maxRetries": 3}
+    base = fake_runner([])
+
+    def runner(argv: Sequence[str]) -> subprocess.CompletedProcess[str]:
+        if argv[1] == "convert":
+            write(Path(argv[argv.index("-o") + 1]), json.dumps({"x-ferrule-client": client}))
+        return base(argv)
+
+    seen: list[dict[str, object]] = []
+
+    def render(_package: str, package_dir: Path, /, **options: object) -> None:
+        seen.append(options)
+        write(package_dir / "_utils/__init__.py")
+
+    generate(request, runner=runner, renderer=render)
+    assert seen == [{"timeout": 600, "max_retries": 3}]
