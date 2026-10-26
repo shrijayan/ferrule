@@ -567,7 +567,7 @@ pub fn annotate(spec: &Value, config: &Value) -> (Value, Vec<Diagnostic>) {
         root.insert("x-ferrule-targets", t.clone());
     }
     // The runtime renders `pagination.py` from these when it is not copied from an adopted SDK.
-    let page_schemes = page_scheme_extension(config, |name| ctx.casings.class_name(name));
+    let page_schemes = page_scheme_extension(config);
     if let (Some(schemes), Some(root)) = (page_schemes, out.as_object_mut()) {
         root.insert("x-ferrule-page-schemes", schemes);
     }

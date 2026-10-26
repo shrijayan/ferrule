@@ -1,5 +1,5 @@
 {
-  "sha256": "bfaeb9eaeaddc2371179a5a2d135972cd2b66a1001a07bbcbc2d6ce5cd19e1db",
+  "sha256": "5a9cbdd09ca4f6d8b919300189870e2d540f3c262e38a231cc4930b1b140b95a",
   "root": {
     "x-ferrule-client": {
       "defaultEnvironment": "production",
@@ -56,7 +56,6 @@
     },
     "x-ferrule-page-schemes": [
       {
-        "className": "EntriesCursor",
         "kind": "cursor",
         "name": "entries_cursor",
         "request": [

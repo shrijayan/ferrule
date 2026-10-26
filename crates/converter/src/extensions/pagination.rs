@@ -192,11 +192,31 @@ fn field_entries(fields: &Map) -> Vec<Value> {
         .collect()
 }
 
-/// `x-ferrule-page-schemes`: every configured scheme with its class name (spelled with the
-/// custom casings) and its request and response fields as lists, so they keep config order in
-/// the annotated spec. The implicit items field gets the purpose `items`.
+/// The field entry's `key`, if it is a string.
+fn entry_str<'a>(field: &'a Value, key: &str) -> Option<&'a str> {
+    field.as_object().and_then(|f| str_(f, key))
+}
+
+/// Stainless's implicit items: with no field of purpose `items`, the one array without a purpose.
+fn mark_implicit_items(fields: &mut [Value]) {
+    if fields.iter().any(|f| entry_str(f, "purpose") == Some("items")) {
+        return;
+    }
+    let arrays: Vec<usize> = (0..fields.len())
+        .filter(|&i| entry_str(&fields[i], "purpose").is_none() && entry_str(&fields[i], "type") == Some("array"))
+        .collect();
+    if let [only] = arrays.as_slice()
+        && let Value::Object(f) = &mut fields[*only]
+    {
+        f.insert("purpose", Value::from("items"));
+    }
+}
+
+/// `x-ferrule-page-schemes`: every configured scheme with its request and response fields as
+/// lists, so they keep config order in the annotated spec. When no response field has the
+/// purpose `items`, the one top-level array without a purpose gets it (Stainless's implicit items).
 #[must_use]
-pub fn page_scheme_extension(config: &Value, class_name: impl Fn(&str) -> String) -> Option<Value> {
+pub fn page_scheme_extension(config: &Value) -> Option<Value> {
     let list: Vec<&Value> = match config.get("pagination") {
         Some(Value::Array(a)) => a.iter().collect(),
         Some(v @ Value::Object(_)) => vec![v],
@@ -206,22 +226,10 @@ pub fn page_scheme_extension(config: &Value, class_name: impl Fn(&str) -> String
         .into_iter()
         .map(|entry| {
             let raw = obj_of(Some(entry));
-            let name = str_(raw, "name").unwrap_or(UNNAMED_PAGE);
-            let response = obj(raw, "response");
-            let mut flat = Flat::default();
-            flatten(response, "", &mut flat, 0);
-            let implicit = implicit_items(response, &flat.body);
-            let mut fields = field_entries(response);
-            for field in &mut fields {
-                if let Value::Object(f) = field
-                    && implicit.as_deref() == str_(f, "name")
-                {
-                    f.insert("purpose", Value::from("items"));
-                }
-            }
+            let mut fields = field_entries(obj(raw, "response"));
+            mark_implicit_items(&mut fields);
             let mut out = Map::new();
-            out.insert("name", Value::from(name));
-            out.insert("className", Value::from(class_name(name).as_str()));
+            out.insert("name", Value::from(str_(raw, "name").unwrap_or(UNNAMED_PAGE)));
             out.insert("kind", raw.get("type").cloned().unwrap_or(Value::Null));
             out.insert("request", Value::Array(field_entries(obj(raw, "request"))));
             out.insert("response", Value::Array(fields));
