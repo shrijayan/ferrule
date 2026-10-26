@@ -64,8 +64,8 @@ method's response. Other schemes (`cursor_id`, `cursor_url`, `offset`, `page_num
 |---|---|---|---|
 | onebusaway-go (Apache-2.0, `d115209e`) | v1 | 65/69 | `tests/oracle.rs` (exact) |
 | knock-go (Apache-2.0, `4b86a0d6`, 2025) | v1 | `pagination.go`: 3 of 4 page types | `tests/oracle.rs` |
-| imagekit-go (Apache-2.0, `bc22fec7`) | v2 | 15/45 | `tests/oracle_v2.rs` (floor) |
-| knock-mgmt-go (Apache-2.0, `85ae774c`) | v2 | 7/50 | `tests/oracle_v2.rs` (floor) |
+| imagekit-go (Apache-2.0, `bc22fec7`) | v2 | 17/45 | `tests/oracle_v2.rs` (floor) |
+| knock-mgmt-go (Apache-2.0, `85ae774c`) | v2 | 8/50 | `tests/oracle_v2.rs` (floor) |
 
 onebusaway-go is the same generation as the proven Python pin; its four other files are Forge
 gap G18 (parameter `example` and `maximum` are not in the model): `arrivalanddeparture_test.go`,
@@ -96,10 +96,10 @@ the model does not have.
 
 ## Not done yet
 
-- v2: unions (`XUnion`, `XUnionParam`, `RegisterUnion`), constants (`shared/constant`,
-  `constant.X` fields, `NewXParam`), `RegisterFieldValidator` for nested param enums,
-  `backcompat.go`, multipart bodies (`MarshalMultipart`), README example params in
-  `usage_test.go`.
+- v2: unions (`XUnion`, `XUnionParam`, `RegisterUnion`; only their names are emitted),
+  constants (`shared/constant`, `constant.X` fields, `NewXParam`: Forge reads `const` as a
+  one-value enum, which v2 declares as an enum), `backcompat.go`, multipart bodies
+  (`MarshalMultipart`), README example params in `usage_test.go`.
 - Both layouts: SSE streaming, unions in v1 (emitted as `interface{}`), header params,
   non-struct model aliases, string formats beyond uuid/date/date-time (`uri`, `email`: not in
   the model), resource docs from OpenAPI tags and inline response descriptions (not in the
