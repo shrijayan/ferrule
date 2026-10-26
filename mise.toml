@@ -19,6 +19,9 @@ ruby = "3.4.12"
 # The C# plugin's formatter (csharpier, crates/csharp-plugin/tools/dotnet-tools.json) and the
 # generated SDKs' builds and tests; the SDKs target net8.0, as the oracles' CI does.
 dotnet = "8.0.426"
+# The Rust target's public-API checker (ADR 0019), run on the generated crates by the Rust
+# plugin's tests.
+"github:obi1kenobi/cargo-semver-checks" = "0.51.0"
 
 [tasks."forge:setup"]
 description = "Check out the pinned Forge commit into .cache/forge (for the canary)"
@@ -87,6 +90,7 @@ run = [
   "cargo test -p ferrule-python-plugin --test golden --test agent --test files_oracle --test project_files_oracles",
   "cargo test -p ferrule-converter --test goldens",
   "cargo test -p ferrule-sdk-model --test snapshots --test python_cross_check",
+  "cargo test -p ferrule-rust-plugin --test golden",
 ]
 
 [tasks.spike]
