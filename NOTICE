@@ -61,10 +61,16 @@ Sources:
     src/RequestOptions.php and tests/Core/**), copied to runtime/php/template/. Modified by
     The Ferrule Authors (namespace, name and client settings replaced by tokens); marks kept
     in runtime/README.md and runtime/NOTICE.
+  - imagekit-developer/imagekit-dotnet @ 265ab207ce4c7d30a820ed540c0422834f05583e
+    (Apache-2.0, Copyright 2026 Image Kit): the C# runtime (src/Imagekit/Core but the client
+    options, environment URLs and JSON options, Exceptions/, IPageExtensions.cs, Shims.cs, and
+    the Core and retries tests), copied to runtime/csharp/template/. Modified by The Ferrule
+    Authors (names replaced by tokens, //ferrule: directives and a slot, CRLF stored as LF);
+    marks kept in runtime/README.md and runtime/NOTICE.
   - Pagination class text from lithic-python, honcho-python-core, knock-python and
     knock-mgmt-python (Apache-2.0), reproduced by runtime/src/ferrule_runtime/pagination.py.
-  - MIT-licensed Stainless-generated SDKs (opencode-sdk-js, opencode-sdk-go) are compared by
-    the runtime tests, never copied.
+  - MIT-licensed Stainless-generated SDKs (opencode-sdk-js, opencode-sdk-go, stagehand-net) are
+    compared by the runtime tests, never copied.
   - Embedded upstream: httpx-sse (MIT) in _streaming.py, pydantic (MIT) in
     _utils/_datetime_parse.py, as their headers note.
 

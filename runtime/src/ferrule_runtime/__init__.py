@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Runtime support code copied into Ferrule-generated SDKs."""
 
+from ferrule_runtime._csharp import CSharpOptions, render_csharp_files
 from ferrule_runtime._go import GoOptions, render_go_files
 from ferrule_runtime._java import JavaArrayFormat, JavaOptions, JavaTarget, render_java_files
 from ferrule_runtime._php import PhpOptions, render_php_files
@@ -34,6 +35,7 @@ from ferrule_runtime.pagination import (
 )
 
 __all__ = [
+    "CSharpOptions",
     "GoOptions",
     "JavaArrayFormat",
     "JavaOptions",
@@ -55,6 +57,7 @@ __all__ = [
     "TypeScriptOptions",
     "default_client_name",
     "render",
+    "render_csharp_files",
     "render_files",
     "render_go_files",
     "render_java_files",
