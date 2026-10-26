@@ -1,4 +1,4 @@
-// From OneBusAway/go-sdk client_test.go @ d115209e (Apache-2.0, see NOTICE). Modified by The Ferrule Authors: names replaced by {{...}} tokens; this line is not emitted.
+// From OneBusAway/go-sdk client_test.go @ d115209e (Apache-2.0, see NOTICE). Modified by The Ferrule Authors: names and retry counts replaced by {{...}} tokens; this line is not emitted.
 type closureTransport struct {
 	fn func(req *http.Request) (*http.Response, error)
 }
@@ -50,11 +50,11 @@ func TestRetryAfter(t *testing.T) {
 	}
 
 	attempts := len(retryCountHeaders)
-	if attempts != 3 {
-		t.Errorf("Expected %d attempts, got %d", 3, attempts)
+	if attempts != {{ATTEMPTS}} {
+		t.Errorf("Expected %d attempts, got %d", {{ATTEMPTS}}, attempts)
 	}
 
-	expectedRetryCountHeaders := []string{"0", "1", "2"}
+	expectedRetryCountHeaders := []string{{{RETRY_COUNTS}}}
 	if !reflect.DeepEqual(retryCountHeaders, expectedRetryCountHeaders) {
 		t.Errorf("Expected %v retry count headers, got %v", expectedRetryCountHeaders, retryCountHeaders)
 	}
@@ -83,7 +83,7 @@ func TestDeleteRetryCountHeader(t *testing.T) {
 		t.Error("Expected there to be a cancel error")
 	}
 
-	expectedRetryCountHeaders := []string{"", "", ""}
+	expectedRetryCountHeaders := []string{{{EMPTY_COUNTS}}}
 	if !reflect.DeepEqual(retryCountHeaders, expectedRetryCountHeaders) {
 		t.Errorf("Expected %v retry count headers, got %v", expectedRetryCountHeaders, retryCountHeaders)
 	}
@@ -112,7 +112,7 @@ func TestOverwriteRetryCountHeader(t *testing.T) {
 		t.Error("Expected there to be a cancel error")
 	}
 
-	expectedRetryCountHeaders := []string{"42", "42", "42"}
+	expectedRetryCountHeaders := []string{{{OVERWRITTEN_COUNTS}}}
 	if !reflect.DeepEqual(retryCountHeaders, expectedRetryCountHeaders) {
 		t.Errorf("Expected %v retry count headers, got %v", expectedRetryCountHeaders, retryCountHeaders)
 	}
@@ -139,7 +139,7 @@ func TestRetryAfterMs(t *testing.T) {
 	if err == nil {
 		t.Error("Expected there to be a cancel error")
 	}
-	if want := 3; attempts != want {
+	if want := {{ATTEMPTS}}; attempts != want {
 		t.Errorf("Expected %d attempts, got %d", want, attempts)
 	}
 }
