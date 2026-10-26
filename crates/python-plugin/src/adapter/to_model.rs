@@ -565,7 +565,7 @@ const BOUND_NAMES: [&str; 5] = ["self", "extra_headers", "extra_query", "extra_b
 /// whose name another location also has is prefixed with its location (gcore-python
 /// `dns.zones.replace(path_name, *, body_name)`, cloudflare-python
 /// `recipients.create(share_id, *, path_account_id, body_account_id)`).
-fn rename_clashes<const N: usize>(mut locations: [(&str, Vec<&mut SdkParam>); N]) {
+pub fn rename_clashes<const N: usize>(mut locations: [(&str, Vec<&mut SdkParam>); N]) {
     for p in locations.iter_mut().flat_map(|(_, ps)| ps.iter_mut()) {
         if BOUND_NAMES.contains(&p.py_name.as_str()) {
             p.py_name = format!("api_{}", p.py_name);
