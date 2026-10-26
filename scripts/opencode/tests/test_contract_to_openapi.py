@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import copy
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 import pytest
 
@@ -160,6 +160,20 @@ def test_fold_record_merges_struct_and_record() -> None:
     }
     kept = {"type": "object", "allOf": [record, record]}
     assert rewrite_refs(kept) == kept
+
+
+def test_fold_non_empty_array_drops_prefix_items() -> None:
+    # Effect's NonEmptyArray (`Form.Fields`): its first item repeats `items` in `prefixItems`.
+    # Forge does not read `prefixItems` and made the array an empty object.
+    item = {"$ref": "#/$defs/A"}
+    schema = {"type": "array", "prefixItems": [item], "minItems": 1, "items": item}
+    assert rewrite_refs(schema) == {
+        "type": "array",
+        "minItems": 1,
+        "items": {"$ref": "#/components/schemas/A"},
+    }
+    tuple_ = {"type": "array", "prefixItems": [item, {"type": "string"}], "items": item}
+    assert "prefixItems" in cast("dict[str, object]", rewrite_refs(tuple_))
 
 
 def test_document_shape() -> None:
