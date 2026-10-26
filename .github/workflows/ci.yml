@@ -62,6 +62,8 @@ jobs:
       # The PHP plugin's golden checks format with the package's pinned php-cs-fixer (the runner's
       # PHP 8.3, so mise does not build one).
       - run: mise run php:tools
+      # The C# plugin's golden checks format with the SDK's pinned csharpier.
+      - run: mise run csharp:tools
       - run: mise run test:rs
 
   gates:
