@@ -382,6 +382,56 @@ fn applies_a_client_option_default_after_the_environment() {
     assert!(!out.contains("by passing region to the client"), "{out}");
 }
 
+/// HTTP basic auth (the opencode SDK: `username` and `password` options with those roles) is the
+/// `Authorization: Basic` header of `username:password`, as modern-treasury-python's
+/// `auth_headers` writes it, and nothing while a nullable option is unset.
+#[test]
+fn emits_basic_auth_from_the_username_and_password_options() {
+    let mut c = sdk(vec![method(Some(SdkType::Object(obj_with("id"))))]);
+    let s = c.settings.as_mut().expect("settings");
+    let opt = s.opts[0].clone();
+    let role = |role| {
+        Some(SdkAuth {
+            security_scheme: "basicAuth".into(),
+            role,
+        })
+    };
+    s.opts = vec![
+        SdkClientOpt {
+            name: "username".into(),
+            nullable: true,
+            read_env: None,
+            auth: role(AuthRole::Username),
+            ..opt.clone()
+        },
+        SdkClientOpt {
+            name: "password".into(),
+            nullable: true,
+            read_env: Some("ACME_PASSWORD".into()),
+            auth: role(AuthRole::Password),
+            ..opt
+        },
+    ];
+    s.security_schemes = vec![(
+        "basicAuth".into(),
+        SdkSecurityScheme::Http {
+            scheme: HttpAuthScheme::Basic,
+            keyword: None,
+        },
+    )];
+    s.security = vec![vec!["basicAuth".into()]];
+    let out = emit_client_file(&c).expect("emits");
+    let want = "    def auth_headers(self) -> dict[str, str]:
+        if self.username is None or self.password is None:
+            return {}
+        credentials = f\"{self.username}:{self.password}\".encode(\"ascii\")
+        header = f\"Basic {base64.b64encode(credentials).decode('ascii')}\"
+        return {\"Authorization\": header}
+";
+    assert!(out.contains(want), "{out}");
+    assert!(out.contains("\nimport base64\n"), "{out}");
+}
+
 /// Several auth schemes (papr-python `_client.py`: an API key header, a nullable session token
 /// header, a nullable bearer token, each its own security requirement): `auth_headers` merges
 /// one property per scheme, the last requirement first, so the first one wins.
