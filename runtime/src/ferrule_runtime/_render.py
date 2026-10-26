@@ -238,8 +238,10 @@ def render_tree(  # noqa: PLR0913 - keyword-only settings of one render
     list the longest token first), in the text and in the path (a directory named
     ``__ferrule_pkg_path__`` becomes ``org/acme``). ``gated`` maps a template path prefix
     (``testing/``, before replacement) to whether files under it are rendered. A token left over
-    after replacement is an error. ``line_length`` gives a file's formatter line length (or
-    ``None``) for ``if fits`` blocks, measured on the line with the tokens replaced.
+    after replacement is an error, and so are two templates whose paths render to one file
+    (client ``BadRequest``: ``__FerruleClient__Exception.kt`` and ``BadRequestException.kt``).
+    ``line_length`` gives a file's formatter line length (or ``None``) for ``if fits`` blocks,
+    measured on the line with the tokens replaced.
     """
 
     def substitute(text: str) -> str:
@@ -248,6 +250,7 @@ def render_tree(  # noqa: PLR0913 - keyword-only settings of one render
         return text
 
     files: dict[str, str] = {}
+    sources: dict[str, str] = {}
     for rel, entry in _walk(root):
         if any(rel.startswith(prefix) and not keep for prefix, keep in (gated or {}).items()):
             continue
@@ -267,6 +270,13 @@ def render_tree(  # noqa: PLR0913 - keyword-only settings of one render
             if leftover is not None:
                 msg = f"{rel}: unknown template token {leftover.group(0)}"
                 raise RenderError(msg)
+        if out in sources:
+            msg = (
+                f"{rel} and {sources[out]} both render to {out}; choose names that keep "
+                "the runtime's files apart"
+            )
+            raise RenderError(msg)
+        sources[out] = rel
         files[out] = text
     return files
 
