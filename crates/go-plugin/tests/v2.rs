@@ -1,6 +1,6 @@
 //! Go v2 cases no oracle SDK pins byte for byte, each on a committed fixture
 //! (`tests/<fixture>`) or a reduced inline spec and stainless.yml, generated with
-//! `Layout::V2`.
+//! `Layout::V2` unless a case names `Layout::V1` too.
 
 mod common;
 
@@ -16,7 +16,7 @@ fn convert(openapi: &str, stainless: &str) -> String {
 
 fn v2(annotated: &str, meta: GoMeta) -> GoOutput {
     let meta = GoMeta {
-        layout: Some(Layout::V2),
+        layout: meta.layout.or(Some(Layout::V2)),
         ..meta
     };
     generate(&common::model(annotated), &meta).expect("generates")
@@ -190,4 +190,27 @@ fn a_root_enum_named_file_renames_the_runtime_file_helper() {
         out.runtime.new_file,
         "field.go's File helper would collide with the File enum"
     );
+}
+
+#[test]
+fn a_pagination_example_with_path_params_passes_them() {
+    for layout in [Layout::V1, Layout::V2] {
+        let meta = GoMeta {
+            layout: Some(layout),
+            pagination_example: Some((vec!["boards".to_owned()], "list_notes".to_owned())),
+            ..GoMeta::default()
+        };
+        let out = fixture("paginated", meta);
+        let auto = file(&out, "paginationauto_test.go");
+        let args = "(context.TODO(), \"board_id\", acme.BoardListNotesParams{})";
+        assert!(
+            auto.contains(&format!("\titer := client.Boards.ListNotesAutoPaging{args}\n")),
+            "{layout:?}\n{auto}"
+        );
+        let manual = file(&out, "paginationmanual_test.go");
+        assert!(
+            manual.contains(&format!("\tpage, err := client.Boards.ListNotes{args}\n")),
+            "{layout:?}\n{manual}"
+        );
+    }
 }
