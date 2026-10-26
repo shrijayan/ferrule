@@ -1,0 +1,10 @@
+Modified by The Ferrule Authors: imagekit-php's scripts/test (this line is not emitted).
+#!/usr/bin/env bash
+
+set -e
+
+cd "$(dirname "$0")/.."
+
+
+
+exec -- ./vendor/bin/pest --colors=always
