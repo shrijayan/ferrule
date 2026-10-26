@@ -34,11 +34,13 @@ The full API of this library can be found in [api.md](api.md).
 
 ```python
 %%if README_AUTH%%
+%%if README_AUTH_ENV%%
 import os
+%%end%%
 from %%PACKAGE%% import %%CLIENT%%
 
 client = %%CLIENT%%(
-    %%README_AUTH_OPT%%=os.environ.get("%%README_AUTH_ENV%%"),  # This is the default and can be omitted
+    %%README_AUTH_ARG%%
 )
 %%else%%
 from %%PACKAGE%% import %%CLIENT%%
@@ -51,7 +53,7 @@ client = %%CLIENT%%()
 print(%%EX_RESULT%%.%%EX_PRINT%%)
 %%end%%
 ```
-%%if README_AUTH%%
+%%if README_AUTH_ENV%%
 
 While you can provide %%README_AUTH_ARTICLE%% `%%README_AUTH_OPT%%` keyword argument,
 we recommend using [python-dotenv](https://pypi.org/project/python-dotenv/)
@@ -65,12 +67,14 @@ Simply import `Async%%CLIENT%%` instead of `%%CLIENT%%` and use `await` with eac
 
 ```python
 %%if README_AUTH%%
+%%if README_AUTH_ENV%%
 import os
+%%end%%
 import asyncio
 from %%PACKAGE%% import Async%%CLIENT%%
 
 client = Async%%CLIENT%%(
-    %%README_AUTH_OPT%%=os.environ.get("%%README_AUTH_ENV%%"),  # This is the default and can be omitted
+    %%README_AUTH_ARG%%
 )
 %%else%%
 import asyncio
@@ -106,7 +110,7 @@ pip install %%DIST%%[aiohttp]
 Then you can enable it by instantiating the client with `http_client=DefaultAioHttpClient()`:
 
 ```python
-%%if README_AUTH%%
+%%if README_AUTH_ENV%%
 import os
 %%end%%
 import asyncio
@@ -117,7 +121,7 @@ from %%PACKAGE%% import Async%%CLIENT%%
 async def main() -> None:
     async with Async%%CLIENT%%(
 %%if README_AUTH%%
-        %%README_AUTH_OPT%%=os.environ.get("%%README_AUTH_ENV%%"),  # This is the default and can be omitted
+        %%README_AUTH_ARG%%
 %%end%%
         http_client=DefaultAioHttpClient(),
     ) as client:

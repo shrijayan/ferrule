@@ -35,7 +35,7 @@ fn copy_checks(opts: &[AuthOpt], client: &str) -> String {
 }
 
 /// The `update_env(...)` arguments that unset every option's environment variable (one per
-/// line, with a magic trailing comma, when there are several).
+/// line, with a magic trailing comma, when there are several; an empty mapping for none).
 fn unset_env(opts: &[AuthOpt]) -> String {
     let envs: Vec<String> = opts
         .iter()
@@ -43,6 +43,7 @@ fn unset_env(opts: &[AuthOpt]) -> String {
         .map(|e| format!("{}: Omit()", py_string(e)))
         .collect();
     match envs.as_slice() {
+        [] => "**{}".to_owned(),
         [one] => format!("**{{{one}}}"),
         many => format!("**{{{},}}", many.join(", ")),
     }
@@ -65,6 +66,19 @@ fn header_check(auth: &Auth) -> String {
 /// "a `auth_token`", so it is not the English rule.
 fn article(name: &str) -> &'static str {
     if name == "api_key" { "an" } else { "a" }
+}
+
+/// The README client's credential argument: read from its environment variable, else (an option
+/// without `read_env`) a placeholder the reader replaces, since nothing would fill it.
+fn readme_auth_arg(o: &AuthOpt) -> String {
+    match &o.env {
+        Some(env) => format!(
+            "{}=os.environ.get({}),  # This is the default and can be omitted",
+            o.name,
+            py_string(env)
+        ),
+        None => format!("{}={},", o.name, py_string(&o.value)),
+    }
 }
 
 /// The auth tokens.
@@ -118,6 +132,7 @@ pub fn auth_vars(auth: &Auth, vars: &mut TemplateVars) {
         ("AUTH_UNSET_ENV", unset_env(opts)),
         ("README_AUTH", flag(readme.is_some())),
         ("README_AUTH_OPT", readme.map_or_else(String::new, |o| o.name.clone())),
+        ("README_AUTH_ARG", readme.map_or_else(String::new, readme_auth_arg)),
         (
             "README_AUTH_ENV",
             readme.and_then(|o| o.env.clone()).unwrap_or_default(),
