@@ -7,7 +7,19 @@ use super::Gen;
 use super::decls::print_decls;
 use super::resource::all_model_decls;
 use crate::printer::go_file;
-use crate::types::{Decl, Pkg, model_pkg};
+use crate::types::{Ctx, Decl, Pkg, model_pkg};
+
+/// v2's private aliases of `param.APIUnion` and `param.APIObject`, which params structs embed;
+/// imagekit-go and knock-mgmt-go declare them after the imports of `aliases.go` and
+/// `shared/shared.go`.
+fn param_aliases(g: &Gen<'_>, ctx: &mut Ctx<'_>) -> &'static str {
+    if !g.target.v2() {
+        return "";
+    }
+    ctx.import_module("packages/param");
+    "// aliased to make [param.APIUnion] private when embedding\ntype paramUnion = param.APIUnion\n\n\
+     // aliased to make [param.APIObject] private when embedding\ntype paramObj = param.APIObject\n\n"
+}
 
 /// The declarations of every `$shared` model, in model order.
 #[must_use]
@@ -35,7 +47,7 @@ pub fn shared_file(g: &Gen<'_>) -> Option<(String, String)> {
     if decls.is_empty() {
         return None;
     }
-    let mut body = String::new();
+    let mut body = param_aliases(g, &mut ctx).to_owned();
     print_decls(&mut body, &decls, &mut ctx);
     let imports: Vec<String> = ctx.imports.into_iter().collect();
     Some(("shared/shared.go".to_owned(), go_file("shared", &imports, &body)))
@@ -46,7 +58,7 @@ pub fn shared_file(g: &Gen<'_>) -> Option<(String, String)> {
 pub fn aliases_file(g: &Gen<'_>) -> (String, String) {
     let mut ctx = g.ctx(Pkg::Root);
     ctx.import_module("internal/apierror");
-    let mut body = String::from("type Error = apierror.Error\n\n");
+    let mut body = format!("{}type Error = apierror.Error\n\n", param_aliases(g, &mut ctx));
     let decls = shared_decls(g);
     if !decls.is_empty() {
         ctx.import_module("shared");
