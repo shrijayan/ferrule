@@ -1,0 +1,7 @@
+{
+  "namespace": "Acme",
+  "timeout": 60.0,
+  "max_retries": 2,
+  "initial_retry_delay": 0.5,
+  "max_retry_delay": 8.0
+}

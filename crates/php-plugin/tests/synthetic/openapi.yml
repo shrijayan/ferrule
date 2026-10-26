@@ -1,0 +1,226 @@
+openapi: 3.1.0
+info:
+  title: Acme
+  version: 1.0.0
+servers:
+  - url: https://api.acme.test
+security:
+  - BearerAuth: []
+paths:
+  /v1/widgets:
+    post:
+      summary: Create a widget
+      description: Creates a widget with the given name and parts. The SKU is assigned by the server.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                  description: The widget's display name.
+                color:
+                  type: string
+                  enum: [red, green, blue]
+                tags:
+                  type: array
+                  items:
+                    type: string
+                dimensions:
+                  type: object
+                  required: [width]
+                  properties:
+                    width:
+                      type: number
+                    height:
+                      type: number
+      responses:
+        '200':
+          description: The widget.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Widget'
+    get:
+      summary: List widgets
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: created_after
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: colors
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: The widgets.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Widget'
+                  next_cursor:
+                    type: [string, 'null']
+  /v1/widgets/{widget_id}:
+    get:
+      summary: Retrieve a widget
+      parameters:
+        - name: widget_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The widget.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Widget'
+    delete:
+      summary: Delete a widget
+      parameters:
+        - name: widget_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Deleted.
+  /v1/widgets/{widget_id}/state:
+    get:
+      summary: The state of a widget
+      parameters:
+        - name: widget_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Ready, or blocked with a reason.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: object
+                    required: [kind]
+                    properties:
+                      kind:
+                        type: string
+                        enum: [ready]
+                  - type: object
+                    required: [kind, reason]
+                    properties:
+                      kind:
+                        type: string
+                        enum: [blocked]
+                      reason:
+                        type: string
+                discriminator:
+                  propertyName: kind
+  /v1/widgets/{widget_id}/parts/{part_number}:
+    get:
+      summary: Retrieve one part of a widget
+      parameters:
+        - name: widget_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: part_number
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: The part.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [id, sku]
+                properties:
+                  id:
+                    type: string
+                  sku:
+                    type: string
+                    description: The part's stock keeping unit.
+                  error:
+                    $ref: '#/components/schemas/ErrorInfo'
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    ErrorInfo:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+    Widget:
+      type: object
+      description: A widget in the catalogue.
+      required: [id, name, status, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        status:
+          type: string
+          description: Where the widget is in its life cycle.
+          enum: [draft, active, retired]
+        created_at:
+          type: string
+          format: date-time
+        sku:
+          type: [string, 'null']
+        weight_kg:
+          type: number
+        homepage_url:
+          type: string
+        parts:
+          type: array
+          items:
+            type: object
+            properties:
+              part_number:
+                type: integer
+              label:
+                type: string
+        labels:
+          $ref: '#/components/schemas/Labels'
+    Labels:
+      type: object
+      description: Labels by language.
+      additionalProperties:
+        type: object
+        required: [text]
+        properties:
+          text:
+            type: string
+          color:
+            type: string
