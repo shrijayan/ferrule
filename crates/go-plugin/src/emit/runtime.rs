@@ -45,7 +45,8 @@ impl RuntimeOptions {
 }
 
 /// `RequestConfig` aligns its fields to `RequestTimeout`, the longest runtime field: a name
-/// column of 15 (`Clone` keys: 16 with the colon).
+/// column of 15 (`Clone` keys: 16 with the colon). A longer setting widens the column, and
+/// `ferrule_runtime.render_go_files` pads the runtime's lines in the same gofmt run to match.
 const CONFIG_NAME_WIDTH: usize = 15;
 
 fn config_type(o: &ClientOpt) -> &'static str {
