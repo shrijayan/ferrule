@@ -25,20 +25,13 @@ run.
 
 ## One model, one plugin per language
 
-Python's plugin, `crates/python-plugin`, is on `main`. The other languages are open pull requests
-in review, built on ADR 0017:
+Every language's plugin is on `main`. Python's is `crates/python-plugin`; the other seven are built
+on ADR 0017:
 
-- `crates/sdk-model` holds the language-neutral model and the only adapter from Forge
-  ([#17](https://github.com/shrijayan/ferrule/pull/17)). Names are word lists, never a language's
-  spelling.
-- One plugin crate per language: `ts-plugin` ([#27](https://github.com/shrijayan/ferrule/pull/27),
-  [#29](https://github.com/shrijayan/ferrule/pull/29), [#34](https://github.com/shrijayan/ferrule/pull/34)),
-  `go-plugin` ([#23](https://github.com/shrijayan/ferrule/pull/23), [#37](https://github.com/shrijayan/ferrule/pull/37)),
-  `jvm-plugin` for Java and Kotlin ([#32](https://github.com/shrijayan/ferrule/pull/32)),
-  `ruby-plugin` ([#35](https://github.com/shrijayan/ferrule/pull/35)),
-  `php-plugin` ([#38](https://github.com/shrijayan/ferrule/pull/38)) and
-  `csharp-plugin` ([#39](https://github.com/shrijayan/ferrule/pull/39)).
-  `ferrule-gen --target <lang>` picks one.
+- `crates/sdk-model` holds the language-neutral model and its adapter from Forge. Names are word
+  lists, never a language's spelling.
+- One plugin crate per language: `ts-plugin`, `go-plugin`, `jvm-plugin` for Java and Kotlin,
+  `ruby-plugin`, `php-plugin` and `csharp-plugin`. `ferrule-gen --target <lang>` picks one.
 - Each language's runtime is copied from Apache-2.0 Stainless SDKs.
 
 Python keeps its own adapter for now and moves onto the shared model later, as ADR 0017 plans.
