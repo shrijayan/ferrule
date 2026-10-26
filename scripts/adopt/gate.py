@@ -16,6 +16,11 @@ For each config oracle with a paired SDK (oracles/manifest.yaml):
 
 Reports go to reports/adopt/<name>.json. Oracle code is data: it is cloned, read and tested
 in a venv exactly as the parity harness does, never installed with its own scripts.
+
+SDKs adopted outside the oracles (ADOPTED: opencode-python-sdk, whose custom code was ported by
+hand) are checked from their adoption branch instead: ``ferrule regenerate`` reproduces the
+pinned commit (no drift), the SDK's own test commands pass against the mock, and ``ferrule
+verify`` against its last pre-Ferrule commit finds no more breaking changes than recorded.
 """
 
 from __future__ import annotations
@@ -29,14 +34,41 @@ import sys
 from typing import TYPE_CHECKING, cast
 
 from oracles.fetch import parse_manifest
-from scripts.parity.harness import resolve_pair
-from scripts.parity.run import CACHE, ROOT, run_tests, spec_file
+from scripts.parity.harness import MOCK_HOST, STEADY, STEADY_FLAGS, resolve_pair
+from scripts.parity.run import CACHE, ROOT, own_port, run_tests, spec_file, stop_mock, wait_for_port
 
 if TYPE_CHECKING:
     from pathlib import Path
 
 # Picked from the Phase 4 baseline: config oracles that reach 0 breaking (docs/phases/phase-4.md).
 TARGETS = ("onebusaway", "isaacus", "lumaai", "honcho", "knock-mgmt")
+# SDKs adopted outside the oracles: the adoption branch head, its base, and the breaking changes
+# its PR accepts (ADR 0019).
+ADOPTED: dict[str, dict[str, object]] = {
+    "opencode-python-sdk": {
+        "url": "https://github.com/shrijayan/opencode-python-sdk.git",
+        "sha": "73cedf36dd914adefffca2d0786dd9d0685b094d",  # ferrule/adopt (PR #25)
+        "base": "7bc98edc5566f7a791bbab5cbad7eb4afd786e84",  # main before Ferrule
+        "package": "opencode",
+        "breaking": 697,
+        "tests": (
+            ("pytest",),
+            (
+                "pytest",
+                "--confcutdir=tests/custom",
+                "-o",
+                "asyncio_mode=strict",
+                "-o",
+                "addopts=-ra --strict-markers",
+                "-m",
+                "not live",
+                "tests/custom",
+            ),
+        ),
+    },
+}
+# Not the parity mock's port, so an adopted SDK's run never waits on a parity run.
+ADOPTED_MOCK_PORT = 4011
 WORK = ROOT / ".cache" / "adopt"
 REPORTS = ROOT / "reports" / "adopt"
 GIT_SAFE = (
@@ -171,25 +203,174 @@ def adopt_one(name: str) -> dict[str, object]:
     return report
 
 
+def clone_adopted(name: str, url: str, sha: str) -> Path:
+    """Clone an adopted SDK with its ``generated`` branch, checked out at ``sha``."""
+    if not url.startswith("https://"):
+        msg = f"{name}: only https clone URLs are allowed"
+        raise ValueError(msg)
+    dest = prepare(name, url, sha)
+    https = ("-c", "protocol.https.allow=always")
+    git(dest, *https, "fetch", "--quiet", "origin", "refs/heads/generated:refs/heads/generated")
+    git(dest, "checkout", "--quiet", "-B", "ferrule/adopt", sha)
+    return dest
+
+
+def run_adopted_tests(repo: Path, commands: tuple[tuple[str, ...], ...]) -> dict[str, object]:
+    """Run the SDK's own test commands in its locked environment, against the mock."""
+    # The SDK's own uv project: none of this repository's uv settings apply.
+    clean = {k: v for k, v in os.environ.items() if not k.startswith("UV_") and k != "VIRTUAL_ENV"}
+    sync = subprocess.run(
+        ["uv", "sync", "--locked", "--quiet"],  # noqa: S607
+        cwd=repo,
+        capture_output=True,
+        text=True,
+        check=False,
+        env=clean,
+    )
+    if sync.returncode:
+        return {"status": "deps-failed", "error": sync.stderr[-2000:]}
+    port = ADOPTED_MOCK_PORT
+    with own_port(port, 600) as owned:
+        if not owned:
+            return {"status": "mock-port-busy"}
+        cmd = (*STEADY, "--host", MOCK_HOST, "-p", str(port), *STEADY_FLAGS, "openapi.json")
+        mock = subprocess.Popen(  # noqa: S603 - the pinned mock
+            cmd,
+            cwd=repo,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            start_new_session=True,
+        )
+        try:
+            if not wait_for_port(port, mock, 120):
+                return {"status": "mock-failed"}
+            env = {**clean, "TEST_API_BASE_URL": f"http://{MOCK_HOST}:{port}"}
+            runs: list[dict[str, object]] = []
+            for command in commands:
+                proc = subprocess.run(  # noqa: S603 - the SDK's own test command
+                    ["uv", "run", "--locked", *command, "-q", "-p", "no:cacheprovider"],  # noqa: S607
+                    cwd=repo,
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                    env=env,
+                )
+                runs.append(
+                    {
+                        "command": " ".join(command),
+                        "exit": proc.returncode,
+                        "tail": proc.stdout[-500:],
+                    }
+                )
+        finally:
+            stop_mock(mock, port)
+    ok = all(r["exit"] == 0 for r in runs)
+    return {"status": "passed" if ok else "failed", "runs": runs}
+
+
+def check_adopted(name: str) -> dict[str, object]:
+    """Check an SDK adopted outside the oracles from its adoption branch."""
+    target = ADOPTED[name]
+    sha, base = str(target["sha"]), str(target["base"])
+    repo = clone_adopted(name, str(target["url"]), sha)
+    env = {
+        **os.environ,
+        "FERRULE_GEN": os.environ.get("FERRULE_GEN") or str(ROOT / "target/release/ferrule-gen"),
+    }
+    regen = subprocess.run(  # noqa: S603 - our own CLI
+        [  # noqa: S607
+            "uv",
+            "run",
+            "ferrule",
+            "regenerate",
+            "--repo",
+            str(repo),
+            "--spec",
+            str(repo / "openapi.json"),
+            "--config",
+            str(repo / "stainless.yml"),
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+        env=env,
+        cwd=ROOT,
+    )
+    drift = git(repo, "diff", "--stat", sha, "HEAD").strip()
+    report: dict[str, object] = {
+        "target": name,
+        "sdk": {"name": name, "sha": sha},
+        "regenerate": {"exit": regen.returncode, "output": (regen.stdout + regen.stderr)[-2000:]},
+        "drift": drift,
+    }
+    verify_json = WORK / f"{name}-verify.json"
+    verify = subprocess.run(  # noqa: S603 - our own CLI
+        [  # noqa: S607
+            "uv",
+            "run",
+            "ferrule",
+            "verify",
+            "--against",
+            base,
+            "--repo",
+            str(repo),
+            "--new",
+            str(repo),
+            "--package",
+            str(target["package"]),
+            "--json",
+            str(verify_json),
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+        cwd=ROOT,
+    )
+    counts = json.loads(verify_json.read_text()) if verify_json.is_file() else {}
+    breaking = counts.get("breaking_count")
+    report["verify"] = {
+        "exit": verify.returncode,
+        "breaking": breaking,
+        "allowed": target["breaking"],
+    }
+    tests = run_adopted_tests(repo, cast("tuple[tuple[str, ...], ...]", target["tests"]))
+    report["tests"] = tests
+    ok = (
+        regen.returncode == 0
+        and not drift
+        and isinstance(breaking, int)
+        and breaking <= cast("int", target["breaking"])
+        and tests.get("status") == "passed"
+    )
+    report["status"] = "passed" if ok else "failed"
+    return report
+
+
 def main(argv: list[str] | None = None) -> int:
     """Adopt every target; exit 0 only if all pass."""
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0] if __doc__ else None)
-    parser.add_argument("names", nargs="*", default=list(TARGETS))
+    parser.add_argument("names", nargs="*", default=[*TARGETS, *ADOPTED])
     args = parser.parse_args(argv)
     REPORTS.mkdir(parents=True, exist_ok=True)
     failed: list[str] = []
     for name in args.names:
-        report = adopt_one(name)
+        report = check_adopted(name) if name in ADOPTED else adopt_one(name)
         (REPORTS / f"{report['target']}.json").write_text(
             json.dumps(report, indent=2, sort_keys=True) + "\n"
         )
         tests = report.get("tests")
         summary = cast("dict[str, object]", tests) if isinstance(tests, dict) else {}
-        sys.stdout.write(
-            f"{report['target']}: {report['status']} · adopt exit {report['adopt']['exit']}"  # type: ignore[index]
-            f" · custom code changed {len(report.get('custom_code_changed', []))}"  # type: ignore[arg-type]
-            f" · tests {summary.get('passed', 0)} passed, {summary.get('failed', 0)} failed\n"
-        )
+        if name in ADOPTED:
+            sys.stdout.write(
+                f"{report['target']}: {report['status']} · drift {bool(report['drift'])}"
+                f" · verify {report['verify']} · tests {summary.get('status')}\n"
+            )
+        else:
+            sys.stdout.write(
+                f"{report['target']}: {report['status']} · adopt exit {report['adopt']['exit']}"  # type: ignore[index]
+                f" · custom code changed {len(report.get('custom_code_changed', []))}"  # type: ignore[arg-type]
+                f" · tests {summary.get('passed', 0)} passed, {summary.get('failed', 0)} failed\n"
+            )
         if report["status"] != "passed":
             failed.append(str(report["target"]))
     sys.stdout.write(f"adopt:gate {'failed: ' + ', '.join(failed) if failed else 'OK'}\n")

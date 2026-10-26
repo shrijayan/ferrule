@@ -104,7 +104,7 @@ depends = ["build:gen"]
 run = "uv run python -m scripts.parity.run"
 
 [tasks."adopt:gate"]
-description = "Phase 4 gate: adopt five public Stainless SDKs locally and prove nothing changed"
+description = "Phase 4 gate: adopt five public Stainless SDKs locally and prove nothing changed; check the adopted opencode SDK"
 depends = ["build:gen"]
 run = "uv run python -m scripts.adopt.gate"
 
