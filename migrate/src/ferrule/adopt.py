@@ -499,8 +499,12 @@ def adopt(  # noqa: PLR0913 - every collaborator is injectable for tests
             runner=_recording(runner, request.tools, seen),
             renderer=renderer,
         )
-        say("✓ copied runtime from your repo (you own it)")
-        generated = [p for p in seen if not is_protected(p, keep)]
+        if result.rendered:
+            say("✓ rendered Ferrule's runtime (your SDK's runtime is not Stainless-style)")
+        else:
+            say("✓ copied runtime from your repo (you own it)")
+        written = sorted({*seen, *result.rendered})
+        generated = [p for p in written if not is_protected(p, keep)]
         patches = hand_edits(git, base, out, generated, tmp)
         say(f"✓ found {len(patches)} hand edits → {PATCH_DIR}/")
         say("✓ generated via ferrule-gen (forge + ferrule-python)")

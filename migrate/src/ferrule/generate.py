@@ -123,6 +123,8 @@ class GenerateResult:
     files: int
     runtime_files: int
     digest: str
+    # The runtime files Ferrule rendered (not copied from an SDK), relative to the output.
+    rendered: tuple[PurePosixPath, ...] = ()
 
 
 def resolve_tools(
@@ -451,14 +453,17 @@ def generate(
     with tempfile.TemporaryDirectory(prefix="ferrule-") as tmp:
         for step in plan_steps(planned, Path(tmp)):
             _run(step, runner)
+    rendered: tuple[PurePosixPath, ...] = ()
     if request.runtime_from is not None and own:
         package, runtime_count = _copy_runtime(request.runtime_from, request.out)
     elif renderer is not None:
         package = pick_package(_src_packages(request.out), "--out")
         package_dir = request.out / "src" / package
-        before = len(relative_files(package_dir))
+        before = set(relative_files(package_dir))
         renderer(package, package_dir)
-        runtime_count = len(relative_files(package_dir)) - before
+        prefix = PurePosixPath("src", package)
+        rendered = tuple(prefix / p for p in relative_files(package_dir) if p not in before)
+        runtime_count = len(rendered)
         if foreign is not None:
             _copy_runtime(foreign, request.out)
     else:
@@ -476,4 +481,5 @@ def generate(
         files=len(relative_files(request.out)),
         runtime_files=runtime_count,
         digest=tree_digest(request.out),
+        rendered=rendered,
     )
