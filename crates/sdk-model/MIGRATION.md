@@ -85,9 +85,9 @@ empty `Object` in Python but as "any value" after the mapping. No fixture or ora
 `Client.version`, `Client.description`; `Field.deprecated` on body fields, `Field.read_only`,
 `Field.default`; `Param.exploded`; `Body.required`, `Body.description`; `Response.status`,
 `Response.media_type`; `Object.extra` beside fields; `Union.exclusive`, variant names and
-discriminator values; enum member names; integer and float sizes, `uuid`, `bytes`, `binary`;
-HTTP methods beyond the five; `ModelDecl.deprecated`; `ClientSettings.default_environment`,
-`initial_retry_delay_seconds`, `max_retry_delay_seconds`.
+discriminator values, `Discriminator.mapping`; enum member names; integer and float sizes,
+`uuid`, `bytes`, `binary`; HTTP methods beyond the five; `ModelDecl.deprecated`;
+`ClientSettings.default_environment`, `initial_retry_delay_seconds`, `max_retry_delay_seconds`.
 
 ## Steps
 

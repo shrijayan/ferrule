@@ -200,7 +200,7 @@ pub struct Variant {
     /// The model's name for a named variant (`written` is its schema name), else the words of its
     /// discriminator value, else `None`.
     pub name: Option<Name>,
-    /// The discriminator value that selects this variant.
+    /// A discriminator value that selects this variant; [`Discriminator::mapping`] has them all.
     pub discriminator_value: Option<String>,
     pub ty: Type,
 }
@@ -210,6 +210,17 @@ pub struct Discriminator {
     /// The discriminating property as sent.
     pub wire_name: String,
     pub name: Name,
+    /// Every value the discriminator selects a variant by, by variant then value; a mapping may
+    /// give one variant several values.
+    pub mapping: Vec<DiscriminatorCase>,
+}
+
+/// One discriminator value and the variant it selects.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DiscriminatorCase {
+    pub value: String,
+    /// The index of the variant in [`Union::variants`].
+    pub variant: usize,
 }
 
 /// A named model declared once.

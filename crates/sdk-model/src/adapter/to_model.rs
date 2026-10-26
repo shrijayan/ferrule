@@ -15,9 +15,9 @@ use super::extensions::{MethodExtensions, RawClient, ResourcePosition, read_meth
 use crate::diagnostics::{FerCode, FerruleError, operation_pointer};
 use crate::js;
 use crate::model::{
-    Body, Client, ClientSettings, CustomCasing, Discriminator, EnumMember, Field, HttpMethod, Literal, Method,
-    ModelDecl, Name, Object, Package, Pagination, Param, Resource, Response, Scalar, Streaming, Type, TypeRef, Union,
-    Variant,
+    Body, Client, ClientSettings, CustomCasing, Discriminator, DiscriminatorCase, EnumMember, Field, HttpMethod,
+    Literal, Method, ModelDecl, Name, Object, Package, Pagination, Param, Resource, Response, Scalar, Streaming, Type,
+    TypeRef, Union, Variant,
 };
 
 /// The reserved resource name of methods on the client itself (ADR 0003).
@@ -189,14 +189,26 @@ impl Context<'_> {
         let nullable = members.len() >= 2 && matches!(members.last(), Some(ForgeType::Scalar(ForgeScalar::Null)));
         let shown = &members[..members.len() - usize::from(nullable)];
         let mut variants = Vec::with_capacity(shown.len());
-        for &member in shown {
-            let discriminator_value = discriminator.and_then(|d| match member {
-                ForgeType::Model(m) => cases.iter().find_map(|&(value, case)| match case {
-                    ForgeType::Model(c) if c == m => Some(value.to_owned()),
-                    _ => None,
-                }),
-                other => single_value(other, d.wire_name()),
-            });
+        let mut mapping = Vec::new();
+        for (index, &member) in shown.iter().enumerate() {
+            let mut values: Vec<String> = match (discriminator, member) {
+                (None, _) => Vec::new(),
+                (Some(_), ForgeType::Model(m)) => cases
+                    .iter()
+                    .filter_map(|&(value, case)| match case {
+                        ForgeType::Model(c) if c == m => Some(value.to_owned()),
+                        _ => None,
+                    })
+                    .collect(),
+                (Some(d), other) => single_value(other, d.wire_name()).into_iter().collect(),
+            };
+            let discriminator_value = values.first().cloned();
+            values.sort_by(|a, b| js::cmp(a, b));
+            mapping.extend(
+                values
+                    .into_iter()
+                    .map(|value| DiscriminatorCase { value, variant: index }),
+            );
             let variant_name = match member {
                 ForgeType::Model(m) => Some(Name {
                     words: m.name().words().to_vec(),
@@ -222,6 +234,7 @@ impl Context<'_> {
                     words: d.name().words().to_vec(),
                     written: d.wire_name().to_owned(),
                 },
+                mapping,
             }),
             exclusive: u.is_exclusive(),
         });
