@@ -251,6 +251,16 @@ fn field_paths(map: &[Purpose]) -> bool {
         .all(|p| p.field.split('.').all(|seg| seg == "[]" || identifier(seg)))
 }
 
+/// Pagination request fields: [`field_paths`] whose segments may also start with `$`, since they
+/// are param names sent as written (knock's `query_options.$skiptoken`).
+fn param_names(map: &[Purpose]) -> bool {
+    map.iter().all(|p| {
+        p.field
+            .split('.')
+            .all(|seg| seg == "[]" || identifier(seg.strip_prefix('$').unwrap_or(seg)))
+    })
+}
+
 /// Reads the `x-ferrule-*` extensions of one operation.
 ///
 /// # Errors
@@ -481,7 +491,7 @@ fn read_pagination(raw: &Json) -> Option<RawPagination> {
     let page = name(as_str(member(v, "page")).filter(|p| identifier(p))?);
     let request = purposes(member(v, "request"))?;
     let response = purposes(member(v, "response"))?;
-    if !field_paths(&request) || !field_paths(&response) {
+    if !param_names(&request) || !field_paths(&response) {
         return None;
     }
     let headers = match member(v, "headers") {
