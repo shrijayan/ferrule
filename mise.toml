@@ -16,6 +16,9 @@ java = "temurin-21.0.13+9.0.LTS"
 # The Ruby plugin's formatters (crates/ruby-plugin/tools/Gemfile) and the generated gems' tests;
 # the gems need Ruby >= 3.2.
 ruby = "3.4.12"
+# The PHP plugin's formatter (crates/php-plugin/tools/composer.lock) and the generated packages'
+# tests; imagekit-php's CI and composer platform use PHP 8.3.
+php = "8.3.36"
 
 [tasks."forge:setup"]
 description = "Check out the pinned Forge commit into .cache/forge (for the canary)"
@@ -45,6 +48,10 @@ run = "cargo test --workspace --locked"
 [tasks."ruby:tools"]
 description = "Install the Ruby plugin's formatters (crates/ruby-plugin/tools/Gemfile.lock) into .cache/ruby-tools"
 run = "bash crates/ruby-plugin/tools/install.sh"
+
+[tasks."php:tools"]
+description = "Install the PHP plugin's formatter (crates/php-plugin/tools/composer.lock) into .cache/php-tools"
+run = "bash crates/php-plugin/tools/install.sh"
 
 [tasks.check]
 description = "Everything ci.yml runs"
