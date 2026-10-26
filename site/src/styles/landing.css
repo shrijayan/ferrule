@@ -1773,6 +1773,59 @@ section {
   color: var(--dim);
 }
 
+/* ---------- languages and performance (reuse the board) ---------- */
+.board.langs .board-head,
+.board.langs .brow {
+  grid-template-columns: 0.9fr 0.8fr 1.2fr 2.4fr 0.8fr;
+}
+.lg-st {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+.lg-st::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.lg-st.main {
+  color: var(--ok);
+}
+.lg-st.review {
+  color: var(--brass);
+}
+.lg-st.none {
+  color: var(--dim);
+}
+.lg-pf {
+  color: var(--muted);
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+.lg-pr {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: var(--dim);
+}
+.lg-pr a {
+  color: var(--brass);
+  transition: color 0.2s;
+}
+.lg-pr a:hover {
+  color: var(--brass-hi);
+}
+.board.perf .diff-foot {
+  border-top: 0;
+}
+
 /* ---------- faq ---------- */
 .faq-grid {
   display: grid;
@@ -2129,6 +2182,18 @@ footer {
     grid-column: 2;
     grid-row: 2;
     text-align: right;
+  }
+  .board.langs .brow {
+    grid-template-columns: 1fr auto;
+  }
+  .board.langs .lg-st {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+  }
+  .board.langs .lg-pf,
+  .board.langs .lg-pr {
+    grid-column: 1 / -1;
   }
   .diff-bar .meta {
     margin-left: 0;

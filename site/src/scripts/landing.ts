@@ -253,6 +253,17 @@ once(
   0.2,
 );
 once(
+  byId('languages'),
+  () => {
+    all('#langRows .bar i').forEach((bar, k) => {
+      setTimeout(() => {
+        bar.style.width = `${bar.dataset.w ?? '0'}%`;
+      }, k * 60);
+    });
+  },
+  0.2,
+);
+once(
   byId('stages'),
   () => {
     if (!reduced) cycle();
