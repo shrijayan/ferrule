@@ -16,8 +16,8 @@ use crate::diagnostics::{FerCode, FerruleError, operation_pointer};
 use crate::js;
 use crate::model::{
     Body, Client, ClientSettings, CustomCasing, Discriminator, DiscriminatorCase, EnumMember, Field, HttpMethod,
-    Literal, Method, ModelDecl, Name, Object, Package, Pagination, Param, Resource, Response, Scalar, Streaming, Type,
-    TypeRef, Union, Variant,
+    Literal, Method, ModelDecl, Name, Object, Package, Pagination, Param, Resource, Response, Scalar, Streaming,
+    StyleSwitch, Type, TypeRef, Union, Variant,
 };
 
 /// The reserved resource name of methods on the client itself (ADR 0003).
@@ -611,6 +611,7 @@ fn to_client<'f>(
     let mut decls: Vec<ModelDecl> = Vec::new();
     let mut pkg: Option<Package> = None;
     let mut settings: Option<ClientSettings> = None;
+    let mut style: Option<Vec<StyleSwitch>> = None;
     for method in methods {
         let pointer = operation_pointer(method.path(), method.http_method().as_str());
         let extensions: Vec<(&str, &forge::Json)> = method.extensions().collect();
@@ -627,6 +628,9 @@ fn to_client<'f>(
         // Mirrored from the root, so the first operation's copy stands for all.
         if casings.is_none() {
             casings = Some(ext.casings.clone());
+        }
+        if style.is_none() {
+            style = Some(ext.style.clone());
         }
         if standalone.is_empty() {
             standalone.clone_from(&ext.standalone);
@@ -665,6 +669,7 @@ fn to_client<'f>(
         resources: freeze(root).subresources,
         client_methods: by_order(client_methods, |m| m.order),
         models: decls,
+        style: style.unwrap_or_default(),
     }))
 }
 

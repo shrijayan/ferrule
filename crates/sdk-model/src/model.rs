@@ -569,6 +569,20 @@ pub struct ClientSettings {
     pub nested_format: NestedFormat,
 }
 
+/// One `x-ferrule-style` switch (ADR 0018): a spelling of the generator the adopted SDK's runtime
+/// comes from, where it may differ from today's. A switch describes one target's runtime, not the
+/// API, so the model keeps it as written for that target; the target's plugin interprets it and
+/// every other target ignores it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct StyleSwitch {
+    /// The target whose runtime it describes: `python`, the only runtime `--runtime-from` reads.
+    pub target: String,
+    /// Such as `sentinel` or `resources`.
+    pub key: String,
+    /// Such as `NOT_GIVEN` or `eager`.
+    pub value: String,
+}
+
 /// The whole SDK.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Client {
@@ -589,6 +603,9 @@ pub struct Client {
     pub client_methods: Vec<Method>,
     /// Every named model the methods reference, sorted by stainless.yml path.
     pub models: Vec<ModelDecl>,
+    /// The runtime style switches, in the order `x-ferrule-style` writes them; empty for today's
+    /// runtime or a new SDK.
+    pub style: Vec<StyleSwitch>,
 }
 
 impl Client {
