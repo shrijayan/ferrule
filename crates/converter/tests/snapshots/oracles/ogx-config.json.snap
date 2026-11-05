@@ -1,5 +1,5 @@
 {
-  "sha256": "a28a0f90f6077f9b2e2f33dada8893151dd0f0e3bb670a5ecbc1c3f422c1c95f",
+  "sha256": "e1bd1cad8595aafaf686ce19b0872158473985a900f40774940dcda1d54deb85",
   "root": {
     "x-ferrule-client": {
       "defaultEnvironment": "production",
@@ -55,6 +55,39 @@
       "pythonEdition": "python.2025-10-08",
       "version": 1
     },
+    "x-ferrule-page-schemes": [
+      {
+        "kind": "cursor",
+        "name": "openai_cursor_page",
+        "request": [
+          {
+            "name": "limit",
+            "type": "integer"
+          },
+          {
+            "name": "after",
+            "purpose": "next_cursor_param",
+            "type": "string"
+          }
+        ],
+        "response": [
+          {
+            "name": "data",
+            "purpose": "items",
+            "type": "array"
+          },
+          {
+            "name": "has_more",
+            "type": "boolean"
+          },
+          {
+            "name": "last_id",
+            "purpose": "next_cursor_field",
+            "type": "string"
+          }
+        ]
+      }
+    ],
     "x-ferrule-targets": {
       "go": {
         "edition": "go.2025-10-08",
@@ -1659,7 +1692,8 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-ferrule-unwrap": "data"
     },
     "POST /v1/messages": {
       "x-codeSamples": [
@@ -2279,7 +2313,8 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-ferrule-unwrap": "data"
     },
     "POST /v1/prompts": {
       "x-fern-sdk-group-name": [
@@ -2558,7 +2593,8 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-ferrule-unwrap": "data"
     },
     "GET /v1/providers": {
       "x-fern-sdk-group-name": [
@@ -2604,7 +2640,8 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-ferrule-unwrap": "data"
     },
     "GET /v1/providers/{provider_id}": {
       "x-fern-sdk-group-name": [
@@ -4160,7 +4197,8 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-ferrule-unwrap": "data"
     },
     "GET /v1alpha/admin/providers": {
       "x-fern-sdk-group-name": [
@@ -4209,7 +4247,8 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-ferrule-unwrap": "data"
     },
     "GET /v1alpha/admin/providers/{provider_id}": {
       "x-fern-sdk-group-name": [
@@ -4356,7 +4395,8 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-ferrule-unwrap": "data"
     },
     "POST /v1alpha/interactions": {
       "x-codeSamples": [

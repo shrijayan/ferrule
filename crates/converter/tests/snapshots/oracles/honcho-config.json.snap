@@ -1,5 +1,5 @@
 {
-  "sha256": "a2fcf8d5d2b4be841ee5bd56f34b81fada7536423c67b326854f16dec9cd8886",
+  "sha256": "df1106e66ad16fce27d9a4a9775aad94ef7bd7cef55c7c83f10c30a14e146df4",
   "root": {
     "x-ferrule-client": {
       "defaultEnvironment": "demo",
@@ -63,6 +63,48 @@
       "pythonEdition": "python.2025-10-08",
       "version": 1
     },
+    "x-ferrule-page-schemes": [
+      {
+        "kind": "page_number",
+        "name": "page",
+        "request": [
+          {
+            "name": "page",
+            "purpose": "page_number_param",
+            "type": "integer"
+          },
+          {
+            "name": "size",
+            "type": "integer"
+          }
+        ],
+        "response": [
+          {
+            "name": "total",
+            "type": "integer"
+          },
+          {
+            "name": "items",
+            "purpose": "items",
+            "type": "array"
+          },
+          {
+            "name": "page",
+            "purpose": "current_page_number_field",
+            "type": "integer"
+          },
+          {
+            "name": "size",
+            "type": "integer"
+          },
+          {
+            "name": "pages",
+            "purpose": "total_page_count_field",
+            "type": "integer"
+          }
+        ]
+      }
+    ],
     "x-ferrule-targets": {
       "node": {
         "edition": "node.2025-10-08",

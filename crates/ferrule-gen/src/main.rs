@@ -9,7 +9,7 @@
 //! ```
 //!
 //! `generate --spec` is the whole Python pipeline in one command, as `ferrule generate` runs it:
-//! convert, Forge, the runtime from the embedded template, `ruff` (ADR 0020; see [`sdk`]).
+//! convert, Forge, the runtime from the embedded template, `ruff` (ADR 0022; see [`sdk`]).
 //!
 //! `generate` replaces `forge annotated.json --target wasm://plugin.wasm --out sdk`: the same
 //! input (a JSON document, or `-` for standard input), the same output directory handling

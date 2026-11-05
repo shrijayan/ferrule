@@ -28,6 +28,7 @@ from ferrule.generate_ruby import (
     load_ruby_renderer,
     resolve_formatter,
 )
+from ferrule.regenerate import RegenerateRequest, regenerate
 from ferrule.rescue import rescue, write_spec
 from ferrule.verify import export_ref, verify
 
@@ -40,6 +41,7 @@ SUBCOMMANDS: dict[str, str] = {
     "rescue": "Save the OpenAPI spec .stats.yml points to (md5-checked).",
     "verify": "Verify an SDK against its oracle.",
     "merge": "Merge regenerated code with custom changes.",
+    "regenerate": "Regenerate an adopted SDK and merge it into the current branch.",
 }
 UNIMPLEMENTED: tuple[str, ...] = ()
 
@@ -97,6 +99,11 @@ def build_parser() -> argparse.ArgumentParser:
     mrg.add_argument("--out", type=Path, help="write the merged tree to this new directory")
     mrg.add_argument("--report", type=Path, help="write the merge report (JSON) here")
     mrg.add_argument("--keep", action="append", default=[], help="keep_files glob (repeatable)")
+    reg = subs["regenerate"]
+    reg.add_argument("--repo", type=Path, default=Path(), help="SDK checkout (default: .)")
+    reg.add_argument("--spec", type=Path, required=True, help="OpenAPI spec (.yml or .json)")
+    reg.add_argument("--config", type=Path, required=True, help="stainless.yml")
+    reg.add_argument("--gen", type=Path, help="ferrule-gen binary (default: $FERRULE_GEN)")
     return parser
 
 
@@ -311,9 +318,28 @@ def _merge(args: argparse.Namespace) -> int:
     return EXIT_FAILED if result.blocking else EXIT_OK
 
 
+def _regenerate(args: argparse.Namespace) -> int:
+    request = RegenerateRequest(
+        repo=args.repo,
+        spec=args.spec,
+        config=args.config,
+        tools=resolve_tools(os.environ, gen=args.gen),
+    )
+    result = regenerate(request, renderer=load_renderer())
+    if result.conflict_branch is not None:
+        for conflict in result.result.conflicts:
+            sys.stdout.write(conflict.render() + "\n")
+        sys.stdout.write(f"conflict: the merge is on {result.conflict_branch}\n")
+        return EXIT_FAILED
+    done = "merged" if result.commit else "nothing to merge"
+    sys.stdout.write(f"{done} into {result.branch} (generation {result.generated[:12]})\n")
+    return EXIT_OK
+
+
 COMMANDS: dict[str, Callable[[argparse.Namespace], int]] = {
     "adopt": _adopt,
     "merge": _merge,
+    "regenerate": _regenerate,
     "rescue": _rescue,
 }
 

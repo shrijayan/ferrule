@@ -120,3 +120,79 @@ fn a_multipart_body_sends_its_binary_fields_as_files() {
         assert!(resource.contains(import), "{import}");
     }
 }
+
+/// An `application/octet-stream` body (the opencode SDK's `file.write`, reduced in
+/// `tests/request_bodies/README.md`): one required keyword argument `body`, any file content or
+/// bytes, sent as the raw request content with the body's media type. The runtime takes raw bytes
+/// through `content=` (passing them as `body=` is deprecated there); a path is read first.
+#[test]
+fn a_binary_body_is_sent_as_raw_content() {
+    let files = generated("binary");
+    let resource = files.get("src/fx/resources/file.py").expect("file.py");
+    let sync = "        body: FileContent | BinaryTypes,\n        path: str,\n";
+    let request = r#"        extra_headers = {"Content-Type": "application/octet-stream", **(extra_headers or {})}
+        return self._post(
+            "/fs/write",
+            content=read_file_content(body) if isinstance(body, os.PathLike) else body,
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                query=maybe_transform({"path": path}, file_write_params.FileWriteParams),
+            ),
+            cast_to=FileWriteResponse,
+        )
+"#;
+    let async_request = r#"            content=await async_read_file_content(body) if isinstance(body, os.PathLike) else body,
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                query=await async_maybe_transform({"path": path}, file_write_params.FileWriteParams),
+            ),
+"#;
+    for want in [
+        sync,
+        request,
+        async_request,
+        "        body: FileContent | AsyncBinaryTypes,\n",
+    ] {
+        assert!(resource.contains(want), "{want}\n---\n{resource}");
+    }
+    for import in [
+        "import os\n",
+        "from .._files import read_file_content, async_read_file_content\n",
+    ] {
+        assert!(resource.contains(import), "{import}\n---\n{resource}");
+    }
+    let params = files
+        .get("src/fx/types/file_write_params.py")
+        .expect("file_write_params.py");
+    assert!(!params.contains("body"), "{params}");
+}
+
+/// A parameter named like a request option (the opencode SDK's `shell.create` body field
+/// `timeout`) is prefixed `api_`, as browserbase-python's `sessions.create(api_timeout=...)`
+/// sends `"timeout"`: the params `TypedDict` declares it with the wire name as its alias.
+#[test]
+fn a_parameter_named_like_a_request_option_is_prefixed_api() {
+    let files = generated("option_names");
+    let resource = files.get("src/fx/resources/shell.py").expect("shell.py");
+    for want in [
+        "        api_extra_query: str | Omit = omit,\n",
+        "        api_timeout: int | Omit = omit,\n",
+        "          api_timeout: Seconds before the command is stopped\n",
+        "                    \"api_timeout\": api_timeout,\n",
+        "                query=maybe_transform({\"api_extra_query\": api_extra_query}, shell_create_params.ShellCreateParams),\n",
+    ] {
+        assert!(resource.contains(want), "{want}\n---\n{resource}");
+    }
+    assert_eq!(resource.matches("\n        timeout: ").count(), 2, "{resource}");
+    let params = files.get("src/fx/types/shell_create_params.py").expect("params");
+    assert!(
+        params.contains("    api_timeout: Annotated[int, PropertyInfo(alias=\"timeout\")]\n"),
+        "{params}"
+    );
+}

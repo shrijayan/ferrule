@@ -1,0 +1,38 @@
+openapi: 3.1.0
+info: {title: fx, version: '1'}
+servers: [{url: 'https://api.example.com'}]
+paths:
+  /audiences/{key}:
+    get:
+      operationId: getAudience
+      parameters:
+        - {name: key, in: path, required: true, schema: {type: string}}
+      responses:
+        '200': {description: ok, content: {application/json: {schema: {$ref: '#/components/schemas/Audience'}}}}
+  /audiences/watch:
+    get:
+      operationId: watchAudiences
+      responses:
+        '200': {description: ok, content: {text/event-stream: {schema: {$ref: '#/components/schemas/Audience'}}}}
+  /audiences:
+    get:
+      operationId: listAudiences
+      parameters:
+        - {name: cursor, in: query, schema: {type: string}}
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: {type: array, items: {$ref: '#/components/schemas/Audience'}}
+                  next: {type: string}
+                required: [data]
+components:
+  schemas:
+    Audience:
+      oneOf:
+        - {type: object, properties: {type: {type: string, enum: [static]}, key: {type: string}}, required: [type, key]}
+        - {type: object, properties: {type: {type: string, enum: [dynamic]}, key: {type: string}}, required: [type, key]}

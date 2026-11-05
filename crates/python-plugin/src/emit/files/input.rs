@@ -73,6 +73,8 @@ pub struct FilesParam {
     /// The schema's `minimum`/`maximum`: a number example is the minimum, else the maximum, else 0.
     pub minimum: Option<f64>,
     pub maximum: Option<f64>,
+    /// A raw-bytes body: its example is bytes.
+    pub binary: bool,
 }
 
 /// A Python name and the dotted module (under the package) that declares it.
@@ -98,6 +100,13 @@ pub struct FilesMethod {
     /// The Python name of the body parameter that switches a param-switched streaming method to
     /// streaming (one of `params`): its tests come in two overloads.
     pub stream_switch: Option<String>,
+    /// The page class without its `Sync`/`Async` prefix, such as `CursorPage`, for a paginated
+    /// method: `response` is then the item type.
+    pub page: Option<String>,
+    /// Whether the method always returns a stream, which its tests close instead of checking.
+    pub streaming: bool,
+    /// Why its tests are skipped (`skip_test_reason`), if they are.
+    pub skip_test: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -160,6 +169,8 @@ pub struct AuthOpt {
     pub label: String,
     /// Whether it has a config default (imagekit's `password`): the README leaves it out.
     pub has_default: bool,
+    /// Whether the client builds without it (`nullable`), rather than raising.
+    pub nullable: bool,
 }
 
 /// The client's credentials: the scheme and the options it reads, in config order.

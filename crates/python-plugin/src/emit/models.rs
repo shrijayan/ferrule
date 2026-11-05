@@ -5,7 +5,7 @@ use std::cell::RefCell;
 use super::common::{HEADER, escape_docstring, py_string, rel_import, sort_fields, typed_extra, wrap};
 use super::cycles::Cycles;
 use super::format::{call, format_expr};
-use super::params::{Decl, Named, name_params};
+use super::params::{Decl, Named, field_annotation, name_params, twin};
 use crate::js;
 use crate::model::{SdkField, SdkObject, SdkRef, SdkType};
 use crate::naming::model_attribute;
@@ -51,27 +51,36 @@ struct ModelContext<'n, 'a> {
     here: String,
     module: &'n str,
     cycles: Option<&'n Cycles>,
+    /// A request twin (`TypedDict`s typed as requests, other models by their twins).
+    twin: bool,
     /// The imports of deferred models, printed after the declarations.
     trailer: RefCell<PythonPrinter>,
 }
 
 impl<'n, 'a> ModelContext<'n, 'a> {
-    fn new(named: &'n Named<'a>, module: &'n str, cycles: Option<&'n Cycles>) -> Self {
+    fn new(named: &'n Named<'a>, module: &'n str, cycles: Option<&'n Cycles>, twin: bool) -> Self {
         Self {
             named,
             here: format!("types.{module}"),
             module,
             cycles,
+            twin,
             trailer: RefCell::new(PythonPrinter::default()),
         }
     }
 
+    /// `r`, or its request twin in a twin file.
+    fn target(&self, r: &SdkRef) -> SdkRef {
+        if self.twin { twin(r) } else { r.clone() }
+    }
+
     /// The name of `r` imported at the top of the module, as a base class needs it.
     fn import_ref(&self, p: &mut PythonPrinter, r: &SdkRef) -> String {
+        let r = self.target(r);
         if r.module != self.module {
             p.import_from(&rel_import(&self.here, &format!("types.{}", r.module)), &r.name);
         }
-        r.name.clone()
+        r.name
     }
 
     /// The imports after the declarations, or none.
@@ -87,15 +96,19 @@ impl AnnotationContext for ModelContext<'_, '_> {
     fn ref_name(&self, p: &mut PythonPrinter, r: &SdkRef) -> String {
         if self.cycles.is_some_and(|c| c.is_deferred(r)) {
             // A forward reference, imported once every declaration of the module exists.
+            let t = self.target(r);
             p.import_from("__future__", "annotations");
-            if r.module != self.module {
+            if t.module != self.module {
                 self.trailer
                     .borrow_mut()
-                    .import_from(&rel_import(&self.here, &format!("types.{}", r.module)), &r.name);
+                    .import_from(&rel_import(&self.here, &format!("types.{}", t.module)), &t.name);
             }
-            return py_string(&r.name);
+            return py_string(&t.name);
         }
         self.import_ref(p, r)
+    }
+    fn input(&self) -> bool {
+        self.twin
     }
     fn runtime(&self, p: &mut PythonPrinter, module: &str, name: &str) {
         p.import_from(&rel_import(&self.here, module), name);
@@ -338,12 +351,61 @@ fn decl_blocks(p: &mut PythonPrinter, named: &Named<'_>, ctx: &ModelContext<'_, 
                 class: false,
                 lines: alias_lines(p, name, union, ctx),
             },
+            Decl::Class { name, obj } if ctx.twin => Block {
+                class: true,
+                lines: twin_class_lines(p, name, obj, ctx),
+            },
             Decl::Class { name, obj } => Block {
                 class: true,
                 lines: class_lines(p, name, obj, ctx),
             },
         })
         .collect()
+}
+
+/// A class of a request twin: a `TypedDict` whose fields are typed as requests, with their wire
+/// names as aliases (knock-mgmt-python `chat_template_param.py`); one that takes other keys too
+/// declares their type as `extra_items` (PEP 728, knock-mgmt-python `source_request_param.py`).
+fn twin_class_lines(p: &mut PythonPrinter, name: &str, obj: &SdkObject, ctx: &ModelContext<'_, '_>) -> Vec<String> {
+    p.import_from("typing_extensions", "TypedDict");
+    let mut bases: Vec<String> = obj.bases.iter().map(|b| ctx.import_ref(p, b)).collect();
+    if bases.is_empty() {
+        bases.push("TypedDict".to_owned());
+    }
+    let mut body: Vec<Vec<String>> = Vec::new();
+    let doc = docstring(obj.description.as_deref().unwrap_or(""), "    ");
+    if !doc.is_empty() {
+        body.push(doc);
+    }
+    for f in sort_fields(&obj.fields) {
+        let mut lines = vec![format!("    {}: {}", f.py_name, field_annotation(p, f, ctx))];
+        lines.extend(docstring(&f.description, "    "));
+        body.push(lines);
+    }
+    if body.is_empty() {
+        body.push(vec!["    pass".to_owned()]);
+    }
+    let mut lines = match typed_extra(obj) {
+        Some(extra) => {
+            let values = to_annotation(extra, p, ctx);
+            let mut head = vec![format!("class {name}(  # type: ignore[call-arg]")];
+            head.extend(bases.iter().map(|b| format!("    {b},")));
+            head.push("    total=False,".to_owned());
+            head.push(format!(
+                "    extra_items={values},  # pyright: ignore[reportGeneralTypeIssues]"
+            ));
+            head.push("):".to_owned());
+            head
+        }
+        None => vec![format!("class {name}({}, total=False):", bases.join(", "))],
+    };
+    for (i, b) in body.into_iter().enumerate() {
+        if i > 0 {
+            lines.push(String::new());
+        }
+        lines.extend(b);
+    }
+    lines
 }
 
 /// The typed extra keys of an object with fields that takes other keys too, as knock-mgmt-python
@@ -419,7 +481,7 @@ fn class_lines(p: &mut PythonPrinter, name: &str, obj: &SdkObject, ctx: &ModelCo
 pub fn emit_model_file(file: &ModelFile<'_>) -> String {
     let mut p = PythonPrinter::new(&[HEADER]);
     let named = name_objects(file);
-    let ctx = ModelContext::new(&named, &file.r#ref.module, file.cycles);
+    let ctx = ModelContext::new(&named, &file.r#ref.module, file.cycles, false);
     let blocks = decl_blocks(&mut p, &named, &ctx);
     let exported: Vec<&str> = named.preorder().iter().map(Decl::name).collect();
     print_module(&mut p, &exported, blocks, &ctx.trailer_lines());
@@ -437,7 +499,7 @@ pub fn emit_alias_model_file(file: &AliasFile<'_>) -> String {
     p.import_from("typing_extensions", "TypeAlias");
     let mut named = Named::default();
     named.add_alias_root(file.ty, name);
-    let ctx = ModelContext::new(&named, &file.r#ref.module, file.cycles);
+    let ctx = ModelContext::new(&named, &file.r#ref.module, file.cycles, false);
     let mut blocks = decl_blocks(&mut p, &named, &ctx);
     let expr = alias_expr(file.ty, &mut p, &ctx, true);
     let recursive = matches!(file.ty, SdkType::Union { .. }) && file.cycles.is_some_and(|c| c.is_cyclic(file.r#ref));
@@ -456,6 +518,60 @@ pub fn emit_alias_model_file(file: &AliasFile<'_>) -> String {
     };
     blocks.push(Block { class: false, lines });
     let mut exported: Vec<&str> = vec![name];
+    exported.extend(named.preorder().iter().map(Decl::name));
+    print_module(&mut p, &exported, blocks, &ctx.trailer_lines());
+    p.render()
+}
+
+/// The request twin of a named object model (see [`twin`]): the model's classes as `TypedDict`s
+/// under the same names, its root renamed to the twin (`ChatTemplateParam`).
+#[must_use]
+pub fn emit_twin_model_file(r: &SdkRef, ty: &SdkObject, cycles: Option<&Cycles>) -> String {
+    let t = twin(r);
+    let mut p = PythonPrinter::new(&[HEADER]);
+    p.import_from("__future__", "annotations");
+    let fields: Vec<&SdkField> = ty.fields.iter().collect();
+    let mut named = name_params(&fields, "");
+    named.add_root(ty, &t.name);
+    let ctx = ModelContext::new(&named, &t.module, cycles, true);
+    let blocks = decl_blocks(&mut p, &named, &ctx);
+    let exported: Vec<&str> = named.preorder().iter().map(Decl::name).collect();
+    print_module(&mut p, &exported, blocks, &ctx.trailer_lines());
+    p.render()
+}
+
+/// The request twin of a named model that is not an object: its inline objects named as the
+/// model's are (`ConditionGroupAllMatch`), then `<Twin>: TypeAlias = ...` typed as requests
+/// (knock-mgmt-python `condition_group_param.py`).
+#[must_use]
+pub fn emit_twin_alias_file(r: &SdkRef, ty: &SdkType, cycles: Option<&Cycles>) -> String {
+    let t = twin(r);
+    let mut p = PythonPrinter::new(&[HEADER]);
+    p.import_from("__future__", "annotations");
+    p.import_from("typing_extensions", "TypeAlias");
+    let mut named = Named::default();
+    named.add_alias_root(ty, &r.name);
+    let ctx = ModelContext::new(&named, &t.module, cycles, true);
+    let mut blocks = decl_blocks(&mut p, &named, &ctx);
+    let expr = alias_expr(ty, &mut p, &ctx, false);
+    let name = &t.name;
+    // A union in a reference cycle is a `TypeAliasType`, as in the model file.
+    let recursive = matches!(ty, SdkType::Union { .. }) && cycles.is_some_and(|c| c.is_cyclic(r));
+    let lines = if recursive {
+        p.import_from("typing", "TYPE_CHECKING");
+        p.import_from("typing_extensions", "TypeAliasType");
+        ctx.runtime(&mut p, "_compat", "PYDANTIC_V1");
+        let mut lines = vec!["if TYPE_CHECKING or not PYDANTIC_V1:".to_owned()];
+        let wrapped = call("TypeAliasType(", vec![py_string(name).into(), expr.clone()], false);
+        lines.extend(format_expr(&wrapped.into(), "    ", &format!("{name} = "), ""));
+        lines.push("else:".to_owned());
+        lines.extend(format_expr(&expr, "    ", &format!("{name}: TypeAlias = "), ""));
+        lines
+    } else {
+        format_expr(&expr, "", &format!("{name}: TypeAlias = "), "")
+    };
+    blocks.push(Block { class: false, lines });
+    let mut exported: Vec<&str> = vec![&t.name];
     exported.extend(named.preorder().iter().map(Decl::name));
     print_module(&mut p, &exported, blocks, &ctx.trailer_lines());
     p.render()

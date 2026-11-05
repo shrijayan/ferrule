@@ -21,7 +21,7 @@ from importlib import resources
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
 
-from ferrule_runtime.pagination import PageScheme, render_pagination
+from ferrule_runtime.pagination import PageScheme, page_schemes, render_pagination
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Mapping, Sequence
@@ -412,17 +412,19 @@ def render(
     /,
     *,
     client_name: str | None = None,
-    pagination: Sequence[PageScheme] = (),
+    pagination: Sequence[PageScheme | Mapping[str, Any]] = (),
     **options: Any,  # noqa: ANN401 - forwarded to render_files keyword options
 ) -> list[Path]:
     """Write the runtime for ``package`` into ``package_dir`` (``<out>/src/<package>``).
 
     This is the entry point ``ferrule generate`` calls. ``client_name`` defaults to
-    :func:`default_client_name`; other keyword options are those of :func:`render_files`.
-    Returns the written paths in render order.
+    :func:`default_client_name`; ``pagination`` takes schemes, or the annotated spec's
+    ``x-ferrule-page-schemes`` entries (:func:`~ferrule_runtime.pagination.page_schemes`); other
+    keyword options are those of :func:`render_files`. Returns the written paths in render order.
     """
+    schemes = tuple(p if isinstance(p, PageScheme) else page_schemes([p])[0] for p in pagination)
     files = render_files(
-        package, client_name or default_client_name(package), pagination=pagination, **options
+        package, client_name or default_client_name(package), pagination=schemes, **options
     )
     written: list[Path] = []
     for rel, text in files.items():

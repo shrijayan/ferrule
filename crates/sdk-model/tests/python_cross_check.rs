@@ -67,7 +67,7 @@ fn py_null() -> py::SdkType {
 fn field_param(f: &py::SdkField) -> py::SdkParam {
     py::SdkParam {
         wire_name: f.wire_name.clone(),
-        py_name: f.py_name.clone(),
+        py_name: naming::param_name(&f.py_name),
         required: f.required,
         description: f.description.clone(),
         ty: f.ty.clone(),
@@ -265,7 +265,7 @@ impl Python<'_> {
         let field = self.field(f);
         py::SdkParam {
             wire_name: field.wire_name,
-            py_name: field.py_name,
+            py_name: naming::param_name(&field.py_name),
             required: field.required,
             description: field.description,
             ty: field.ty,
@@ -318,22 +318,33 @@ impl Python<'_> {
         } else {
             merge_variants(&body_variants)
         };
-        // A map or array body is one `body` argument, described by the body's schema.
+        // A map or array body is one `body` argument, described by the body's schema, and so is
+        // a raw-bytes body.
+        let body_binary = m.body.as_ref().is_some_and(|b| {
+            matches!(
+                b.ty,
+                n::Type::Scalar {
+                    scalar: n::Scalar::Binary
+                }
+            )
+        });
         let whole = match (&body, &m.body) {
-            (Some(ty @ (py::SdkType::Map(_) | py::SdkType::Array(_))), Some(b)) => Some(py::SdkParam {
-                wire_name: "body".to_owned(),
-                py_name: "body".to_owned(),
-                required: b.required,
-                description: b.schema_description.clone(),
-                ty: ty.clone(),
-                deprecated: false,
-                example: None,
-                minimum: None,
-                maximum: None,
-            }),
+            (Some(ty @ (py::SdkType::Map(_) | py::SdkType::Array(_))), Some(b)) => Some((ty, b)),
+            (Some(ty), Some(b)) if body_binary => Some((ty, b)),
             _ => None,
-        };
-        let body_whole = whole.is_some();
+        }
+        .map(|(ty, b)| py::SdkParam {
+            wire_name: "body".to_owned(),
+            py_name: "body".to_owned(),
+            required: b.required,
+            description: b.schema_description.clone(),
+            ty: ty.clone(),
+            deprecated: false,
+            example: None,
+            minimum: None,
+            maximum: None,
+        });
+        let body_whole = whole.is_some() && !body_binary;
         let body_params = whole.map_or(body_params, |p| vec![p]);
         let body_file_paths = m
             .body
@@ -341,6 +352,17 @@ impl Python<'_> {
             .filter(|b| b.media_type.eq_ignore_ascii_case("multipart/form-data"))
             .map(|b| file_paths(self.client, &b.ty))
             .unwrap_or_default();
+        // An unwrapped method returns the envelope field's type (a missing field: the envelope).
+        let envelope = m.response.as_ref().map(|r| self.ty(&r.ty));
+        let inner = m.response.as_ref().and_then(|r| r.unwrap.as_ref()).and_then(|field| {
+            let object = envelope.as_ref().and_then(|e| self.object_of(e))?;
+            let f = object.fields.iter().find(|f| f.wire_name == *field)?;
+            Some((f.ty.clone(), field.clone()))
+        });
+        let (response, unwrap) = match inner {
+            Some((ty, field)) => (Some(ty), Some(field)),
+            None => (envelope, None),
+        };
         py::SdkMethod {
             name: m.name.written.clone(),
             pointer: m.pointer.clone(),
@@ -364,10 +386,13 @@ impl Python<'_> {
             body_params,
             body_media_type: m.body.as_ref().map(|b| b.media_type.clone()),
             body_whole,
+            body_binary,
             body_variants,
             body_discriminator,
             body_file_paths,
-            response: m.response.as_ref().map(|r| self.ty(&r.ty)),
+            response,
+            unwrap,
+            skip_test: m.skip_test.clone(),
             pagination: m.pagination.as_ref().map(|p| self.pagination(p)),
             streaming: m.streaming.as_ref().map(|s| py::SdkStreaming {
                 format: match s.format {
@@ -438,6 +463,17 @@ impl Python<'_> {
     fn model(&self, d: &n::ModelDecl) -> py::SdkModelDecl {
         let (ty, alias) = match self.ty(&d.ty) {
             py::SdkType::Object(o) => (o, None),
+            // No type at all holds any value: an alias, not the empty class below.
+            py::SdkType::Unknown
+                if matches!(
+                    d.ty,
+                    n::Type::Scalar {
+                        scalar: n::Scalar::Unknown
+                    }
+                ) =>
+            {
+                (py::SdkObject::default(), Some(py::SdkType::Unknown))
+            }
             // An object without properties: an empty class, as Stainless prints it.
             py::SdkType::Unknown => (py::SdkObject::default(), None),
             other => (py::SdkObject::default(), Some(other)),

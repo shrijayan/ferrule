@@ -101,7 +101,7 @@ pub fn example_value(
                 .map(|f| {
                     format!(
                         "{inner}{}: {},",
-                        py_string(&f.wire_name),
+                        py_string(&f.py_name),
                         example_value(&f.ty, uses, &inner, None, "string", None)
                     )
                 })
@@ -112,8 +112,14 @@ pub fn example_value(
     }
 }
 
+/// The example of a raw-bytes body, Stainless's for file content.
+pub const BINARY_EXAMPLE: &str = "b\"raw file contents\"";
+
 /// A parameter's example; query parameters ignore the spec's `example`, as in the oracles.
 fn example_of(p: &FilesParam, uses: &mut Uses, indent: &str) -> String {
+    if p.binary {
+        return BINARY_EXAMPLE.to_owned();
+    }
     let example = if p.location == ParamLocation::Query {
         None
     } else {
@@ -190,16 +196,38 @@ struct Ctx<'a> {
 }
 
 /// The result check at `indent`, split the way ruff splits a call past 120 columns.
-fn assertion(m: &FilesMethod, variable: &str, indent: &str) -> String {
+fn assertion(m: &FilesMethod, mode: Mode, variable: &str, indent: &str) -> String {
     let Some(response) = &m.response else {
         return format!("{indent}assert {variable} is None");
     };
-    let call_args = format!("{}, {variable}, path=[\"response\"]", response.name);
+    let ty = match &m.page {
+        Some(page) => format!("{}{page}[{}]", page_prefix(mode), response.name),
+        None => response.name.clone(),
+    };
+    let call_args = format!("{ty}, {variable}, path=[\"response\"]");
     let line = format!("{indent}assert_matches_type({call_args})");
     if js::len(&line) <= 120 {
         line
     } else {
         format!("{indent}assert_matches_type(\n{indent}    {call_args}\n{indent})")
+    }
+}
+
+/// `@pytest.mark.skip(reason=...)` for a method's `skip_test_reason`, split the way ruff splits
+/// it past 120 columns (knock-python's `users.bulk.set_preferences`).
+fn skip_decorator(reason: &str) -> String {
+    let line = format!("    @pytest.mark.skip(reason={})", py_string(reason));
+    if js::len(&line) <= 120 {
+        format!("{line}\n")
+    } else {
+        format!("    @pytest.mark.skip(\n        reason={}\n    )\n", py_string(reason))
+    }
+}
+
+fn page_prefix(mode: Mode) -> &'static str {
+    match mode {
+        Mode::Sync => "Sync",
+        Mode::Async => "Async",
     }
 }
 
@@ -223,7 +251,7 @@ fn method_tests(ctx: &mut Ctx<'_>, m: &FilesMethod, mode: Mode, tests: &mut Vec<
             m,
             mode,
             tests,
-            ("", false),
+            ("", m.streaming),
             &call_order(&required),
             &call_order(&all),
         );
@@ -281,10 +309,10 @@ fn call_tests(
     } else {
         ctx.client.to_owned()
     };
-    let skip = if ctx.skip {
-        "    @pytest.mark.skip(reason=\"Mock server tests are disabled\")\n"
-    } else {
-        ""
+    let skip = match &m.skip_test {
+        Some(reason) => skip_decorator(reason),
+        None if ctx.skip => "    @pytest.mark.skip(reason=\"Mock server tests are disabled\")\n".to_owned(),
+        None => String::new(),
     };
     let sig = |name: &str| format!("{skip}    @parametrize\n    {def} {name}{suffix}(self, {cl}: {ty}) -> None:");
     let target = format!("{cl}.{}", ctx.accessor);
@@ -305,14 +333,14 @@ fn call_tests(
         if streamed {
             format!("{indent}{aw}{v}.response.{close}()")
         } else {
-            assertion(m, v, indent)
+            assertion(m, mode, v, indent)
         }
     };
     let parsed = |indent: &str| {
         if streamed {
             format!("{indent}stream = {aw}response.parse()\n{indent}{aw}stream.close()")
         } else {
-            format!("{indent}{v} = {aw}response.parse()\n{}", assertion(m, v, indent))
+            format!("{indent}{v} = {aw}response.parse()\n{}", assertion(m, mode, v, indent))
         }
     };
 
@@ -428,11 +456,16 @@ pub fn emit_test_module(input: &ProjectFilesInput, r: &FilesResource, accessor: 
     add(pkg.clone(), &input.client_class);
     add(pkg.clone(), &format!("Async{}", input.client_class));
     for m in &r.methods {
-        let Some(response) = &m.response else {
+        let Some(response) = m.response.as_ref().filter(|_| !m.streaming) else {
             continue;
         };
         add("tests.utils".to_owned(), "assert_matches_type");
         add(format!("{pkg}.{}", parent_module(&response.module)), &response.name);
+        if let Some(page) = &m.page {
+            for mode in [Mode::Sync, Mode::Async] {
+                add(format!("{pkg}.pagination"), &format!("{}{page}", page_prefix(mode)));
+            }
+        }
     }
     for u in &ctx.uses {
         add(format!("{pkg}._utils"), u);

@@ -1,0 +1,16 @@
+openapi: 3.1.0
+info: {title: fx, version: '1'}
+servers: [{url: 'https://api.example.com'}]
+paths:
+  /terminals/read:
+    get:
+      operationId: readTerminal
+      parameters:
+        - {name: lines, in: query, schema: {type: integer}}
+      responses:
+        '200': {description: ok, content: {application/json: {schema: {type: string}}}}
+  /terminals:
+    get:
+      operationId: listTerminals
+      responses:
+        '200': {description: ok, content: {application/json: {schema: {type: string}}}}

@@ -1,4 +1,4 @@
-//! The Python runtime, rendered from the template `build.rs` embeds (ADR 0020).
+//! The Python runtime, rendered from the template `build.rs` embeds (ADR 0022).
 //!
 //! A port of the default render of `ferrule_runtime` (`runtime/src/ferrule_runtime/_render.py`):
 //! the options `ferrule generate` renders with, no pagination module and no `testing/` fake

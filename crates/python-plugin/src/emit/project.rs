@@ -6,19 +6,22 @@
 use super::agent::emit_agent_files;
 use super::client::emit_client_file;
 use super::common::{
-    HEADER, has_methods, is_package, method_params, method_ref, py_string, resource_module, resource_tree,
+    HEADER, has_methods, is_package, method_args, method_params, method_ref, py_string, resource_module, resource_tree,
     return_model, stainless_method_order,
 };
 use super::cycles::Cycles;
 use super::files::emit_project_files;
 use super::files_input::{ProjectMeta, to_project_files_input};
-use super::models::{AliasFile, ModelFile, emit_alias_model_file, emit_model_file};
+use super::models::{
+    AliasFile, ModelFile, all_list, emit_alias_model_file, emit_model_file, emit_twin_alias_file, emit_twin_model_file,
+};
 use super::package_init::{emit_package_init_with, emit_version};
-use super::params::emit_params_file;
-use super::resources::{Mode, class_name, emit_resource_file};
+use super::params::{emit_params_file, twin};
+use super::resources::{Mode, class_name, emit_resource_file, wrapper_class};
 use crate::diagnostics::FerruleError;
 use crate::js;
-use crate::model::{SdkClient, SdkMethod, SdkObject, SdkResource, SdkType};
+use crate::model::{SdkClient, SdkMethod, SdkModelDecl, SdkObject, SdkRef, SdkResource, SdkType};
+use crate::naming::{snake_case, split_words};
 use crate::printer::PythonPrinter;
 
 /// Output tree: relative path -> file contents, sorted by path.
@@ -206,6 +209,27 @@ impl Out {
         }
     }
 
+    /// The request twin of every named model a request takes, directly or through another
+    /// twin, exported beside the models (`shared_params/` for shared ones).
+    fn param_twins(&mut self, client: &SdkClient) {
+        for decl in input_models(client) {
+            let t = twin(&decl.r#ref);
+            let content = if let Some(alias) = &decl.alias {
+                emit_twin_alias_file(&decl.r#ref, alias, Some(&self.cycles))
+            } else {
+                // The type's own description wins, as in the model file.
+                let ty = SdkObject {
+                    description: decl.ty.description.clone().or_else(|| Some(decl.description.clone())),
+                    ..decl.ty.clone()
+                };
+                emit_twin_model_file(&decl.r#ref, &ty, Some(&self.cycles))
+            };
+            self.files
+                .set_value(&module_path(&self.pkg, &format!("types.{}", t.module)), content);
+            self.export(&t.module, &t.name);
+        }
+    }
+
     /// `types/__init__.py` and `types/<dir>/__init__.py`, re-exporting what each declares; a
     /// directory that only holds others (`types/extractions/` above `qa/`) gets an empty one.
     fn types_inits(&mut self) {
@@ -322,6 +346,98 @@ fn sorted(files: OrderedMap<String>) -> FileTree {
     out
 }
 
+/// The named models requests take, directly or through other models, in declaration order.
+fn input_models(client: &SdkClient) -> Vec<&SdkModelDecl> {
+    fn refs<'t>(ty: &'t SdkType, out: &mut Vec<&'t SdkRef>) {
+        match ty {
+            SdkType::Ref(r) => out.push(r),
+            SdkType::Array(t) | SdkType::Map(t) => refs(t, out),
+            SdkType::Union { variants, .. } => variants.iter().for_each(|v| refs(v, out)),
+            SdkType::Object(o) => {
+                out.extend(&o.bases);
+                o.fields.iter().for_each(|f| refs(&f.ty, out));
+                if let Some(extra) = &o.extra {
+                    refs(extra, out);
+                }
+            }
+            _ => {}
+        }
+    }
+    let mut pending: Vec<&SdkRef> = Vec::new();
+    let resources = all_resources(&client.resources);
+    for method in resources.iter().flat_map(|r| &r.methods).chain(&client.client_methods) {
+        for q in method_args(method).into_iter().chain(&method.path_params) {
+            refs(&q.ty, &mut pending);
+        }
+        for v in &method.body_variants {
+            v.params.iter().for_each(|q| refs(&q.ty, &mut pending));
+        }
+    }
+    let mut seen: Vec<&SdkRef> = Vec::new();
+    while let Some(r) = pending.pop() {
+        if seen.contains(&r) {
+            continue;
+        }
+        seen.push(r);
+        if let Some(decl) = client.models.iter().find(|d| d.r#ref == *r) {
+            if let Some(alias) = &decl.alias {
+                refs(alias, &mut pending);
+            } else {
+                pending.extend(&decl.ty.bases);
+                decl.ty.fields.iter().for_each(|f| refs(&f.ty, &mut pending));
+                if let Some(extra) = &decl.ty.extra {
+                    refs(extra, &mut pending);
+                }
+            }
+        }
+    }
+    client.models.iter().filter(|d| seen.contains(&&d.r#ref)).collect()
+}
+
+/// `_wrappers.py`, one generic wrapper per unwrapped envelope field (ogx-client-python's
+/// `DataWrapper`), when a method unwraps one.
+fn emit_wrappers_file(client: &SdkClient) -> Option<String> {
+    let mut fields: Vec<&str> = all_resources(&client.resources)
+        .iter()
+        .flat_map(|r| &r.methods)
+        .chain(&client.client_methods)
+        .filter_map(|m| m.unwrap.as_deref())
+        .collect();
+    fields.sort_unstable();
+    fields.dedup();
+    if fields.is_empty() {
+        return None;
+    }
+    let names: Vec<String> = fields.iter().map(|f| wrapper_class(f)).collect();
+    let mut p = PythonPrinter::new(&[HEADER]);
+    p.import_from("typing", "Generic");
+    p.import_from("typing", "TypeVar");
+    p.import_from("._models", "GenericModel");
+    for l in all_list(&names) {
+        p.line(&l);
+    }
+    p.blank();
+    p.line("_T = TypeVar(\"_T\")");
+    for (field, name) in fields.iter().zip(&names) {
+        let attr = snake_case(&split_words(field));
+        p.blank().blank();
+        p.block(&format!("class {name}(GenericModel, Generic[_T]):"), |p| {
+            if attr == *field {
+                p.line(&format!("{attr}: _T"));
+            } else {
+                p.import_from("pydantic", "Field as FieldInfo");
+                p.line(&format!("{attr}: _T = FieldInfo(alias={})", py_string(field)));
+            }
+            p.blank();
+            p.line("@staticmethod");
+            p.block(&format!("def _unwrapper(obj: \"{name}[_T]\") -> _T:"), |p| {
+                p.line(&format!("return obj.{attr}"));
+            });
+        });
+    }
+    Some(p.render())
+}
+
 /// Every code file of the SDK (`src/<pkg>/**`) but the agent context, sorted by path.
 ///
 /// # Errors
@@ -377,7 +493,11 @@ pub fn emit_code_files(client: &SdkClient, meta: Option<&ProjectMeta>) -> Result
             .set_value(&module_path(&pkg, "resources.__init__"), resources_init(&top));
     }
 
+    out.param_twins(client);
     out.types_inits();
+    if let Some(wrappers) = emit_wrappers_file(client) {
+        out.files.set_value(&module_path(&pkg, "_wrappers"), wrappers);
+    }
 
     if let Some(settings) = &client.settings {
         out.files
@@ -420,4 +540,148 @@ pub fn emit_root_files(client: &SdkClient, meta: Option<&ProjectMeta>) -> Result
         files.set_value(&path, text);
     }
     Ok(sorted(files))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::model::{HttpVerb, SdkPackage, SdkParam, SdkStyle};
+
+    fn named(name: &str) -> SdkRef {
+        SdkRef {
+            name: name.to_owned(),
+            module: name.to_lowercase(),
+        }
+    }
+
+    fn decl(name: &str, ty: SdkObject) -> SdkModelDecl {
+        SdkModelDecl {
+            r#ref: named(name),
+            description: String::new(),
+            ty,
+            alias: None,
+        }
+    }
+
+    fn client(models: Vec<SdkModelDecl>, client_methods: Vec<SdkMethod>) -> SdkClient {
+        SdkClient {
+            package: SdkPackage {
+                name: "acme".into(),
+                repo: "a/b".into(),
+            },
+            base_url: String::new(),
+            settings: None,
+            resources: Vec::new(),
+            client_methods,
+            client_class: None,
+            env_prefix: None,
+            models,
+            resource_tree: Vec::new(),
+            style: SdkStyle::default(),
+        }
+    }
+
+    fn method() -> SdkMethod {
+        SdkMethod {
+            name: "create".into(),
+            pointer: "#/paths/~1t/post".into(),
+            http_method: HttpVerb::Post,
+            path: "/t".into(),
+            summary: String::new(),
+            description: String::new(),
+            order: 0,
+            deprecated: false,
+            path_params: Vec::new(),
+            query_params: Vec::new(),
+            header_params: Vec::new(),
+            body: None,
+            body_params: Vec::new(),
+            body_media_type: None,
+            body_whole: false,
+            body_binary: false,
+            body_variants: Vec::new(),
+            body_discriminator: None,
+            body_file_paths: Vec::new(),
+            response: None,
+            unwrap: None,
+            skip_test: None,
+            pagination: None,
+            streaming: None,
+        }
+    }
+
+    fn method_taking(ty: SdkType) -> SdkMethod {
+        let mut m = method();
+        m.body_params = vec![SdkParam {
+            wire_name: "body".into(),
+            py_name: "body".into(),
+            required: true,
+            description: String::new(),
+            ty,
+            deprecated: false,
+            example: None,
+            minimum: None,
+            maximum: None,
+        }];
+        m
+    }
+
+    fn names(c: &SdkClient) -> Vec<&str> {
+        input_models(c).iter().map(|d| d.r#ref.name.as_str()).collect()
+    }
+
+    #[test]
+    fn client_methods_count_when_there_are_no_resources() {
+        let c = client(
+            vec![decl("Input", SdkObject::default())],
+            vec![method_taking(SdkType::Ref(named("Input")))],
+        );
+        assert_eq!(names(&c), ["Input"]);
+    }
+
+    #[test]
+    fn bases_of_a_named_model_are_inputs_too() {
+        let derived = SdkObject {
+            bases: vec![named("Base")],
+            ..SdkObject::default()
+        };
+        let c = client(
+            vec![decl("Base", SdkObject::default()), decl("Derived", derived)],
+            vec![method_taking(SdkType::Ref(named("Derived")))],
+        );
+        assert_eq!(names(&c), ["Base", "Derived"]);
+    }
+
+    #[test]
+    fn bases_of_an_inline_object_are_inputs_too() {
+        let inline = SdkObject {
+            bases: vec![named("Base")],
+            ..SdkObject::default()
+        };
+        let c = client(
+            vec![decl("Base", SdkObject::default())],
+            vec![method_taking(SdkType::Object(inline))],
+        );
+        assert_eq!(names(&c), ["Base"]);
+    }
+
+    #[test]
+    fn a_required_binary_body_gets_bytes_in_agent_recipes() {
+        let mut m = method_taking(SdkType::Unknown);
+        m.body_binary = true;
+        let args = crate::emit::agent::call_args_for_test(&m);
+        assert_eq!(args, ["body=b\"raw file contents\""]);
+    }
+
+    #[test]
+    fn a_renamed_envelope_field_keeps_its_wire_name() {
+        let mut m = method();
+        m.unwrap = Some("responseData".to_owned());
+        let file = emit_wrappers_file(&client(Vec::new(), vec![m])).expect("a wrapper");
+        assert!(
+            file.contains("response_data: _T = FieldInfo(alias=\"responseData\")"),
+            "{file}"
+        );
+        assert!(file.contains("from pydantic import Field as FieldInfo"), "{file}");
+    }
 }

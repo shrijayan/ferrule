@@ -5,7 +5,7 @@ date: 2026-10-26
 deciders: Ferrule maintainers
 ---
 
-# 0020. Generate a Python SDK with `ferrule-gen` alone
+# 0022. Generate a Python SDK with `ferrule-gen` alone
 
 Amends [ADR 0014](./0014-rust-for-converter-and-plugin.md). `migrate/` stays Python.
 

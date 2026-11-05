@@ -2,7 +2,7 @@
 //! `ferrule-gen --version` can name the Forge commit it was built with. `ferrule.lock` records
 //! that rev: unlike a hash of the binary, it is the same on every platform.
 //!
-//! It also embeds the Python runtime template (`runtime/template`, ADR 0020): it writes
+//! It also embeds the Python runtime template (`runtime/template`, ADR 0022): it writes
 //! `$OUT_DIR/python_template.rs`, one `(path, include_str!(..))` entry per file, walked as
 //! `ferrule_runtime`'s `_walk` walks it, so `ferrule-gen generate --spec` renders the runtime
 //! without the Python package.

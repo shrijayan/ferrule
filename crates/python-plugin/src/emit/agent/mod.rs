@@ -4,10 +4,12 @@
 //! `examples/agent/` and a test that runs them against a mock. Pure: [`SdkClient`] in, path -> text
 //! out. Not part of the Stainless output.
 
-use super::common::{method_args, py_string, sort_fields, stainless_method_order, stream_switch};
-use super::files::api_tests::{Uses, example_value};
+use super::common::{
+    example_type, is_binary_body, method_args, py_string, sort_fields, stainless_method_order, stream_switch,
+};
+use super::files::api_tests::{BINARY_EXAMPLE, Uses, example_value};
 use super::files_input::ProjectMeta;
-use crate::model::{SdkClient, SdkClientOpt, SdkMethod, SdkResource};
+use crate::model::{SdkClient, SdkClientOpt, SdkMethod, SdkModelDecl, SdkResource};
 
 /// One documented call: the code an agent copies, and whether a recipe runs it.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -46,7 +48,7 @@ fn all_resources(resources: &[SdkResource]) -> Vec<&SdkResource> {
 }
 
 /// Keyword arguments for the required parameters, path parameters first.
-fn call_args(method: &SdkMethod, uses: &mut Uses) -> Vec<String> {
+fn call_args(models: &[SdkModelDecl], method: &SdkMethod, uses: &mut Uses) -> Vec<String> {
     let params = method_args(method);
     let required = sort_fields(params.into_iter().filter(|p| p.required));
     method
@@ -54,8 +56,11 @@ fn call_args(method: &SdkMethod, uses: &mut Uses) -> Vec<String> {
         .iter()
         .chain(required)
         .map(|p| {
+            if is_binary_body(method, p) {
+                return format!("{}={BINARY_EXAMPLE}", p.py_name);
+            }
             let value = example_value(
-                &p.ty,
+                &example_type(&p.ty, models),
                 uses,
                 "",
                 p.example.as_ref(),
@@ -67,9 +72,16 @@ fn call_args(method: &SdkMethod, uses: &mut Uses) -> Vec<String> {
         .collect()
 }
 
+/// [`call_args`] alone, for tests of what it renders.
+#[cfg(test)]
+pub(crate) fn call_args_for_test(method: &SdkMethod) -> Vec<String> {
+    call_args(&[], method, &mut Uses::default())
+}
+
 struct Ctx<'a> {
     pkg: &'a str,
     client_class: &'a str,
+    models: &'a [SdkModelDecl],
 }
 
 fn program(
@@ -80,7 +92,7 @@ fn program(
     extra: &[String],
 ) -> (Vec<String>, Vec<String>) {
     let mut uses = Uses::new();
-    let mut args = call_args(method, &mut uses);
+    let mut args = call_args(ctx.models, method, &mut uses);
     args.extend(extra.iter().cloned());
     let call = format!(
         "client.{}.{}({})",
@@ -157,6 +169,7 @@ pub fn agent_context(client: &SdkClient, meta: Option<&ProjectMeta>) -> Option<A
     let ctx = Ctx {
         pkg: &client.package.name,
         client_class: &s.class_name,
+        models: &client.models,
     };
     let resources = all_resources(&client.resources);
     let examples: Vec<Snippet> = resources

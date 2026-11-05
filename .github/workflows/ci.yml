@@ -39,8 +39,7 @@ jobs:
 
   rs:
     name: rs
-    # Pinned for its PHP 8.3 (php:tools below): ubuntu-latest moved to 26.04, which has none, so
-    # mise builds PHP from source and fails without libcurl's headers.
+    # 24.04 ships the PHP 8.3 the formatter needs; on ubuntu-latest (26.04) mise builds PHP from source.
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:

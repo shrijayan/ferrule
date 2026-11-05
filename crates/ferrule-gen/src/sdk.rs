@@ -1,5 +1,5 @@
 //! `ferrule-gen generate --spec <openapi> --config <stainless.yml> --out <dir>`: the whole Python
-//! pipeline in one command (ADR 0020).
+//! pipeline in one command (ADR 0022).
 //!
 //! The same steps as `ferrule generate` (`migrate/src/ferrule/generate.py`): convert, Forge with
 //! the Python plugin, the runtime from the embedded template ([`crate::runtime`]), `ruff` to sort
