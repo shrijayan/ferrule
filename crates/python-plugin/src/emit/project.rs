@@ -535,3 +535,144 @@ pub fn emit_root_files(client: &SdkClient, meta: Option<&ProjectMeta>) -> Result
     }
     Ok(sorted(files))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::model::{HttpVerb, SdkPackage, SdkParam, SdkStyle};
+
+    fn named(name: &str) -> SdkRef {
+        SdkRef {
+            name: name.to_owned(),
+            module: name.to_lowercase(),
+        }
+    }
+
+    fn decl(name: &str, ty: SdkObject) -> SdkModelDecl {
+        SdkModelDecl {
+            r#ref: named(name),
+            description: String::new(),
+            ty,
+            alias: None,
+        }
+    }
+
+    fn client(models: Vec<SdkModelDecl>, client_methods: Vec<SdkMethod>) -> SdkClient {
+        SdkClient {
+            package: SdkPackage {
+                name: "acme".into(),
+                repo: "a/b".into(),
+            },
+            base_url: String::new(),
+            settings: None,
+            resources: Vec::new(),
+            client_methods,
+            client_class: None,
+            env_prefix: None,
+            models,
+            resource_tree: Vec::new(),
+            style: SdkStyle::default(),
+        }
+    }
+
+    fn method() -> SdkMethod {
+        SdkMethod {
+            name: "create".into(),
+            pointer: "#/paths/~1t/post".into(),
+            http_method: HttpVerb::Post,
+            path: "/t".into(),
+            summary: String::new(),
+            description: String::new(),
+            order: 0,
+            deprecated: false,
+            path_params: Vec::new(),
+            query_params: Vec::new(),
+            header_params: Vec::new(),
+            body: None,
+            body_params: Vec::new(),
+            body_media_type: None,
+            body_whole: false,
+            body_binary: false,
+            body_variants: Vec::new(),
+            body_discriminator: None,
+            body_file_paths: Vec::new(),
+            response: None,
+            unwrap: None,
+            skip_test: None,
+            pagination: None,
+            streaming: None,
+        }
+    }
+
+    fn method_taking(ty: SdkType) -> SdkMethod {
+        let mut m = method();
+        m.body_params = vec![SdkParam {
+            wire_name: "body".into(),
+            py_name: "body".into(),
+            required: true,
+            description: String::new(),
+            ty,
+            deprecated: false,
+            example: None,
+            minimum: None,
+            maximum: None,
+        }];
+        m
+    }
+
+    fn names(c: &SdkClient) -> Vec<&str> {
+        input_models(c).iter().map(|d| d.r#ref.name.as_str()).collect()
+    }
+
+    #[test]
+    fn client_methods_count_when_there_are_no_resources() {
+        let c = client(
+            vec![decl("Input", SdkObject::default())],
+            vec![method_taking(SdkType::Ref(named("Input")))],
+        );
+        assert_eq!(names(&c), ["Input"]);
+    }
+
+    #[test]
+    fn bases_of_a_named_model_are_inputs_too() {
+        let derived = SdkObject {
+            bases: vec![named("Base")],
+            ..SdkObject::default()
+        };
+        let c = client(
+            vec![decl("Base", SdkObject::default()), decl("Derived", derived)],
+            vec![method_taking(SdkType::Ref(named("Derived")))],
+        );
+        assert_eq!(names(&c), ["Base", "Derived"]);
+    }
+
+    #[test]
+    fn bases_of_an_inline_object_are_inputs_too() {
+        let inline = SdkObject {
+            bases: vec![named("Base")],
+            ..SdkObject::default()
+        };
+        let c = client(
+            vec![decl("Base", SdkObject::default())],
+            vec![method_taking(SdkType::Object(inline))],
+        );
+        assert_eq!(names(&c), ["Base"]);
+    }
+
+    #[test]
+    fn a_required_binary_body_gets_bytes_in_agent_recipes() {
+        let mut m = method_taking(SdkType::Unknown);
+        m.body_binary = true;
+        let args = crate::emit::agent::call_args_for_test(&m);
+        assert_eq!(args, ["body=b\"raw file contents\""]);
+    }
+
+    #[test]
+    fn a_renamed_envelope_field_keeps_its_wire_name() {
+        let mut m = method();
+        m.unwrap = Some("responseData".to_owned());
+        let file = emit_wrappers_file(&client(Vec::new(), vec![m])).expect("a wrapper");
+        assert!(file.contains("response_data: _T = FieldInfo(alias=\"responseData\")"), "{file}");
+        assert!(file.contains("from pydantic import Field as FieldInfo"), "{file}");
+    }
+}

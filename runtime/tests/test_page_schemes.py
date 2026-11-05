@@ -79,3 +79,18 @@ def test_page_schemes_type_other_fields_and_nested_cursors() -> None:
             path=("cursor", "next"),
         ),
     )
+
+
+def test_a_cursor_id_scheme_takes_its_item_id() -> None:
+    [scheme] = page_schemes(
+        [
+            {
+                "name": "cursor_id_page",
+                "kind": "cursor_id",
+                "itemId": "token",
+                "request": [{"name": "after", "purpose": "next_cursor_id_param"}],
+                "response": [{"name": "data", "type": "array", "purpose": "items"}],
+            }
+        ]
+    )
+    assert scheme.item_id == "token"

@@ -4,7 +4,7 @@ use ferrule_converter::extensions::json::{
     deref, is_array_schema, items_schema, property_names, property_schema, success_response,
 };
 use ferrule_converter::extensions::pagination::{
-    PAGINATION_SCHEMES, Scheme, best_match, matches, operation_shape, read_schemes,
+    PAGINATION_SCHEMES, Scheme, best_match, matches, operation_shape, page_scheme_extension, read_schemes,
 };
 use ferrule_converter::extensions::streaming::{StreamingInput, build_streaming, read_on_event, resolve_event_model};
 use ferrule_converter::{Diagnostic, Map, Value};
@@ -967,4 +967,27 @@ fn flags_resources_that_share_the_reserved_group() {
     assert!(collides_with_client_group("FerruleClient"));
     assert!(!collides_with_client_group("$client"));
     assert!(!collides_with_client_group("client"));
+}
+
+#[test]
+fn a_cursor_id_scheme_names_its_item_id_field() {
+    let schemes = page_scheme_extension(&v(json!({
+        "pagination": {
+            "name": "ids",
+            "type": "cursor_id",
+            "response": {
+                "data": {
+                    "type": "array",
+                    "x-stainless-pagination-property": {"purpose": "items"},
+                    "items": {
+                        "type": "object",
+                        "properties": {"token": {"x-stainless-pagination-property": {"purpose": "cursor_item_id"}}}
+                    }
+                }
+            }
+        }
+    })))
+    .expect("schemes");
+    let Value::Array(list) = schemes else { panic!("a list") };
+    assert_eq!(obj(&list[0]).get("itemId"), Some(&Value::from("token")));
 }

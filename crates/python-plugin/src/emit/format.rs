@@ -166,6 +166,20 @@ mod tests {
     use super::*;
 
     #[test]
+    fn a_comment_marker_inside_a_string_is_not_a_comment() {
+        let values = bracket(
+            "Literal[",
+            vec!["\"a  # b\"".into(), "\"c\"".into()],
+            false,
+            "]",
+        );
+        assert_eq!(
+            format_expr(&values.into(), "", "", ""),
+            ["Literal[\"a  # b\", \"c\"]"]
+        );
+    }
+
+    #[test]
     fn formats_calls_the_way_ruff_splits_them() {
         let long = "x".repeat(130);
         assert_eq!(

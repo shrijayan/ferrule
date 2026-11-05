@@ -491,7 +491,7 @@ def test_generate_renders_the_configured_timeout_and_retries(
 ) -> None:
     request, tmp = inputs
     request = replace(request, runtime_from=foreign_sdk(tmp))
-    client = {"name": "acme", "timeoutSeconds": 600, "maxRetries": 3}
+    client = {"name": "acme", "timeoutSeconds": 600, "retries": {"maxRetries": 0}}
     base = fake_runner([])
 
     def runner(argv: Sequence[str]) -> subprocess.CompletedProcess[str]:
@@ -506,4 +506,4 @@ def test_generate_renders_the_configured_timeout_and_retries(
         write(package_dir / "_utils/__init__.py")
 
     generate(request, runner=runner, renderer=render)
-    assert seen == [{"timeout": 600, "max_retries": 3}]
+    assert seen == [{"timeout": 600, "max_retries": 0}]

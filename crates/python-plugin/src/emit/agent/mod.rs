@@ -67,6 +67,12 @@ fn call_args(models: &[SdkModelDecl], method: &SdkMethod, uses: &mut Uses) -> Ve
         .collect()
 }
 
+/// [`call_args`] alone, for tests of what it renders.
+#[cfg(test)]
+pub(crate) fn call_args_for_test(method: &SdkMethod) -> Vec<String> {
+    call_args(&[], method, &mut Uses::default())
+}
+
 struct Ctx<'a> {
     pkg: &'a str,
     client_class: &'a str,

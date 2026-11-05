@@ -218,13 +218,12 @@ def _regenerate(tmp: Path, **extra: str) -> tuple[Path, str, str, Path]:
         GITHUB_ACTION_PATH=str(src / "action"),
         INPUT_SPEC="openapi.json",
         INPUT_CONFIG="stainless.yml",
-        INPUT_AGAINST="HEAD",
         WORKSPACE=str(repo),
         REPORT=str(tmp / "report.json"),
         GITHUB_OUTPUT=str(tmp / "output"),
         CARGO_LOG=str(tmp / "cargo.log"),
         FERRULE_LOG=str(tmp / "ferrule.log"),
-        **extra,
+        **{"INPUT_AGAINST": "HEAD", **extra},
     )
     for name, text in (("cargo", STUB_CARGO), ("ferrule", STUB_FERRULE)):
         stub = tmp / "bin" / name
@@ -252,6 +251,14 @@ def test_regenerate_builds_ferrule_gen_from_the_action_checkout(tmp_path: Path) 
     ]
     assert _git(repo, "branch", "--show-current").strip() == "ferrule/regenerate"
     assert (tmp_path / "output").read_text() == "changed=true\nconflict=false\n"
+
+
+def test_regenerate_verifies_a_first_release_against_the_commit_it_started_from(
+    tmp_path: Path,
+) -> None:
+    _, _, ferrule, repo = _regenerate(tmp_path, INPUT_AGAINST="", FERRULE_GEN="/g")
+    start = _git(repo, "rev-parse", "HEAD~1").strip()
+    assert f"--against {start} " in ferrule.splitlines()[1]
 
 
 def test_regenerate_uses_a_given_ferrule_gen(tmp_path: Path) -> None:
