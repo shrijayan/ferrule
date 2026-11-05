@@ -188,20 +188,23 @@ fn check_inputs(args: &SdkArgs, ruff: &str) -> Result<(), Diagnostic> {
     Ok(())
 }
 
-/// `shutil.which`: a path with a separator is checked as is, a bare name in every `PATH` entry.
+/// `shutil.which`: a path with a separator is looked up where it points, a bare name in every
+/// `PATH` entry.
 fn on_path(tool: &str) -> bool {
-    let tool = Path::new(tool);
-    if tool.components().count() > 1 {
-        return tool.is_file();
-    }
-    let name = tool.display().to_string();
     let names = if cfg!(windows) {
-        windows_names(&name, &std::env::var("PATHEXT").unwrap_or_else(|_| ".EXE".to_owned()))
+        windows_names(tool, &std::env::var("PATHEXT").unwrap_or_else(|_| ".EXE".to_owned()))
     } else {
-        vec![name]
+        vec![tool.to_owned()]
     };
-    std::env::var_os("PATH")
-        .is_some_and(|path| std::env::split_paths(&path).any(|dir| names.iter().any(|name| dir.join(name).is_file())))
+    any_on_path(&names, std::env::var_os("PATH").as_deref())
+}
+
+/// Whether one of `names`, the spellings of one tool, is a file.
+fn any_on_path(names: &[String], path: Option<&std::ffi::OsStr>) -> bool {
+    if names.iter().any(|name| Path::new(name).components().count() > 1) {
+        return Path::new(&names[0]).is_file();
+    }
+    path.is_some_and(|path| std::env::split_paths(path).any(|dir| names.iter().any(|name| dir.join(name).is_file())))
 }
 
 /// The file names Windows runs `tool` from, given `PATHEXT`.
@@ -423,6 +426,20 @@ mod tests {
         assert_eq!(windows_names("ruff", ".EXE;.CMD"), ["ruff.EXE", "ruff.CMD"]);
         assert_eq!(windows_names("ruff.exe", ".EXE;.CMD"), ["ruff.exe"]);
         assert_eq!(windows_names("ruff.tool", ".EXE;"), ["ruff.tool.EXE"]);
+    }
+
+    #[test]
+    fn an_explicit_tool_path_takes_the_extensions_too() {
+        let dir = std::env::temp_dir().join(format!("ferrule-gen-tool-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        fs::create_dir_all(&dir).expect("dir");
+        fs::write(dir.join("ruff.EXE"), "").expect("file");
+        let tool = dir.join("ruff").display().to_string();
+        assert!(any_on_path(&windows_names(&tool, ".CMD;.EXE"), None));
+        assert!(!any_on_path(&windows_names(&tool, ".CMD"), None));
+        assert!(any_on_path(&["ruff.EXE".to_owned()], Some(dir.as_os_str())));
+        assert!(!any_on_path(&["ruff".to_owned()], Some(dir.as_os_str())));
+        let _ = fs::remove_dir_all(&dir);
     }
 
     #[test]
