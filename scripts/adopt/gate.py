@@ -43,7 +43,7 @@ if TYPE_CHECKING:
 # Picked from the Phase 4 baseline: config oracles that reach 0 breaking (docs/phases/phase-4.md).
 TARGETS = ("onebusaway", "isaacus", "lumaai", "honcho", "knock-mgmt")
 # SDKs adopted outside the oracles: the adoption branch head, its base, and the breaking changes
-# its PR accepts (ADR 0019).
+# its PR accepts (ADR 0020).
 ADOPTED: dict[str, dict[str, object]] = {
     "opencode-python-sdk": {
         "url": "https://github.com/shrijayan/opencode-python-sdk.git",
