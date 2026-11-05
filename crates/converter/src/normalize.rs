@@ -813,7 +813,7 @@ fn vendor_child(kind: Kind, key: &str, value: &Value) -> Option<(Shape, Kind)> {
     Some(match (kind, key) {
         (Kind::Document, "paths") => (Shape::Entries, Kind::PathItem),
         (Kind::Document, "components") => (Shape::One, Kind::Components),
-        (Kind::Components, "schemas") => (Shape::Values, Kind::Schema),
+        (Kind::Components, "schemas") | (Kind::Schema, "properties" | "$defs") => (Shape::Values, Kind::Schema),
         (Kind::Components, "parameters") => (Shape::Values, Kind::Parameter),
         (Kind::Components, "requestBodies" | "responses") => (Shape::Values, Kind::Body),
         (Kind::Components, "pathItems") => (Shape::Values, Kind::PathItem),
@@ -827,9 +827,8 @@ fn vendor_child(kind: Kind, key: &str, value: &Value) -> Option<(Shape, Kind)> {
         (Kind::Operation, "responses") => (Shape::Entries, Kind::Body),
         (Kind::Operation, "x-forge-aliases") => (Shape::Elements, Kind::Operation),
         (Kind::Parameter | Kind::Body, "content") => (Shape::Values, Kind::Media),
-        (Kind::Parameter | Kind::Media, "schema") => (Shape::One, Kind::Schema),
-        (Kind::Schema, "properties" | "$defs") => (Shape::Values, Kind::Schema),
-        (Kind::Schema, "additionalProperties" | "unevaluatedProperties") => (Shape::One, Kind::Schema),
+        (Kind::Parameter | Kind::Media, "schema")
+        | (Kind::Schema, "additionalProperties" | "unevaluatedProperties") => (Shape::One, Kind::Schema),
         (Kind::Schema, "items") if matches!(value, Value::Object(_)) => (Shape::One, Kind::Schema),
         (Kind::Schema, "items" | "prefixItems" | "allOf" | "anyOf" | "oneOf") => (Shape::Elements, Kind::Schema),
         _ => return None,
