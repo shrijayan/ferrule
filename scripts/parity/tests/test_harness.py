@@ -12,6 +12,7 @@ from scripts.parity.harness import (
     lock_requirements,
     mock_command,
     parse_junit,
+    pytest_config_args,
     resolve_pair,
 )
 
@@ -144,6 +145,22 @@ yarl==1.20.0
     # via aiohttp
 """
     assert lock_requirements(lock) == ["anyio==4.12.1", "yarl==1.22.0"]
+
+
+def test_pytest_config_args_use_the_oracles_settings_without_project_files(tmp_path: Path) -> None:
+    out, sdk = tmp_path / "out", tmp_path / "sdk"
+    out.mkdir()
+    sdk.mkdir()
+    assert pytest_config_args(out, sdk) == ()
+    (sdk / "pyproject.toml").write_text("")
+    assert pytest_config_args(out, sdk) == (
+        "-c",
+        str(sdk / "pyproject.toml"),
+        "--rootdir",
+        str(out),
+    )
+    (out / "pyproject.toml").write_text("")
+    assert pytest_config_args(out, sdk) == ()
 
 
 def test_mock_command() -> None:
