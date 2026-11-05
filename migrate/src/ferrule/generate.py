@@ -300,8 +300,12 @@ def renderer_options(annotated: Path) -> dict[str, object]:
         options["pagination"] = list(cast("list[object]", schemes))
     raw_client = root.get("x-ferrule-client")
     client = cast("dict[str, object]", raw_client) if isinstance(raw_client, dict) else {}
-    for key, name in (("timeoutSeconds", "timeout"), ("maxRetries", "max_retries")):
-        value = client.get(key)
+    raw_retries = client.get("retries")
+    retries = cast("dict[str, object]", raw_retries) if isinstance(raw_retries, dict) else {}
+    for name, value in (
+        ("timeout", client.get("timeoutSeconds")),
+        ("max_retries", retries.get("maxRetries")),
+    ):
         if isinstance(value, int | float) and not isinstance(value, bool) and value == int(value):
             options[name] = int(value)
     return options
