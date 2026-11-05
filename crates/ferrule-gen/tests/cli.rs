@@ -520,7 +520,13 @@ fn fake_ruff(dir: &Path, code: i32) -> PathBuf {
 /// `generate --spec` on the environments fixture, with `ruff` replaced by [`fake_ruff`].
 #[cfg(unix)]
 fn one_command(tools: &Path, out: &Path, ruff: &Path) -> std::process::Output {
-    let fixture = plugin_dir().join("tests/environments");
+    one_command_on("tests/environments", tools, out, ruff)
+}
+
+/// `generate --spec` on a plugin fixture directory, with `ruff` replaced by [`fake_ruff`].
+#[cfg(unix)]
+fn one_command_on(fixture: &str, tools: &Path, out: &Path, ruff: &Path) -> std::process::Output {
+    let fixture = plugin_dir().join(fixture);
     bin()
         .args(["generate", "--spec"])
         .arg(fixture.join("openapi.yml"))
@@ -608,6 +614,23 @@ fn one_command_writes_the_sdk_with_the_runtime_python_renders() {
     );
     assert!(stdout.starts_with(&summary), "{stdout}");
     assert_eq!(stdout.trim_end().len(), summary.len() + 64, "{stdout}");
+}
+
+/// `acme` with the client class `AcmeQA`: the generated code imports `AcmeQAError`, so the runtime
+/// has to define it.
+#[cfg(unix)]
+#[test]
+fn one_command_names_the_runtime_after_the_client_class() {
+    let tools = scratch("one-command-client-class");
+    let out = tools.join("sdk");
+    let ruff = fake_ruff(&tools, 0);
+    let run = one_command_on("tests/standalone", &tools, &out, &ruff);
+    assert!(run.status.success(), "{}", String::from_utf8_lossy(&run.stderr));
+    let package = out.join("src/acme");
+    let exceptions = fs::read_to_string(package.join("_exceptions.py")).expect("exceptions");
+    assert!(exceptions.contains("class AcmeQAError("), "{exceptions}");
+    let logs = fs::read_to_string(package.join("_utils/_logs.py")).expect("logs");
+    assert!(logs.contains("ACME_QA_LOG"), "{logs}");
 }
 
 #[cfg(unix)]
