@@ -77,24 +77,23 @@ fn check_identifier(kind: &str, value: &str) -> Result<(), String> {
     }
 }
 
-/// The runtime for `package`: paths relative to `src/<package>/`, with their text, in
-/// template order.
+/// The runtime for `package` and its client class `client`: paths relative to
+/// `src/<package>/`, with their text, in template order.
 ///
 /// # Errors
 ///
-/// When `package` is not a Python identifier, or the template has a malformed directive, an
+/// When `package` or `client` is not a Python identifier, or the template has a malformed directive, an
 /// unknown flag or a token the render does not replace.
-pub fn render(package: &str) -> Result<Vec<(String, String)>, String> {
-    let client = default_client_name(package);
+pub fn render(package: &str, client: &str) -> Result<Vec<(String, String)>, String> {
     let error = format!("{client}Error");
     for (kind, value) in [
         ("package_name", package),
-        ("client_name", &client),
+        ("client_name", client),
         ("error_name", &error),
     ] {
         check_identifier(kind, value)?;
     }
-    let log_env = format!("{}_LOG", screaming_snake(&client));
+    let log_env = format!("{}_LOG", screaming_snake(client));
     // Longest first so no token is a prefix of a replaced value, as `render_options` lists them.
     let replacements: [(&str, &str); 8] = [
         ("__FERRULE_FILE_UPLOADS_HINT__", ""),
@@ -102,7 +101,7 @@ pub fn render(package: &str) -> Result<Vec<(String, String)>, String> {
         ("__FERRULE_MAX_RETRIES__", MAX_RETRIES),
         ("__FERRULE_TIMEOUT__", TIMEOUT),
         ("__FERRULE_LOG_ENV__", &log_env),
-        ("__FerruleClient__", &client),
+        ("__FerruleClient__", client),
         ("__FerruleError__", &error),
         ("__ferrule_pkg__", package),
     ];
@@ -276,7 +275,7 @@ mod tests {
 
     #[test]
     fn renders_the_runtime_without_tokens() {
-        let files = render("acme_sdk").expect("renders");
+        let files = render("acme_sdk", "AcmeSDK").expect("renders");
         let paths: Vec<&str> = files.iter().map(|(p, _)| p.as_str()).collect();
         assert!(paths.contains(&"_base_client.py"), "{paths:?}");
         assert!(paths.contains(&"_utils/_logs.py"), "{paths:?}");
@@ -287,6 +286,6 @@ mod tests {
         );
         let logs = &files.iter().find(|(p, _)| p == "_utils/_logs.py").expect("logs").1;
         assert!(logs.contains("ACME_SDK_LOG"), "{logs}");
-        assert!(render("class").is_err());
+        assert!(render("class", "Class").is_err());
     }
 }

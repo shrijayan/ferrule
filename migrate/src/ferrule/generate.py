@@ -64,10 +64,13 @@ SKIP_PARTS = frozenset({"__pycache__", ".ruff_cache", ".mypy_cache", ".pytest_ca
 class RuntimeRenderer(Protocol):
     """What ``ferrule_runtime.render`` must look like for ``generate`` to use it.
 
-    It writes the runtime modules for ``package`` into ``package_dir`` (``<out>/src/<package>``).
+    It writes the runtime modules for ``package`` into ``package_dir`` (``<out>/src/<package>``),
+    named after ``client_name``, or the package when that is ``None``.
     """
 
-    def __call__(self, package: str, package_dir: Path, /) -> object:
+    def __call__(
+        self, package: str, package_dir: Path, /, *, client_name: str | None = None
+    ) -> object:
         """Render the runtime for ``package`` into ``package_dir``."""
         ...
 
@@ -285,6 +288,16 @@ def tree_digest(root: Path) -> str:
     return h.hexdigest()
 
 
+_CLIENT_CLASS = re.compile(r"^class (?P<name>\w+)\(SyncAPIClient\):", re.MULTILINE)
+
+
+def client_class(package_dir: Path) -> str | None:
+    """Return the sync client class the plugin wrote to ``_client.py``, if there is one."""
+    client = package_dir / "_client.py"
+    match = _CLIENT_CLASS.search(client.read_text(encoding="utf-8")) if client.is_file() else None
+    return None if match is None else match["name"]
+
+
 def load_renderer() -> RuntimeRenderer | None:
     """``ferrule_runtime.render`` when the runtime package provides it."""
     try:
@@ -448,7 +461,7 @@ def generate(
         package = pick_package(_src_packages(request.out), "--out")
         package_dir = request.out / "src" / package
         before = len(relative_files(package_dir))
-        renderer(package, package_dir)
+        renderer(package, package_dir, client_name=client_class(package_dir))
         runtime_count = len(relative_files(package_dir)) - before
     else:
         raise fail(

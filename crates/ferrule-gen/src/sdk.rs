@@ -13,6 +13,7 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use ferrule_python_plugin::PythonPlugin;
+use ferrule_python_plugin::plugin::to_model;
 use sha2::{Digest, Sha256};
 
 /// `ferrule generate`'s codes (`migrate/src/ferrule/errors.py`), for the same failures.
@@ -113,7 +114,11 @@ fn generate(args: &SdkArgs, ruff: &str, stderr: &mut dyn Write) -> Result<Genera
     let package = pick_package(&args.out)?;
     let package_dir = args.out.join("src").join(&package);
     let before = relative_files(&package_dir).len();
-    let rendered = crate::runtime::render(&package).map_err(|err| step_failed("runtime", &err))?;
+    let client = to_model(&forge)
+        .map_err(|err| step_failed("generate", &err))?
+        .and_then(|model| model.client_class)
+        .unwrap_or_else(|| crate::runtime::default_client_name(&package));
+    let rendered = crate::runtime::render(&package, &client).map_err(|err| step_failed("runtime", &err))?;
     for (rel, text) in rendered {
         let path = package_dir.join(rel);
         let written = path
@@ -184,9 +189,8 @@ fn on_path(tool: &str) -> bool {
     } else {
         vec![name]
     };
-    std::env::var_os("PATH").is_some_and(|path| {
-        std::env::split_paths(&path).any(|dir| names.iter().any(|name| dir.join(name).is_file()))
-    })
+    std::env::var_os("PATH")
+        .is_some_and(|path| std::env::split_paths(&path).any(|dir| names.iter().any(|name| dir.join(name).is_file())))
 }
 
 /// The file names Windows runs `tool` from, given `PATHEXT`.
