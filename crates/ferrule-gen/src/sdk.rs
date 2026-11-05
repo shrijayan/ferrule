@@ -191,7 +191,12 @@ fn on_path(tool: &str) -> bool {
 
 /// The file names Windows runs `tool` from, given `PATHEXT`.
 fn windows_names(tool: &str, pathext: &str) -> Vec<String> {
-    pathext.split(';').map(|ext| format!("{tool}{ext}")).collect()
+    let exts: Vec<&str> = pathext.split(';').filter(|ext| !ext.is_empty()).collect();
+    let lower = tool.to_ascii_lowercase();
+    if exts.iter().any(|ext| lower.ends_with(&ext.to_ascii_lowercase())) {
+        return vec![tool.to_owned()];
+    }
+    exts.iter().map(|ext| format!("{tool}{ext}")).collect()
 }
 
 /// The annotated spec, with the converter's diagnostics on standard error as `convert` prints them.
