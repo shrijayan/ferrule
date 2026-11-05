@@ -39,7 +39,9 @@ jobs:
 
   rs:
     name: rs
-    runs-on: ubuntu-latest
+    # Pinned for its PHP 8.3 (php:tools below): ubuntu-latest moved to 26.04, which has none, so
+    # mise builds PHP from source and fails without libcurl's headers.
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -55,7 +57,7 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             target
-          key: cargo-${{ runner.os }}-${{ hashFiles('Cargo.lock', 'rust-toolchain.toml') }}
+          key: cargo-ubuntu-24.04-${{ hashFiles('Cargo.lock', 'rust-toolchain.toml') }}
       - run: mise run lint:rs
       # The Ruby plugin's golden checks format with the gem's pinned stree and rubocop.
       - run: mise run ruby:tools
