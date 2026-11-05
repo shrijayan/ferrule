@@ -260,7 +260,7 @@ fn pick_package(out: &Path) -> Result<String, Diagnostic> {
         NO_PACKAGE,
         format!("expected exactly one package under src/, found {found}"),
         "--out",
-        "point --runtime-from at a Stainless-style SDK with src/<package>/__init__.py",
+        "set targets.python.package_name in the config to one Python identifier",
     ))
 }
 
