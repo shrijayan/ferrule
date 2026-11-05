@@ -178,21 +178,20 @@ fn on_path(tool: &str) -> bool {
     if tool.components().count() > 1 {
         return tool.is_file();
     }
-    let exts: Vec<String> = if cfg!(windows) {
-        std::env::var("PATHEXT")
-            .unwrap_or_else(|_| ".EXE".to_owned())
-            .split(';')
-            .map(str::to_owned)
-            .collect()
+    let name = tool.display().to_string();
+    let names = if cfg!(windows) {
+        windows_names(&name, &std::env::var("PATHEXT").unwrap_or_else(|_| ".EXE".to_owned()))
     } else {
-        vec![String::new()]
+        vec![name]
     };
     std::env::var_os("PATH").is_some_and(|path| {
-        std::env::split_paths(&path).any(|dir| {
-            exts.iter()
-                .any(|ext| dir.join(format!("{}{ext}", tool.display())).is_file())
-        })
+        std::env::split_paths(&path).any(|dir| names.iter().any(|name| dir.join(name).is_file()))
     })
+}
+
+/// The file names Windows runs `tool` from, given `PATHEXT`.
+fn windows_names(tool: &str, pathext: &str) -> Vec<String> {
+    pathext.split(';').map(|ext| format!("{tool}{ext}")).collect()
 }
 
 /// The annotated spec, with the converter's diagnostics on standard error as `convert` prints them.
@@ -367,6 +366,13 @@ mod tests {
         }
         assert_eq!(relative_files(&dir), ["a/b.py", "a.py", "b"]);
         let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn a_windows_tool_may_already_have_its_extension() {
+        assert_eq!(windows_names("ruff", ".EXE;.CMD"), ["ruff.EXE", "ruff.CMD"]);
+        assert_eq!(windows_names("ruff.exe", ".EXE;.CMD"), ["ruff.exe"]);
+        assert_eq!(windows_names("ruff.tool", ".EXE;"), ["ruff.tool.EXE"]);
     }
 
     #[test]
