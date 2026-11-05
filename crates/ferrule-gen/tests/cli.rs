@@ -497,3 +497,178 @@ fn generates_csharp_with_the_runtime_options() {
     assert_eq!(options["namespace"], "OnebusawaySdk");
     assert_eq!(options["client_name"], "OnebusawaySdk");
 }
+
+fn repo_dir() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")
+}
+
+/// A `ruff` stand-in that appends its arguments to `ruff.log` next to it and exits with `code`.
+#[cfg(unix)]
+fn fake_ruff(dir: &Path, code: i32) -> PathBuf {
+    use std::os::unix::fs::PermissionsExt;
+    let path = dir.join("ruff");
+    let log = dir.join("ruff.log");
+    let script = format!(
+        "#!/bin/sh\necho \"$@\" >> '{}'\necho 'ruff: boom' >&2\nexit {code}\n",
+        log.display()
+    );
+    fs::write(&path, script).expect("fake ruff");
+    fs::set_permissions(&path, fs::Permissions::from_mode(0o755)).expect("chmod");
+    path
+}
+
+/// `generate --spec` on the environments fixture, with `ruff` replaced by [`fake_ruff`].
+#[cfg(unix)]
+fn one_command(tools: &Path, out: &Path, ruff: &Path) -> std::process::Output {
+    let fixture = plugin_dir().join("tests/environments");
+    bin()
+        .args(["generate", "--spec"])
+        .arg(fixture.join("openapi.yml"))
+        .arg("--config")
+        .arg(fixture.join("stainless.yml"))
+        .arg("--out")
+        .arg(out)
+        .env("FERRULE_RUFF", ruff)
+        .current_dir(tools)
+        .output()
+        .expect("runs")
+}
+
+#[cfg(unix)]
+#[test]
+fn one_command_writes_the_sdk_with_the_runtime_python_renders() {
+    let tools = scratch("one-command-tools");
+    let out = tools.join("sdk");
+    let ruff = fake_ruff(&tools, 0);
+    let run = one_command(&tools, &out, &ruff);
+    let stdout = String::from_utf8_lossy(&run.stdout);
+    assert!(run.status.success(), "{}", String::from_utf8_lossy(&run.stderr));
+
+    // The plugin's files are the annotated-spec form's files.
+    let annotated = tools.join("annotated");
+    let status = bin()
+        .arg("generate")
+        .arg(plugin_dir().join("tests/environments/annotated.json"))
+        .arg("--out")
+        .arg(&annotated)
+        .status()
+        .expect("runs");
+    assert!(status.success());
+    let all = files(&out);
+    for (path, bytes) in files(&annotated) {
+        assert!(all.contains(&(path.clone(), bytes)), "{path} differs");
+    }
+
+    // The runtime is byte for byte what `ferrule_runtime` renders for the package.
+    let package = fs::read_dir(out.join("src"))
+        .expect("src")
+        .filter_map(Result::ok)
+        .find(|e| e.path().join("__init__.py").is_file())
+        .and_then(|e| e.file_name().into_string().ok())
+        .expect("one package");
+    let python = Command::new("python3")
+        .arg("-I")
+        .arg("-c")
+        .arg(
+            "import json, sys\n\
+             sys.path.insert(0, sys.argv[1])\n\
+             import ferrule_runtime as r\n\
+             print(json.dumps(r.render_files(sys.argv[2], r.default_client_name(sys.argv[2]))))",
+        )
+        .arg(repo_dir().join("runtime/src"))
+        .arg(&package)
+        .output()
+        .expect("python3 runs");
+    assert!(python.status.success(), "{}", String::from_utf8_lossy(&python.stderr));
+    let expected: std::collections::BTreeMap<String, String> = serde_json::from_slice(&python.stdout).expect("JSON");
+    assert!(!expected.is_empty());
+    for (rel, text) in &expected {
+        let written = fs::read_to_string(out.join("src").join(&package).join(rel)).expect(rel);
+        assert_eq!(&written, text, "{rel}");
+    }
+    let runtime_new = expected
+        .keys()
+        .filter(|rel| {
+            !files(&annotated)
+                .iter()
+                .any(|(p, _)| *p == format!("src/{package}/{rel}"))
+        })
+        .count();
+
+    // ruff sorts imports, then formats, over the whole output.
+    let log = fs::read_to_string(tools.join("ruff.log")).expect("ruff ran");
+    let o = out.display();
+    assert_eq!(
+        log,
+        format!("check --select I --fix --no-cache --quiet --exit-zero {o}\nformat --no-cache --quiet {o}\n")
+    );
+    let summary = format!(
+        "generated {package}: {} files ({runtime_new} runtime) sha256 ",
+        all.len()
+    );
+    assert!(stdout.starts_with(&summary), "{stdout}");
+    assert_eq!(stdout.trim_end().len(), summary.len() + 64, "{stdout}");
+}
+
+#[cfg(unix)]
+#[test]
+fn one_command_is_deterministic() {
+    let tools = scratch("one-command-twice");
+    let ruff = fake_ruff(&tools, 0);
+    let first = one_command(&tools, &tools.join("a"), &ruff);
+    let second = one_command(&tools, &tools.join("b"), &ruff);
+    assert!(first.status.success() && second.status.success());
+    assert_eq!(first.stdout, second.stdout);
+    assert_eq!(files(&tools.join("a")), files(&tools.join("b")));
+}
+
+#[cfg(unix)]
+#[test]
+fn one_command_reports_failures_with_fer_codes() {
+    let tools = scratch("one-command-errors");
+    let fixture = plugin_dir().join("tests/environments");
+    let stderr = |run: &std::process::Output| {
+        assert_eq!(run.status.code(), Some(1));
+        String::from_utf8_lossy(&run.stderr).into_owned()
+    };
+
+    let ruff = fake_ruff(&tools, 2);
+    let err = stderr(&one_command(&tools, &tools.join("sdk"), &ruff));
+    assert!(
+        err.contains("FER4003 at sort-imports: sort-imports failed: ruff: boom"),
+        "{err}"
+    );
+
+    let err = stderr(&one_command(&tools, &tools.join("sdk"), &ruff));
+    assert!(err.contains("FER4006 at --out:"), "{err}");
+
+    let err = stderr(&one_command(&tools, &tools.join("other"), &tools.join("no-ruff")));
+    assert!(
+        err.contains("FER4002 at FERRULE_RUFF:") && err.contains("astral.sh/ruff"),
+        "{err}"
+    );
+
+    let run = bin()
+        .args(["generate", "--spec", "missing.yml", "--config"])
+        .arg(fixture.join("stainless.yml"))
+        .args(["--out", "sdk"])
+        .current_dir(&*tools)
+        .output()
+        .expect("runs");
+    assert!(stderr(&run).contains("FER4001 at --spec: missing.yml does not exist"));
+
+    let bad = tools.join("bad.yml");
+    fs::write(&bad, "organization: {}\nresources: 3\n").expect("config");
+    let run = bin()
+        .args(["generate", "--spec"])
+        .arg(fixture.join("openapi.yml"))
+        .arg("--config")
+        .arg(&bad)
+        .arg("--out")
+        .arg(tools.join("bad-sdk"))
+        .env("FERRULE_RUFF", fake_ruff(&tools, 0))
+        .output()
+        .expect("runs");
+    let err = stderr(&run);
+    assert!(err.contains("FER4003 at convert: convert failed: error"), "{err}");
+}

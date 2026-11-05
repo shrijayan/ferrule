@@ -88,6 +88,19 @@ def test_resolve_tools_precedence(tmp_path: Path) -> None:
     assert default == Tools(gen=tmp_path / "target/release/ferrule-gen", ruff="ruff")
 
 
+def test_resolve_tools_falls_back_to_path(tmp_path: Path) -> None:
+    bin_dir = tmp_path / "bin"
+    installed = write(bin_dir / "ferrule-gen")
+    installed.chmod(0o755)
+    env = {"PATH": str(bin_dir)}
+    assert resolve_tools(env, root=tmp_path / "repo").gen == installed
+    built = write(tmp_path / "repo/target/release/ferrule-gen")
+    assert resolve_tools(env, root=tmp_path / "repo").gen == built
+    assert resolve_tools({"PATH": str(tmp_path / "empty")}, root=tmp_path).gen == (
+        tmp_path / "target/release/ferrule-gen"
+    )
+
+
 def test_plan_steps(inputs: tuple[GenerateRequest, Path]) -> None:
     request, tmp = inputs
     convert, gen = plan_steps(request, tmp / "work")

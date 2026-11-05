@@ -4,8 +4,12 @@
 //! ferrule-gen convert openapi.yml stainless.yml -o annotated.json
 //! ferrule-gen generate annotated.json --out sdk [--target python|typescript|node|…|rust]
 //!     [--config stainless.yml] [--openapi openapi.yml] [--ferrule-config ferrule.yml]
+//! ferrule-gen generate --spec openapi.yml --config stainless.yml --out sdk
 //! ferrule-gen model annotated.json
 //! ```
+//!
+//! `generate --spec` is the whole Python pipeline in one command, as `ferrule generate` runs it:
+//! convert, Forge, the runtime from the embedded template, `ruff` (ADR 0020; see [`sdk`]).
 //!
 //! `generate` replaces `forge annotated.json --target wasm://plugin.wasm --out sdk`: the same
 //! input (a JSON document, or `-` for standard input), the same output directory handling
@@ -53,14 +57,20 @@ use std::process::ExitCode;
 use ferrule_python_plugin::PythonPlugin;
 use ferrule_sdk_model::{FerCode, FerruleError};
 
+mod runtime;
+mod sdk;
+
 const USAGE: &str = "Usage: ferrule-gen convert <SPEC> <CONFIG> -o <OUT>
+       ferrule-gen generate --spec <OPENAPI> --config <YML> --out <OUT>
        ferrule-gen generate <SPEC> --out <OUT> [--target <TARGET>] [--config <YML>] [--openapi <SPEC>]
                             [--ferrule-config <YML>]
        ferrule-gen model <SPEC>
 
 Commands:
   convert   Turn an OpenAPI spec and a stainless.yml into the annotated spec
-  generate  Generate an SDK from an annotated spec (a JSON document, or - for stdin)
+  generate  With --spec: generate a formatted Python SDK from an OpenAPI spec and a stainless.yml
+            (needs ruff on PATH, or FERRULE_RUFF). Otherwise: generate an SDK from an annotated
+            spec (a JSON document, or - for stdin)
   model     Print the language-neutral SDK model of an annotated spec as JSON
 
 Targets: python (default), typescript, node (the legacy TypeScript layout), go, java, kotlin,
@@ -154,7 +164,7 @@ fn main() -> ExitCode {
 fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i32 {
     match args.first().map(String::as_str) {
         Some("convert") => ferrule_converter::cli::main(&args[1..], stdout, stderr),
-        Some("generate") => generate(&args[1..], stderr),
+        Some("generate") => generate(&args[1..], stdout, stderr),
         Some("model") => model(&args[1..], stdout, stderr),
         Some("-h" | "--help" | "help") => {
             let _ = writeln!(stdout, "{USAGE}");
@@ -198,6 +208,15 @@ struct GenerateArgs {
     ferrule_config: Option<PathBuf>,
 }
 
+/// The two forms of `generate`.
+#[derive(Debug)]
+enum Generate {
+    /// `--spec <OPENAPI> --config <YML> --out <OUT>`: the whole Python pipeline.
+    Sdk(sdk::SdkArgs),
+    /// `<SPEC> --out <OUT>`: the plugin over an annotated spec.
+    Annotated(GenerateArgs),
+}
+
 /// The value of `--name <value>` or `--name=value` at `args[*i]`, advancing `i` past it.
 fn flag_value(
     args: &[String],
@@ -220,7 +239,8 @@ fn flag_value(
         .map(|value| Ok(value.to_owned()))
 }
 
-fn parse_generate(args: &[String]) -> Result<GenerateArgs, String> {
+fn parse_generate(args: &[String]) -> Result<Generate, String> {
+    let mut openapi_spec: Option<PathBuf> = None;
     let mut spec: Option<PathBuf> = None;
     let mut out: Option<PathBuf> = None;
     let mut target: Option<String> = None;
@@ -231,6 +251,8 @@ fn parse_generate(args: &[String]) -> Result<GenerateArgs, String> {
     while i < args.len() {
         if let Some(value) = flag_value(args, &mut i, "--out", Some("-o"), "OUT") {
             out = Some(PathBuf::from(value?));
+        } else if let Some(value) = flag_value(args, &mut i, "--spec", None, "OPENAPI") {
+            openapi_spec = Some(PathBuf::from(value?));
         } else if let Some(value) = flag_value(args, &mut i, "--target", None, "TARGET") {
             let value = value?;
             if !TARGETS.contains(&value.as_str()) {
@@ -255,15 +277,18 @@ fn parse_generate(args: &[String]) -> Result<GenerateArgs, String> {
         }
         i += 1;
     }
+    if let Some(openapi_spec) = openapi_spec {
+        return parse_sdk(openapi_spec, spec, out, config, target, openapi.is_some()).map(Generate::Sdk);
+    }
     match (spec, out) {
-        (Some(spec), Some(out)) => Ok(GenerateArgs {
+        (Some(spec), Some(out)) => Ok(Generate::Annotated(GenerateArgs {
             spec,
             out,
             target: target.unwrap_or_else(|| DEFAULT_TARGET.to_owned()),
             config,
             openapi,
             ferrule_config,
-        }),
+        })),
         (spec, out) => {
             let mut missing = Vec::new();
             if out.is_none() {
@@ -272,6 +297,45 @@ fn parse_generate(args: &[String]) -> Result<GenerateArgs, String> {
             if spec.is_none() {
                 missing.push("  <SPEC>");
             }
+            Err(format!(
+                "the following required arguments were not provided:\n{}",
+                missing.join("\n")
+            ))
+        }
+    }
+}
+
+/// The `--spec` form: `--config` and `--out` are required, and nothing of the annotated form is
+/// allowed. Only Python runs in one command so far; the other targets need `ferrule generate`.
+fn parse_sdk(
+    spec: PathBuf,
+    annotated: Option<PathBuf>,
+    out: Option<PathBuf>,
+    config: Option<PathBuf>,
+    target: Option<String>,
+    openapi: bool,
+) -> Result<sdk::SdkArgs, String> {
+    if let Some(annotated) = annotated {
+        return Err(format!(
+            "the argument '--spec <OPENAPI>' cannot be used with '{}'",
+            annotated.display()
+        ));
+    }
+    if openapi {
+        return Err("the argument '--spec <OPENAPI>' cannot be used with '--openapi <SPEC>'".to_owned());
+    }
+    if let Some(target) = target.filter(|t| t != DEFAULT_TARGET) {
+        return Err(format!(
+            "'--spec <OPENAPI>' generates python only; for --target {target}, run `ferrule generate`"
+        ));
+    }
+    match (config, out) {
+        (Some(config), Some(out)) => Ok(sdk::SdkArgs { spec, config, out }),
+        (config, out) => {
+            let missing: Vec<&str> = [(out.is_none(), "  --out <OUT>"), (config.is_none(), "  --config <YML>")]
+                .into_iter()
+                .filter_map(|(absent, flag)| absent.then_some(flag))
+                .collect();
             Err(format!(
                 "the following required arguments were not provided:\n{}",
                 missing.join("\n")
@@ -293,9 +357,10 @@ fn unsupported_target(target: &str) -> FerruleError {
     )
 }
 
-fn generate(args: &[String], stderr: &mut dyn Write) -> i32 {
+fn generate(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i32 {
     let args = match parse_generate(args) {
-        Ok(args) => args,
+        Ok(Generate::Annotated(args)) => args,
+        Ok(Generate::Sdk(args)) => return sdk::main(&args, stdout, stderr),
         Err(message) => return usage(stderr, &message),
     };
     let written = match args.target.as_str() {
@@ -623,6 +688,64 @@ mod tests {
         args.iter().map(|&a| a.to_owned()).collect()
     }
 
+    /// The annotated form of `generate`, or a panic.
+    fn annotated(args: &[&str]) -> GenerateArgs {
+        match parse_generate(&strings(args)) {
+            Ok(Generate::Annotated(args)) => args,
+            other => panic!("{args:?}: {other:?}"),
+        }
+    }
+
+    #[test]
+    fn parses_the_one_command_form() {
+        let parsed = parse_generate(&strings(&["--spec", "o.yml", "--config=s.yml", "-o", "sdk"])).expect("valid");
+        let Generate::Sdk(args) = parsed else {
+            panic!("{parsed:?}")
+        };
+        assert_eq!(
+            args,
+            sdk::SdkArgs {
+                spec: PathBuf::from("o.yml"),
+                config: PathBuf::from("s.yml"),
+                out: PathBuf::from("sdk")
+            }
+        );
+        assert!(
+            parse_generate(&strings(&[
+                "--spec", "o.yml", "--config", "s.yml", "--out", "sdk", "--target", "python"
+            ]))
+            .is_ok()
+        );
+        for (args, message) in [
+            (&["--spec", "o.yml", "--out", "sdk"][..], "--config <YML>"),
+            (&["--spec", "o.yml", "--config", "s.yml"], "--out <OUT>"),
+            (
+                &["--spec", "o.yml", "--config", "s.yml", "--out", "sdk", "a.json"],
+                "cannot be used with 'a.json'",
+            ),
+            (
+                &[
+                    "--spec",
+                    "o.yml",
+                    "--config",
+                    "s.yml",
+                    "--out",
+                    "sdk",
+                    "--openapi",
+                    "o.yml",
+                ],
+                "'--openapi <SPEC>'",
+            ),
+            (
+                &["--spec", "o.yml", "--config", "s.yml", "--out", "sdk", "--target", "go"],
+                "run `ferrule generate`",
+            ),
+        ] {
+            let err = parse_generate(&strings(args)).expect_err("invalid");
+            assert!(err.contains(message), "{args:?}: {err}");
+        }
+    }
+
     #[test]
     fn parses_generate_arguments_in_any_order() {
         for args in [
@@ -630,15 +753,15 @@ mod tests {
             &["--out", "sdk", "a.json"],
             &["--target", "python", "a.json", "-o", "sdk"],
         ] {
-            let parsed = parse_generate(&strings(args)).expect("valid");
+            let parsed = annotated(args);
             assert_eq!(
                 (parsed.spec, parsed.out, parsed.target.as_str()),
                 (PathBuf::from("a.json"), PathBuf::from("sdk"), "python")
             );
         }
-        let parsed = parse_generate(&strings(&["-", "--out=sdk", "--target=go"])).expect("valid");
+        let parsed = annotated(&["-", "--out=sdk", "--target=go"]);
         assert_eq!((parsed.spec, parsed.target.as_str()), (PathBuf::from("-"), "go"));
-        let parsed = parse_generate(&strings(&[
+        let parsed = annotated(&[
             "a.json",
             "-o",
             "sdk",
@@ -647,22 +770,12 @@ mod tests {
             "--config",
             "s.yml",
             "--openapi=o.yml",
-        ]))
-        .expect("valid");
+        ]);
         assert_eq!(
             (parsed.target.as_str(), parsed.config, parsed.openapi),
             ("typescript", Some(PathBuf::from("s.yml")), Some(PathBuf::from("o.yml")))
         );
-        let parsed = parse_generate(&strings(&[
-            "a.json",
-            "-o",
-            "sdk",
-            "--target",
-            "rust",
-            "--ferrule-config",
-            "f.yml",
-        ]))
-        .expect("valid");
+        let parsed = annotated(&["a.json", "-o", "sdk", "--target", "rust", "--ferrule-config", "f.yml"]);
         assert_eq!(
             (parsed.target.as_str(), parsed.ferrule_config),
             ("rust", Some(PathBuf::from("f.yml")))
