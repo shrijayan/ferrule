@@ -177,7 +177,19 @@ def parse_gen_version(text: str) -> GenVersion | None:
     return None if match is None else GenVersion(match["version"], match["forge"])
 
 
-def sort_imports_step(out: Path, tools: Tools) -> Step:
+def _ruff_config(out: Path, adopted: Path | None) -> tuple[str, ...]:
+    """Point ruff at the adopted SDK's config when the output has none of its own.
+
+    No project files are generated for an older runtime, and ruff's defaults then break the SDK:
+    its default isort order is a circular import in ``_utils/__init__.py``.
+    """
+    config = None if adopted is None else adopted / "pyproject.toml"
+    if config is None or (out / "pyproject.toml").is_file() or not config.is_file():
+        return ()
+    return ("--config", str(config))
+
+
+def sort_imports_step(out: Path, tools: Tools, adopted: Path | None = None) -> Step:
     """``ruff check --select I --fix`` with the SDK's own isort settings (length-sort).
 
     Emitters write imports in one fixed order; names differ per SDK, so the order the SDK's
@@ -194,14 +206,18 @@ def sort_imports_step(out: Path, tools: Tools) -> Step:
             "--no-cache",
             "--quiet",
             "--exit-zero",
+            *_ruff_config(out, adopted),
             str(out),
         ),
     )
 
 
-def format_step(out: Path, tools: Tools) -> Step:
+def format_step(out: Path, tools: Tools, adopted: Path | None = None) -> Step:
     """``ruff format`` over the output, without leaving a cache behind."""
-    return Step("format", (tools.ruff, "format", "--no-cache", "--quiet", str(out)))
+    return Step(
+        "format",
+        (tools.ruff, "format", "--no-cache", "--quiet", *_ruff_config(out, adopted), str(out)),
+    )
 
 
 def is_runtime_path(rel: PurePosixPath) -> bool:
@@ -448,8 +464,8 @@ def generate(
             "--runtime-from",
             "pass --runtime-from <existing SDK checkout> (adopt mode)",
         )
-    _run(sort_imports_step(request.out, request.tools), runner)
-    _run(format_step(request.out, request.tools), runner)
+    _run(sort_imports_step(request.out, request.tools, request.runtime_from), runner)
+    _run(format_step(request.out, request.tools, request.runtime_from), runner)
     mark_scripts_executable(request.out)
     return GenerateResult(
         package=package,

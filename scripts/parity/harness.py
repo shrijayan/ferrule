@@ -30,7 +30,7 @@ STEADY_FLAGS = (
 )
 PRISM = ("npm", "exec", "--yes", "--package=@stoplight/prism-cli@5.14.2", "--", "prism", "mock")
 
-_REQ_RE = re.compile(r"^([A-Za-z0-9][A-Za-z0-9._-]*)(\[[^\]]*\])?==([^\s;]+)")
+_REQ_RE = re.compile(r"^([A-Za-z0-9][A-Za-z0-9._-]*)(\[[^\]]*\])?==([^\s;]+)(?:\s*;\s*(.+))?")
 
 
 class HarnessError(ValueError):
@@ -83,17 +83,22 @@ def normalize_name(name: str) -> str:
 
 
 def lock_requirements(lock_text: str, exclude: Sequence[str] = ()) -> list[str]:
-    """Pinned ``name==version`` lines from a rye/uv lock, by name only.
+    """Pinned ``name==version`` lines from a rye/uv lock, with their environment markers.
 
-    Editable, path, URL and option lines are dropped, as is the oracle package itself.
+    Editable, path, URL and option lines are dropped, as is the oracle package itself. Markers
+    stay: a uv universal lock pins one version per python range. A package pinned twice under
+    the same marker keeps its first pin, since a concatenated lock has no better answer.
     """
     skip = {normalize_name(n) for n in exclude}
-    out: list[str] = []
+    pins: dict[tuple[str, str], str] = {}
     for raw in lock_text.splitlines():
         m = _REQ_RE.match(raw.strip())
         if m and normalize_name(m.group(1)) not in skip:
-            out.append(f"{m.group(1)}{m.group(2) or ''}=={m.group(3)}")
-    return sorted(set(out), key=str.lower)
+            name, extras, version, marker = m.groups()
+            pin = f"{name}{extras or ''}=={version}"
+            key = (normalize_name(name) + (extras or ""), marker or "")
+            pins.setdefault(key, f"{pin} ; {marker}" if marker else pin)
+    return sorted(pins.values(), key=str.lower)
 
 
 def mock_command(mock_script: str, spec: Path, port: int = MOCK_PORT) -> tuple[str, ...]:
