@@ -49,8 +49,8 @@
             }
           }
         },
-        "x-fern-sdk-group-name": ["items"],
-        "x-fern-sdk-method-name": "list",
+        "x-forge-group-name": ["items"],
+        "x-forge-method-name": "list",
         "x-ferrule-resource": { "path": ["items"] },
         "x-ferrule-method-name": "list",
         "x-ferrule-package": { "name": "cursor_page", "repo": "example/cursor-page-python" },

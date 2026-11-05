@@ -17,7 +17,7 @@
           "key"
         ],
         "type": "object",
-        "x-fern-type-name": "MessageTypeJsonField"
+        "x-forge-model-name": "MessageTypeJsonField"
       }
     }
   },
@@ -53,10 +53,10 @@
           }
         },
         "summary": "Gets a field.",
-        "x-fern-sdk-group-name": [
+        "x-forge-group-name": [
           "fields"
         ],
-        "x-fern-sdk-method-name": "retrieve",
+        "x-forge-method-name": "retrieve",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},
@@ -139,10 +139,10 @@
           }
         },
         "summary": "Updates a field.",
-        "x-fern-sdk-group-name": [
+        "x-forge-group-name": [
           "fields"
         ],
-        "x-fern-sdk-method-name": "update",
+        "x-forge-method-name": "update",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},

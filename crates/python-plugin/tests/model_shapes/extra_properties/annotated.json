@@ -21,7 +21,7 @@
           }
         },
         "type": "object",
-        "x-fern-type-name": "SourceEnvironmentSettings"
+        "x-forge-model-name": "SourceEnvironmentSettings"
       }
     }
   },
@@ -57,10 +57,10 @@
           }
         },
         "summary": "Gets the settings of a source.",
-        "x-fern-sdk-group-name": [
+        "x-forge-group-name": [
           "sources"
         ],
-        "x-fern-sdk-method-name": "retrieve_settings",
+        "x-forge-method-name": "retrieve_settings",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},

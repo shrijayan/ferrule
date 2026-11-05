@@ -6,7 +6,7 @@ set -euo pipefail
 
 FORGE_REPO="https://github.com/cloudflare/forge.git"
 # Keep in step with the `rev` of the forge dependency in Cargo.toml (ADR 0005, ADR 0014).
-FORGE_PIN="91f52a40c746e8a2ac0271d8be0b7c82cdf28798"
+FORGE_PIN="68134895e81dd3a0a005981b05a3c5e0baaff3f9"
 # FORGE_REF=latest (forge-canary.yml) checks out Forge's main branch tip instead of the pin.
 FORGE_REF="${FORGE_REF:-$FORGE_PIN}"
 

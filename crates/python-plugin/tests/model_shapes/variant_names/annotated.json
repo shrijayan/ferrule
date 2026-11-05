@@ -73,7 +73,7 @@
           }
         },
         "type": "object",
-        "x-fern-type-name": "EmailTemplate"
+        "x-forge-model-name": "EmailTemplate"
       },
       "EmailVisualBlocks": {
         "description": "The visual blocks that make up the email template.",
@@ -124,10 +124,10 @@
           }
         },
         "summary": "Gets a template.",
-        "x-fern-sdk-group-name": [
+        "x-forge-group-name": [
           "templates"
         ],
-        "x-fern-sdk-method-name": "retrieve",
+        "x-forge-method-name": "retrieve",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},

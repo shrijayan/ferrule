@@ -125,7 +125,7 @@
             "type": "object"
           }
         ],
-        "x-fern-type-name": "OriginRequest"
+        "x-forge-model-name": "OriginRequest"
       }
     }
   },
@@ -194,10 +194,10 @@
           }
         },
         "summary": "Activates a guide.",
-        "x-fern-sdk-group-name": [
+        "x-forge-group-name": [
           "guides"
         ],
-        "x-fern-sdk-method-name": "activate",
+        "x-forge-method-name": "activate",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},
@@ -277,10 +277,10 @@
           }
         },
         "summary": "Creates an origin.",
-        "x-fern-sdk-group-name": [
+        "x-forge-group-name": [
           "origins"
         ],
-        "x-fern-sdk-method-name": "create",
+        "x-forge-method-name": "create",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},

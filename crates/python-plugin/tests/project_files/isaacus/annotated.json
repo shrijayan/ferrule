@@ -439,7 +439,7 @@
         ],
         "title": "Answer extraction response",
         "type": "object",
-        "x-fern-type-name": "AnswerExtractionResponse"
+        "x-forge-model-name": "AnswerExtractionResponse"
       },
       "AnswerExtractionUsage": {
         "description": "Statistics about the usage of resources in the process of extracting answers from the texts.",
@@ -755,7 +755,7 @@
         ],
         "title": "Embedding response",
         "type": "object",
-        "x-fern-type-name": "EmbeddingResponse"
+        "x-forge-model-name": "EmbeddingResponse"
       },
       "EmbeddingUsage": {
         "description": "Statistics about the usage of resources in the process of embedding the inputs.",
@@ -1225,7 +1225,7 @@
         ],
         "title": "Enrichment response",
         "type": "object",
-        "x-fern-type-name": "EnrichmentResponse"
+        "x-forge-model-name": "EnrichmentResponse"
       },
       "EnrichmentResult": {
         "description": "An enriched document alongside its index in the input array of texts.",
@@ -1495,7 +1495,7 @@
         ],
         "title": "ILGSv1 Crossreference",
         "type": "object",
-        "x-fern-type-name": "Crossreference"
+        "x-forge-model-name": "Crossreference"
       },
       "ILGSv1 Date": {
         "description": "An array of dates identified in the document belonging to one of the following types: `creation`, `signature`, `effective`, `expiry`, `delivery`, `renewal`, `payment`, `birth`, or `death`.\n\nOnly full Gregorian dates (i.e., including a day, month, and year) between the years 1000 and 9999 (inclusive) fitting into one of the supported date types are extractable.",
@@ -1592,7 +1592,7 @@
         ],
         "title": "ILGSv1 Date",
         "type": "object",
-        "x-fern-type-name": "Date"
+        "x-forge-model-name": "Date"
       },
       "ILGSv1 Email": {
         "description": "An email address identified in a document belonging to a legal person.\n\nIf an email address was mentioned in the document but is not attributable to a legal person, it will not be extracted.",
@@ -1650,7 +1650,7 @@
         ],
         "title": "ILGSv1 Email",
         "type": "object",
-        "x-fern-type-name": "Email"
+        "x-forge-model-name": "Email"
       },
       "ILGSv1 External Document": {
         "description": "A document identified within another document.",
@@ -1795,7 +1795,7 @@
         ],
         "title": "ILGSv1 External Document",
         "type": "object",
-        "x-fern-type-name": "ExternalDocument"
+        "x-forge-model-name": "ExternalDocument"
       },
       "ILGSv1 ID Number": {
         "description": "An identification number mentioned in a document belonging to a legal person.\n\nIf an identification number was mentioned in the document but is not attributable to a legal person, it will not be extracted.",
@@ -1853,7 +1853,7 @@
         ],
         "title": "ILGSv1 ID Number",
         "type": "object",
-        "x-fern-type-name": "IDNumber"
+        "x-forge-model-name": "IDNumber"
       },
       "ILGSv1 Location": {
         "description": "A location identified within a document.",
@@ -1982,7 +1982,7 @@
         ],
         "title": "ILGSv1 Location",
         "type": "object",
-        "x-fern-type-name": "Location"
+        "x-forge-model-name": "Location"
       },
       "ILGSv1 Person": {
         "description": "A legal person identified in a document.",
@@ -2170,7 +2170,7 @@
         ],
         "title": "ILGSv1 Person",
         "type": "object",
-        "x-fern-type-name": "Person"
+        "x-forge-model-name": "Person"
       },
       "ILGSv1 Phone Number": {
         "description": "A valid phone number identified in a document belonging to a legal person.\n\nIf a phone number was mentioned in the document but is not valid, possible, or attributable to a legal person, it will not be extracted.",
@@ -2236,7 +2236,7 @@
         ],
         "title": "ILGSv1 Phone Number",
         "type": "object",
-        "x-fern-type-name": "PhoneNumber"
+        "x-forge-model-name": "PhoneNumber"
       },
       "ILGSv1 Quote": {
         "description": "A quotation within a document.",
@@ -2330,7 +2330,7 @@
         ],
         "title": "ILGSv1 Quote",
         "type": "object",
-        "x-fern-type-name": "Quote"
+        "x-forge-model-name": "Quote"
       },
       "ILGSv1 Segment": {
         "description": "A segment within the document representing a structurally distinct portion of the document's content.",
@@ -2564,7 +2564,7 @@
         ],
         "title": "ILGSv1 Segment",
         "type": "object",
-        "x-fern-type-name": "Segment"
+        "x-forge-model-name": "Segment"
       },
       "ILGSv1 Span": {
         "description": "A zero-based, half-open span into the Unicode code point space of input text.\n\nAll spans are globally laminar and well-nested similar to XML—it is impossible for any two spans to partially overlap; they can only be disjoint, adjacent, or wholly nested. Spans of the exact same type (e.g., segments) will never be duplicated.\n\nA span cannot be empty and will never start or end at whitespace (though a span's `end` index, being an exclusive index, may obviosuly land on a whitespace character).\n\nNote that, when using programming languages other than Python (which uses zero-based, half-open, Unicode code point-spaced string indexing), indices may need to be translated accordingly (for example, JavaScript slices into UTF-16 code units instead of Unicode code points).",
@@ -2598,7 +2598,7 @@
         ],
         "title": "ILGSv1 Span",
         "type": "object",
-        "x-fern-type-name": "Span"
+        "x-forge-model-name": "Span"
       },
       "ILGSv1 Term": {
         "description": "A term assigned a definite meaning within a document.",
@@ -2661,7 +2661,7 @@
         ],
         "title": "ILGSv1 Term",
         "type": "object",
-        "x-fern-type-name": "Term"
+        "x-forge-model-name": "Term"
       },
       "ILGSv1 Website": {
         "description": "A website identified in a document belonging to a legal person.\n\nIf a website was mentioned in the document but is not attributable to a legal person, it will not be extracted.",
@@ -2719,7 +2719,7 @@
         ],
         "title": "ILGSv1 Website",
         "type": "object",
-        "x-fern-type-name": "Website"
+        "x-forge-model-name": "Website"
       },
       "ILGSv1Document": {
         "description": "The document enriched into version 1.0.0 of the [Isaacus Legal Document Graph Schema (ILDGS)](https://docs.isaacus.com/ildgs).\n\nAll spans in an enriched document graph are indexed into the Unicode code point space of a source document.\n\nThe start and end indices of spans are zero-based (i.e., the first Unicode code point in the document is at index 0) and half-open (i.e., the end index is exclusive).\n\nAll spans are globally laminar and well-nested similar to XML—it is impossible for any two spans to partially overlap; they can only be disjoint, adjacent, or wholly nested.\n\nSpans of the exact same type (e.g., segments) will never be duplicated.\n\nSpans cannot be empty and will never start or end at whitespace.\n\nWhen using programming languages other than Python (which uses zero-based, half-open, Unicode code point-spaced string indexing), indices may need to be translated accordingly (for example, JavaScript slices into UTF-16 code units instead of Unicode code points).",
@@ -3369,7 +3369,7 @@
         ],
         "title": "ILGSv1 Document",
         "type": "object",
-        "x-fern-type-name": "Document"
+        "x-forge-model-name": "Document"
       },
       "InternalServerError": {
         "description": "An RFC 7807 problem detail object.",
@@ -3754,7 +3754,7 @@
         ],
         "title": "Reranking response",
         "type": "object",
-        "x-fern-type-name": "RerankingResponse"
+        "x-forge-model-name": "RerankingResponse"
       },
       "RerankingResult": {
         "examples": [
@@ -4191,7 +4191,7 @@
         ],
         "title": "Universal classification response",
         "type": "object",
-        "x-fern-type-name": "UniversalClassificationResponse"
+        "x-forge-model-name": "UniversalClassificationResponse"
       },
       "UniversalClassificationUsage": {
         "description": "Statistics about the usage of resources in the process of classifying the text.",
@@ -4573,11 +4573,11 @@
         "tags": [
           "Classifications"
         ],
-        "x-fern-sdk-group-name": [
+        "x-forge-group-name": [
           "classifications",
           "universal"
         ],
-        "x-fern-sdk-method-name": "create",
+        "x-forge-method-name": "create",
         "x-ferrule-casings": {
           "ilgs": {
             "initialism": true
@@ -5004,10 +5004,10 @@
         "tags": [
           "Embeddings"
         ],
-        "x-fern-sdk-group-name": [
+        "x-forge-group-name": [
           "embeddings"
         ],
-        "x-fern-sdk-method-name": "create",
+        "x-forge-method-name": "create",
         "x-ferrule-casings": {
           "ilgs": {
             "initialism": true
@@ -5583,10 +5583,10 @@
         "tags": [
           "Enrichments"
         ],
-        "x-fern-sdk-group-name": [
+        "x-forge-group-name": [
           "enrichments"
         ],
-        "x-fern-sdk-method-name": "create",
+        "x-forge-method-name": "create",
         "x-ferrule-casings": {
           "ilgs": {
             "initialism": true
@@ -5997,11 +5997,11 @@
         "tags": [
           "Extractions"
         ],
-        "x-fern-sdk-group-name": [
+        "x-forge-group-name": [
           "extractions",
           "qa"
         ],
-        "x-fern-sdk-method-name": "create",
+        "x-forge-method-name": "create",
         "x-ferrule-casings": {
           "ilgs": {
             "initialism": true
@@ -6402,10 +6402,10 @@
         "tags": [
           "Rerankings"
         ],
-        "x-fern-sdk-group-name": [
+        "x-forge-group-name": [
           "rerankings"
         ],
-        "x-fern-sdk-method-name": "create",
+        "x-forge-method-name": "create",
         "x-ferrule-casings": {
           "ilgs": {
             "initialism": true

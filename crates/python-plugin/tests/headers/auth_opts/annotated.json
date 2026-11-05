@@ -63,10 +63,10 @@
           }
         },
         "summary": "End a browser session",
-        "x-fern-sdk-group-name": [
+        "x-forge-group-name": [
           "sessions"
         ],
-        "x-fern-sdk-method-name": "end",
+        "x-forge-method-name": "end",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},

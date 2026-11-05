@@ -32,7 +32,7 @@ pub fn name(written: &str) -> Name {
     }
 }
 
-/// A field's name: the words of `x-fern-property-name` or the wire name, written as sent.
+/// A field's name: the words of `x-forge-property-name` or the wire name, written as sent.
 fn field_name(field: ForgeField<'_>) -> Name {
     Name {
         words: field.name().words().to_vec(),

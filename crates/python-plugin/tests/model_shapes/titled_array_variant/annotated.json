@@ -31,7 +31,7 @@
           "url"
         ],
         "type": "object",
-        "x-fern-type-name": "RequestTemplate"
+        "x-forge-model-name": "RequestTemplate"
       },
       "RequestTemplateHeadersArray": {
         "description": "A list of key-value pairs for the request headers.",
@@ -89,10 +89,10 @@
           }
         },
         "summary": "Gets a template.",
-        "x-fern-sdk-group-name": [
+        "x-forge-group-name": [
           "templates"
         ],
-        "x-fern-sdk-method-name": "retrieve",
+        "x-forge-method-name": "retrieve",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},

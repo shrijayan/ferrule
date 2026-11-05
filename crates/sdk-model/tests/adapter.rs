@@ -7,8 +7,8 @@ use serde_json::{Value, json};
 
 fn base_ext() -> Value {
     json!({
-        "x-fern-sdk-group-name": ["things"],
-        "x-fern-sdk-method-name": "list",
+        "x-forge-group-name": ["things"],
+        "x-forge-method-name": "list",
         "x-ferrule-resource": { "path": ["things"] },
         "x-ferrule-method-name": "list",
         "x-ferrule-package": { "name": "acme", "repo": "acme/acme-python" },
@@ -528,7 +528,7 @@ fn keeps_every_http_method_and_rejects_disagreeing_packages() {
 
     let mut two = doc(&json!({}), &json!({}));
     let mut other = two["paths"]["/things/{id}"]["get"].clone();
-    other["x-fern-sdk-method-name"] = json!("other");
+    other["x-forge-method-name"] = json!("other");
     other["x-ferrule-package"] = json!({ "name": "other", "repo": "o/o" });
     two["paths"]["/things/{id}"]["post"] = other;
     assert_eq!(code(model(&two)), "FER101");
@@ -554,8 +554,8 @@ fn builds_nested_resources_and_returns_none_without_operations() {
     let mut none = doc(&json!({}), &json!({}));
     let op = &mut none["paths"]["/things/{id}"]["get"];
     let o = op.as_object_mut().expect("an object");
-    o.remove("x-fern-sdk-group-name");
-    o.remove("x-fern-sdk-method-name");
+    o.remove("x-forge-group-name");
+    o.remove("x-forge-method-name");
     assert_eq!(model(&none).expect("converts"), None);
     let f = forge(&doc(&json!({}), &json!({})));
     let group = f.groups().next().expect("a group");
@@ -574,7 +574,7 @@ fn keeps_standalone_resources_without_methods_and_client_methods_apart() {
     let mut client_op = d["paths"]["/things/{id}"]["get"].clone();
     client_op["x-ferrule-resource"] = json!({ "path": ["$client"] });
     client_op["x-ferrule-method-name"] = json!("health");
-    client_op["x-fern-sdk-method-name"] = json!("health");
+    client_op["x-forge-method-name"] = json!("health");
     d["paths"]["/health"] = json!({ "get": client_op });
     let client = model(&d).expect("converts").expect("has operations");
     let names: Vec<&str> = client.resources.iter().map(|r| r.name.written.as_str()).collect();

@@ -41,7 +41,7 @@
           "branches"
         ],
         "type": "object",
-        "x-fern-type-name": "WorkflowBranchStep"
+        "x-forge-model-name": "WorkflowBranchStep"
       }
     }
   },
@@ -77,10 +77,10 @@
           }
         },
         "summary": "Gets a step.",
-        "x-fern-sdk-group-name": [
+        "x-forge-group-name": [
           "steps"
         ],
-        "x-fern-sdk-method-name": "retrieve",
+        "x-forge-method-name": "retrieve",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},

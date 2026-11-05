@@ -119,8 +119,8 @@ mod resources_and_methods {
         assert!(matches_object(
             op(&r.spec, "/users", "post"),
             &v(&json!({
-                "x-fern-sdk-group-name": ["users"],
-                "x-fern-sdk-method-name": "create",
+                "x-forge-group-name": ["users"],
+                "x-forge-method-name": "create",
                 "x-ferrule-resource": {"path": ["users"], "order": [0]},
                 "x-ferrule-method-name": "create",
                 "x-ferrule-method-order": 1
@@ -129,7 +129,7 @@ mod resources_and_methods {
         assert!(matches_object(
             op(&r.spec, "/users/{id}/posts", "get"),
             &v(&json!({
-                "x-fern-sdk-group-name": ["users", "posts"],
+                "x-forge-group-name": ["users", "posts"],
                 "x-ferrule-resource": {"path": ["users", "posts"], "order": [0, 0]},
                 "x-ferrule-method-name": "list_posts",
                 "x-ferrule-method-order": 0
@@ -144,7 +144,7 @@ mod resources_and_methods {
         assert!(matches_object(
             &aliases[0],
             &v(&json!({
-                "x-fern-sdk-group-name": ["users"],
+                "x-forge-group-name": ["users"],
                 "x-ferrule-resource": {"path": ["users"], "order": [0]},
                 "x-ferrule-method-name": "retrieve",
                 "x-ferrule-method-order": 0
@@ -153,7 +153,7 @@ mod resources_and_methods {
         assert!(matches_object(
             &aliases[1],
             &v(&json!({
-                "x-fern-sdk-group-name": ["$ferrule_client"],
+                "x-forge-group-name": ["$ferrule_client"],
                 "x-ferrule-resource": {"path": ["$client"], "order": [1]},
                 "x-ferrule-method-name": "ping",
                 "x-ferrule-method-order": 0
@@ -587,7 +587,7 @@ mod client_order_streaming {
         assert!(matches_object(
             op(&r.spec, "/users", "get"),
             &v(&json!({
-                "x-fern-sdk-group-name": ["a", "y"],
+                "x-forge-group-name": ["a", "y"],
                 "x-ferrule-resource": {"path": ["a", "y"], "order": [1, 1]},
                 "x-ferrule-method-order": 0
             }))
@@ -893,14 +893,14 @@ resources:
         .expect("schemas");
     assert!(matches_object(
         schemas,
-        &v(&json!({"Thing": {"x-fern-type-name": "Thing"}, "Ref": {"x-fern-type-name": "OtherRef"}}))
+        &v(&json!({"Thing": {"x-forge-model-name": "Thing"}, "Ref": {"x-forge-model-name": "OtherRef"}}))
     ));
     let original = spec
         .get("components")
         .and_then(|c| c.get("schemas"))
         .and_then(|s| s.get("Ref"))
         .expect("Ref");
-    assert!(original.get("x-fern-type-name").is_none());
+    assert!(original.get("x-forge-model-name").is_none());
 }
 
 /// lumaai binds `post /generations/video` to `generations.create` and
@@ -929,8 +929,8 @@ resources:
         .and_then(|i| i.get("get"))
         .expect("get /a");
     for own in [
-        "x-fern-sdk-group-name",
-        "x-fern-sdk-method-name",
+        "x-forge-group-name",
+        "x-forge-method-name",
         "x-ferrule-resource",
         "x-ferrule-method-name",
         "x-ferrule-models",
@@ -952,8 +952,8 @@ resources:
     ];
     assert_eq!(aliases.len(), expected.len());
     for (alias, (group, resource, order)) in aliases.iter().zip(expected) {
-        assert_eq!(alias.get("x-fern-sdk-group-name"), Some(&v(&group)));
-        assert_eq!(alias.get("x-fern-sdk-method-name"), Some(&v(&json!("list"))));
+        assert_eq!(alias.get("x-forge-group-name"), Some(&v(&group)));
+        assert_eq!(alias.get("x-forge-method-name"), Some(&v(&json!("list"))));
         assert_eq!(alias.get("x-ferrule-resource"), Some(&v(&resource)));
         assert_eq!(alias.get("x-ferrule-method-name"), Some(&v(&json!("list"))));
         assert_eq!(alias.get("x-ferrule-method-order"), Some(&Value::Number(order)));

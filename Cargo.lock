@@ -329,7 +329,7 @@ checksum = "77ce24cb58228fbb8aa041425bb1050850ac19177686ea6e0f41a70416f56fdb"
 [[package]]
 name = "forge"
 version = "0.1.0"
-source = "git+https://github.com/cloudflare/forge.git?rev=91f52a40c746e8a2ac0271d8be0b7c82cdf28798#91f52a40c746e8a2ac0271d8be0b7c82cdf28798"
+source = "git+https://github.com/cloudflare/forge.git?rev=68134895e81dd3a0a005981b05a3c5e0baaff3f9#68134895e81dd3a0a005981b05a3c5e0baaff3f9"
 dependencies = [
  "rayon",
  "serde",

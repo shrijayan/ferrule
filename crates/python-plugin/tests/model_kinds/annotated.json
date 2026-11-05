@@ -14,7 +14,7 @@
             "$ref": "#/components/schemas/DynamicAudience"
           }
         ],
-        "x-fern-type-name": "Audience"
+        "x-forge-model-name": "Audience"
       },
       "AutoDescription": {
         "properties": {
@@ -44,7 +44,7 @@
         },
         "description": "Channel data keyed by channel id.",
         "type": "object",
-        "x-fern-type-name": "ChannelData"
+        "x-forge-model-name": "ChannelData"
       },
       "ConditionGroup": {
         "anyOf": [
@@ -56,7 +56,7 @@
           }
         ],
         "description": "A group of conditions to be evaluated.",
-        "x-fern-type-name": "ConditionGroup"
+        "x-forge-model-name": "ConditionGroup"
       },
       "ConditionGroupAllMatch": {
         "description": "A group of conditions that must all be met.",
@@ -99,7 +99,7 @@
           "type"
         ],
         "type": "object",
-        "x-fern-type-name": "DynamicAudience"
+        "x-forge-model-name": "DynamicAudience"
       },
       "Extensions": {
         "description": "Extensions to apply.",
@@ -117,7 +117,7 @@
           ]
         },
         "type": "array",
-        "x-fern-type-name": "Extensions"
+        "x-forge-model-name": "Extensions"
       },
       "RemoveBg": {
         "properties": {
@@ -181,7 +181,7 @@
             "type": "object"
           }
         ],
-        "x-fern-type-name": "Source"
+        "x-forge-model-name": "Source"
       },
       "StaticAudience": {
         "properties": {
@@ -200,7 +200,7 @@
           "type"
         ],
         "type": "object",
-        "x-fern-type-name": "StaticAudience"
+        "x-forge-model-name": "StaticAudience"
       },
       "StreamingResolution": {
         "description": "A streaming resolution.",
@@ -210,7 +210,7 @@
           "480"
         ],
         "type": "string",
-        "x-fern-type-name": "StreamingResolution"
+        "x-forge-model-name": "StreamingResolution"
       },
       "Workflow": {
         "description": "A workflow.",
@@ -261,7 +261,7 @@
           "steps"
         ],
         "type": "object",
-        "x-fern-type-name": "Workflow"
+        "x-forge-model-name": "Workflow"
       },
       "WorkflowBranchStep": {
         "properties": {
@@ -297,7 +297,7 @@
           "cases"
         ],
         "type": "object",
-        "x-fern-type-name": "WorkflowBranchStep"
+        "x-forge-model-name": "WorkflowBranchStep"
       },
       "WorkflowDelayStep": {
         "properties": {
@@ -315,7 +315,7 @@
           "type"
         ],
         "type": "object",
-        "x-fern-type-name": "WorkflowDelayStep"
+        "x-forge-model-name": "WorkflowDelayStep"
       },
       "WorkflowStep": {
         "anyOf": [
@@ -327,7 +327,7 @@
           }
         ],
         "description": "A step within a workflow.",
-        "x-fern-type-name": "WorkflowStep"
+        "x-forge-model-name": "WorkflowStep"
       }
     }
   },
@@ -362,10 +362,10 @@
             "description": "ok"
           }
         },
-        "x-fern-sdk-group-name": [
+        "x-forge-group-name": [
           "workflows"
         ],
-        "x-fern-sdk-method-name": "list_audiences",
+        "x-forge-method-name": "list_audiences",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},
@@ -483,10 +483,10 @@
             "description": "ok"
           }
         },
-        "x-fern-sdk-group-name": [
+        "x-forge-group-name": [
           "workflows"
         ],
-        "x-fern-sdk-method-name": "retrieve",
+        "x-forge-method-name": "retrieve",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},
@@ -612,10 +612,10 @@
             "description": "ok"
           }
         },
-        "x-fern-sdk-group-name": [
+        "x-forge-group-name": [
           "workflows"
         ],
-        "x-fern-sdk-method-name": "activate",
+        "x-forge-method-name": "activate",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},

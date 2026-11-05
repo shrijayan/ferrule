@@ -71,11 +71,11 @@
           }
         },
         "summary": "Sets objects in bulk.",
-        "x-fern-sdk-group-name": [
+        "x-forge-group-name": [
           "objects",
           "bulk"
         ],
-        "x-fern-sdk-method-name": "set",
+        "x-forge-method-name": "set",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},

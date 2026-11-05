@@ -11,6 +11,7 @@ use crate::extensions::json::{empty, obj, obj_of};
 use crate::extensions::pagination::{Scheme, best_match, operation_shape, read_schemes};
 use crate::extensions::streaming::{StreamingInput, build_streaming, read_on_event};
 use crate::extensions::targets::{Targets, build_targets, targets_only};
+use crate::normalize::{GROUP_NAME, METHOD_NAME, MODEL_NAME};
 use crate::value::{Map, Value, is_js_space};
 use std::collections::HashSet;
 
@@ -200,8 +201,8 @@ impl Ctx<'_> {
         #[expect(clippy::cast_precision_loss, reason = "orders are small indices")]
         let numbers = |v: &[usize]| Value::Array(v.iter().map(|n| Value::Number(*n as f64)).collect());
         let mut def = Map::new();
-        def.insert("x-fern-sdk-group-name", strings(forge_group_path(path)));
-        def.insert("x-fern-sdk-method-name", Value::from(name));
+        def.insert(GROUP_NAME, strings(forge_group_path(path)));
+        def.insert(METHOD_NAME, Value::from(name));
         let mut resource = Map::new();
         resource.insert("path", strings(path.to_vec()));
         resource.insert("order", numbers(resource_order));
@@ -510,7 +511,7 @@ pub fn annotate(spec: &Value, config: &Value) -> (Value, Vec<Diagnostic>) {
     for (i, (name, resource)) in resources.iter().enumerate() {
         ctx.walk(&mut out, std::slice::from_ref(name), &[i], resource, None);
     }
-    // `x-fern-type-name` on every schema `models:` names, so Forge's model names match (gap G3).
+    // `x-forge-model-name` on every schema `models:` names, so Forge's model names match (gap G3).
     for (schema, model) in &ctx.models {
         if let Some(Value::Object(target)) = get_at_mut(
             &mut out,
@@ -521,7 +522,7 @@ pub fn annotate(spec: &Value, config: &Value) -> (Value, Vec<Diagnostic>) {
             ],
         ) && let Some(name) = model.get("name")
         {
-            target.insert("x-fern-type-name", name.clone());
+            target.insert(MODEL_NAME, name.clone());
         }
     }
     let python = config

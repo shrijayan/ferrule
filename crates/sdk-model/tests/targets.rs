@@ -27,8 +27,8 @@ fn doc(methods: &[(&str, &str, &str, Value, Value)], mirrored: &Value, schemas: 
     for (path, resource, name, extra, response) in methods {
         let order = methods.iter().position(|m| m.1 == *resource).unwrap_or_default();
         let mut op = json!({
-            "x-fern-sdk-group-name": [resource],
-            "x-fern-sdk-method-name": name,
+            "x-forge-group-name": [resource],
+            "x-forge-method-name": name,
             "x-ferrule-resource": { "path": [resource], "order": [order] },
             "x-ferrule-method-name": name,
             "x-ferrule-package": { "name": "acme", "repo": "acme/acme-python" },

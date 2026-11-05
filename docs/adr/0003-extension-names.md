@@ -281,6 +281,34 @@ methods that leave Python out (no oracle has one). `crates/sdk-model` reads them
 `Client.targets`, `Method.only` and `ModelDecl.only`; `Client::for_target` gives one target's
 view.
 
+### Amendment 2026-11-05: Forge reads only `x-forge-*`
+
+Forge `5879d90b` moved its reader to native names and left the vendor names to a `forge normalize`
+command in its binary, which Ferrule does not use (only the library is a dependency). The pin is
+now `68134895`. The tables above keep the names they were written with; read them through this
+mapping, which is the one the converter applies:
+
+| Was                      | Where                 | Now                      |
+| ------------------------ | --------------------- | ------------------------ |
+| `x-fern-sdk-group-name`  | operation, alias      | `x-forge-group-name`     |
+| `x-fern-sdk-method-name` | operation, alias      | `x-forge-method-name`    |
+| `x-fern-ignore`          | operation, alias      | `x-forge-skip`           |
+| `x-fern-availability`    | operation, alias      | `x-forge-availability`   |
+| `x-fern-parameter-name`  | parameter             | `x-forge-parameter-name` |
+| `x-fern-type-name`       | schema                | `x-forge-model-name`     |
+| `x-fern-property-name`   | schema                | `x-forge-property-name`  |
+| `x-sensitive`            | schema                | `x-forge-sensitive`      |
+| `x-stainless-skip`       | schema (boolean only) | `x-forge-skip`           |
+
+The converter writes the native names. A spec that carries the vendor keys itself keeps its
+meaning: normalisation rewrites them where Forge would have read them, before annotation, so a
+user's own names still reach the name checks. Each rewritten node gets the `vendor-extensions`
+note and the document one FER1611 info diagnostic. A native key already there wins. A target list
+in `x-stainless-skip` stays as written: Forge never read it as a skip, and it has no native form.
+
+`version` stays 1: only Forge reads these keys, not the plugins, and the generated SDKs do not
+change. The annotated specs and the converter snapshots do.
+
 ### Consequences
 
 - Good: one place defines the contract between converter and plugin; both sides test against it.

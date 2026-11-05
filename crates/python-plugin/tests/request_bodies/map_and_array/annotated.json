@@ -49,10 +49,10 @@
             "description": "ok"
           }
         },
-        "x-fern-sdk-group-name": [
+        "x-forge-group-name": [
           "peers"
         ],
-        "x-fern-sdk-method-name": "remove",
+        "x-forge-method-name": "remove",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},
@@ -138,10 +138,10 @@
             "description": "ok"
           }
         },
-        "x-fern-sdk-group-name": [
+        "x-forge-group-name": [
           "peers"
         ],
-        "x-fern-sdk-method-name": "add",
+        "x-forge-method-name": "add",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},
