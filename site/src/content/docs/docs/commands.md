@@ -65,7 +65,7 @@ ferrule-gen generate --spec SPEC --config STAINLESS_YML --out DIR
 ```
 
 It writes the same files and prints the same line, digest included, as `ferrule generate`.
-Other targets and `--runtime-from` still need `ferrule generate`.
+Other targets, `--runtime-from` and SDKs with pagination still need `ferrule generate`.
 
 ## verify
 

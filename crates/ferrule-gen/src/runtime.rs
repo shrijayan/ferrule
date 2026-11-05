@@ -1,8 +1,8 @@
 //! The Python runtime, rendered from the template `build.rs` embeds (ADR 0022).
 //!
 //! A port of the default render of `ferrule_runtime` (`runtime/src/ferrule_runtime/_render.py`):
-//! the options `ferrule generate` renders with, no pagination module and no `testing/` fake
-//! server. Directives are resolved first, then tokens are replaced, in the text and in the path;
+//! the client name, timeout and retries `ferrule generate` renders with, no pagination module and
+//! no `testing/` fake server. Directives are resolved first, then tokens are replaced, in the text and in the path;
 //! a token left over, or two templates rendering to one path, is an error. Pure:
 //! `migrate/tests/test_generate.py` checks it gives the bytes `ferrule_runtime.render` gives.
 
@@ -20,12 +20,11 @@ const BASE_MODEL_HINT: &str = "            raise TypeError(\"Pydantic models mus
 /// Ruff's line length in a Stainless-generated SDK.
 const LINE_LENGTH: usize = 120;
 
-/// Default request timeout in seconds, and its comment (`timeout_comment(60)`).
-const TIMEOUT: &str = "60";
-const TIMEOUT_COMMENT: &str = "1 minute";
+/// Default request timeout in seconds.
+pub const TIMEOUT: i64 = 60;
 
 /// Default number of retries.
-const MAX_RETRIES: &str = "2";
+pub const MAX_RETRIES: i64 = 2;
 
 /// Python's reserved words, which `_check_identifier` refuses as names.
 const KEYWORDS: [&str; 35] = [
@@ -48,6 +47,15 @@ pub fn default_client_name(package: &str) -> String {
                 .unwrap_or_default()
         })
         .collect()
+}
+
+/// `timeout_comment`: `60` -> `1 minute`, `600` -> `10 minutes`, `90` -> `90 seconds`.
+fn timeout_comment(seconds: i64) -> String {
+    match (seconds % 60, seconds / 60) {
+        (0, 1) => "1 minute".to_owned(),
+        (0, minutes) => format!("{minutes} minutes"),
+        _ => format!("{seconds} seconds"),
+    }
 }
 
 /// `_screaming_snake`: `OnebusawaySDK` -> `ONEBUSAWAY_SDK`, an `_` before every capital that
@@ -77,14 +85,27 @@ fn check_identifier(kind: &str, value: &str) -> Result<(), String> {
     }
 }
 
-/// The runtime for `package` and its client class `client`: paths relative to
-/// `src/<package>/`, with their text, in template order.
+/// What one SDK's runtime is rendered with.
+pub struct Options<'a> {
+    /// The package name.
+    pub package: &'a str,
+    /// The client class.
+    pub client: &'a str,
+    /// Default request timeout in seconds.
+    pub timeout: i64,
+    /// Default number of retries.
+    pub max_retries: i64,
+}
+
+/// The runtime for `options`: paths relative to `src/<package>/`, with their text, in template
+/// order.
 ///
 /// # Errors
 ///
 /// When `package` or `client` is not a Python identifier, or the template has a malformed directive, an
 /// unknown flag or a token the render does not replace.
-pub fn render(package: &str, client: &str) -> Result<Vec<(String, String)>, String> {
+pub fn render(options: &Options<'_>) -> Result<Vec<(String, String)>, String> {
+    let &Options { package, client, .. } = options;
     let error = format!("{client}Error");
     for (kind, value) in [
         ("package_name", package),
@@ -94,12 +115,14 @@ pub fn render(package: &str, client: &str) -> Result<Vec<(String, String)>, Stri
         check_identifier(kind, value)?;
     }
     let log_env = format!("{}_LOG", screaming_snake(client));
+    let (timeout, comment) = (options.timeout.to_string(), timeout_comment(options.timeout));
+    let max_retries = options.max_retries.to_string();
     // Longest first so no token is a prefix of a replaced value, as `render_options` lists them.
     let replacements: [(&str, &str); 8] = [
         ("__FERRULE_FILE_UPLOADS_HINT__", ""),
-        ("__FERRULE_TIMEOUT_COMMENT__", TIMEOUT_COMMENT),
-        ("__FERRULE_MAX_RETRIES__", MAX_RETRIES),
-        ("__FERRULE_TIMEOUT__", TIMEOUT),
+        ("__FERRULE_TIMEOUT_COMMENT__", &comment),
+        ("__FERRULE_MAX_RETRIES__", &max_retries),
+        ("__FERRULE_TIMEOUT__", &timeout),
         ("__FERRULE_LOG_ENV__", &log_env),
         ("__FerruleClient__", client),
         ("__FerruleError__", &error),
@@ -228,6 +251,15 @@ fn leftover_token(text: &str) -> Option<&str> {
 mod tests {
     use super::*;
 
+    fn options<'a>(package: &'a str, client: &'a str) -> Options<'a> {
+        Options {
+            package,
+            client,
+            timeout: TIMEOUT,
+            max_retries: MAX_RETRIES,
+        }
+    }
+
     #[test]
     fn names_follow_the_python_rules() {
         assert_eq!(default_client_name("acme_sdk"), "AcmeSdk");
@@ -275,7 +307,7 @@ mod tests {
 
     #[test]
     fn renders_the_runtime_without_tokens() {
-        let files = render("acme_sdk", "AcmeSDK").expect("renders");
+        let files = render(&options("acme_sdk", "AcmeSDK")).expect("renders");
         let paths: Vec<&str> = files.iter().map(|(p, _)| p.as_str()).collect();
         assert!(paths.contains(&"_base_client.py"), "{paths:?}");
         assert!(paths.contains(&"_utils/_logs.py"), "{paths:?}");
@@ -286,6 +318,23 @@ mod tests {
         );
         let logs = &files.iter().find(|(p, _)| p == "_utils/_logs.py").expect("logs").1;
         assert!(logs.contains("ACME_SDK_LOG"), "{logs}");
-        assert!(render("class", "Class").is_err());
+        assert!(render(&options("class", "Class")).is_err());
+    }
+
+    #[test]
+    fn renders_the_timeout_and_retries() {
+        for (seconds, comment) in [(60, "1 minute"), (600, "10 minutes"), (90, "90 seconds")] {
+            assert_eq!(timeout_comment(seconds), comment);
+        }
+        let files = render(&Options {
+            timeout: 600,
+            max_retries: 0,
+            ..options("acme", "Acme")
+        })
+        .expect("renders");
+        let constants = &files.iter().find(|(p, _)| p == "_constants.py").expect("constants").1;
+        assert!(constants.contains("timeout=600"), "{constants}");
+        assert!(constants.contains("DEFAULT_MAX_RETRIES = 0"), "{constants}");
+        assert!(constants.contains("10 minutes"), "{constants}");
     }
 }

@@ -50,7 +50,8 @@ for `ferrule generate --target ...`, adopt and the golden tests.
 - `crates/ferrule-gen/src/runtime.rs` ports the part of `_render.py` the default render uses:
   directives, tokens, leftover-token and collision checks. A test in `migrate/tests` compares its
   output with `ferrule_runtime.render` on the onebusaway oracle, so the two engines cannot drift
-  without a failing test.
+  without a failing test. `pagination.py` is not ported: `ferrule-gen` refuses a config with
+  pagination (FER4004) and points at `ferrule generate`.
 - `ruff` stays an external tool (option 3 is left for later): it is one static binary with its
   own `curl | sh` installer. `$FERRULE_RUFF` overrides it, as in `ferrule generate`.
 - Only the Python target, without `--runtime-from`, runs in one command. Other targets, and

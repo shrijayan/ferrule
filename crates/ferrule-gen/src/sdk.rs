@@ -1,7 +1,8 @@
 //! `ferrule-gen generate --spec <openapi> --config <stainless.yml> --out <dir>`: the whole Python
 //! pipeline in one command (ADR 0022).
 //!
-//! The same steps as `ferrule generate` (`migrate/src/ferrule/generate.py`): convert, Forge with
+//! The same steps as `ferrule generate` (`migrate/src/ferrule/generate.py`), for an SDK without
+//! pagination, which it refuses (FER4004): convert, Forge with
 //! the Python plugin, the runtime from the embedded template ([`crate::runtime`]), `ruff` to sort
 //! imports and format, `chmod +x scripts/*`. It refuses and fails with the same `FER4xxx`
 //! diagnostics, and prints the same summary line, so the two commands are interchangeable.
@@ -20,6 +21,7 @@ use sha2::{Digest, Sha256};
 const MISSING_INPUT: &str = "FER4001";
 const TOOL_NOT_FOUND: &str = "FER4002";
 const STEP_FAILED: &str = "FER4003";
+const NO_RUNTIME: &str = "FER4004";
 const NO_PACKAGE: &str = "FER4005";
 const OUT_NOT_EMPTY: &str = "FER4006";
 
@@ -106,6 +108,8 @@ fn generate(args: &SdkArgs, ruff: &str, stderr: &mut dyn Write) -> Result<Genera
     check_inputs(args, ruff)?;
     fs::create_dir_all(&args.out).map_err(|err| step_failed("generate", &format!("{}: {err}", args.out.display())))?;
     let annotated = convert(args, stderr)?;
+    let spec: serde_json::Value = serde_json::from_str(&annotated).map_err(|err| step_failed("generate", &err))?;
+    check_no_pagination(&spec)?;
     let forge: forge::Forge = serde_json::from_str(&annotated).map_err(|err| step_failed("generate", &err))?;
     forge::run(&forge, &PythonPlugin::default())
         .and_then(|files| forge::write(&args.out, files))
@@ -118,7 +122,14 @@ fn generate(args: &SdkArgs, ruff: &str, stderr: &mut dyn Write) -> Result<Genera
         .map_err(|err| step_failed("generate", &err))?
         .and_then(|model| model.client_class)
         .unwrap_or_else(|| crate::runtime::default_client_name(&package));
-    let rendered = crate::runtime::render(&package, &client).map_err(|err| step_failed("runtime", &err))?;
+    let (timeout, max_retries) = client_limits(&spec);
+    let rendered = crate::runtime::render(&crate::runtime::Options {
+        package: &package,
+        client: &client,
+        timeout,
+        max_retries,
+    })
+    .map_err(|err| step_failed("runtime", &err))?;
     for (rel, text) in rendered {
         let path = package_dir.join(rel);
         let written = path
@@ -233,6 +244,36 @@ fn convert(args: &SdkArgs, stderr: &mut dyn Write) -> Result<String, Diagnostic>
         Some(line) => Err(step_failed("convert", &line)),
         None => Ok(result.output),
     }
+}
+
+/// A paginated SDK imports `pagination.py`, which only `ferrule generate` renders so far.
+fn check_no_pagination(spec: &serde_json::Value) -> Result<(), Diagnostic> {
+    let paginated = spec["x-ferrule-page-schemes"].as_array().is_some_and(|s| !s.is_empty());
+    if paginated {
+        return Err(diagnostic(
+            NO_RUNTIME,
+            "ferrule-gen does not render pagination.py yet".to_owned(),
+            "x-ferrule-page-schemes",
+            "run `ferrule generate`, which renders it",
+        ));
+    }
+    Ok(())
+}
+
+/// `renderer_options`: the configured timeout and retries, each only when it is a whole number.
+fn client_limits(spec: &serde_json::Value) -> (i64, i64) {
+    let client = &spec["x-ferrule-client"];
+    let whole = |value: &serde_json::Value| {
+        value.as_i64().or_else(|| {
+            let number = value.as_f64().filter(|n| n.fract() == 0.0)?;
+            #[expect(clippy::cast_possible_truncation, reason = "checked to be integral")]
+            Some(number as i64)
+        })
+    };
+    (
+        whole(&client["timeoutSeconds"]).unwrap_or(crate::runtime::TIMEOUT),
+        whole(&client["retries"]["maxRetries"]).unwrap_or(crate::runtime::MAX_RETRIES),
+    )
 }
 
 /// The one importable package under `<out>/src/` with an `__init__.py` (`pick_package`).
@@ -382,6 +423,18 @@ mod tests {
         assert_eq!(windows_names("ruff", ".EXE;.CMD"), ["ruff.EXE", "ruff.CMD"]);
         assert_eq!(windows_names("ruff.exe", ".EXE;.CMD"), ["ruff.exe"]);
         assert_eq!(windows_names("ruff.tool", ".EXE;"), ["ruff.tool.EXE"]);
+    }
+
+    #[test]
+    fn reads_the_configured_limits() {
+        let spec = serde_json::json!({
+            "x-ferrule-client": {"timeoutSeconds": 600.0, "retries": {"maxRetries": 0}}
+        });
+        assert_eq!(client_limits(&spec), (600, 0));
+        let odd = serde_json::json!({
+            "x-ferrule-client": {"timeoutSeconds": 1.5, "retries": {"maxRetries": true}}
+        });
+        assert_eq!(client_limits(&odd), (60, 2));
     }
 
     #[test]
