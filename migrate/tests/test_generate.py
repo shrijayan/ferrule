@@ -544,4 +544,4 @@ def test_generate_renders_the_configured_timeout_and_retries(
         write(package_dir / "_utils/__init__.py")
 
     generate(request, runner=runner, renderer=render)
-    assert seen == [{"timeout": 600, "max_retries": 0}]
+    assert seen == [{"client_name": None, "timeout": 600, "max_retries": 0}]

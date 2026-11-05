@@ -633,6 +633,21 @@ fn one_command_names_the_runtime_after_the_client_class() {
     assert!(logs.contains("ACME_QA_LOG"), "{logs}");
 }
 
+/// A paginated SDK imports `pagination.py`, which only `ferrule generate` renders so far.
+#[cfg(unix)]
+#[test]
+fn one_command_refuses_a_paginated_sdk() {
+    let tools = scratch("one-command-pagination");
+    let out = tools.join("sdk");
+    let ruff = fake_ruff(&tools, 0);
+    let run = one_command_on("tests/union_response", &tools, &out, &ruff);
+    assert_eq!(run.status.code(), Some(1));
+    let stderr = String::from_utf8_lossy(&run.stderr);
+    assert!(stderr.contains("FER4004 at x-ferrule-page-schemes: "), "{stderr}");
+    assert!(stderr.contains("run `ferrule generate`"), "{stderr}");
+    assert!(!out.join("src").exists());
+}
+
 #[cfg(unix)]
 #[test]
 fn one_command_is_deterministic() {
