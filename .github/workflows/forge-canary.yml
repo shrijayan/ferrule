@@ -32,11 +32,14 @@ jobs:
       - uses: ./.github/actions/setup
       - name: Check out Forge latest
         run: mise run forge:setup
-      # ferrule-gen pins Forge by git rev (ADR 0014); patch that dependency to the fresh checkout.
+      # ferrule-gen pins Forge by git rev (ADR 0014). Move that rev to the fresh checkout's commit
+      # rather than [patch]ing to a path: a path source drops the git rev from Cargo.lock, and
+      # crates/ferrule-gen/build.rs needs it for `ferrule-gen --version` and ferrule.lock.
       - name: Build against Forge latest
         run: |
-          mkdir -p .cargo
-          printf '[patch."https://github.com/cloudflare/forge.git"]\nforge = { path = ".cache/forge" }\n' > .cargo/config.toml
+          latest="$(git -C .cache/forge rev-parse HEAD)"
+          sed -i -E "/^forge = /s/rev = \"[0-9a-f]{40}\"/rev = \"$latest\"/" Cargo.toml
+          grep -q "rev = \"$latest\"" Cargo.toml
           cargo update -p forge
           cargo build --release -p ferrule-gen
       - run: cargo test --workspace
