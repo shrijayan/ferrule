@@ -12,6 +12,7 @@ from scripts.parity.harness import (
     lock_requirements,
     mock_command,
     parse_junit,
+    pytest_config_args,
     resolve_pair,
 )
 
@@ -119,8 +120,47 @@ git+https://example.com/x.git
 """
     assert lock_requirements(lock, exclude=["acme-sdk"]) == [
         "anyio==4.12.1",
-        "pydantic[email]==2.12.0",
+        'pydantic[email]==2.12.0 ; python_version >= "3.9"',
     ]
+
+
+def test_lock_requirements_keeps_markers_so_universal_locks_resolve() -> None:
+    # A uv universal lock pins one version per python range; without the markers both pins
+    # reach `uv pip install` unconditionally and it refuses them (ogx, stagehand).
+    lock = """time-machine==2.19.0 ; python_full_version < '3.10'
+time-machine==3.2.0 ; python_full_version >= '3.10'
+"""
+    assert lock_requirements(lock) == [
+        "time-machine==2.19.0 ; python_full_version < '3.10'",
+        "time-machine==3.2.0 ; python_full_version >= '3.10'",
+    ]
+
+
+def test_lock_requirements_takes_the_first_of_conflicting_pins() -> None:
+    # papr-python's lock is two locks concatenated, so it pins some packages twice.
+    lock = """yarl==1.22.0
+    # via referencing
+anyio==4.12.1
+yarl==1.20.0
+    # via aiohttp
+"""
+    assert lock_requirements(lock) == ["anyio==4.12.1", "yarl==1.22.0"]
+
+
+def test_pytest_config_args_use_the_oracles_settings_without_project_files(tmp_path: Path) -> None:
+    out, sdk = tmp_path / "out", tmp_path / "sdk"
+    out.mkdir()
+    sdk.mkdir()
+    assert pytest_config_args(out, sdk) == ()
+    (sdk / "pyproject.toml").write_text("")
+    assert pytest_config_args(out, sdk) == (
+        "-c",
+        str(sdk / "pyproject.toml"),
+        "--rootdir",
+        str(out),
+    )
+    (out / "pyproject.toml").write_text("")
+    assert pytest_config_args(out, sdk) == ()
 
 
 def test_mock_command() -> None:

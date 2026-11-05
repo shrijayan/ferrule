@@ -51,6 +51,7 @@ from scripts.parity.harness import (
     lock_requirements,
     mock_command,
     parse_junit,
+    pytest_config_args,
     resolve_pair,
 )
 
@@ -294,6 +295,7 @@ def run_tests_owned(
                     "-p",
                     "no:cacheprovider",
                     f"--junitxml={junit}",
+                    *pytest_config_args(out, sdk_dir),
                 ],
                 cwd=out,
                 env=env,
