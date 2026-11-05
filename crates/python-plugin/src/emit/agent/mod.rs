@@ -4,8 +4,10 @@
 //! `examples/agent/` and a test that runs them against a mock. Pure: [`SdkClient`] in, path -> text
 //! out. Not part of the Stainless output.
 
-use super::common::{example_type, method_args, py_string, sort_fields, stainless_method_order, stream_switch};
-use super::files::api_tests::{Uses, example_value};
+use super::common::{
+    example_type, is_binary_body, method_args, py_string, sort_fields, stainless_method_order, stream_switch,
+};
+use super::files::api_tests::{BINARY_EXAMPLE, Uses, example_value};
 use super::files_input::ProjectMeta;
 use crate::model::{SdkClient, SdkClientOpt, SdkMethod, SdkModelDecl, SdkResource};
 
@@ -54,6 +56,9 @@ fn call_args(models: &[SdkModelDecl], method: &SdkMethod, uses: &mut Uses) -> Ve
         .iter()
         .chain(required)
         .map(|p| {
+            if is_binary_body(method, p) {
+                return format!("{}={BINARY_EXAMPLE}", p.py_name);
+            }
             let value = example_value(
                 &example_type(&p.ty, models),
                 uses,

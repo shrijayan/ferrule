@@ -354,6 +354,7 @@ fn input_models(client: &SdkClient) -> Vec<&SdkModelDecl> {
             SdkType::Array(t) | SdkType::Map(t) => refs(t, out),
             SdkType::Union { variants, .. } => variants.iter().for_each(|v| refs(v, out)),
             SdkType::Object(o) => {
+                out.extend(&o.bases);
                 o.fields.iter().for_each(|f| refs(&f.ty, out));
                 if let Some(extra) = &o.extra {
                     refs(extra, out);
@@ -363,14 +364,13 @@ fn input_models(client: &SdkClient) -> Vec<&SdkModelDecl> {
         }
     }
     let mut pending: Vec<&SdkRef> = Vec::new();
-    for resource in all_resources(&client.resources) {
-        for method in resource.methods.iter().chain(&client.client_methods) {
-            for q in method_args(method).into_iter().chain(&method.path_params) {
-                refs(&q.ty, &mut pending);
-            }
-            for v in &method.body_variants {
-                v.params.iter().for_each(|q| refs(&q.ty, &mut pending));
-            }
+    let resources = all_resources(&client.resources);
+    for method in resources.iter().flat_map(|r| &r.methods).chain(&client.client_methods) {
+        for q in method_args(method).into_iter().chain(&method.path_params) {
+            refs(&q.ty, &mut pending);
+        }
+        for v in &method.body_variants {
+            v.params.iter().for_each(|q| refs(&q.ty, &mut pending));
         }
     }
     let mut seen: Vec<&SdkRef> = Vec::new();
@@ -383,6 +383,7 @@ fn input_models(client: &SdkClient) -> Vec<&SdkModelDecl> {
             if let Some(alias) = &decl.alias {
                 refs(alias, &mut pending);
             } else {
+                pending.extend(&decl.ty.bases);
                 decl.ty.fields.iter().for_each(|f| refs(&f.ty, &mut pending));
                 if let Some(extra) = &decl.ty.extra {
                     refs(extra, &mut pending);
@@ -421,7 +422,12 @@ fn emit_wrappers_file(client: &SdkClient) -> Option<String> {
         let attr = snake_case(&split_words(field));
         p.blank().blank();
         p.block(&format!("class {name}(GenericModel, Generic[_T]):"), |p| {
-            p.line(&format!("{attr}: _T"));
+            if attr == *field {
+                p.line(&format!("{attr}: _T"));
+            } else {
+                p.import_from("pydantic", "Field as FieldInfo");
+                p.line(&format!("{attr}: _T = FieldInfo(alias={})", py_string(field)));
+            }
             p.blank();
             p.line("@staticmethod");
             p.block(&format!("def _unwrapper(obj: \"{name}[_T]\") -> _T:"), |p| {
@@ -672,7 +678,10 @@ mod tests {
         let mut m = method();
         m.unwrap = Some("responseData".to_owned());
         let file = emit_wrappers_file(&client(Vec::new(), vec![m])).expect("a wrapper");
-        assert!(file.contains("response_data: _T = FieldInfo(alias=\"responseData\")"), "{file}");
+        assert!(
+            file.contains("response_data: _T = FieldInfo(alias=\"responseData\")"),
+            "{file}"
+        );
         assert!(file.contains("from pydantic import Field as FieldInfo"), "{file}");
     }
 }

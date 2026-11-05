@@ -192,6 +192,19 @@ fn field_entries(fields: &Map) -> Vec<Value> {
         .collect()
 }
 
+/// The item field a `cursor_id` page takes its cursor from: `id` in `data.[].id`.
+fn cursor_item_id(fields: &Map) -> Option<String> {
+    fields.values().find_map(|raw| {
+        let props = obj(obj(obj_of(Some(raw)), "items"), "properties");
+        props
+            .iter()
+            .find(|(_, field)| {
+                str_(obj(obj_of(Some(field)), "x-stainless-pagination-property"), "purpose") == Some("cursor_item_id")
+            })
+            .map(|(name, _)| name.clone())
+    })
+}
+
 /// The field entry's `key`, if it is a string.
 fn entry_str<'a>(field: &'a Value, key: &str) -> Option<&'a str> {
     field.as_object().and_then(|f| str_(f, key))
@@ -215,6 +228,7 @@ fn mark_implicit_items(fields: &mut [Value]) {
 /// `x-ferrule-page-schemes`: every configured scheme with its request and response fields as
 /// lists, so they keep config order in the annotated spec. When no response field has the
 /// purpose `items`, the one top-level array without a purpose gets it (Stainless's implicit items).
+/// A `cursor_id` scheme also has `itemId`, the item field its cursor comes from.
 #[must_use]
 pub fn page_scheme_extension(config: &Value) -> Option<Value> {
     let list: Vec<&Value> = match config.get("pagination") {
@@ -233,6 +247,9 @@ pub fn page_scheme_extension(config: &Value) -> Option<Value> {
             out.insert("kind", raw.get("type").cloned().unwrap_or(Value::Null));
             out.insert("request", Value::Array(field_entries(obj(raw, "request"))));
             out.insert("response", Value::Array(fields));
+            if let Some(item_id) = cursor_item_id(obj(raw, "response")) {
+                out.insert("itemId", Value::from(item_id));
+            }
             Value::Object(out)
         })
         .collect();

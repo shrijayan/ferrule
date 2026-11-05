@@ -420,6 +420,7 @@ def page_schemes(entries: Sequence[Mapping[str, Any]]) -> tuple[PageScheme, ...]
                 before_param=".".join(before) or None,
                 path=_purpose(response, _PATH_PURPOSES),
                 total_path=_purpose(response, _TOTAL_PURPOSES),
+                item_id=cast("str | None", entry.get("itemId")),
             )
         )
     return tuple(schemes)

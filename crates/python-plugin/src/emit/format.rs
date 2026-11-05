@@ -79,9 +79,28 @@ pub fn bracket(open: &str, items: Vec<Expr>, magic: bool, close: &str) -> Bracke
 /// split, and a suffix such as the item comma goes before it.
 const COMMENT: &str = "  # ";
 
+/// `s` split at its trailing comment. A marker inside a string literal is the string's text.
+fn split_comment(s: &str) -> Option<(&str, &str)> {
+    let mut quote = None;
+    let mut escaped = false;
+    for (i, c) in s.char_indices() {
+        match quote {
+            Some(_) if escaped => escaped = false,
+            Some(_) if c == '\\' => escaped = true,
+            Some(q) if c == q => quote = None,
+            None if c == '"' || c == '\'' => quote = Some(c),
+            None if s[i..].starts_with(COMMENT) => {
+                return Some((&s[..i], &s[i + COMMENT.len()..]));
+            }
+            _ => {}
+        }
+    }
+    None
+}
+
 fn has_magic(e: &Expr) -> bool {
     match e {
-        Expr::Atom(s) => s.contains(COMMENT),
+        Expr::Atom(s) => split_comment(s).is_some(),
         Expr::Cond(_) => false,
         Expr::Bracket(b) => b.magic || b.items.iter().any(has_magic),
     }
@@ -111,7 +130,7 @@ fn fits(line: &str) -> bool {
 pub fn format_expr(e: &Expr, indent: &str, prefix: &str, suffix: &str) -> Vec<String> {
     let b = match e {
         Expr::Atom(s) => {
-            return vec![match s.split_once(COMMENT) {
+            return vec![match split_comment(s) {
                 Some((code, comment)) => format!("{indent}{prefix}{code}{suffix}{COMMENT}{comment}"),
                 None => format!("{indent}{prefix}{s}{suffix}"),
             }];
@@ -167,16 +186,8 @@ mod tests {
 
     #[test]
     fn a_comment_marker_inside_a_string_is_not_a_comment() {
-        let values = bracket(
-            "Literal[",
-            vec!["\"a  # b\"".into(), "\"c\"".into()],
-            false,
-            "]",
-        );
-        assert_eq!(
-            format_expr(&values.into(), "", "", ""),
-            ["Literal[\"a  # b\", \"c\"]"]
-        );
+        let values = bracket("Literal[", vec!["\"a  # b\"".into(), "\"c\"".into()], false, "]");
+        assert_eq!(format_expr(&values.into(), "", "", ""), ["Literal[\"a  # b\", \"c\"]"]);
     }
 
     #[test]
