@@ -8,7 +8,7 @@ requires-python = ">=3.12"
 # runtime (the same set a Stainless-generated SDK declares), so the behaviour tests can import it.
 dependencies = [
   "httpx>=0.28.1,<1",
-  "pydantic>=1.9,<3",
+  "pydantic>=2.14.2,<3",
   "anyio>=4.15.1,<5",
   "typing-extensions>=4.14,<5",
   "distro>=1.7.0,<2",
