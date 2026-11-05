@@ -87,10 +87,10 @@
             "description": "ok"
           }
         },
-        "x-fern-sdk-group-name": [
+        "x-forge-group-name": [
           "sessions"
         ],
-        "x-fern-sdk-method-name": "context",
+        "x-forge-method-name": "context",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},
@@ -159,10 +159,10 @@
             "description": "ok"
           }
         },
-        "x-fern-sdk-group-name": [
+        "x-forge-group-name": [
           "sessions"
         ],
-        "x-fern-sdk-method-name": "summaries",
+        "x-forge-method-name": "summaries",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},

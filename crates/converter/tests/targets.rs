@@ -157,7 +157,7 @@ fn keeps_models_not_generated_for_python_with_the_targets_that_generate_them() {
             .get("components")
             .and_then(|c| c.get("schemas"))
             .and_then(|s| s.get(schema))
-            .and_then(|s| s.get("x-fern-type-name"))
+            .and_then(|s| s.get("x-forge-model-name"))
             .cloned()
     };
     assert_eq!(type_name("AITag"), Some(Value::from("AITag")));

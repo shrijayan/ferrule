@@ -1,6 +1,6 @@
 //! Forge group names for stainless.yml resource paths (ADR 0003, `$client` amendment).
 //!
-//! Forge drops an operation whose `x-fern-sdk-group-name` is empty, and splits names into words
+//! Forge drops an operation whose `x-forge-group-name` is empty, and splits names into words
 //! (`$client` becomes the group `client`, merging with a real `client` resource). Root client
 //! methods therefore go to a reserved group; the plugin reads `x-ferrule-resource` instead.
 
@@ -61,7 +61,7 @@ pub fn forge_words(name: &str) -> Vec<String> {
         .collect()
 }
 
-/// `x-fern-sdk-group-name` for a resource path: `$client` maps to [`CLIENT_GROUP`].
+/// `x-forge-group-name` for a resource path: `$client` maps to [`CLIENT_GROUP`].
 #[must_use]
 pub fn forge_group_path(path: &[String]) -> Vec<String> {
     path.iter()

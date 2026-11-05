@@ -62,10 +62,10 @@
             "description": "ok"
           }
         },
-        "x-fern-sdk-group-name": [
+        "x-forge-group-name": [
           "workspaces"
         ],
-        "x-fern-sdk-method-name": "list",
+        "x-forge-method-name": "list",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},

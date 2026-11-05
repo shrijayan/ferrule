@@ -4,6 +4,8 @@ use ferrule_converter::value::{parse_json, stable_stringify};
 use ferrule_converter::{Diagnostic, Value, convert};
 use serde_json::json;
 
+const VENDOR_EXTENSIONS: &str = "FER1611";
+
 // ---------------------------------------------------------------------------------------------
 // Shared helpers
 
@@ -312,12 +314,12 @@ fn spells_out_symbols_in_properties_whose_names_forge_finds_equal_github() {
         props.get("+1"),
         Some(&v(json!({
             "type": "integer",
-            "x-fern-property-name": "plus_1",
+            "x-forge-property-name": "plus_1",
             "x-ferrule-normalized": ["equal-names"]
         })))
     );
     assert_eq!(
-        at(props, &["-1", "x-fern-property-name"]),
+        at(props, &["-1", "x-forge-property-name"]),
         Some(&Value::from("minus_1"))
     );
     assert_eq!(props.get("laugh"), Some(&Value::object()));
@@ -351,24 +353,24 @@ fn spells_out_comparison_suffixes_on_parameters_forge_finds_equal_twilio() {
     }));
     let (out, diagnostics) = normalize(&spec);
     let item = at(&out, &["paths", "/Recordings.json"]).expect("item");
-    assert_eq!(at(item, &["parameters", "0", "x-fern-parameter-name"]), None);
+    assert_eq!(at(item, &["parameters", "0", "x-forge-parameter-name"]), None);
     assert_eq!(
         at(item, &["get", "parameters", "0"]),
         Some(&v(json!({
             "name": "DateCreated<",
             "in": "query",
             "schema": {"type": "string"},
-            "x-fern-parameter-name": "date_created_lt",
+            "x-forge-parameter-name": "date_created_lt",
             "x-ferrule-normalized": ["equal-names"]
         })))
     );
     assert_eq!(
-        at(item, &["get", "parameters", "1", "x-fern-parameter-name"]),
+        at(item, &["get", "parameters", "1", "x-forge-parameter-name"]),
         Some(&Value::from("date_created_gt"))
     );
-    assert_eq!(at(item, &["get", "parameters", "2", "x-fern-parameter-name"]), None);
+    assert_eq!(at(item, &["get", "parameters", "2", "x-forge-parameter-name"]), None);
     assert_eq!(
-        at(&out, &["components", "parameters", "lt", "x-fern-parameter-name"]),
+        at(&out, &["components", "parameters", "lt", "x-forge-parameter-name"]),
         None
     );
     let pointers: Vec<&str> = diagnostics.iter().map(|d| d.pointer.as_str()).collect();
@@ -397,9 +399,9 @@ fn numbers_a_field_that_differs_from_another_only_by_case_with_a_warning_cloudfl
     }));
     let (out, diagnostics) = normalize(&spec);
     let props = at(&out, &["components", "schemas", "hook", "properties"]).expect("props");
-    assert_eq!(at(props, &["notification_url", "x-fern-property-name"]), None);
+    assert_eq!(at(props, &["notification_url", "x-forge-property-name"]), None);
     assert_eq!(
-        at(props, &["notificationUrl", "x-fern-property-name"]),
+        at(props, &["notificationUrl", "x-forge-property-name"]),
         Some(&Value::from("notification_url_2"))
     );
     let code_severity: Vec<[String; 2]> = diagnostics
@@ -762,4 +764,120 @@ fn runs_inside_convert_before_openapi_transforms() {
     let result = convert(&docker(), &config);
     assert_eq!(at(&result.spec, &["components", "schemas", "Container"]), None);
     assert_eq!(result.spec.get("openapi"), Some(&Value::from("3.0.3")));
+}
+
+// Forge reads only `x-forge-*` (5879d90b, ADR 0003): a spec's vendor keys become the native ones.
+
+#[test]
+fn vendor_extensions_become_forge_extensions() {
+    let (out, ds) = normalize(&v(json!({
+        "paths": { "/a": { "get": {
+            "x-fern-sdk-group-name": "a.b",
+            "x-fern-sdk-method-name": "list",
+            "x-fern-availability": "beta",
+            "x-forge-aliases": [{ "x-fern-sdk-method-name": "other", "x-fern-ignore": true }],
+            "parameters": [{
+                "name": "q", "in": "query", "x-fern-parameter-name": "query",
+                "schema": { "type": "string", "x-sensitive": true }
+            }],
+            "requestBody": { "content": { "application/json": { "schema": {
+                "type": "object",
+                "properties": { "p": { "type": "string", "x-stainless-skip": true } }
+            } } } },
+            "responses": { "200": { "content": { "application/json": { "schema": {
+                "type": "array",
+                "items": { "type": "object", "properties": { "q": {
+                    "type": "string", "x-fern-property-name": "named"
+                } } }
+            } } } } }
+        } } },
+        "components": { "schemas": { "M": { "type": "object", "x-fern-type-name": "Named" } } }
+    })));
+    let op = &["paths", "/a", "get"];
+    let at_op = |rest: &[&str]| at(&out, &[op, rest].concat()).cloned();
+    assert_eq!(at_op(&["x-forge-group-name"]), Some(v(json!("a.b"))));
+    assert_eq!(at_op(&["x-fern-sdk-group-name"]), None);
+    assert_eq!(at_op(&["x-forge-method-name"]), Some(v(json!("list"))));
+    assert_eq!(at_op(&["x-forge-availability"]), Some(v(json!("beta"))));
+    assert_eq!(
+        at_op(&["x-forge-aliases", "0", "x-forge-method-name"]),
+        Some(v(json!("other")))
+    );
+    assert_eq!(at_op(&["x-forge-aliases", "0", "x-forge-skip"]), Some(v(json!(true))));
+    assert_eq!(
+        at_op(&["parameters", "0", "x-forge-parameter-name"]),
+        Some(v(json!("query")))
+    );
+    assert_eq!(
+        at_op(&["parameters", "0", "schema", "x-forge-sensitive"]),
+        Some(v(json!(true)))
+    );
+    let body = [
+        "requestBody",
+        "content",
+        "application/json",
+        "schema",
+        "properties",
+        "p",
+    ];
+    assert_eq!(at_op(&[&body[..], &["x-forge-skip"]].concat()), Some(v(json!(true))));
+    let item = [
+        "responses",
+        "200",
+        "content",
+        "application/json",
+        "schema",
+        "items",
+        "properties",
+        "q",
+    ];
+    assert_eq!(
+        at_op(&[&item[..], &["x-forge-property-name"]].concat()),
+        Some(v(json!("named")))
+    );
+    assert_eq!(
+        at(&out, &["components", "schemas", "M", "x-forge-model-name"]),
+        Some(&v(json!("Named")))
+    );
+    assert_eq!(
+        at(&out, &["components", "schemas", "M", "x-ferrule-normalized"]),
+        Some(&v(json!(["vendor-extensions"])))
+    );
+    assert_eq!(ds.iter().filter(|d| d.code == VENDOR_EXTENSIONS).count(), 1);
+}
+
+#[test]
+fn a_native_extension_wins_and_data_and_target_lists_are_left_alone() {
+    let (out, ds) = normalize(&v(json!({
+        "components": { "schemas": { "M": {
+            "type": "object",
+            "x-fern-type-name": "Old",
+            "x-forge-model-name": "New",
+            "example": { "x-sensitive": true },
+            "properties": {
+                "x-sensitive": { "type": "string" },
+                "p": { "type": "string", "x-stainless-skip": ["terraform"] }
+            }
+        } } }
+    })));
+    let m = &["components", "schemas", "M"];
+    let at_m = |rest: &[&str]| at(&out, &[m, rest].concat()).cloned();
+    assert_eq!(at_m(&["x-forge-model-name"]), Some(v(json!("New"))));
+    assert_eq!(at_m(&["x-fern-type-name"]), None);
+    assert_eq!(at_m(&["example", "x-sensitive"]), Some(v(json!(true))));
+    assert!(at_m(&["properties", "x-sensitive"]).is_some());
+    assert_eq!(
+        at_m(&["properties", "p", "x-stainless-skip"]),
+        Some(v(json!(["terraform"])))
+    );
+    assert_eq!(at_m(&["properties", "p", "x-forge-skip"]), None);
+    assert_eq!(ds.iter().filter(|d| d.code == VENDOR_EXTENSIONS).count(), 1);
+}
+
+#[test]
+fn a_spec_without_vendor_extensions_gets_no_diagnostic() {
+    let (_, ds) = normalize(&v(
+        json!({ "components": { "schemas": { "M": { "type": "object" } } } }),
+    ));
+    assert!(ds.iter().all(|d| d.code != VENDOR_EXTENSIONS));
 }

@@ -494,7 +494,7 @@
           }
         },
         "type": "array",
-        "x-fern-type-name": "Extensions"
+        "x-forge-model-name": "Extensions"
       },
       "FileUploadV1": {
         "properties": {
@@ -692,7 +692,7 @@
           }
         },
         "type": "object",
-        "x-fern-type-name": "Metadata"
+        "x-forge-model-name": "Metadata"
       },
       "RemovedotBGExtension": {
         "properties": {
@@ -1201,10 +1201,10 @@
         "tags": [
           "Upload File"
         ],
-        "x-fern-sdk-group-name": [
+        "x-forge-group-name": [
           "files"
         ],
-        "x-fern-sdk-method-name": "upload",
+        "x-forge-method-name": "upload",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},

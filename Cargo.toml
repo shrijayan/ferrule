@@ -11,7 +11,7 @@ publish = false
 
 [workspace.dependencies]
 # Pinned to the same commit as FORGE_PIN in scripts/forge-setup.sh (ADR 0005, ADR 0014).
-forge = { git = "https://github.com/cloudflare/forge.git", rev = "91f52a40c746e8a2ac0271d8be0b7c82cdf28798", default-features = false }
+forge = { git = "https://github.com/cloudflare/forge.git", rev = "68134895e81dd3a0a005981b05a3c5e0baaff3f9", default-features = false }
 serde_json = { version = "1.0.151", features = ["preserve_order"] }
 ferrule-converter = { path = "crates/converter" }
 ferrule-python-plugin = { path = "crates/python-plugin" }

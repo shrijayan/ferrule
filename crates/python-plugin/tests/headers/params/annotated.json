@@ -61,7 +61,7 @@
           "id"
         ],
         "type": "object",
-        "x-fern-type-name": "Model"
+        "x-forge-model-name": "Model"
       },
       "ModelList": {
         "properties": {
@@ -97,7 +97,7 @@
           "type"
         ],
         "type": "object",
-        "x-fern-type-name": "StreamEvent"
+        "x-forge-model-name": "StreamEvent"
       }
     }
   },
@@ -175,10 +175,10 @@
           }
         },
         "summary": "List models.",
-        "x-fern-sdk-group-name": [
+        "x-forge-group-name": [
           "models"
         ],
-        "x-fern-sdk-method-name": "list",
+        "x-forge-method-name": "list",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},
@@ -289,10 +289,10 @@
           }
         },
         "summary": "Get a model by its identifier.",
-        "x-fern-sdk-group-name": [
+        "x-forge-group-name": [
           "models"
         ],
-        "x-fern-sdk-method-name": "retrieve",
+        "x-forge-method-name": "retrieve",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},
@@ -400,10 +400,10 @@
           }
         },
         "summary": "Perform an action",
-        "x-fern-sdk-group-name": [
+        "x-forge-group-name": [
           "sessions"
         ],
-        "x-fern-sdk-method-name": "act",
+        "x-forge-method-name": "act",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},
@@ -515,10 +515,10 @@
           }
         },
         "summary": "End a browser session",
-        "x-fern-sdk-group-name": [
+        "x-forge-group-name": [
           "sessions"
         ],
-        "x-fern-sdk-method-name": "end",
+        "x-forge-method-name": "end",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},

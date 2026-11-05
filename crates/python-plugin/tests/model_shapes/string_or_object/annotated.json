@@ -125,10 +125,10 @@
           }
         },
         "summary": "Runs a workflow.",
-        "x-fern-sdk-group-name": [
+        "x-forge-group-name": [
           "workflows"
         ],
-        "x-fern-sdk-method-name": "run",
+        "x-forge-method-name": "run",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},

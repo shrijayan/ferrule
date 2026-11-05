@@ -27,6 +27,9 @@ pub const ITEMS_TUPLE: &str = "FER1607";
 pub const NULLABLE_ONLY_MEMBER: &str = "FER1608";
 /// A titled inline union member moved to `components.schemas`, so it is named after its title.
 pub const TITLE_HOISTED: &str = "FER1609";
+/// A spec's `x-fern-*`, `x-sensitive` or `x-stainless-skip` keys, rewritten to the `x-forge-*`
+/// ones Forge reads. One per document, at the first of them.
+pub const VENDOR_EXTENSIONS: &str = "FER1611";
 
 pub const NORMALIZED_KEY: &str = "x-ferrule-normalized";
 
@@ -350,7 +353,7 @@ fn disambiguate(
                 EQUAL_NAMES_SPELLED,
                 pointer,
                 format!("\"{}\" has the same Forge name as another field; named {snake}", f.wire),
-                "set x-fern-property-name or x-fern-parameter-name to choose the name",
+                "set x-forge-property-name or x-forge-parameter-name to choose the name",
             ));
         }
         if left.len() < 2 {
@@ -385,14 +388,18 @@ fn disambiguate(
                     "\"{}\" and \"{}\" have the same Forge name; \"{}\" is named {snake}",
                     f.wire, keep.wire, f.wire
                 ),
-                "set x-fern-property-name or x-fern-parameter-name to choose the name",
+                "set x-forge-property-name or x-forge-parameter-name to choose the name",
             ));
         }
     }
 }
 
-const PROPERTY_NAME: &str = "x-fern-property-name";
-const PARAMETER_NAME: &str = "x-fern-parameter-name";
+pub const GROUP_NAME: &str = "x-forge-group-name";
+pub const METHOD_NAME: &str = "x-forge-method-name";
+pub const MODEL_NAME: &str = "x-forge-model-name";
+const PROPERTY_NAME: &str = "x-forge-property-name";
+const PARAMETER_NAME: &str = "x-forge-parameter-name";
+const SKIP: &str = "x-forge-skip";
 
 fn name_of(node: &Value, wire: &str, ext: &str) -> Vec<String> {
     match node.get(ext) {
@@ -753,6 +760,141 @@ fn parameters(out: &mut Value, diagnostics: &mut Vec<Diagnostic>) {
     }
 }
 
+/// What an object in a spec is, as far as Forge reads extensions from it.
+#[derive(Clone, Copy)]
+enum Kind {
+    Document,
+    Components,
+    PathItem,
+    /// An operation, or an alias of one, which has the keys of one.
+    Operation,
+    Parameter,
+    /// A request body or a response.
+    Body,
+    Media,
+    Schema,
+}
+
+/// How an object holds the objects of a [`Kind`] below it.
+#[derive(Clone, Copy)]
+enum Shape {
+    One,
+    /// Each member of an object.
+    Values,
+    /// Each member of an object that is not an extension.
+    Entries,
+    /// Each element of an array.
+    Elements,
+}
+
+/// Each vendor key Forge once read and the native key it became at this kind of object
+/// (`src/bin/forge/normalize/vendor` at the pinned Forge commit).
+fn vendor_keys(kind: Kind) -> &'static [(&'static str, &'static str)] {
+    match kind {
+        Kind::Operation => &[
+            ("x-fern-sdk-method-name", METHOD_NAME),
+            ("x-fern-sdk-group-name", GROUP_NAME),
+            ("x-fern-ignore", SKIP),
+            ("x-fern-availability", "x-forge-availability"),
+        ],
+        Kind::Parameter => &[("x-fern-parameter-name", PARAMETER_NAME)],
+        Kind::Schema => &[
+            ("x-fern-type-name", MODEL_NAME),
+            ("x-fern-property-name", PROPERTY_NAME),
+            ("x-sensitive", "x-forge-sensitive"),
+            ("x-stainless-skip", SKIP),
+        ],
+        _ => &[],
+    }
+}
+
+/// What the member `key` of an object of the kind `kind` holds, if Forge reads it.
+fn vendor_child(kind: Kind, key: &str, value: &Value) -> Option<(Shape, Kind)> {
+    Some(match (kind, key) {
+        (Kind::Document, "paths") => (Shape::Entries, Kind::PathItem),
+        (Kind::Document, "components") => (Shape::One, Kind::Components),
+        (Kind::Components, "schemas") | (Kind::Schema, "properties" | "$defs") => (Shape::Values, Kind::Schema),
+        (Kind::Components, "parameters") => (Shape::Values, Kind::Parameter),
+        (Kind::Components, "requestBodies" | "responses") => (Shape::Values, Kind::Body),
+        (Kind::Components, "pathItems") => (Shape::Values, Kind::PathItem),
+        (Kind::PathItem | Kind::Operation, "parameters") => (Shape::Elements, Kind::Parameter),
+        (
+            Kind::PathItem,
+            "get" | "put" | "post" | "delete" | "options" | "head" | "patch" | "trace" | "query" | "connect",
+        ) => (Shape::One, Kind::Operation),
+        (Kind::PathItem, "additionalOperations") => (Shape::Values, Kind::Operation),
+        (Kind::Operation, "requestBody") => (Shape::One, Kind::Body),
+        (Kind::Operation, "responses") => (Shape::Entries, Kind::Body),
+        (Kind::Operation, "x-forge-aliases") => (Shape::Elements, Kind::Operation),
+        (Kind::Parameter | Kind::Body, "content") => (Shape::Values, Kind::Media),
+        (Kind::Parameter | Kind::Media, "schema")
+        | (Kind::Schema, "additionalProperties" | "unevaluatedProperties") => (Shape::One, Kind::Schema),
+        (Kind::Schema, "items") if matches!(value, Value::Object(_)) => (Shape::One, Kind::Schema),
+        (Kind::Schema, "items" | "prefixItems" | "allOf" | "anyOf" | "oneOf") => (Shape::Elements, Kind::Schema),
+        _ => return None,
+    })
+}
+
+/// The native keys in place of the vendor ones in `node`. The native key wins when both are
+/// there, and a target list in `x-stainless-skip` has no native form, so it stays. Returns the
+/// pointer of the first key rewritten.
+fn rename_vendor_keys(kind: Kind, node: &mut Map, path: &[Seg]) -> Option<String> {
+    let mut first = None;
+    for &(vendor, native) in vendor_keys(kind) {
+        if vendor == "x-stainless-skip" && matches!(node.get(vendor), Some(Value::Array(_))) {
+            continue;
+        }
+        let Some(value) = node.remove(vendor) else {
+            continue;
+        };
+        if node.get(native).is_none() {
+            node.insert(native, value);
+        }
+        note(node, "vendor-extensions");
+        let mut at = path.to_vec();
+        at.push(Seg::from(vendor));
+        first.get_or_insert_with(|| to_json_pointer(&at));
+    }
+    first
+}
+
+/// Rewrite the vendor extensions at `value` and below it. `first` is the first key rewritten.
+fn vendor_extensions(kind: Kind, value: &mut Value, path: &mut Vec<Seg>, first: &mut Option<String>) {
+    let Value::Object(members) = value else {
+        return;
+    };
+    if let Some(at) = rename_vendor_keys(kind, members, path) {
+        first.get_or_insert(at);
+    }
+    for (key, member) in members.iter_mut() {
+        let Some((shape, kind)) = vendor_child(kind, key, member) else {
+            continue;
+        };
+        path.push(Seg::Key(key.clone()));
+        match (shape, member) {
+            (Shape::One, member) => vendor_extensions(kind, member, path, first),
+            (Shape::Values | Shape::Entries, Value::Object(children)) => {
+                for (name, child) in children.iter_mut() {
+                    if matches!(shape, Shape::Values) || !name.starts_with("x-") {
+                        path.push(Seg::Key(name.clone()));
+                        vendor_extensions(kind, child, path, first);
+                        path.pop();
+                    }
+                }
+            }
+            (Shape::Elements, Value::Array(children)) => {
+                for (i, child) in children.iter_mut().enumerate() {
+                    path.push(Seg::Index(i));
+                    vendor_extensions(kind, child, path, first);
+                    path.pop();
+                }
+            }
+            _ => {}
+        }
+        path.pop();
+    }
+}
+
 /// Normalise a copy of `spec`. Pure.
 #[must_use]
 pub fn normalize(spec: &Value) -> (Value, Vec<Diagnostic>) {
@@ -769,6 +911,17 @@ pub fn normalize(spec: &Value) -> (Value, Vec<Diagnostic>) {
     };
     let mut out = walker.walk(spec, &mut Vec::new());
     let mut diagnostics = walker.diagnostics;
+    // First, so the name extensions below see a spec's own names.
+    let mut vendor = None;
+    vendor_extensions(Kind::Document, &mut out, &mut Vec::new(), &mut vendor);
+    if let Some(pointer) = vendor {
+        diagnostics.push(Diagnostic::info(
+            VENDOR_EXTENSIONS,
+            pointer,
+            "the spec has `x-fern-*`, `x-sensitive` or `x-stainless-skip` keys, which Forge no longer reads; rewritten to their `x-forge-*` names",
+            "nothing to do; write the `x-forge-*` names in the spec to silence this",
+        ));
+    }
     properties(&mut out, &mut Vec::new(), &mut diagnostics);
     parameters(&mut out, &mut diagnostics);
     hoist_titled_members(&mut out, &mut diagnostics);

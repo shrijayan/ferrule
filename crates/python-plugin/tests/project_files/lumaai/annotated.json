@@ -125,7 +125,7 @@
           }
         },
         "type": "object",
-        "x-fern-type-name": "Generation"
+        "x-forge-model-name": "Generation"
       },
       "GenerationReference": {
         "properties": {
@@ -689,10 +689,10 @@
         ],
         "x-forge-aliases": [
           {
-            "x-fern-sdk-group-name": [
+            "x-forge-group-name": [
               "generations"
             ],
-            "x-fern-sdk-method-name": "create",
+            "x-forge-method-name": "create",
             "x-ferrule-casings": {
               "lumaai": {
                 "pascal": "LumaAI"
@@ -766,11 +766,11 @@
             }
           },
           {
-            "x-fern-sdk-group-name": [
+            "x-forge-group-name": [
               "generations",
               "video"
             ],
-            "x-fern-sdk-method-name": "create",
+            "x-forge-method-name": "create",
             "x-ferrule-casings": {
               "lumaai": {
                 "pascal": "LumaAI"

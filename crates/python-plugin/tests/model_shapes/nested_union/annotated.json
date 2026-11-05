@@ -18,7 +18,7 @@
           "output"
         ],
         "type": "object",
-        "x-fern-type-name": "CompactedResponse"
+        "x-forge-model-name": "CompactedResponse"
       },
       "Compaction": {
         "properties": {
@@ -122,10 +122,10 @@
           }
         },
         "summary": "Compacts a conversation.",
-        "x-fern-sdk-group-name": [
+        "x-forge-group-name": [
           "responses"
         ],
-        "x-fern-sdk-method-name": "compact",
+        "x-forge-method-name": "compact",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},

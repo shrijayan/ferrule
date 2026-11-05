@@ -1,5 +1,5 @@
 {
-  "sha256": "163ad50afc31306f00a49329b46fed7f2d1431a8093b63a7ad184d9cca88981e",
+  "sha256": "3e396b250ffcdc80459f81045743527e17277ffcc77db6cb44d3aa5dddc45d83",
   "root": {
     "x-ferrule-client": {
       "defaultEnvironment": "production",
@@ -294,10 +294,6 @@
   },
   "operations": {
     "POST /v1/sessions/start": {
-      "x-fern-sdk-group-name": [
-        "sessions"
-      ],
-      "x-fern-sdk-method-name": "start",
       "x-ferrule-method-name": "start",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -376,13 +372,13 @@
           },
           "package_name": "stagehand-sdk"
         }
-      }
-    },
-    "POST /v1/sessions/{id}/act": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "sessions"
       ],
-      "x-fern-sdk-method-name": "act",
+      "x-forge-method-name": "start"
+    },
+    "POST /v1/sessions/{id}/act": {
       "x-ferrule-method-name": "act",
       "x-ferrule-method-order": 1,
       "x-ferrule-resource": {
@@ -486,13 +482,13 @@
           },
           "package_name": "stagehand-sdk"
         }
-      }
-    },
-    "POST /v1/sessions/{id}/agentExecute": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "sessions"
       ],
-      "x-fern-sdk-method-name": "execute",
+      "x-forge-method-name": "act"
+    },
+    "POST /v1/sessions/{id}/agentExecute": {
       "x-ferrule-method-name": "execute",
       "x-ferrule-method-order": 4,
       "x-ferrule-resource": {
@@ -596,13 +592,13 @@
           },
           "package_name": "stagehand-sdk"
         }
-      }
-    },
-    "POST /v1/sessions/{id}/end": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "sessions"
       ],
-      "x-fern-sdk-method-name": "end",
+      "x-forge-method-name": "execute"
+    },
+    "POST /v1/sessions/{id}/end": {
       "x-ferrule-method-name": "end",
       "x-ferrule-method-order": 7,
       "x-ferrule-resource": {
@@ -681,13 +677,13 @@
           },
           "package_name": "stagehand-sdk"
         }
-      }
-    },
-    "POST /v1/sessions/{id}/extract": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "sessions"
       ],
-      "x-fern-sdk-method-name": "extract",
+      "x-forge-method-name": "end"
+    },
+    "POST /v1/sessions/{id}/extract": {
       "x-ferrule-method-name": "extract",
       "x-ferrule-method-order": 2,
       "x-ferrule-resource": {
@@ -791,13 +787,13 @@
           },
           "package_name": "stagehand-sdk"
         }
-      }
-    },
-    "POST /v1/sessions/{id}/navigate": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "sessions"
       ],
-      "x-fern-sdk-method-name": "navigate",
+      "x-forge-method-name": "extract"
+    },
+    "POST /v1/sessions/{id}/navigate": {
       "x-ferrule-method-name": "navigate",
       "x-ferrule-method-order": 5,
       "x-ferrule-resource": {
@@ -876,13 +872,13 @@
           },
           "package_name": "stagehand-sdk"
         }
-      }
-    },
-    "POST /v1/sessions/{id}/observe": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "sessions"
       ],
-      "x-fern-sdk-method-name": "observe",
+      "x-forge-method-name": "navigate"
+    },
+    "POST /v1/sessions/{id}/observe": {
       "x-ferrule-method-name": "observe",
       "x-ferrule-method-order": 3,
       "x-ferrule-resource": {
@@ -986,13 +982,13 @@
           },
           "package_name": "stagehand-sdk"
         }
-      }
-    },
-    "GET /v1/sessions/{id}/replay": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "sessions"
       ],
-      "x-fern-sdk-method-name": "replay",
+      "x-forge-method-name": "observe"
+    },
+    "GET /v1/sessions/{id}/replay": {
       "x-ferrule-method-name": "replay",
       "x-ferrule-method-order": 6,
       "x-ferrule-resource": {
@@ -1071,7 +1067,11 @@
           },
           "package_name": "stagehand-sdk"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "sessions"
+      ],
+      "x-forge-method-name": "replay"
     }
   }
 }

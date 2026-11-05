@@ -22,7 +22,7 @@
           "id"
         ],
         "type": "object",
-        "x-fern-type-name": "Tenant"
+        "x-forge-model-name": "Tenant"
       }
     }
   },
@@ -58,10 +58,10 @@
           }
         },
         "summary": "Gets a tenant.",
-        "x-fern-sdk-group-name": [
+        "x-forge-group-name": [
           "tenants"
         ],
-        "x-fern-sdk-method-name": "retrieve",
+        "x-forge-method-name": "retrieve",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},
@@ -153,10 +153,10 @@
           }
         },
         "summary": "Sets a tenant.",
-        "x-fern-sdk-group-name": [
+        "x-forge-group-name": [
           "tenants"
         ],
-        "x-fern-sdk-method-name": "set",
+        "x-forge-method-name": "set",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},

@@ -1,5 +1,5 @@
 {
-  "sha256": "9ea575f4dc44a20fb77fdaebd601ad2078ec581d5b0ccc56a08513a855e6843c",
+  "sha256": "9819f478819164baadfe59a67cc30a26407f7057b1f2583189158ca406231c51",
   "root": {
     "x-ferrule-casings": {
       "ilgs": {
@@ -259,11 +259,6 @@
   },
   "operations": {
     "POST /classifications/universal": {
-      "x-fern-sdk-group-name": [
-        "classifications",
-        "universal"
-      ],
-      "x-fern-sdk-method-name": "create",
       "x-ferrule-casings": {
         "ilgs": {
           "initialism": true
@@ -345,13 +340,14 @@
           "package_name": "isaacus",
           "production_repo": "isaacus-dev/isaacus-typescript"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "classifications",
+        "universal"
+      ],
+      "x-forge-method-name": "create"
     },
     "POST /embeddings": {
-      "x-fern-sdk-group-name": [
-        "embeddings"
-      ],
-      "x-fern-sdk-method-name": "create",
       "x-ferrule-casings": {
         "ilgs": {
           "initialism": true
@@ -431,13 +427,13 @@
           "package_name": "isaacus",
           "production_repo": "isaacus-dev/isaacus-typescript"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "embeddings"
+      ],
+      "x-forge-method-name": "create"
     },
     "POST /enrichments": {
-      "x-fern-sdk-group-name": [
-        "enrichments"
-      ],
-      "x-fern-sdk-method-name": "create",
       "x-ferrule-casings": {
         "ilgs": {
           "initialism": true
@@ -517,14 +513,13 @@
           "package_name": "isaacus",
           "production_repo": "isaacus-dev/isaacus-typescript"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "enrichments"
+      ],
+      "x-forge-method-name": "create"
     },
     "POST /extractions/qa": {
-      "x-fern-sdk-group-name": [
-        "extractions",
-        "qa"
-      ],
-      "x-fern-sdk-method-name": "create",
       "x-ferrule-casings": {
         "ilgs": {
           "initialism": true
@@ -606,13 +601,14 @@
           "package_name": "isaacus",
           "production_repo": "isaacus-dev/isaacus-typescript"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "extractions",
+        "qa"
+      ],
+      "x-forge-method-name": "create"
     },
     "POST /rerankings": {
-      "x-fern-sdk-group-name": [
-        "rerankings"
-      ],
-      "x-fern-sdk-method-name": "create",
       "x-ferrule-casings": {
         "ilgs": {
           "initialism": true
@@ -692,7 +688,11 @@
           "package_name": "isaacus",
           "production_repo": "isaacus-dev/isaacus-typescript"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "rerankings"
+      ],
+      "x-forge-method-name": "create"
     }
   }
 }

@@ -8,8 +8,8 @@ use serde_json::{Value, json};
 
 fn base_ext() -> Value {
     json!({
-        "x-fern-sdk-group-name": ["things"],
-        "x-fern-sdk-method-name": "list",
+        "x-forge-group-name": ["things"],
+        "x-forge-method-name": "list",
         "x-ferrule-resource": { "path": ["things"] },
         "x-ferrule-method-name": "list",
         "x-ferrule-package": { "name": "acme", "repo": "acme/acme-python" },
@@ -330,7 +330,7 @@ fn rejects_unsupported_http_methods_and_disagreeing_packages() {
 
     let mut two = doc(&json!({}), &json!({}));
     let mut other = two["paths"]["/things/{id}"]["get"].clone();
-    other["x-fern-sdk-method-name"] = json!("other");
+    other["x-forge-method-name"] = json!("other");
     other["x-ferrule-package"] = json!({ "name": "other", "repo": "o/o" });
     two["paths"]["/things/{id}"]["post"] = other;
     assert_eq!(code(model(&two)), "FER101");
@@ -349,8 +349,8 @@ fn builds_nested_resources_and_returns_none_without_operations() {
     let mut none = doc(&json!({}), &json!({}));
     let op = &mut none["paths"]["/things/{id}"]["get"];
     let o = op.as_object_mut().expect("an object");
-    o.remove("x-fern-sdk-group-name");
-    o.remove("x-fern-sdk-method-name");
+    o.remove("x-forge-group-name");
+    o.remove("x-forge-method-name");
     assert_eq!(model(&none).expect("converts"), None);
     let f = forge(&doc(&json!({}), &json!({})));
     let group = f.groups().next().expect("a group");

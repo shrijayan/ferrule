@@ -46,8 +46,8 @@
             }
           }
         },
-        "x-fern-sdk-group-name": ["agencies_with_coverage"],
-        "x-fern-sdk-method-name": "list",
+        "x-forge-group-name": ["agencies_with_coverage"],
+        "x-forge-method-name": "list",
         "x-ferrule-resource": {
           "path": ["agencies_with_coverage"]
         },

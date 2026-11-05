@@ -1,5 +1,5 @@
 {
-  "sha256": "1100c7668390fb8099a21391aaa4f09d9f139a0ae537270eb842ac6128597629",
+  "sha256": "ca0da18c38002ac249a216538ca7db923df13607391f7c83b0ff10d0d5630386",
   "root": {
     "x-ferrule-casings": {
       "lumaai": {
@@ -138,10 +138,6 @@
   },
   "operations": {
     "GET /credits": {
-      "x-fern-sdk-group-name": [
-        "credits"
-      ],
-      "x-fern-sdk-method-name": "get",
       "x-ferrule-casings": {
         "lumaai": {
           "pascal": "LumaAI"
@@ -174,13 +170,13 @@
           "package_name": "lumaai",
           "production_repo": "lumalabs/lumaai-python"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "credits"
+      ],
+      "x-forge-method-name": "get"
     },
     "GET /generations": {
-      "x-fern-sdk-group-name": [
-        "generations"
-      ],
-      "x-fern-sdk-method-name": "list",
       "x-ferrule-casings": {
         "lumaai": {
           "pascal": "LumaAI"
@@ -213,14 +209,13 @@
           "package_name": "lumaai",
           "production_repo": "lumalabs/lumaai-python"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "generations"
+      ],
+      "x-forge-method-name": "list"
     },
     "GET /generations/concepts/list": {
-      "x-fern-sdk-group-name": [
-        "generations",
-        "concepts"
-      ],
-      "x-fern-sdk-method-name": "list",
       "x-ferrule-casings": {
         "lumaai": {
           "pascal": "LumaAI"
@@ -255,14 +250,14 @@
           "package_name": "lumaai",
           "production_repo": "lumalabs/lumaai-python"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "generations",
+        "concepts"
+      ],
+      "x-forge-method-name": "list"
     },
     "POST /generations/image": {
-      "x-fern-sdk-group-name": [
-        "generations",
-        "image"
-      ],
-      "x-fern-sdk-method-name": "create",
       "x-ferrule-casings": {
         "lumaai": {
           "pascal": "LumaAI"
@@ -297,14 +292,14 @@
           "package_name": "lumaai",
           "production_repo": "lumalabs/lumaai-python"
         }
-      }
-    },
-    "POST /generations/image/reframe": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "generations",
         "image"
       ],
-      "x-fern-sdk-method-name": "reframe",
+      "x-forge-method-name": "create"
+    },
+    "POST /generations/image/reframe": {
       "x-ferrule-casings": {
         "lumaai": {
           "pascal": "LumaAI"
@@ -339,15 +334,16 @@
           "package_name": "lumaai",
           "production_repo": "lumalabs/lumaai-python"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "generations",
+        "image"
+      ],
+      "x-forge-method-name": "reframe"
     },
     "POST /generations/video": {
       "x-forge-aliases": [
         {
-          "x-fern-sdk-group-name": [
-            "generations"
-          ],
-          "x-fern-sdk-method-name": "create",
           "x-ferrule-casings": {
             "lumaai": {
               "pascal": "LumaAI"
@@ -436,14 +432,13 @@
               "package_name": "lumaai",
               "production_repo": "lumalabs/lumaai-python"
             }
-          }
+          },
+          "x-forge-group-name": [
+            "generations"
+          ],
+          "x-forge-method-name": "create"
         },
         {
-          "x-fern-sdk-group-name": [
-            "generations",
-            "video"
-          ],
-          "x-fern-sdk-method-name": "create",
           "x-ferrule-casings": {
             "lumaai": {
               "pascal": "LumaAI"
@@ -534,16 +529,16 @@
               "package_name": "lumaai",
               "production_repo": "lumalabs/lumaai-python"
             }
-          }
+          },
+          "x-forge-group-name": [
+            "generations",
+            "video"
+          ],
+          "x-forge-method-name": "create"
         }
       ]
     },
     "POST /generations/video/modify": {
-      "x-fern-sdk-group-name": [
-        "generations",
-        "video"
-      ],
-      "x-fern-sdk-method-name": "modify",
       "x-ferrule-casings": {
         "lumaai": {
           "pascal": "LumaAI"
@@ -578,14 +573,14 @@
           "package_name": "lumaai",
           "production_repo": "lumalabs/lumaai-python"
         }
-      }
-    },
-    "POST /generations/video/reframe": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "generations",
         "video"
       ],
-      "x-fern-sdk-method-name": "reframe",
+      "x-forge-method-name": "modify"
+    },
+    "POST /generations/video/reframe": {
       "x-ferrule-casings": {
         "lumaai": {
           "pascal": "LumaAI"
@@ -620,13 +615,14 @@
           "package_name": "lumaai",
           "production_repo": "lumalabs/lumaai-python"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "generations",
+        "video"
+      ],
+      "x-forge-method-name": "reframe"
     },
     "DELETE /generations/{id}": {
-      "x-fern-sdk-group-name": [
-        "generations"
-      ],
-      "x-fern-sdk-method-name": "delete",
       "x-ferrule-casings": {
         "lumaai": {
           "pascal": "LumaAI"
@@ -659,13 +655,13 @@
           "package_name": "lumaai",
           "production_repo": "lumalabs/lumaai-python"
         }
-      }
-    },
-    "GET /generations/{id}": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "generations"
       ],
-      "x-fern-sdk-method-name": "get",
+      "x-forge-method-name": "delete"
+    },
+    "GET /generations/{id}": {
       "x-ferrule-casings": {
         "lumaai": {
           "pascal": "LumaAI"
@@ -698,13 +694,13 @@
           "package_name": "lumaai",
           "production_repo": "lumalabs/lumaai-python"
         }
-      }
-    },
-    "POST /generations/{id}/audio": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "generations"
       ],
-      "x-fern-sdk-method-name": "audio",
+      "x-forge-method-name": "get"
+    },
+    "POST /generations/{id}/audio": {
       "x-ferrule-casings": {
         "lumaai": {
           "pascal": "LumaAI"
@@ -737,13 +733,13 @@
           "package_name": "lumaai",
           "production_repo": "lumalabs/lumaai-python"
         }
-      }
-    },
-    "POST /generations/{id}/upscale": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "generations"
       ],
-      "x-fern-sdk-method-name": "upscale",
+      "x-forge-method-name": "audio"
+    },
+    "POST /generations/{id}/upscale": {
       "x-ferrule-casings": {
         "lumaai": {
           "pascal": "LumaAI"
@@ -776,13 +772,13 @@
           "package_name": "lumaai",
           "production_repo": "lumalabs/lumaai-python"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "generations"
+      ],
+      "x-forge-method-name": "upscale"
     },
     "GET /ping": {
-      "x-fern-sdk-group-name": [
-        "ping"
-      ],
-      "x-fern-sdk-method-name": "check",
       "x-ferrule-casings": {
         "lumaai": {
           "pascal": "LumaAI"
@@ -815,7 +811,11 @@
           "package_name": "lumaai",
           "production_repo": "lumalabs/lumaai-python"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "ping"
+      ],
+      "x-forge-method-name": "check"
     }
   }
 }

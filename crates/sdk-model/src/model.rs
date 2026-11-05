@@ -174,7 +174,7 @@ pub struct Object {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Field {
-    /// The words of `x-fern-property-name` or the wire name; `written` is the wire name.
+    /// The words of `x-forge-property-name` or the wire name; `written` is the wire name.
     pub name: Name,
     /// The property name as sent.
     pub wire_name: String,

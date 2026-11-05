@@ -113,7 +113,7 @@
           "type"
         ],
         "type": "object",
-        "x-fern-type-name": "StreamEvent"
+        "x-forge-model-name": "StreamEvent"
       }
     }
   },
@@ -149,10 +149,10 @@
           }
         },
         "summary": "Create a completion.",
-        "x-fern-sdk-group-name": [
+        "x-forge-group-name": [
           "completions"
         ],
-        "x-fern-sdk-method-name": "create",
+        "x-forge-method-name": "create",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},
@@ -259,10 +259,10 @@
           }
         },
         "summary": "Perform an action",
-        "x-fern-sdk-group-name": [
+        "x-forge-group-name": [
           "sessions"
         ],
-        "x-fern-sdk-method-name": "act",
+        "x-forge-method-name": "act",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},

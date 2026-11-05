@@ -58,10 +58,10 @@
             "description": "ok"
           }
         },
-        "x-fern-sdk-group-name": [
+        "x-forge-group-name": [
           "messages"
         ],
-        "x-fern-sdk-method-name": "upload",
+        "x-forge-method-name": "upload",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},

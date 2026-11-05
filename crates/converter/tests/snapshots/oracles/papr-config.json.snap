@@ -1,5 +1,5 @@
 {
-  "sha256": "c45b8217da3a349aa8f3077d85e8f38b303f8e36baaf8c3bf96a699805599109",
+  "sha256": "90b890f87e4ad7a21b8d0b58ec268cc14530a4b790bbd6e8aeb282916095a5dc",
   "root": {
     "x-ferrule-client": {
       "defaultEnvironment": "production",
@@ -286,10 +286,6 @@
   },
   "operations": {
     "POST /v1/feedback": {
-      "x-fern-sdk-group-name": [
-        "feedback"
-      ],
-      "x-fern-sdk-method-name": "submit",
       "x-ferrule-method-name": "submit",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -319,13 +315,13 @@
           "production_repo": "Papr-ai/papr-TypescriptSDK"
         }
       },
+      "x-forge-group-name": [
+        "feedback"
+      ],
+      "x-forge-method-name": "submit",
       "x-openai-isConsequential": false
     },
     "POST /v1/feedback/batch": {
-      "x-fern-sdk-group-name": [
-        "feedback"
-      ],
-      "x-fern-sdk-method-name": "submitBatch",
       "x-ferrule-method-name": "submitBatch",
       "x-ferrule-method-order": 1,
       "x-ferrule-resource": {
@@ -355,13 +351,13 @@
           "production_repo": "Papr-ai/papr-TypescriptSDK"
         }
       },
+      "x-forge-group-name": [
+        "feedback"
+      ],
+      "x-forge-method-name": "submitBatch",
       "x-openai-isConsequential": false
     },
     "GET /v1/feedback/{feedback_id}": {
-      "x-fern-sdk-group-name": [
-        "feedback"
-      ],
-      "x-fern-sdk-method-name": "getById",
       "x-ferrule-method-name": "getById",
       "x-ferrule-method-order": 2,
       "x-ferrule-resource": {
@@ -391,13 +387,13 @@
           "production_repo": "Papr-ai/papr-TypescriptSDK"
         }
       },
+      "x-forge-group-name": [
+        "feedback"
+      ],
+      "x-forge-method-name": "getById",
       "x-openai-isConsequential": false
     },
     "POST /v1/memory": {
-      "x-fern-sdk-group-name": [
-        "memory"
-      ],
-      "x-fern-sdk-method-name": "add",
       "x-ferrule-method-name": "add",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -427,16 +423,16 @@
           "production_repo": "Papr-ai/papr-TypescriptSDK"
         }
       },
+      "x-forge-group-name": [
+        "memory"
+      ],
+      "x-forge-method-name": "add",
       "x-openai-isConsequential": false
     },
     "DELETE /v1/memory/all": {
       "x-openai-isConsequential": true
     },
     "POST /v1/memory/batch": {
-      "x-fern-sdk-group-name": [
-        "memory"
-      ],
-      "x-fern-sdk-method-name": "add_batch",
       "x-ferrule-method-name": "add_batch",
       "x-ferrule-method-order": 4,
       "x-ferrule-resource": {
@@ -466,13 +462,13 @@
           "production_repo": "Papr-ai/papr-TypescriptSDK"
         }
       },
+      "x-forge-group-name": [
+        "memory"
+      ],
+      "x-forge-method-name": "add_batch",
       "x-openai-isConsequential": false
     },
     "POST /v1/memory/search": {
-      "x-fern-sdk-group-name": [
-        "memory"
-      ],
-      "x-fern-sdk-method-name": "search",
       "x-ferrule-method-name": "search",
       "x-ferrule-method-order": 5,
       "x-ferrule-resource": {
@@ -502,13 +498,13 @@
           "production_repo": "Papr-ai/papr-TypescriptSDK"
         }
       },
+      "x-forge-group-name": [
+        "memory"
+      ],
+      "x-forge-method-name": "search",
       "x-openai-isConsequential": false
     },
     "DELETE /v1/memory/{memory_id}": {
-      "x-fern-sdk-group-name": [
-        "memory"
-      ],
-      "x-fern-sdk-method-name": "delete",
       "x-ferrule-method-name": "delete",
       "x-ferrule-method-order": 2,
       "x-ferrule-resource": {
@@ -538,13 +534,13 @@
           "production_repo": "Papr-ai/papr-TypescriptSDK"
         }
       },
+      "x-forge-group-name": [
+        "memory"
+      ],
+      "x-forge-method-name": "delete",
       "x-openai-isConsequential": true
     },
     "GET /v1/memory/{memory_id}": {
-      "x-fern-sdk-group-name": [
-        "memory"
-      ],
-      "x-fern-sdk-method-name": "get",
       "x-ferrule-method-name": "get",
       "x-ferrule-method-order": 3,
       "x-ferrule-resource": {
@@ -574,13 +570,13 @@
           "production_repo": "Papr-ai/papr-TypescriptSDK"
         }
       },
+      "x-forge-group-name": [
+        "memory"
+      ],
+      "x-forge-method-name": "get",
       "x-openai-isConsequential": false
     },
     "PUT /v1/memory/{memory_id}": {
-      "x-fern-sdk-group-name": [
-        "memory"
-      ],
-      "x-fern-sdk-method-name": "update",
       "x-ferrule-method-name": "update",
       "x-ferrule-method-order": 1,
       "x-ferrule-resource": {
@@ -610,6 +606,10 @@
           "production_repo": "Papr-ai/papr-TypescriptSDK"
         }
       },
+      "x-forge-group-name": [
+        "memory"
+      ],
+      "x-forge-method-name": "update",
       "x-openai-isConsequential": true
     },
     "GET /v1/schemas": {
@@ -631,10 +631,6 @@
       "x-openai-isConsequential": false
     },
     "GET /v1/user": {
-      "x-fern-sdk-group-name": [
-        "user"
-      ],
-      "x-fern-sdk-method-name": "list",
       "x-ferrule-method-name": "list",
       "x-ferrule-method-order": 1,
       "x-ferrule-resource": {
@@ -664,6 +660,10 @@
           "production_repo": "Papr-ai/papr-TypescriptSDK"
         }
       },
+      "x-forge-group-name": [
+        "user"
+      ],
+      "x-forge-method-name": "list",
       "x-operation-description": "List users for a developer",
       "x-operation-name": "list_users",
       "x-operation-tags": [
@@ -671,10 +671,6 @@
       ]
     },
     "POST /v1/user": {
-      "x-fern-sdk-group-name": [
-        "user"
-      ],
-      "x-fern-sdk-method-name": "create",
       "x-ferrule-method-name": "create",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -704,6 +700,10 @@
           "production_repo": "Papr-ai/papr-TypescriptSDK"
         }
       },
+      "x-forge-group-name": [
+        "user"
+      ],
+      "x-forge-method-name": "create",
       "x-operation-description": "Create a new user or link existing user to developer",
       "x-operation-name": "create_user",
       "x-operation-tags": [
@@ -711,10 +711,6 @@
       ]
     },
     "POST /v1/user/batch": {
-      "x-fern-sdk-group-name": [
-        "user"
-      ],
-      "x-fern-sdk-method-name": "create_batch",
       "x-ferrule-method-name": "create_batch",
       "x-ferrule-method-order": 5,
       "x-ferrule-resource": {
@@ -744,6 +740,10 @@
           "production_repo": "Papr-ai/papr-TypescriptSDK"
         }
       },
+      "x-forge-group-name": [
+        "user"
+      ],
+      "x-forge-method-name": "create_batch",
       "x-operation-description": "Create multiple users or link existing users to developer, and add each to the developer's workspace (if one exists).",
       "x-operation-name": "create_user_batch",
       "x-operation-tags": [
@@ -751,10 +751,6 @@
       ]
     },
     "DELETE /v1/user/{user_id}": {
-      "x-fern-sdk-group-name": [
-        "user"
-      ],
-      "x-fern-sdk-method-name": "delete",
       "x-ferrule-method-name": "delete",
       "x-ferrule-method-order": 4,
       "x-ferrule-resource": {
@@ -784,6 +780,10 @@
           "production_repo": "Papr-ai/papr-TypescriptSDK"
         }
       },
+      "x-forge-group-name": [
+        "user"
+      ],
+      "x-forge-method-name": "delete",
       "x-operation-description": "Delete user association with developer and the user itself by , assume external user_id is provided, and resolve to internal user_id (_User.objectId)",
       "x-operation-name": "delete_user",
       "x-operation-tags": [
@@ -791,10 +791,6 @@
       ]
     },
     "GET /v1/user/{user_id}": {
-      "x-fern-sdk-group-name": [
-        "user"
-      ],
-      "x-fern-sdk-method-name": "get",
       "x-ferrule-method-name": "get",
       "x-ferrule-method-order": 2,
       "x-ferrule-resource": {
@@ -824,6 +820,10 @@
           "production_repo": "Papr-ai/papr-TypescriptSDK"
         }
       },
+      "x-forge-group-name": [
+        "user"
+      ],
+      "x-forge-method-name": "get",
       "x-operation-description": "Get user details by user_id (_User.objectId) and developer association",
       "x-operation-name": "get_user",
       "x-operation-tags": [
@@ -831,10 +831,6 @@
       ]
     },
     "PUT /v1/user/{user_id}": {
-      "x-fern-sdk-group-name": [
-        "user"
-      ],
-      "x-fern-sdk-method-name": "update",
       "x-ferrule-method-name": "update",
       "x-ferrule-method-order": 3,
       "x-ferrule-resource": {
@@ -864,6 +860,10 @@
           "production_repo": "Papr-ai/papr-TypescriptSDK"
         }
       },
+      "x-forge-group-name": [
+        "user"
+      ],
+      "x-forge-method-name": "update",
       "x-operation-description": "Update user details by user_id (_User.objectId) and developer association",
       "x-operation-name": "update_user",
       "x-operation-tags": [

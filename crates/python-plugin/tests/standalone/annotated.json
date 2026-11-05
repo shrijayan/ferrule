@@ -11,7 +11,7 @@
           "answer"
         ],
         "type": "object",
-        "x-fern-type-name": "AnswerExtractionResponse"
+        "x-forge-model-name": "AnswerExtractionResponse"
       },
       "ILGSv1 ID Number": {
         "properties": {
@@ -23,7 +23,7 @@
           "value"
         ],
         "type": "object",
-        "x-fern-type-name": "IDNumber"
+        "x-forge-model-name": "IDNumber"
       },
       "ILGSv1Document": {
         "properties": {
@@ -38,7 +38,7 @@
           "ids"
         ],
         "type": "object",
-        "x-fern-type-name": "Document"
+        "x-forge-model-name": "Document"
       }
     },
     "securitySchemes": {
@@ -93,10 +93,10 @@
           }
         },
         "summary": "Enrich a document.",
-        "x-fern-sdk-group-name": [
+        "x-forge-group-name": [
           "enrichments"
         ],
-        "x-fern-sdk-method-name": "create",
+        "x-forge-method-name": "create",
         "x-ferrule-casings": {
           "ilgs": {
             "initialism": true
@@ -245,11 +245,11 @@
           }
         },
         "summary": "Extract answers.",
-        "x-fern-sdk-group-name": [
+        "x-forge-group-name": [
           "extractions",
           "qa"
         ],
-        "x-fern-sdk-method-name": "create",
+        "x-forge-method-name": "create",
         "x-ferrule-casings": {
           "ilgs": {
             "initialism": true
