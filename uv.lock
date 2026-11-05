@@ -241,7 +241,7 @@ wheels = [
 
 [[package]]
 name = "ferrule"
-version = "0.0.0"
+version = "0.1.0"
 source = { editable = "migrate" }
 dependencies = [
     { name = "griffe" },
@@ -256,7 +256,7 @@ requires-dist = [
 
 [[package]]
 name = "ferrule-runtime"
-version = "0.0.0"
+version = "0.1.0"
 source = { editable = "runtime" }
 dependencies = [
     { name = "anyio" },

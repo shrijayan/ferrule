@@ -31,6 +31,7 @@ from ferrule.generate import (
     resolve_tools,
     run_subprocess,
     runtime_copies,
+    sort_imports_step,
     symlinks,
     tree_digest,
 )
@@ -86,6 +87,32 @@ def test_resolve_tools_precedence(tmp_path: Path) -> None:
     assert resolve_tools(env, gen=Path("/arg/gen")).gen == Path("/arg/gen")
     default = resolve_tools({"FERRULE_GEN": ""}, root=tmp_path)
     assert default == Tools(gen=tmp_path / "target/release/ferrule-gen", ruff="ruff")
+
+
+def test_ruff_steps_use_the_generated_sdks_own_config(
+    inputs: tuple[GenerateRequest, Path],
+) -> None:
+    request, _ = inputs
+    (request.out / "pyproject.toml").parent.mkdir(parents=True, exist_ok=True)
+    (request.out / "pyproject.toml").write_text("")
+    assert "--config" not in sort_imports_step(request.out, request.tools).argv
+    assert "--config" not in format_step(request.out, request.tools).argv
+
+
+def test_ruff_steps_fall_back_to_the_adopted_sdks_config(
+    inputs: tuple[GenerateRequest, Path], tmp_path: Path
+) -> None:
+    # No project files are generated for an older runtime. Ruff's default isort order puts
+    # `._utils` after `._transform` in `_utils/__init__.py`, a circular import (knock, opencode).
+    request, _ = inputs
+    adopted = tmp_path / "adopted"
+    adopted.mkdir()
+    (adopted / "pyproject.toml").write_text("")
+    config = ("--config", str(adopted / "pyproject.toml"))
+    sort_argv = sort_imports_step(request.out, request.tools, adopted).argv
+    format_argv = format_step(request.out, request.tools, adopted).argv
+    assert sort_argv[-3:-1] == config
+    assert format_argv[-3:-1] == config
 
 
 def test_plan_steps(inputs: tuple[GenerateRequest, Path]) -> None:
