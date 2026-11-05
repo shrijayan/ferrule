@@ -1,5 +1,5 @@
 {
-  "sha256": "19fd0abdc5d96ed4f231fc7c6ab2eb8a5aafcd14f82f0c6ce985a0e418df1e74",
+  "sha256": "aeabb42c45a16e547d8b3d138df4c997fec3e5e5003b9252eed4aeb37f10f5e8",
   "root": {
     "x-ferrule-client": {
       "defaultEnvironment": "production",
@@ -454,10 +454,6 @@
   },
   "operations": {
     "POST /api/v1/files/upload": {
-      "x-fern-sdk-group-name": [
-        "files"
-      ],
-      "x-fern-sdk-method-name": "upload",
       "x-ferrule-method-name": "upload",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -551,15 +547,13 @@
           "package_name": "@imagekit/nodejs",
           "production_repo": "imagekit-developer/imagekit-nodejs#master"
         }
-      }
-    },
-    "POST /api/v2/files/upload": {
-      "x-fern-sdk-group-name": [
-        "beta",
-        "v2",
+      },
+      "x-forge-group-name": [
         "files"
       ],
-      "x-fern-sdk-method-name": "upload",
+      "x-forge-method-name": "upload"
+    },
+    "POST /api/v2/files/upload": {
       "x-ferrule-method-name": "upload",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -657,14 +651,15 @@
           "package_name": "@imagekit/nodejs",
           "production_repo": "imagekit-developer/imagekit-nodejs#master"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "beta",
+        "v2",
+        "files"
+      ],
+      "x-forge-method-name": "upload"
     },
     "GET /v1/accounts/origins": {
-      "x-fern-sdk-group-name": [
-        "accounts",
-        "origins"
-      ],
-      "x-fern-sdk-method-name": "list",
       "x-ferrule-method-name": "list",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -760,14 +755,14 @@
           "package_name": "@imagekit/nodejs",
           "production_repo": "imagekit-developer/imagekit-nodejs#master"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "accounts",
+        "origins"
+      ],
+      "x-forge-method-name": "list"
     },
     "POST /v1/accounts/origins": {
-      "x-fern-sdk-group-name": [
-        "accounts",
-        "origins"
-      ],
-      "x-fern-sdk-method-name": "create",
       "x-ferrule-method-name": "create",
       "x-ferrule-method-order": 1,
       "x-ferrule-resource": {
@@ -863,14 +858,14 @@
           "package_name": "@imagekit/nodejs",
           "production_repo": "imagekit-developer/imagekit-nodejs#master"
         }
-      }
-    },
-    "DELETE /v1/accounts/origins/{id}": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "accounts",
         "origins"
       ],
-      "x-fern-sdk-method-name": "delete",
+      "x-forge-method-name": "create"
+    },
+    "DELETE /v1/accounts/origins/{id}": {
       "x-ferrule-method-name": "delete",
       "x-ferrule-method-order": 4,
       "x-ferrule-resource": {
@@ -966,14 +961,14 @@
           "package_name": "@imagekit/nodejs",
           "production_repo": "imagekit-developer/imagekit-nodejs#master"
         }
-      }
-    },
-    "GET /v1/accounts/origins/{id}": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "accounts",
         "origins"
       ],
-      "x-fern-sdk-method-name": "get",
+      "x-forge-method-name": "delete"
+    },
+    "GET /v1/accounts/origins/{id}": {
       "x-ferrule-method-name": "get",
       "x-ferrule-method-order": 2,
       "x-ferrule-resource": {
@@ -1069,14 +1064,14 @@
           "package_name": "@imagekit/nodejs",
           "production_repo": "imagekit-developer/imagekit-nodejs#master"
         }
-      }
-    },
-    "PUT /v1/accounts/origins/{id}": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "accounts",
         "origins"
       ],
-      "x-fern-sdk-method-name": "update",
+      "x-forge-method-name": "get"
+    },
+    "PUT /v1/accounts/origins/{id}": {
       "x-ferrule-method-name": "update",
       "x-ferrule-method-order": 3,
       "x-ferrule-resource": {
@@ -1172,14 +1167,14 @@
           "package_name": "@imagekit/nodejs",
           "production_repo": "imagekit-developer/imagekit-nodejs#master"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "accounts",
+        "origins"
+      ],
+      "x-forge-method-name": "update"
     },
     "GET /v1/accounts/url-endpoints": {
-      "x-fern-sdk-group-name": [
-        "accounts",
-        "urlEndpoints"
-      ],
-      "x-fern-sdk-method-name": "list",
       "x-ferrule-method-name": "list",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -1275,14 +1270,14 @@
           "package_name": "@imagekit/nodejs",
           "production_repo": "imagekit-developer/imagekit-nodejs#master"
         }
-      }
-    },
-    "POST /v1/accounts/url-endpoints": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "accounts",
         "urlEndpoints"
       ],
-      "x-fern-sdk-method-name": "create",
+      "x-forge-method-name": "list"
+    },
+    "POST /v1/accounts/url-endpoints": {
       "x-ferrule-method-name": "create",
       "x-ferrule-method-order": 1,
       "x-ferrule-resource": {
@@ -1378,14 +1373,14 @@
           "package_name": "@imagekit/nodejs",
           "production_repo": "imagekit-developer/imagekit-nodejs#master"
         }
-      }
-    },
-    "DELETE /v1/accounts/url-endpoints/{id}": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "accounts",
         "urlEndpoints"
       ],
-      "x-fern-sdk-method-name": "delete",
+      "x-forge-method-name": "create"
+    },
+    "DELETE /v1/accounts/url-endpoints/{id}": {
       "x-ferrule-method-name": "delete",
       "x-ferrule-method-order": 4,
       "x-ferrule-resource": {
@@ -1481,14 +1476,14 @@
           "package_name": "@imagekit/nodejs",
           "production_repo": "imagekit-developer/imagekit-nodejs#master"
         }
-      }
-    },
-    "GET /v1/accounts/url-endpoints/{id}": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "accounts",
         "urlEndpoints"
       ],
-      "x-fern-sdk-method-name": "get",
+      "x-forge-method-name": "delete"
+    },
+    "GET /v1/accounts/url-endpoints/{id}": {
       "x-ferrule-method-name": "get",
       "x-ferrule-method-order": 2,
       "x-ferrule-resource": {
@@ -1584,14 +1579,14 @@
           "package_name": "@imagekit/nodejs",
           "production_repo": "imagekit-developer/imagekit-nodejs#master"
         }
-      }
-    },
-    "PUT /v1/accounts/url-endpoints/{id}": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "accounts",
         "urlEndpoints"
       ],
-      "x-fern-sdk-method-name": "update",
+      "x-forge-method-name": "get"
+    },
+    "PUT /v1/accounts/url-endpoints/{id}": {
       "x-ferrule-method-name": "update",
       "x-ferrule-method-order": 3,
       "x-ferrule-resource": {
@@ -1687,14 +1682,14 @@
           "package_name": "@imagekit/nodejs",
           "production_repo": "imagekit-developer/imagekit-nodejs#master"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "accounts",
+        "urlEndpoints"
+      ],
+      "x-forge-method-name": "update"
     },
     "GET /v1/accounts/usage": {
-      "x-fern-sdk-group-name": [
-        "accounts",
-        "usage"
-      ],
-      "x-fern-sdk-method-name": "get",
       "x-ferrule-method-name": "get",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -1790,13 +1785,14 @@
           "package_name": "@imagekit/nodejs",
           "production_repo": "imagekit-developer/imagekit-nodejs#master"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "accounts",
+        "usage"
+      ],
+      "x-forge-method-name": "get"
     },
     "POST /v1/bulkJobs/copyFolder": {
-      "x-fern-sdk-group-name": [
-        "folders"
-      ],
-      "x-fern-sdk-method-name": "copy",
       "x-ferrule-method-name": "copy",
       "x-ferrule-method-order": 2,
       "x-ferrule-resource": {
@@ -1890,13 +1886,13 @@
           "package_name": "@imagekit/nodejs",
           "production_repo": "imagekit-developer/imagekit-nodejs#master"
         }
-      }
-    },
-    "POST /v1/bulkJobs/moveFolder": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "folders"
       ],
-      "x-fern-sdk-method-name": "move",
+      "x-forge-method-name": "copy"
+    },
+    "POST /v1/bulkJobs/moveFolder": {
       "x-ferrule-method-name": "move",
       "x-ferrule-method-order": 3,
       "x-ferrule-resource": {
@@ -1990,13 +1986,13 @@
           "package_name": "@imagekit/nodejs",
           "production_repo": "imagekit-developer/imagekit-nodejs#master"
         }
-      }
-    },
-    "POST /v1/bulkJobs/renameFolder": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "folders"
       ],
-      "x-fern-sdk-method-name": "rename",
+      "x-forge-method-name": "move"
+    },
+    "POST /v1/bulkJobs/renameFolder": {
       "x-ferrule-method-name": "rename",
       "x-ferrule-method-order": 4,
       "x-ferrule-resource": {
@@ -2090,14 +2086,13 @@
           "package_name": "@imagekit/nodejs",
           "production_repo": "imagekit-developer/imagekit-nodejs#master"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "folders"
+      ],
+      "x-forge-method-name": "rename"
     },
     "GET /v1/bulkJobs/{jobId}": {
-      "x-fern-sdk-group-name": [
-        "folders",
-        "job"
-      ],
-      "x-fern-sdk-method-name": "get",
       "x-ferrule-method-name": "get",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -2193,13 +2188,14 @@
           "package_name": "@imagekit/nodejs",
           "production_repo": "imagekit-developer/imagekit-nodejs#master"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "folders",
+        "job"
+      ],
+      "x-forge-method-name": "get"
     },
     "GET /v1/customMetadataFields": {
-      "x-fern-sdk-group-name": [
-        "customMetadataFields"
-      ],
-      "x-fern-sdk-method-name": "list",
       "x-ferrule-method-name": "list",
       "x-ferrule-method-order": 1,
       "x-ferrule-resource": {
@@ -2293,13 +2289,13 @@
           "package_name": "@imagekit/nodejs",
           "production_repo": "imagekit-developer/imagekit-nodejs#master"
         }
-      }
-    },
-    "POST /v1/customMetadataFields": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "customMetadataFields"
       ],
-      "x-fern-sdk-method-name": "create",
+      "x-forge-method-name": "list"
+    },
+    "POST /v1/customMetadataFields": {
       "x-ferrule-method-name": "create",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -2393,13 +2389,13 @@
           "package_name": "@imagekit/nodejs",
           "production_repo": "imagekit-developer/imagekit-nodejs#master"
         }
-      }
-    },
-    "DELETE /v1/customMetadataFields/{id}": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "customMetadataFields"
       ],
-      "x-fern-sdk-method-name": "delete",
+      "x-forge-method-name": "create"
+    },
+    "DELETE /v1/customMetadataFields/{id}": {
       "x-ferrule-method-name": "delete",
       "x-ferrule-method-order": 3,
       "x-ferrule-resource": {
@@ -2493,13 +2489,13 @@
           "package_name": "@imagekit/nodejs",
           "production_repo": "imagekit-developer/imagekit-nodejs#master"
         }
-      }
-    },
-    "PATCH /v1/customMetadataFields/{id}": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "customMetadataFields"
       ],
-      "x-fern-sdk-method-name": "update",
+      "x-forge-method-name": "delete"
+    },
+    "PATCH /v1/customMetadataFields/{id}": {
       "x-ferrule-method-name": "update",
       "x-ferrule-method-order": 2,
       "x-ferrule-resource": {
@@ -2593,13 +2589,13 @@
           "package_name": "@imagekit/nodejs",
           "production_repo": "imagekit-developer/imagekit-nodejs#master"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "customMetadataFields"
+      ],
+      "x-forge-method-name": "update"
     },
     "POST /v1/dummy/test": {
-      "x-fern-sdk-group-name": [
-        "dummy"
-      ],
-      "x-fern-sdk-method-name": "create",
       "x-ferrule-method-name": "create",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -2697,13 +2693,13 @@
       "x-ferrule-targets-only": [
         "python",
         "go"
-      ]
+      ],
+      "x-forge-group-name": [
+        "dummy"
+      ],
+      "x-forge-method-name": "create"
     },
     "GET /v1/files": {
-      "x-fern-sdk-group-name": [
-        "assets"
-      ],
-      "x-fern-sdk-method-name": "list",
       "x-ferrule-method-name": "list",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -2797,14 +2793,13 @@
           "package_name": "@imagekit/nodejs",
           "production_repo": "imagekit-developer/imagekit-nodejs#master"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "assets"
+      ],
+      "x-forge-method-name": "list"
     },
     "POST /v1/files/addTags": {
-      "x-fern-sdk-group-name": [
-        "files",
-        "bulk"
-      ],
-      "x-fern-sdk-method-name": "addTags",
       "x-ferrule-method-name": "addTags",
       "x-ferrule-method-order": 1,
       "x-ferrule-resource": {
@@ -2900,14 +2895,14 @@
           "package_name": "@imagekit/nodejs",
           "production_repo": "imagekit-developer/imagekit-nodejs#master"
         }
-      }
-    },
-    "POST /v1/files/batch/deleteByFileIds": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "files",
         "bulk"
       ],
-      "x-fern-sdk-method-name": "delete",
+      "x-forge-method-name": "addTags"
+    },
+    "POST /v1/files/batch/deleteByFileIds": {
       "x-ferrule-method-name": "delete",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -3003,13 +2998,14 @@
           "package_name": "@imagekit/nodejs",
           "production_repo": "imagekit-developer/imagekit-nodejs#master"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "files",
+        "bulk"
+      ],
+      "x-forge-method-name": "delete"
     },
     "POST /v1/files/copy": {
-      "x-fern-sdk-group-name": [
-        "files"
-      ],
-      "x-fern-sdk-method-name": "copy",
       "x-ferrule-method-name": "copy",
       "x-ferrule-method-order": 4,
       "x-ferrule-resource": {
@@ -3103,13 +3099,13 @@
           "package_name": "@imagekit/nodejs",
           "production_repo": "imagekit-developer/imagekit-nodejs#master"
         }
-      }
-    },
-    "POST /v1/files/move": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "files"
       ],
-      "x-fern-sdk-method-name": "move",
+      "x-forge-method-name": "copy"
+    },
+    "POST /v1/files/move": {
       "x-ferrule-method-name": "move",
       "x-ferrule-method-order": 5,
       "x-ferrule-resource": {
@@ -3203,14 +3199,13 @@
           "package_name": "@imagekit/nodejs",
           "production_repo": "imagekit-developer/imagekit-nodejs#master"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "files"
+      ],
+      "x-forge-method-name": "move"
     },
     "POST /v1/files/purge": {
-      "x-fern-sdk-group-name": [
-        "cache",
-        "invalidation"
-      ],
-      "x-fern-sdk-method-name": "create",
       "x-ferrule-method-name": "create",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -3306,14 +3301,14 @@
           "package_name": "@imagekit/nodejs",
           "production_repo": "imagekit-developer/imagekit-nodejs#master"
         }
-      }
-    },
-    "GET /v1/files/purge/{requestId}": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "cache",
         "invalidation"
       ],
-      "x-fern-sdk-method-name": "get",
+      "x-forge-method-name": "create"
+    },
+    "GET /v1/files/purge/{requestId}": {
       "x-ferrule-method-name": "get",
       "x-ferrule-method-order": 1,
       "x-ferrule-resource": {
@@ -3409,14 +3404,14 @@
           "package_name": "@imagekit/nodejs",
           "production_repo": "imagekit-developer/imagekit-nodejs#master"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "cache",
+        "invalidation"
+      ],
+      "x-forge-method-name": "get"
     },
     "POST /v1/files/removeAITags": {
-      "x-fern-sdk-group-name": [
-        "files",
-        "bulk"
-      ],
-      "x-fern-sdk-method-name": "removeAiTags",
       "x-ferrule-method-name": "removeAiTags",
       "x-ferrule-method-order": 3,
       "x-ferrule-resource": {
@@ -3512,14 +3507,14 @@
           "package_name": "@imagekit/nodejs",
           "production_repo": "imagekit-developer/imagekit-nodejs#master"
         }
-      }
-    },
-    "POST /v1/files/removeTags": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "files",
         "bulk"
       ],
-      "x-fern-sdk-method-name": "removeTags",
+      "x-forge-method-name": "removeAiTags"
+    },
+    "POST /v1/files/removeTags": {
       "x-ferrule-method-name": "removeTags",
       "x-ferrule-method-order": 2,
       "x-ferrule-resource": {
@@ -3615,13 +3610,14 @@
           "package_name": "@imagekit/nodejs",
           "production_repo": "imagekit-developer/imagekit-nodejs#master"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "files",
+        "bulk"
+      ],
+      "x-forge-method-name": "removeTags"
     },
     "PUT /v1/files/rename": {
-      "x-fern-sdk-group-name": [
-        "files"
-      ],
-      "x-fern-sdk-method-name": "rename",
       "x-ferrule-method-name": "rename",
       "x-ferrule-method-order": 6,
       "x-ferrule-resource": {
@@ -3715,13 +3711,13 @@
           "package_name": "@imagekit/nodejs",
           "production_repo": "imagekit-developer/imagekit-nodejs#master"
         }
-      }
-    },
-    "DELETE /v1/files/{fileId}": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "files"
       ],
-      "x-fern-sdk-method-name": "delete",
+      "x-forge-method-name": "rename"
+    },
+    "DELETE /v1/files/{fileId}": {
       "x-ferrule-method-name": "delete",
       "x-ferrule-method-order": 3,
       "x-ferrule-resource": {
@@ -3815,13 +3811,13 @@
           "package_name": "@imagekit/nodejs",
           "production_repo": "imagekit-developer/imagekit-nodejs#master"
         }
-      }
-    },
-    "GET /v1/files/{fileId}/details": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "files"
       ],
-      "x-fern-sdk-method-name": "get",
+      "x-forge-method-name": "delete"
+    },
+    "GET /v1/files/{fileId}/details": {
       "x-ferrule-method-name": "get",
       "x-ferrule-method-order": 1,
       "x-ferrule-resource": {
@@ -3915,13 +3911,13 @@
           "package_name": "@imagekit/nodejs",
           "production_repo": "imagekit-developer/imagekit-nodejs#master"
         }
-      }
-    },
-    "PATCH /v1/files/{fileId}/details": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "files"
       ],
-      "x-fern-sdk-method-name": "update",
+      "x-forge-method-name": "get"
+    },
+    "PATCH /v1/files/{fileId}/details": {
       "x-ferrule-method-name": "update",
       "x-ferrule-method-order": 2,
       "x-ferrule-resource": {
@@ -4015,14 +4011,13 @@
           "package_name": "@imagekit/nodejs",
           "production_repo": "imagekit-developer/imagekit-nodejs#master"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "files"
+      ],
+      "x-forge-method-name": "update"
     },
     "GET /v1/files/{fileId}/metadata": {
-      "x-fern-sdk-group-name": [
-        "files",
-        "metadata"
-      ],
-      "x-fern-sdk-method-name": "get",
       "x-ferrule-method-name": "get",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -4118,14 +4113,14 @@
           "package_name": "@imagekit/nodejs",
           "production_repo": "imagekit-developer/imagekit-nodejs#master"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "files",
+        "metadata"
+      ],
+      "x-forge-method-name": "get"
     },
     "GET /v1/files/{fileId}/versions": {
-      "x-fern-sdk-group-name": [
-        "files",
-        "versions"
-      ],
-      "x-fern-sdk-method-name": "list",
       "x-ferrule-method-name": "list",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -4221,14 +4216,14 @@
           "package_name": "@imagekit/nodejs",
           "production_repo": "imagekit-developer/imagekit-nodejs#master"
         }
-      }
-    },
-    "DELETE /v1/files/{fileId}/versions/{versionId}": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "files",
         "versions"
       ],
-      "x-fern-sdk-method-name": "delete",
+      "x-forge-method-name": "list"
+    },
+    "DELETE /v1/files/{fileId}/versions/{versionId}": {
       "x-ferrule-method-name": "delete",
       "x-ferrule-method-order": 2,
       "x-ferrule-resource": {
@@ -4324,14 +4319,14 @@
           "package_name": "@imagekit/nodejs",
           "production_repo": "imagekit-developer/imagekit-nodejs#master"
         }
-      }
-    },
-    "GET /v1/files/{fileId}/versions/{versionId}": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "files",
         "versions"
       ],
-      "x-fern-sdk-method-name": "get",
+      "x-forge-method-name": "delete"
+    },
+    "GET /v1/files/{fileId}/versions/{versionId}": {
       "x-ferrule-method-name": "get",
       "x-ferrule-method-order": 1,
       "x-ferrule-resource": {
@@ -4427,14 +4422,14 @@
           "package_name": "@imagekit/nodejs",
           "production_repo": "imagekit-developer/imagekit-nodejs#master"
         }
-      }
-    },
-    "PUT /v1/files/{fileId}/versions/{versionId}/restore": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "files",
         "versions"
       ],
-      "x-fern-sdk-method-name": "restore",
+      "x-forge-method-name": "get"
+    },
+    "PUT /v1/files/{fileId}/versions/{versionId}/restore": {
       "x-ferrule-method-name": "restore",
       "x-ferrule-method-order": 3,
       "x-ferrule-resource": {
@@ -4530,13 +4525,14 @@
           "package_name": "@imagekit/nodejs",
           "production_repo": "imagekit-developer/imagekit-nodejs#master"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "files",
+        "versions"
+      ],
+      "x-forge-method-name": "restore"
     },
     "DELETE /v1/folder": {
-      "x-fern-sdk-group-name": [
-        "folders"
-      ],
-      "x-fern-sdk-method-name": "delete",
       "x-ferrule-method-name": "delete",
       "x-ferrule-method-order": 1,
       "x-ferrule-resource": {
@@ -4630,13 +4626,13 @@
           "package_name": "@imagekit/nodejs",
           "production_repo": "imagekit-developer/imagekit-nodejs#master"
         }
-      }
-    },
-    "POST /v1/folder": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "folders"
       ],
-      "x-fern-sdk-method-name": "create",
+      "x-forge-method-name": "delete"
+    },
+    "POST /v1/folder": {
       "x-ferrule-method-name": "create",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -4730,14 +4726,13 @@
           "package_name": "@imagekit/nodejs",
           "production_repo": "imagekit-developer/imagekit-nodejs#master"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "folders"
+      ],
+      "x-forge-method-name": "create"
     },
     "GET /v1/metadata": {
-      "x-fern-sdk-group-name": [
-        "files",
-        "metadata"
-      ],
-      "x-fern-sdk-method-name": "getFromURL",
       "x-ferrule-method-name": "getFromURL",
       "x-ferrule-method-order": 1,
       "x-ferrule-resource": {
@@ -4833,13 +4828,14 @@
           "package_name": "@imagekit/nodejs",
           "production_repo": "imagekit-developer/imagekit-nodejs#master"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "files",
+        "metadata"
+      ],
+      "x-forge-method-name": "getFromURL"
     },
     "GET /v1/saved-extensions": {
-      "x-fern-sdk-group-name": [
-        "savedExtensions"
-      ],
-      "x-fern-sdk-method-name": "list",
       "x-ferrule-method-name": "list",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -4933,13 +4929,13 @@
           "package_name": "@imagekit/nodejs",
           "production_repo": "imagekit-developer/imagekit-nodejs#master"
         }
-      }
-    },
-    "POST /v1/saved-extensions": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "savedExtensions"
       ],
-      "x-fern-sdk-method-name": "create",
+      "x-forge-method-name": "list"
+    },
+    "POST /v1/saved-extensions": {
       "x-ferrule-method-name": "create",
       "x-ferrule-method-order": 1,
       "x-ferrule-resource": {
@@ -5033,13 +5029,13 @@
           "package_name": "@imagekit/nodejs",
           "production_repo": "imagekit-developer/imagekit-nodejs#master"
         }
-      }
-    },
-    "DELETE /v1/saved-extensions/{id}": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "savedExtensions"
       ],
-      "x-fern-sdk-method-name": "delete",
+      "x-forge-method-name": "create"
+    },
+    "DELETE /v1/saved-extensions/{id}": {
       "x-ferrule-method-name": "delete",
       "x-ferrule-method-order": 4,
       "x-ferrule-resource": {
@@ -5133,13 +5129,13 @@
           "package_name": "@imagekit/nodejs",
           "production_repo": "imagekit-developer/imagekit-nodejs#master"
         }
-      }
-    },
-    "GET /v1/saved-extensions/{id}": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "savedExtensions"
       ],
-      "x-fern-sdk-method-name": "get",
+      "x-forge-method-name": "delete"
+    },
+    "GET /v1/saved-extensions/{id}": {
       "x-ferrule-method-name": "get",
       "x-ferrule-method-order": 2,
       "x-ferrule-resource": {
@@ -5233,13 +5229,13 @@
           "package_name": "@imagekit/nodejs",
           "production_repo": "imagekit-developer/imagekit-nodejs#master"
         }
-      }
-    },
-    "PATCH /v1/saved-extensions/{id}": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "savedExtensions"
       ],
-      "x-fern-sdk-method-name": "update",
+      "x-forge-method-name": "get"
+    },
+    "PATCH /v1/saved-extensions/{id}": {
       "x-ferrule-method-name": "update",
       "x-ferrule-method-order": 3,
       "x-ferrule-resource": {
@@ -5333,7 +5329,11 @@
           "package_name": "@imagekit/nodejs",
           "production_repo": "imagekit-developer/imagekit-nodejs#master"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "savedExtensions"
+      ],
+      "x-forge-method-name": "update"
     }
   }
 }

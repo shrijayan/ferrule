@@ -1,5 +1,5 @@
 {
-  "sha256": "a2fcf8d5d2b4be841ee5bd56f34b81fada7536423c67b326854f16dec9cd8886",
+  "sha256": "6378a4c7d161e72512b4a6e3572b5cbadd4065144dad5e12105d8f504760172a",
   "root": {
     "x-ferrule-client": {
       "defaultEnvironment": "demo",
@@ -205,10 +205,6 @@
   },
   "operations": {
     "POST /v2/keys": {
-      "x-fern-sdk-group-name": [
-        "keys"
-      ],
-      "x-fern-sdk-method-name": "create",
       "x-ferrule-method-name": "create",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -246,13 +242,13 @@
           "package_name": "honcho_core",
           "production_repo": "plastic-labs/honcho-python-core"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "keys"
+      ],
+      "x-forge-method-name": "create"
     },
     "POST /v2/workspaces": {
-      "x-fern-sdk-group-name": [
-        "workspaces"
-      ],
-      "x-fern-sdk-method-name": "get_or_create",
       "x-ferrule-method-name": "get_or_create",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -290,13 +286,13 @@
           "package_name": "honcho_core",
           "production_repo": "plastic-labs/honcho-python-core"
         }
-      }
-    },
-    "POST /v2/workspaces/list": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "workspaces"
       ],
-      "x-fern-sdk-method-name": "list",
+      "x-forge-method-name": "get_or_create"
+    },
+    "POST /v2/workspaces/list": {
       "x-ferrule-method-name": "list",
       "x-ferrule-method-order": 1,
       "x-ferrule-pagination": {
@@ -351,13 +347,13 @@
           "package_name": "honcho_core",
           "production_repo": "plastic-labs/honcho-python-core"
         }
-      }
-    },
-    "PUT /v2/workspaces/{workspace_id}": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "workspaces"
       ],
-      "x-fern-sdk-method-name": "update",
+      "x-forge-method-name": "list"
+    },
+    "PUT /v2/workspaces/{workspace_id}": {
       "x-ferrule-method-name": "update",
       "x-ferrule-method-order": 2,
       "x-ferrule-resource": {
@@ -395,13 +391,13 @@
           "package_name": "honcho_core",
           "production_repo": "plastic-labs/honcho-python-core"
         }
-      }
-    },
-    "GET /v2/workspaces/{workspace_id}/deriver/status": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "workspaces"
       ],
-      "x-fern-sdk-method-name": "deriver_status",
+      "x-forge-method-name": "update"
+    },
+    "GET /v2/workspaces/{workspace_id}/deriver/status": {
       "x-ferrule-method-name": "deriver_status",
       "x-ferrule-method-order": 4,
       "x-ferrule-resource": {
@@ -439,14 +435,13 @@
           "package_name": "honcho_core",
           "production_repo": "plastic-labs/honcho-python-core"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "workspaces"
+      ],
+      "x-forge-method-name": "deriver_status"
     },
     "POST /v2/workspaces/{workspace_id}/peers": {
-      "x-fern-sdk-group-name": [
-        "workspaces",
-        "peers"
-      ],
-      "x-fern-sdk-method-name": "get_or_create",
       "x-ferrule-method-name": "get_or_create",
       "x-ferrule-method-order": 1,
       "x-ferrule-resource": {
@@ -486,14 +481,14 @@
           "package_name": "honcho_core",
           "production_repo": "plastic-labs/honcho-python-core"
         }
-      }
-    },
-    "POST /v2/workspaces/{workspace_id}/peers/list": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "workspaces",
         "peers"
       ],
-      "x-fern-sdk-method-name": "list",
+      "x-forge-method-name": "get_or_create"
+    },
+    "POST /v2/workspaces/{workspace_id}/peers/list": {
       "x-ferrule-method-name": "list",
       "x-ferrule-method-order": 0,
       "x-ferrule-pagination": {
@@ -550,14 +545,14 @@
           "package_name": "honcho_core",
           "production_repo": "plastic-labs/honcho-python-core"
         }
-      }
-    },
-    "PUT /v2/workspaces/{workspace_id}/peers/{peer_id}": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "workspaces",
         "peers"
       ],
-      "x-fern-sdk-method-name": "update",
+      "x-forge-method-name": "list"
+    },
+    "PUT /v2/workspaces/{workspace_id}/peers/{peer_id}": {
       "x-ferrule-method-name": "update",
       "x-ferrule-method-order": 2,
       "x-ferrule-resource": {
@@ -597,14 +592,14 @@
           "package_name": "honcho_core",
           "production_repo": "plastic-labs/honcho-python-core"
         }
-      }
-    },
-    "GET /v2/workspaces/{workspace_id}/peers/{peer_id}/card": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "workspaces",
         "peers"
       ],
-      "x-fern-sdk-method-name": "card",
+      "x-forge-method-name": "update"
+    },
+    "GET /v2/workspaces/{workspace_id}/peers/{peer_id}/card": {
       "x-ferrule-method-name": "card",
       "x-ferrule-method-order": 6,
       "x-ferrule-resource": {
@@ -644,14 +639,14 @@
           "package_name": "honcho_core",
           "production_repo": "plastic-labs/honcho-python-core"
         }
-      }
-    },
-    "POST /v2/workspaces/{workspace_id}/peers/{peer_id}/chat": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "workspaces",
         "peers"
       ],
-      "x-fern-sdk-method-name": "chat",
+      "x-forge-method-name": "card"
+    },
+    "POST /v2/workspaces/{workspace_id}/peers/{peer_id}/chat": {
       "x-ferrule-method-name": "chat",
       "x-ferrule-method-order": 3,
       "x-ferrule-resource": {
@@ -691,14 +686,14 @@
           "package_name": "honcho_core",
           "production_repo": "plastic-labs/honcho-python-core"
         }
-      }
-    },
-    "POST /v2/workspaces/{workspace_id}/peers/{peer_id}/representation": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "workspaces",
         "peers"
       ],
-      "x-fern-sdk-method-name": "working_representation",
+      "x-forge-method-name": "chat"
+    },
+    "POST /v2/workspaces/{workspace_id}/peers/{peer_id}/representation": {
       "x-ferrule-method-name": "working_representation",
       "x-ferrule-method-order": 4,
       "x-ferrule-resource": {
@@ -738,14 +733,14 @@
           "package_name": "honcho_core",
           "production_repo": "plastic-labs/honcho-python-core"
         }
-      }
-    },
-    "POST /v2/workspaces/{workspace_id}/peers/{peer_id}/search": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "workspaces",
         "peers"
       ],
-      "x-fern-sdk-method-name": "search",
+      "x-forge-method-name": "working_representation"
+    },
+    "POST /v2/workspaces/{workspace_id}/peers/{peer_id}/search": {
       "x-ferrule-method-name": "search",
       "x-ferrule-method-order": 5,
       "x-ferrule-resource": {
@@ -785,15 +780,14 @@
           "package_name": "honcho_core",
           "production_repo": "plastic-labs/honcho-python-core"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "workspaces",
+        "peers"
+      ],
+      "x-forge-method-name": "search"
     },
     "POST /v2/workspaces/{workspace_id}/peers/{peer_id}/sessions": {
-      "x-fern-sdk-group-name": [
-        "workspaces",
-        "peers",
-        "sessions"
-      ],
-      "x-fern-sdk-method-name": "list",
       "x-ferrule-method-name": "list",
       "x-ferrule-method-order": 0,
       "x-ferrule-pagination": {
@@ -852,13 +846,15 @@
           "package_name": "honcho_core",
           "production_repo": "plastic-labs/honcho-python-core"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "workspaces",
+        "peers",
+        "sessions"
+      ],
+      "x-forge-method-name": "list"
     },
     "POST /v2/workspaces/{workspace_id}/search": {
-      "x-fern-sdk-group-name": [
-        "workspaces"
-      ],
-      "x-fern-sdk-method-name": "search",
       "x-ferrule-method-name": "search",
       "x-ferrule-method-order": 3,
       "x-ferrule-resource": {
@@ -896,14 +892,13 @@
           "package_name": "honcho_core",
           "production_repo": "plastic-labs/honcho-python-core"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "workspaces"
+      ],
+      "x-forge-method-name": "search"
     },
     "POST /v2/workspaces/{workspace_id}/sessions": {
-      "x-fern-sdk-group-name": [
-        "workspaces",
-        "sessions"
-      ],
-      "x-fern-sdk-method-name": "get_or_create",
       "x-ferrule-method-name": "get_or_create",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -943,14 +938,14 @@
           "package_name": "honcho_core",
           "production_repo": "plastic-labs/honcho-python-core"
         }
-      }
-    },
-    "POST /v2/workspaces/{workspace_id}/sessions/list": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "workspaces",
         "sessions"
       ],
-      "x-fern-sdk-method-name": "list",
+      "x-forge-method-name": "get_or_create"
+    },
+    "POST /v2/workspaces/{workspace_id}/sessions/list": {
       "x-ferrule-method-name": "list",
       "x-ferrule-method-order": 1,
       "x-ferrule-pagination": {
@@ -1007,14 +1002,14 @@
           "package_name": "honcho_core",
           "production_repo": "plastic-labs/honcho-python-core"
         }
-      }
-    },
-    "DELETE /v2/workspaces/{workspace_id}/sessions/{session_id}": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "workspaces",
         "sessions"
       ],
-      "x-fern-sdk-method-name": "delete",
+      "x-forge-method-name": "list"
+    },
+    "DELETE /v2/workspaces/{workspace_id}/sessions/{session_id}": {
       "x-ferrule-method-name": "delete",
       "x-ferrule-method-order": 3,
       "x-ferrule-resource": {
@@ -1054,14 +1049,14 @@
           "package_name": "honcho_core",
           "production_repo": "plastic-labs/honcho-python-core"
         }
-      }
-    },
-    "PUT /v2/workspaces/{workspace_id}/sessions/{session_id}": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "workspaces",
         "sessions"
       ],
-      "x-fern-sdk-method-name": "update",
+      "x-forge-method-name": "delete"
+    },
+    "PUT /v2/workspaces/{workspace_id}/sessions/{session_id}": {
       "x-ferrule-method-name": "update",
       "x-ferrule-method-order": 2,
       "x-ferrule-resource": {
@@ -1101,14 +1096,14 @@
           "package_name": "honcho_core",
           "production_repo": "plastic-labs/honcho-python-core"
         }
-      }
-    },
-    "GET /v2/workspaces/{workspace_id}/sessions/{session_id}/clone": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "workspaces",
         "sessions"
       ],
-      "x-fern-sdk-method-name": "clone",
+      "x-forge-method-name": "update"
+    },
+    "GET /v2/workspaces/{workspace_id}/sessions/{session_id}/clone": {
       "x-ferrule-method-name": "clone",
       "x-ferrule-method-order": 4,
       "x-ferrule-resource": {
@@ -1148,14 +1143,14 @@
           "package_name": "honcho_core",
           "production_repo": "plastic-labs/honcho-python-core"
         }
-      }
-    },
-    "GET /v2/workspaces/{workspace_id}/sessions/{session_id}/context": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "workspaces",
         "sessions"
       ],
-      "x-fern-sdk-method-name": "get_context",
+      "x-forge-method-name": "clone"
+    },
+    "GET /v2/workspaces/{workspace_id}/sessions/{session_id}/context": {
       "x-ferrule-method-name": "get_context",
       "x-ferrule-method-order": 5,
       "x-ferrule-resource": {
@@ -1195,15 +1190,14 @@
           "package_name": "honcho_core",
           "production_repo": "plastic-labs/honcho-python-core"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "workspaces",
+        "sessions"
+      ],
+      "x-forge-method-name": "get_context"
     },
     "POST /v2/workspaces/{workspace_id}/sessions/{session_id}/messages/": {
-      "x-fern-sdk-group-name": [
-        "workspaces",
-        "sessions",
-        "messages"
-      ],
-      "x-fern-sdk-method-name": "create",
       "x-ferrule-method-name": "create",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -1245,15 +1239,15 @@
           "package_name": "honcho_core",
           "production_repo": "plastic-labs/honcho-python-core"
         }
-      }
-    },
-    "POST /v2/workspaces/{workspace_id}/sessions/{session_id}/messages/list": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "workspaces",
         "sessions",
         "messages"
       ],
-      "x-fern-sdk-method-name": "list",
+      "x-forge-method-name": "create"
+    },
+    "POST /v2/workspaces/{workspace_id}/sessions/{session_id}/messages/list": {
       "x-ferrule-method-name": "list",
       "x-ferrule-method-order": 1,
       "x-ferrule-pagination": {
@@ -1312,15 +1306,15 @@
           "package_name": "honcho_core",
           "production_repo": "plastic-labs/honcho-python-core"
         }
-      }
-    },
-    "POST /v2/workspaces/{workspace_id}/sessions/{session_id}/messages/upload": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "workspaces",
         "sessions",
         "messages"
       ],
-      "x-fern-sdk-method-name": "upload",
+      "x-forge-method-name": "list"
+    },
+    "POST /v2/workspaces/{workspace_id}/sessions/{session_id}/messages/upload": {
       "x-ferrule-method-name": "upload",
       "x-ferrule-method-order": 4,
       "x-ferrule-resource": {
@@ -1362,15 +1356,15 @@
           "package_name": "honcho_core",
           "production_repo": "plastic-labs/honcho-python-core"
         }
-      }
-    },
-    "GET /v2/workspaces/{workspace_id}/sessions/{session_id}/messages/{message_id}": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "workspaces",
         "sessions",
         "messages"
       ],
-      "x-fern-sdk-method-name": "retrieve",
+      "x-forge-method-name": "upload"
+    },
+    "GET /v2/workspaces/{workspace_id}/sessions/{session_id}/messages/{message_id}": {
       "x-ferrule-method-name": "retrieve",
       "x-ferrule-method-order": 2,
       "x-ferrule-resource": {
@@ -1412,15 +1406,15 @@
           "package_name": "honcho_core",
           "production_repo": "plastic-labs/honcho-python-core"
         }
-      }
-    },
-    "PUT /v2/workspaces/{workspace_id}/sessions/{session_id}/messages/{message_id}": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "workspaces",
         "sessions",
         "messages"
       ],
-      "x-fern-sdk-method-name": "update",
+      "x-forge-method-name": "retrieve"
+    },
+    "PUT /v2/workspaces/{workspace_id}/sessions/{session_id}/messages/{message_id}": {
       "x-ferrule-method-name": "update",
       "x-ferrule-method-order": 3,
       "x-ferrule-resource": {
@@ -1462,15 +1456,15 @@
           "package_name": "honcho_core",
           "production_repo": "plastic-labs/honcho-python-core"
         }
-      }
-    },
-    "DELETE /v2/workspaces/{workspace_id}/sessions/{session_id}/peers": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "workspaces",
         "sessions",
-        "peers"
+        "messages"
       ],
-      "x-fern-sdk-method-name": "remove",
+      "x-forge-method-name": "update"
+    },
+    "DELETE /v2/workspaces/{workspace_id}/sessions/{session_id}/peers": {
       "x-ferrule-method-name": "remove",
       "x-ferrule-method-order": 2,
       "x-ferrule-resource": {
@@ -1512,15 +1506,15 @@
           "package_name": "honcho_core",
           "production_repo": "plastic-labs/honcho-python-core"
         }
-      }
-    },
-    "GET /v2/workspaces/{workspace_id}/sessions/{session_id}/peers": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "workspaces",
         "sessions",
         "peers"
       ],
-      "x-fern-sdk-method-name": "list",
+      "x-forge-method-name": "remove"
+    },
+    "GET /v2/workspaces/{workspace_id}/sessions/{session_id}/peers": {
       "x-ferrule-method-name": "list",
       "x-ferrule-method-order": 3,
       "x-ferrule-pagination": {
@@ -1579,15 +1573,15 @@
           "package_name": "honcho_core",
           "production_repo": "plastic-labs/honcho-python-core"
         }
-      }
-    },
-    "POST /v2/workspaces/{workspace_id}/sessions/{session_id}/peers": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "workspaces",
         "sessions",
         "peers"
       ],
-      "x-fern-sdk-method-name": "add",
+      "x-forge-method-name": "list"
+    },
+    "POST /v2/workspaces/{workspace_id}/sessions/{session_id}/peers": {
       "x-ferrule-method-name": "add",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -1629,15 +1623,15 @@
           "package_name": "honcho_core",
           "production_repo": "plastic-labs/honcho-python-core"
         }
-      }
-    },
-    "PUT /v2/workspaces/{workspace_id}/sessions/{session_id}/peers": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "workspaces",
         "sessions",
         "peers"
       ],
-      "x-fern-sdk-method-name": "set",
+      "x-forge-method-name": "add"
+    },
+    "PUT /v2/workspaces/{workspace_id}/sessions/{session_id}/peers": {
       "x-ferrule-method-name": "set",
       "x-ferrule-method-order": 1,
       "x-ferrule-resource": {
@@ -1679,15 +1673,15 @@
           "package_name": "honcho_core",
           "production_repo": "plastic-labs/honcho-python-core"
         }
-      }
-    },
-    "GET /v2/workspaces/{workspace_id}/sessions/{session_id}/peers/{peer_id}/config": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "workspaces",
         "sessions",
         "peers"
       ],
-      "x-fern-sdk-method-name": "get_config",
+      "x-forge-method-name": "set"
+    },
+    "GET /v2/workspaces/{workspace_id}/sessions/{session_id}/peers/{peer_id}/config": {
       "x-ferrule-method-name": "get_config",
       "x-ferrule-method-order": 4,
       "x-ferrule-resource": {
@@ -1729,15 +1723,15 @@
           "package_name": "honcho_core",
           "production_repo": "plastic-labs/honcho-python-core"
         }
-      }
-    },
-    "POST /v2/workspaces/{workspace_id}/sessions/{session_id}/peers/{peer_id}/config": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "workspaces",
         "sessions",
         "peers"
       ],
-      "x-fern-sdk-method-name": "set_config",
+      "x-forge-method-name": "get_config"
+    },
+    "POST /v2/workspaces/{workspace_id}/sessions/{session_id}/peers/{peer_id}/config": {
       "x-ferrule-method-name": "set_config",
       "x-ferrule-method-order": 5,
       "x-ferrule-resource": {
@@ -1779,14 +1773,15 @@
           "package_name": "honcho_core",
           "production_repo": "plastic-labs/honcho-python-core"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "workspaces",
+        "sessions",
+        "peers"
+      ],
+      "x-forge-method-name": "set_config"
     },
     "POST /v2/workspaces/{workspace_id}/sessions/{session_id}/search": {
-      "x-fern-sdk-group-name": [
-        "workspaces",
-        "sessions"
-      ],
-      "x-fern-sdk-method-name": "search",
       "x-ferrule-method-name": "search",
       "x-ferrule-method-order": 6,
       "x-ferrule-resource": {
@@ -1826,14 +1821,14 @@
           "package_name": "honcho_core",
           "production_repo": "plastic-labs/honcho-python-core"
         }
-      }
-    },
-    "GET /v2/workspaces/{workspace_id}/sessions/{session_id}/summaries": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "workspaces",
         "sessions"
       ],
-      "x-fern-sdk-method-name": "summaries",
+      "x-forge-method-name": "search"
+    },
+    "GET /v2/workspaces/{workspace_id}/sessions/{session_id}/summaries": {
       "x-ferrule-method-name": "summaries",
       "x-ferrule-method-order": 7,
       "x-ferrule-resource": {
@@ -1873,14 +1868,14 @@
           "package_name": "honcho_core",
           "production_repo": "plastic-labs/honcho-python-core"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "workspaces",
+        "sessions"
+      ],
+      "x-forge-method-name": "summaries"
     },
     "GET /v2/workspaces/{workspace_id}/webhooks": {
-      "x-fern-sdk-group-name": [
-        "workspaces",
-        "webhooks"
-      ],
-      "x-fern-sdk-method-name": "list",
       "x-ferrule-method-name": "list",
       "x-ferrule-method-order": 1,
       "x-ferrule-pagination": {
@@ -1937,14 +1932,14 @@
           "package_name": "honcho_core",
           "production_repo": "plastic-labs/honcho-python-core"
         }
-      }
-    },
-    "POST /v2/workspaces/{workspace_id}/webhooks": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "workspaces",
         "webhooks"
       ],
-      "x-fern-sdk-method-name": "get_or_create",
+      "x-forge-method-name": "list"
+    },
+    "POST /v2/workspaces/{workspace_id}/webhooks": {
       "x-ferrule-method-name": "get_or_create",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -1984,14 +1979,14 @@
           "package_name": "honcho_core",
           "production_repo": "plastic-labs/honcho-python-core"
         }
-      }
-    },
-    "GET /v2/workspaces/{workspace_id}/webhooks/test": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "workspaces",
         "webhooks"
       ],
-      "x-fern-sdk-method-name": "test_emit",
+      "x-forge-method-name": "get_or_create"
+    },
+    "GET /v2/workspaces/{workspace_id}/webhooks/test": {
       "x-ferrule-method-name": "test_emit",
       "x-ferrule-method-order": 3,
       "x-ferrule-resource": {
@@ -2031,14 +2026,14 @@
           "package_name": "honcho_core",
           "production_repo": "plastic-labs/honcho-python-core"
         }
-      }
-    },
-    "DELETE /v2/workspaces/{workspace_id}/webhooks/{endpoint_id}": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "workspaces",
         "webhooks"
       ],
-      "x-fern-sdk-method-name": "delete",
+      "x-forge-method-name": "test_emit"
+    },
+    "DELETE /v2/workspaces/{workspace_id}/webhooks/{endpoint_id}": {
       "x-ferrule-method-name": "delete",
       "x-ferrule-method-order": 2,
       "x-ferrule-resource": {
@@ -2078,7 +2073,12 @@
           "package_name": "honcho_core",
           "production_repo": "plastic-labs/honcho-python-core"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "workspaces",
+        "webhooks"
+      ],
+      "x-forge-method-name": "delete"
     }
   }
 }

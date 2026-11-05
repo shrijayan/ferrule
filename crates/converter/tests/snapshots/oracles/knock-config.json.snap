@@ -1,5 +1,5 @@
 {
-  "sha256": "b12012d650480a054f434582a46ce91d968527136ec274ab549caf194079b91c",
+  "sha256": "e5fa692710eac269412afb36ffea2e26fe8ca3c7ce8e61e0659a5b1323ed4b35",
   "root": {
     "x-ferrule-client": {
       "defaultEnvironment": "production",
@@ -296,10 +296,6 @@
   },
   "operations": {
     "DELETE /v1/audiences/{key}/members": {
-      "x-fern-sdk-group-name": [
-        "audiences"
-      ],
-      "x-fern-sdk-method-name": "remove_members",
       "x-ferrule-method-name": "remove_members",
       "x-ferrule-method-order": 2,
       "x-ferrule-resource": {
@@ -355,13 +351,13 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "audiences"
+      ],
+      "x-forge-method-name": "remove_members",
       "x-ratelimit-tier": 3
     },
     "GET /v1/audiences/{key}/members": {
-      "x-fern-sdk-group-name": [
-        "audiences"
-      ],
-      "x-fern-sdk-method-name": "list_members",
       "x-ferrule-method-name": "list_members",
       "x-ferrule-method-order": 1,
       "x-ferrule-resource": {
@@ -417,13 +413,13 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "audiences"
+      ],
+      "x-forge-method-name": "list_members",
       "x-ratelimit-tier": 4
     },
     "POST /v1/audiences/{key}/members": {
-      "x-fern-sdk-group-name": [
-        "audiences"
-      ],
-      "x-fern-sdk-method-name": "add_members",
       "x-ferrule-method-name": "add_members",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -479,13 +475,13 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "audiences"
+      ],
+      "x-forge-method-name": "add_members",
       "x-ratelimit-tier": 3
     },
     "GET /v1/bulk_operations/{id}": {
-      "x-fern-sdk-group-name": [
-        "bulk_operations"
-      ],
-      "x-fern-sdk-method-name": "get",
       "x-ferrule-method-name": "get",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -541,14 +537,13 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "bulk_operations"
+      ],
+      "x-forge-method-name": "get",
       "x-ratelimit-tier": 4
     },
     "POST /v1/channels/{channel_id}/messages/bulk/{action}": {
-      "x-fern-sdk-group-name": [
-        "channels",
-        "bulk"
-      ],
-      "x-fern-sdk-method-name": "update_message_status",
       "x-ferrule-method-name": "update_message_status",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -606,15 +601,15 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "channels",
+        "bulk"
+      ],
+      "x-forge-method-name": "update_message_status",
       "x-ratelimit-tier": 2,
       "x-retention-policy": true
     },
     "POST /v1/integrations/census/custom-destination": {
-      "x-fern-sdk-group-name": [
-        "integrations",
-        "census"
-      ],
-      "x-fern-sdk-method-name": "custom_destination",
       "x-ferrule-method-name": "custom_destination",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -672,14 +667,14 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "integrations",
+        "census"
+      ],
+      "x-forge-method-name": "custom_destination",
       "x-ratelimit-tier": 3
     },
     "POST /v1/integrations/hightouch/embedded-destination": {
-      "x-fern-sdk-group-name": [
-        "integrations",
-        "hightouch"
-      ],
-      "x-fern-sdk-method-name": "embedded_destination",
       "x-ferrule-method-name": "embedded_destination",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -737,13 +732,14 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "integrations",
+        "hightouch"
+      ],
+      "x-forge-method-name": "embedded_destination",
       "x-ratelimit-tier": 3
     },
     "GET /v1/messages": {
-      "x-fern-sdk-group-name": [
-        "messages"
-      ],
-      "x-fern-sdk-method-name": "list",
       "x-ferrule-method-name": "list",
       "x-ferrule-method-order": 2,
       "x-ferrule-pagination": {
@@ -814,15 +810,14 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "messages"
+      ],
+      "x-forge-method-name": "list",
       "x-ratelimit-tier": 4,
       "x-retention-policy": true
     },
     "POST /v1/messages/batch/archived": {
-      "x-fern-sdk-group-name": [
-        "messages",
-        "batch"
-      ],
-      "x-fern-sdk-method-name": "archive",
       "x-ferrule-method-name": "archive",
       "x-ferrule-method-order": 6,
       "x-ferrule-resource": {
@@ -880,14 +875,14 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
-      "x-ratelimit-tier": 3
-    },
-    "GET /v1/messages/batch/content": {
-      "x-fern-sdk-group-name": [
+      "x-forge-group-name": [
         "messages",
         "batch"
       ],
-      "x-fern-sdk-method-name": "get_content",
+      "x-forge-method-name": "archive",
+      "x-ratelimit-tier": 3
+    },
+    "GET /v1/messages/batch/content": {
       "x-ferrule-method-name": "get_content",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -945,15 +940,15 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "messages",
+        "batch"
+      ],
+      "x-forge-method-name": "get_content",
       "x-ratelimit-tier": 4,
       "x-retention-policy": true
     },
     "POST /v1/messages/batch/interacted": {
-      "x-fern-sdk-group-name": [
-        "messages",
-        "batch"
-      ],
-      "x-fern-sdk-method-name": "mark_as_interacted",
       "x-ferrule-method-name": "mark_as_interacted",
       "x-ferrule-method-order": 5,
       "x-ferrule-resource": {
@@ -1011,14 +1006,14 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
-      "x-ratelimit-tier": 3
-    },
-    "POST /v1/messages/batch/read": {
-      "x-fern-sdk-group-name": [
+      "x-forge-group-name": [
         "messages",
         "batch"
       ],
-      "x-fern-sdk-method-name": "mark_as_read",
+      "x-forge-method-name": "mark_as_interacted",
+      "x-ratelimit-tier": 3
+    },
+    "POST /v1/messages/batch/read": {
       "x-ferrule-method-name": "mark_as_read",
       "x-ferrule-method-order": 3,
       "x-ferrule-resource": {
@@ -1076,14 +1071,14 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
-      "x-ratelimit-tier": 3
-    },
-    "POST /v1/messages/batch/seen": {
-      "x-fern-sdk-group-name": [
+      "x-forge-group-name": [
         "messages",
         "batch"
       ],
-      "x-fern-sdk-method-name": "mark_as_seen",
+      "x-forge-method-name": "mark_as_read",
+      "x-ratelimit-tier": 3
+    },
+    "POST /v1/messages/batch/seen": {
       "x-ferrule-method-name": "mark_as_seen",
       "x-ferrule-method-order": 1,
       "x-ferrule-resource": {
@@ -1141,14 +1136,14 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
-      "x-ratelimit-tier": 3
-    },
-    "POST /v1/messages/batch/unarchived": {
-      "x-fern-sdk-group-name": [
+      "x-forge-group-name": [
         "messages",
         "batch"
       ],
-      "x-fern-sdk-method-name": "unarchive",
+      "x-forge-method-name": "mark_as_seen",
+      "x-ratelimit-tier": 3
+    },
+    "POST /v1/messages/batch/unarchived": {
       "x-ferrule-method-name": "unarchive",
       "x-ferrule-method-order": 7,
       "x-ferrule-resource": {
@@ -1206,14 +1201,14 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
-      "x-ratelimit-tier": 3
-    },
-    "POST /v1/messages/batch/unread": {
-      "x-fern-sdk-group-name": [
+      "x-forge-group-name": [
         "messages",
         "batch"
       ],
-      "x-fern-sdk-method-name": "mark_as_unread",
+      "x-forge-method-name": "unarchive",
+      "x-ratelimit-tier": 3
+    },
+    "POST /v1/messages/batch/unread": {
       "x-ferrule-method-name": "mark_as_unread",
       "x-ferrule-method-order": 4,
       "x-ferrule-resource": {
@@ -1271,14 +1266,14 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
-      "x-ratelimit-tier": 3
-    },
-    "POST /v1/messages/batch/unseen": {
-      "x-fern-sdk-group-name": [
+      "x-forge-group-name": [
         "messages",
         "batch"
       ],
-      "x-fern-sdk-method-name": "mark_as_unseen",
+      "x-forge-method-name": "mark_as_unread",
+      "x-ratelimit-tier": 3
+    },
+    "POST /v1/messages/batch/unseen": {
       "x-ferrule-method-name": "mark_as_unseen",
       "x-ferrule-method-order": 2,
       "x-ferrule-resource": {
@@ -1336,13 +1331,14 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "messages",
+        "batch"
+      ],
+      "x-forge-method-name": "mark_as_unseen",
       "x-ratelimit-tier": 3
     },
     "GET /v1/messages/{message_id}": {
-      "x-fern-sdk-group-name": [
-        "messages"
-      ],
-      "x-fern-sdk-method-name": "get",
       "x-ferrule-method-name": "get",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -1398,14 +1394,14 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "messages"
+      ],
+      "x-forge-method-name": "get",
       "x-ratelimit-tier": 4,
       "x-retention-policy": true
     },
     "GET /v1/messages/{message_id}/activities": {
-      "x-fern-sdk-group-name": [
-        "messages"
-      ],
-      "x-fern-sdk-method-name": "list_activities",
       "x-ferrule-method-name": "list_activities",
       "x-ferrule-method-order": 5,
       "x-ferrule-pagination": {
@@ -1476,14 +1472,14 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "messages"
+      ],
+      "x-forge-method-name": "list_activities",
       "x-ratelimit-tier": 4,
       "x-retention-policy": true
     },
     "DELETE /v1/messages/{message_id}/archived": {
-      "x-fern-sdk-group-name": [
-        "messages"
-      ],
-      "x-fern-sdk-method-name": "unarchive",
       "x-ferrule-method-name": "unarchive",
       "x-ferrule-method-order": 12,
       "x-ferrule-resource": {
@@ -1539,13 +1535,13 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "messages"
+      ],
+      "x-forge-method-name": "unarchive",
       "x-ratelimit-tier": 2
     },
     "PUT /v1/messages/{message_id}/archived": {
-      "x-fern-sdk-group-name": [
-        "messages"
-      ],
-      "x-fern-sdk-method-name": "archive",
       "x-ferrule-method-name": "archive",
       "x-ferrule-method-order": 11,
       "x-ferrule-resource": {
@@ -1601,13 +1597,13 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "messages"
+      ],
+      "x-forge-method-name": "archive",
       "x-ratelimit-tier": 2
     },
     "GET /v1/messages/{message_id}/content": {
-      "x-fern-sdk-group-name": [
-        "messages"
-      ],
-      "x-fern-sdk-method-name": "get_content",
       "x-ferrule-method-name": "get_content",
       "x-ferrule-method-order": 1,
       "x-ferrule-resource": {
@@ -1663,14 +1659,14 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "messages"
+      ],
+      "x-forge-method-name": "get_content",
       "x-ratelimit-tier": 4,
       "x-retention-policy": true
     },
     "GET /v1/messages/{message_id}/delivery_logs": {
-      "x-fern-sdk-group-name": [
-        "messages"
-      ],
-      "x-fern-sdk-method-name": "list_delivery_logs",
       "x-ferrule-method-name": "list_delivery_logs",
       "x-ferrule-method-order": 4,
       "x-ferrule-pagination": {
@@ -1741,14 +1737,14 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "messages"
+      ],
+      "x-forge-method-name": "list_delivery_logs",
       "x-ratelimit-tier": 3,
       "x-retention-policy": true
     },
     "GET /v1/messages/{message_id}/events": {
-      "x-fern-sdk-group-name": [
-        "messages"
-      ],
-      "x-fern-sdk-method-name": "list_events",
       "x-ferrule-method-name": "list_events",
       "x-ferrule-method-order": 3,
       "x-ferrule-pagination": {
@@ -1819,14 +1815,14 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "messages"
+      ],
+      "x-forge-method-name": "list_events",
       "x-ratelimit-tier": 3,
       "x-retention-policy": true
     },
     "PUT /v1/messages/{message_id}/interacted": {
-      "x-fern-sdk-group-name": [
-        "messages"
-      ],
-      "x-fern-sdk-method-name": "mark_as_interacted",
       "x-ferrule-method-name": "mark_as_interacted",
       "x-ferrule-method-order": 10,
       "x-ferrule-resource": {
@@ -1882,13 +1878,13 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "messages"
+      ],
+      "x-forge-method-name": "mark_as_interacted",
       "x-ratelimit-tier": 2
     },
     "DELETE /v1/messages/{message_id}/read": {
-      "x-fern-sdk-group-name": [
-        "messages"
-      ],
-      "x-fern-sdk-method-name": "mark_as_unread",
       "x-ferrule-method-name": "mark_as_unread",
       "x-ferrule-method-order": 9,
       "x-ferrule-resource": {
@@ -1944,13 +1940,13 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "messages"
+      ],
+      "x-forge-method-name": "mark_as_unread",
       "x-ratelimit-tier": 2
     },
     "PUT /v1/messages/{message_id}/read": {
-      "x-fern-sdk-group-name": [
-        "messages"
-      ],
-      "x-fern-sdk-method-name": "mark_as_read",
       "x-ferrule-method-name": "mark_as_read",
       "x-ferrule-method-order": 8,
       "x-ferrule-resource": {
@@ -2006,13 +2002,13 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "messages"
+      ],
+      "x-forge-method-name": "mark_as_read",
       "x-ratelimit-tier": 2
     },
     "DELETE /v1/messages/{message_id}/seen": {
-      "x-fern-sdk-group-name": [
-        "messages"
-      ],
-      "x-fern-sdk-method-name": "mark_as_unseen",
       "x-ferrule-method-name": "mark_as_unseen",
       "x-ferrule-method-order": 7,
       "x-ferrule-resource": {
@@ -2068,13 +2064,13 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "messages"
+      ],
+      "x-forge-method-name": "mark_as_unseen",
       "x-ratelimit-tier": 2
     },
     "PUT /v1/messages/{message_id}/seen": {
-      "x-fern-sdk-group-name": [
-        "messages"
-      ],
-      "x-fern-sdk-method-name": "mark_as_seen",
       "x-ferrule-method-name": "mark_as_seen",
       "x-ferrule-method-order": 6,
       "x-ferrule-resource": {
@@ -2130,6 +2126,10 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "messages"
+      ],
+      "x-forge-method-name": "mark_as_seen",
       "x-ratelimit-tier": 2
     },
     "DELETE /v1/messages/{message_id}/unarchived": {
@@ -2148,10 +2148,6 @@
       "x-ratelimit-tier": 3
     },
     "GET /v1/objects/{collection}": {
-      "x-fern-sdk-group-name": [
-        "objects"
-      ],
-      "x-fern-sdk-method-name": "list",
       "x-ferrule-method-name": "list",
       "x-ferrule-method-order": 2,
       "x-ferrule-pagination": {
@@ -2222,14 +2218,13 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "objects"
+      ],
+      "x-forge-method-name": "list",
       "x-ratelimit-tier": 4
     },
     "POST /v1/objects/{collection}/bulk/delete": {
-      "x-fern-sdk-group-name": [
-        "objects",
-        "bulk"
-      ],
-      "x-fern-sdk-method-name": "delete",
       "x-ferrule-method-name": "delete",
       "x-ferrule-method-order": 2,
       "x-ferrule-resource": {
@@ -2287,14 +2282,14 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
-      "x-ratelimit-tier": 1
-    },
-    "POST /v1/objects/{collection}/bulk/set": {
-      "x-fern-sdk-group-name": [
+      "x-forge-group-name": [
         "objects",
         "bulk"
       ],
-      "x-fern-sdk-method-name": "set",
+      "x-forge-method-name": "delete",
+      "x-ratelimit-tier": 1
+    },
+    "POST /v1/objects/{collection}/bulk/set": {
       "x-ferrule-method-name": "set",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -2352,14 +2347,14 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
-      "x-ratelimit-tier": 1
-    },
-    "POST /v1/objects/{collection}/bulk/subscriptions/add": {
-      "x-fern-sdk-group-name": [
+      "x-forge-group-name": [
         "objects",
         "bulk"
       ],
-      "x-fern-sdk-method-name": "add_subscriptions",
+      "x-forge-method-name": "set",
+      "x-ratelimit-tier": 1
+    },
+    "POST /v1/objects/{collection}/bulk/subscriptions/add": {
       "x-ferrule-method-name": "add_subscriptions",
       "x-ferrule-method-order": 1,
       "x-ferrule-resource": {
@@ -2417,13 +2412,14 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "objects",
+        "bulk"
+      ],
+      "x-forge-method-name": "add_subscriptions",
       "x-ratelimit-tier": 1
     },
     "DELETE /v1/objects/{collection}/{id}": {
-      "x-fern-sdk-group-name": [
-        "objects"
-      ],
-      "x-fern-sdk-method-name": "delete",
       "x-ferrule-method-name": "delete",
       "x-ferrule-method-order": 3,
       "x-ferrule-resource": {
@@ -2479,13 +2475,13 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "objects"
+      ],
+      "x-forge-method-name": "delete",
       "x-ratelimit-tier": 3
     },
     "GET /v1/objects/{collection}/{id}": {
-      "x-fern-sdk-group-name": [
-        "objects"
-      ],
-      "x-fern-sdk-method-name": "get",
       "x-ferrule-method-name": "get",
       "x-ferrule-method-order": 1,
       "x-ferrule-resource": {
@@ -2541,13 +2537,13 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "objects"
+      ],
+      "x-forge-method-name": "get",
       "x-ratelimit-tier": 4
     },
     "PUT /v1/objects/{collection}/{id}": {
-      "x-fern-sdk-group-name": [
-        "objects"
-      ],
-      "x-fern-sdk-method-name": "set",
       "x-ferrule-method-name": "set",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -2603,13 +2599,13 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "objects"
+      ],
+      "x-forge-method-name": "set",
       "x-ratelimit-tier": 3
     },
     "GET /v1/objects/{collection}/{id}/messages": {
-      "x-fern-sdk-group-name": [
-        "objects"
-      ],
-      "x-fern-sdk-method-name": "list_messages",
       "x-ferrule-method-name": "list_messages",
       "x-ferrule-method-order": 8,
       "x-ferrule-pagination": {
@@ -2680,14 +2676,14 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "objects"
+      ],
+      "x-forge-method-name": "list_messages",
       "x-ratelimit-tier": 4,
       "x-retention-policy": true
     },
     "GET /v1/objects/{collection}/{id}/schedules": {
-      "x-fern-sdk-group-name": [
-        "objects"
-      ],
-      "x-fern-sdk-method-name": "list_schedules",
       "x-ferrule-method-name": "list_schedules",
       "x-ferrule-method-order": 7,
       "x-ferrule-pagination": {
@@ -2758,13 +2754,13 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "objects"
+      ],
+      "x-forge-method-name": "list_schedules",
       "x-ratelimit-tier": 4
     },
     "DELETE /v1/objects/{collection}/{object_id}/channel_data/{channel_id}": {
-      "x-fern-sdk-group-name": [
-        "objects"
-      ],
-      "x-fern-sdk-method-name": "unset_channel_data",
       "x-ferrule-method-name": "unset_channel_data",
       "x-ferrule-method-order": 11,
       "x-ferrule-resource": {
@@ -2820,13 +2816,13 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "objects"
+      ],
+      "x-forge-method-name": "unset_channel_data",
       "x-ratelimit-tier": 3
     },
     "GET /v1/objects/{collection}/{object_id}/channel_data/{channel_id}": {
-      "x-fern-sdk-group-name": [
-        "objects"
-      ],
-      "x-fern-sdk-method-name": "get_channel_data",
       "x-ferrule-method-name": "get_channel_data",
       "x-ferrule-method-order": 9,
       "x-ferrule-resource": {
@@ -2882,13 +2878,13 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "objects"
+      ],
+      "x-forge-method-name": "get_channel_data",
       "x-ratelimit-tier": 4
     },
     "PUT /v1/objects/{collection}/{object_id}/channel_data/{channel_id}": {
-      "x-fern-sdk-group-name": [
-        "objects"
-      ],
-      "x-fern-sdk-method-name": "set_channel_data",
       "x-ferrule-method-name": "set_channel_data",
       "x-ferrule-method-order": 10,
       "x-ferrule-resource": {
@@ -2944,13 +2940,13 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "objects"
+      ],
+      "x-forge-method-name": "set_channel_data",
       "x-ratelimit-tier": 3
     },
     "GET /v1/objects/{collection}/{object_id}/preferences": {
-      "x-fern-sdk-group-name": [
-        "objects"
-      ],
-      "x-fern-sdk-method-name": "list_preferences",
       "x-ferrule-method-name": "list_preferences",
       "x-ferrule-method-order": 4,
       "x-ferrule-resource": {
@@ -3006,13 +3002,13 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "objects"
+      ],
+      "x-forge-method-name": "list_preferences",
       "x-ratelimit-tier": 4
     },
     "GET /v1/objects/{collection}/{object_id}/preferences/{id}": {
-      "x-fern-sdk-group-name": [
-        "objects"
-      ],
-      "x-fern-sdk-method-name": "get_preferences",
       "x-ferrule-method-name": "get_preferences",
       "x-ferrule-method-order": 5,
       "x-ferrule-resource": {
@@ -3068,13 +3064,13 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "objects"
+      ],
+      "x-forge-method-name": "get_preferences",
       "x-ratelimit-tier": 4
     },
     "PUT /v1/objects/{collection}/{object_id}/preferences/{id}": {
-      "x-fern-sdk-group-name": [
-        "objects"
-      ],
-      "x-fern-sdk-method-name": "set_preferences",
       "x-ferrule-method-name": "set_preferences",
       "x-ferrule-method-order": 6,
       "x-ferrule-resource": {
@@ -3130,6 +3126,10 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "objects"
+      ],
+      "x-forge-method-name": "set_preferences",
       "x-ratelimit-tier": 3
     },
     "PUT /v1/objects/{collection}/{object_id}/preferences/{id}/categories": {
@@ -3151,10 +3151,6 @@
       "x-ratelimit-tier": 3
     },
     "DELETE /v1/objects/{collection}/{object_id}/subscriptions": {
-      "x-fern-sdk-group-name": [
-        "objects"
-      ],
-      "x-fern-sdk-method-name": "delete_subscriptions",
       "x-ferrule-method-name": "delete_subscriptions",
       "x-ferrule-method-order": 14,
       "x-ferrule-resource": {
@@ -3210,13 +3206,13 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "objects"
+      ],
+      "x-forge-method-name": "delete_subscriptions",
       "x-ratelimit-tier": 3
     },
     "GET /v1/objects/{collection}/{object_id}/subscriptions": {
-      "x-fern-sdk-group-name": [
-        "objects"
-      ],
-      "x-fern-sdk-method-name": "list_subscriptions",
       "x-ferrule-method-name": "list_subscriptions",
       "x-ferrule-method-order": 12,
       "x-ferrule-pagination": {
@@ -3287,13 +3283,13 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "objects"
+      ],
+      "x-forge-method-name": "list_subscriptions",
       "x-ratelimit-tier": 4
     },
     "POST /v1/objects/{collection}/{object_id}/subscriptions": {
-      "x-fern-sdk-group-name": [
-        "objects"
-      ],
-      "x-fern-sdk-method-name": "add_subscriptions",
       "x-ferrule-method-name": "add_subscriptions",
       "x-ferrule-method-order": 13,
       "x-ferrule-resource": {
@@ -3349,14 +3345,13 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "objects"
+      ],
+      "x-forge-method-name": "add_subscriptions",
       "x-ratelimit-tier": 3
     },
     "GET /v1/providers/ms-teams/{channel_id}/auth_check": {
-      "x-fern-sdk-group-name": [
-        "providers",
-        "ms_teams"
-      ],
-      "x-fern-sdk-method-name": "check_auth",
       "x-ferrule-method-name": "check_auth",
       "x-ferrule-method-order": 2,
       "x-ferrule-resource": {
@@ -3414,14 +3409,14 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
-      "x-ratelimit-tier": 2
-    },
-    "GET /v1/providers/ms-teams/{channel_id}/channels": {
-      "x-fern-sdk-group-name": [
+      "x-forge-group-name": [
         "providers",
         "ms_teams"
       ],
-      "x-fern-sdk-method-name": "list_channels",
+      "x-forge-method-name": "check_auth",
+      "x-ratelimit-tier": 2
+    },
+    "GET /v1/providers/ms-teams/{channel_id}/channels": {
       "x-ferrule-method-name": "list_channels",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -3479,14 +3474,14 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
-      "x-ratelimit-tier": 2
-    },
-    "PUT /v1/providers/ms-teams/{channel_id}/revoke_access": {
-      "x-fern-sdk-group-name": [
+      "x-forge-group-name": [
         "providers",
         "ms_teams"
       ],
-      "x-fern-sdk-method-name": "revoke_access",
+      "x-forge-method-name": "list_channels",
+      "x-ratelimit-tier": 2
+    },
+    "PUT /v1/providers/ms-teams/{channel_id}/revoke_access": {
       "x-ferrule-method-name": "revoke_access",
       "x-ferrule-method-order": 3,
       "x-ferrule-resource": {
@@ -3544,14 +3539,14 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
-      "x-ratelimit-tier": 2
-    },
-    "GET /v1/providers/ms-teams/{channel_id}/teams": {
-      "x-fern-sdk-group-name": [
+      "x-forge-group-name": [
         "providers",
         "ms_teams"
       ],
-      "x-fern-sdk-method-name": "list_teams",
+      "x-forge-method-name": "revoke_access",
+      "x-ratelimit-tier": 2
+    },
+    "GET /v1/providers/ms-teams/{channel_id}/teams": {
       "x-ferrule-method-name": "list_teams",
       "x-ferrule-method-order": 1,
       "x-ferrule-pagination": {
@@ -3623,14 +3618,14 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "providers",
+        "ms_teams"
+      ],
+      "x-forge-method-name": "list_teams",
       "x-ratelimit-tier": 2
     },
     "GET /v1/providers/slack/{channel_id}/auth_check": {
-      "x-fern-sdk-group-name": [
-        "providers",
-        "slack"
-      ],
-      "x-fern-sdk-method-name": "check_auth",
       "x-ferrule-method-name": "check_auth",
       "x-ferrule-method-order": 1,
       "x-ferrule-resource": {
@@ -3688,14 +3683,14 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
-      "x-ratelimit-tier": 2
-    },
-    "GET /v1/providers/slack/{channel_id}/channels": {
-      "x-fern-sdk-group-name": [
+      "x-forge-group-name": [
         "providers",
         "slack"
       ],
-      "x-fern-sdk-method-name": "list_channels",
+      "x-forge-method-name": "check_auth",
+      "x-ratelimit-tier": 2
+    },
+    "GET /v1/providers/slack/{channel_id}/channels": {
       "x-ferrule-method-name": "list_channels",
       "x-ferrule-method-order": 0,
       "x-ferrule-pagination": {
@@ -3767,14 +3762,14 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
-      "x-ratelimit-tier": 2
-    },
-    "PUT /v1/providers/slack/{channel_id}/revoke_access": {
-      "x-fern-sdk-group-name": [
+      "x-forge-group-name": [
         "providers",
         "slack"
       ],
-      "x-fern-sdk-method-name": "revoke_access",
+      "x-forge-method-name": "list_channels",
+      "x-ratelimit-tier": 2
+    },
+    "PUT /v1/providers/slack/{channel_id}/revoke_access": {
       "x-ferrule-method-name": "revoke_access",
       "x-ferrule-method-order": 2,
       "x-ferrule-resource": {
@@ -3832,13 +3827,14 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "providers",
+        "slack"
+      ],
+      "x-forge-method-name": "revoke_access",
       "x-ratelimit-tier": 2
     },
     "DELETE /v1/schedules": {
-      "x-fern-sdk-group-name": [
-        "schedules"
-      ],
-      "x-fern-sdk-method-name": "delete",
       "x-ferrule-method-name": "delete",
       "x-ferrule-method-order": 3,
       "x-ferrule-resource": {
@@ -3894,13 +3890,13 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "schedules"
+      ],
+      "x-forge-method-name": "delete",
       "x-ratelimit-tier": 3
     },
     "GET /v1/schedules": {
-      "x-fern-sdk-group-name": [
-        "schedules"
-      ],
-      "x-fern-sdk-method-name": "list",
       "x-ferrule-method-name": "list",
       "x-ferrule-method-order": 1,
       "x-ferrule-pagination": {
@@ -3971,13 +3967,13 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "schedules"
+      ],
+      "x-forge-method-name": "list",
       "x-ratelimit-tier": 4
     },
     "POST /v1/schedules": {
-      "x-fern-sdk-group-name": [
-        "schedules"
-      ],
-      "x-fern-sdk-method-name": "create",
       "x-ferrule-method-name": "create",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -4033,13 +4029,13 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "schedules"
+      ],
+      "x-forge-method-name": "create",
       "x-ratelimit-tier": 3
     },
     "PUT /v1/schedules": {
-      "x-fern-sdk-group-name": [
-        "schedules"
-      ],
-      "x-fern-sdk-method-name": "update",
       "x-ferrule-method-name": "update",
       "x-ferrule-method-order": 2,
       "x-ferrule-resource": {
@@ -4095,14 +4091,13 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "schedules"
+      ],
+      "x-forge-method-name": "update",
       "x-ratelimit-tier": 3
     },
     "POST /v1/schedules/bulk/create": {
-      "x-fern-sdk-group-name": [
-        "schedules",
-        "bulk"
-      ],
-      "x-fern-sdk-method-name": "create",
       "x-ferrule-method-name": "create",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -4160,13 +4155,14 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "schedules",
+        "bulk"
+      ],
+      "x-forge-method-name": "create",
       "x-ratelimit-tier": 1
     },
     "GET /v1/tenants": {
-      "x-fern-sdk-group-name": [
-        "tenants"
-      ],
-      "x-fern-sdk-method-name": "list",
       "x-ferrule-method-name": "list",
       "x-ferrule-method-order": 3,
       "x-ferrule-pagination": {
@@ -4237,14 +4233,13 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "tenants"
+      ],
+      "x-forge-method-name": "list",
       "x-ratelimit-tier": 4
     },
     "POST /v1/tenants/bulk/delete": {
-      "x-fern-sdk-group-name": [
-        "tenants",
-        "bulk"
-      ],
-      "x-fern-sdk-method-name": "delete",
       "x-ferrule-method-name": "delete",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -4302,14 +4297,14 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
-      "x-ratelimit-tier": 1
-    },
-    "POST /v1/tenants/bulk/set": {
-      "x-fern-sdk-group-name": [
+      "x-forge-group-name": [
         "tenants",
         "bulk"
       ],
-      "x-fern-sdk-method-name": "set",
+      "x-forge-method-name": "delete",
+      "x-ratelimit-tier": 1
+    },
+    "POST /v1/tenants/bulk/set": {
       "x-ferrule-method-name": "set",
       "x-ferrule-method-order": 1,
       "x-ferrule-resource": {
@@ -4367,13 +4362,14 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "tenants",
+        "bulk"
+      ],
+      "x-forge-method-name": "set",
       "x-ratelimit-tier": 1
     },
     "DELETE /v1/tenants/{id}": {
-      "x-fern-sdk-group-name": [
-        "tenants"
-      ],
-      "x-fern-sdk-method-name": "delete",
       "x-ferrule-method-name": "delete",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -4429,13 +4425,13 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "tenants"
+      ],
+      "x-forge-method-name": "delete",
       "x-ratelimit-tier": 2
     },
     "GET /v1/tenants/{id}": {
-      "x-fern-sdk-group-name": [
-        "tenants"
-      ],
-      "x-fern-sdk-method-name": "get",
       "x-ferrule-method-name": "get",
       "x-ferrule-method-order": 1,
       "x-ferrule-resource": {
@@ -4491,13 +4487,13 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "tenants"
+      ],
+      "x-forge-method-name": "get",
       "x-ratelimit-tier": 4
     },
     "PUT /v1/tenants/{id}": {
-      "x-fern-sdk-group-name": [
-        "tenants"
-      ],
-      "x-fern-sdk-method-name": "set",
       "x-ferrule-method-name": "set",
       "x-ferrule-method-order": 2,
       "x-ferrule-resource": {
@@ -4553,13 +4549,13 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "tenants"
+      ],
+      "x-forge-method-name": "set",
       "x-ratelimit-tier": 3
     },
     "GET /v1/users": {
-      "x-fern-sdk-group-name": [
-        "users"
-      ],
-      "x-fern-sdk-method-name": "list",
       "x-ferrule-method-name": "list",
       "x-ferrule-method-order": 1,
       "x-ferrule-pagination": {
@@ -4630,14 +4626,13 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "users"
+      ],
+      "x-forge-method-name": "list",
       "x-ratelimit-tier": 4
     },
     "POST /v1/users/bulk/delete": {
-      "x-fern-sdk-group-name": [
-        "users",
-        "bulk"
-      ],
-      "x-fern-sdk-method-name": "delete",
       "x-ferrule-method-name": "delete",
       "x-ferrule-method-order": 2,
       "x-ferrule-resource": {
@@ -4695,14 +4690,14 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
-      "x-ratelimit-tier": 1
-    },
-    "POST /v1/users/bulk/identify": {
-      "x-fern-sdk-group-name": [
+      "x-forge-group-name": [
         "users",
         "bulk"
       ],
-      "x-fern-sdk-method-name": "identify",
+      "x-forge-method-name": "delete",
+      "x-ratelimit-tier": 1
+    },
+    "POST /v1/users/bulk/identify": {
       "x-ferrule-method-name": "identify",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -4760,14 +4755,14 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
-      "x-ratelimit-tier": 1
-    },
-    "POST /v1/users/bulk/preferences": {
-      "x-fern-sdk-group-name": [
+      "x-forge-group-name": [
         "users",
         "bulk"
       ],
-      "x-fern-sdk-method-name": "set_preferences",
+      "x-forge-method-name": "identify",
+      "x-ratelimit-tier": 1
+    },
+    "POST /v1/users/bulk/preferences": {
       "x-ferrule-method-name": "set_preferences",
       "x-ferrule-method-order": 1,
       "x-ferrule-resource": {
@@ -4825,13 +4820,14 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "users",
+        "bulk"
+      ],
+      "x-forge-method-name": "set_preferences",
       "x-ratelimit-tier": 1
     },
     "DELETE /v1/users/{user_id}": {
-      "x-fern-sdk-group-name": [
-        "users"
-      ],
-      "x-fern-sdk-method-name": "delete",
       "x-ferrule-method-name": "delete",
       "x-ferrule-method-order": 4,
       "x-ferrule-resource": {
@@ -4887,13 +4883,13 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "users"
+      ],
+      "x-forge-method-name": "delete",
       "x-ratelimit-tier": 2
     },
     "GET /v1/users/{user_id}": {
-      "x-fern-sdk-group-name": [
-        "users"
-      ],
-      "x-fern-sdk-method-name": "get",
       "x-ferrule-method-name": "get",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -4949,13 +4945,13 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "users"
+      ],
+      "x-forge-method-name": "get",
       "x-ratelimit-tier": 4
     },
     "PUT /v1/users/{user_id}": {
-      "x-fern-sdk-group-name": [
-        "users"
-      ],
-      "x-fern-sdk-method-name": "update",
       "x-ferrule-method-name": "update",
       "x-ferrule-method-order": 2,
       "x-ferrule-resource": {
@@ -5011,13 +5007,13 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "users"
+      ],
+      "x-forge-method-name": "update",
       "x-ratelimit-tier": 3
     },
     "DELETE /v1/users/{user_id}/channel_data/{channel_id}": {
-      "x-fern-sdk-group-name": [
-        "users"
-      ],
-      "x-fern-sdk-method-name": "unset_channel_data",
       "x-ferrule-method-name": "unset_channel_data",
       "x-ferrule-method-order": 13,
       "x-ferrule-resource": {
@@ -5073,13 +5069,13 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "users"
+      ],
+      "x-forge-method-name": "unset_channel_data",
       "x-ratelimit-tier": 3
     },
     "GET /v1/users/{user_id}/channel_data/{channel_id}": {
-      "x-fern-sdk-group-name": [
-        "users"
-      ],
-      "x-fern-sdk-method-name": "get_channel_data",
       "x-ferrule-method-name": "get_channel_data",
       "x-ferrule-method-order": 11,
       "x-ferrule-resource": {
@@ -5135,13 +5131,13 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "users"
+      ],
+      "x-forge-method-name": "get_channel_data",
       "x-ratelimit-tier": 4
     },
     "PUT /v1/users/{user_id}/channel_data/{channel_id}": {
-      "x-fern-sdk-group-name": [
-        "users"
-      ],
-      "x-fern-sdk-method-name": "set_channel_data",
       "x-ferrule-method-name": "set_channel_data",
       "x-ferrule-method-order": 12,
       "x-ferrule-resource": {
@@ -5197,14 +5193,13 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "users"
+      ],
+      "x-forge-method-name": "set_channel_data",
       "x-ratelimit-tier": 3
     },
     "GET /v1/users/{user_id}/feeds/{id}": {
-      "x-fern-sdk-group-name": [
-        "users",
-        "feeds"
-      ],
-      "x-fern-sdk-method-name": "list_items",
       "x-ferrule-method-name": "list_items",
       "x-ferrule-method-order": 0,
       "x-ferrule-pagination": {
@@ -5277,14 +5272,14 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
-      "x-ratelimit-tier": 2
-    },
-    "GET /v1/users/{user_id}/feeds/{id}/settings": {
-      "x-fern-sdk-group-name": [
+      "x-forge-group-name": [
         "users",
         "feeds"
       ],
-      "x-fern-sdk-method-name": "get_settings",
+      "x-forge-method-name": "list_items",
+      "x-ratelimit-tier": 2
+    },
+    "GET /v1/users/{user_id}/feeds/{id}/settings": {
       "x-ferrule-method-name": "get_settings",
       "x-ferrule-method-order": 1,
       "x-ferrule-resource": {
@@ -5342,14 +5337,14 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "users",
+        "feeds"
+      ],
+      "x-forge-method-name": "get_settings",
       "x-ratelimit-tier": 4
     },
     "PUT /v1/users/{user_id}/guides/messages/{message_id}/archived": {
-      "x-fern-sdk-group-name": [
-        "users",
-        "guides"
-      ],
-      "x-fern-sdk-method-name": "mark_message_as_archived",
       "x-ferrule-method-name": "mark_message_as_archived",
       "x-ferrule-method-order": 3,
       "x-ferrule-resource": {
@@ -5407,14 +5402,14 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
-      "x-ratelimit-tier": 2
-    },
-    "PUT /v1/users/{user_id}/guides/messages/{message_id}/interacted": {
-      "x-fern-sdk-group-name": [
+      "x-forge-group-name": [
         "users",
         "guides"
       ],
-      "x-fern-sdk-method-name": "mark_message_as_interacted",
+      "x-forge-method-name": "mark_message_as_archived",
+      "x-ratelimit-tier": 2
+    },
+    "PUT /v1/users/{user_id}/guides/messages/{message_id}/interacted": {
       "x-ferrule-method-name": "mark_message_as_interacted",
       "x-ferrule-method-order": 2,
       "x-ferrule-resource": {
@@ -5472,14 +5467,14 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
-      "x-ratelimit-tier": 2
-    },
-    "PUT /v1/users/{user_id}/guides/messages/{message_id}/seen": {
-      "x-fern-sdk-group-name": [
+      "x-forge-group-name": [
         "users",
         "guides"
       ],
-      "x-fern-sdk-method-name": "mark_message_as_seen",
+      "x-forge-method-name": "mark_message_as_interacted",
+      "x-ratelimit-tier": 2
+    },
+    "PUT /v1/users/{user_id}/guides/messages/{message_id}/seen": {
       "x-ferrule-method-name": "mark_message_as_seen",
       "x-ferrule-method-order": 1,
       "x-ferrule-resource": {
@@ -5537,14 +5532,14 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
-      "x-ratelimit-tier": 2
-    },
-    "GET /v1/users/{user_id}/guides/{channel_id}": {
-      "x-fern-sdk-group-name": [
+      "x-forge-group-name": [
         "users",
         "guides"
       ],
-      "x-fern-sdk-method-name": "get_channel",
+      "x-forge-method-name": "mark_message_as_seen",
+      "x-ratelimit-tier": 2
+    },
+    "GET /v1/users/{user_id}/guides/{channel_id}": {
       "x-ferrule-method-name": "get_channel",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -5602,16 +5597,17 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "users",
+        "guides"
+      ],
+      "x-forge-method-name": "get_channel",
       "x-ratelimit-tier": 2
     },
     "GET /v1/users/{user_id}/in-app-messages/{channel_id}/{message_type}": {
       "x-ratelimit-tier": 2
     },
     "POST /v1/users/{user_id}/merge": {
-      "x-fern-sdk-group-name": [
-        "users"
-      ],
-      "x-fern-sdk-method-name": "merge",
       "x-ferrule-method-name": "merge",
       "x-ferrule-method-order": 3,
       "x-ferrule-resource": {
@@ -5667,13 +5663,13 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "users"
+      ],
+      "x-forge-method-name": "merge",
       "x-ratelimit-tier": 2
     },
     "GET /v1/users/{user_id}/messages": {
-      "x-fern-sdk-group-name": [
-        "users"
-      ],
-      "x-fern-sdk-method-name": "list_messages",
       "x-ferrule-method-name": "list_messages",
       "x-ferrule-method-order": 5,
       "x-ferrule-pagination": {
@@ -5744,14 +5740,14 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "users"
+      ],
+      "x-forge-method-name": "list_messages",
       "x-ratelimit-tier": 4,
       "x-retention-policy": true
     },
     "GET /v1/users/{user_id}/preferences": {
-      "x-fern-sdk-group-name": [
-        "users"
-      ],
-      "x-fern-sdk-method-name": "list_preferences",
       "x-ferrule-method-name": "list_preferences",
       "x-ferrule-method-order": 8,
       "x-ferrule-resource": {
@@ -5807,13 +5803,13 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "users"
+      ],
+      "x-forge-method-name": "list_preferences",
       "x-ratelimit-tier": 4
     },
     "GET /v1/users/{user_id}/preferences/{id}": {
-      "x-fern-sdk-group-name": [
-        "users"
-      ],
-      "x-fern-sdk-method-name": "get_preferences",
       "x-ferrule-method-name": "get_preferences",
       "x-ferrule-method-order": 9,
       "x-ferrule-resource": {
@@ -5869,13 +5865,13 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "users"
+      ],
+      "x-forge-method-name": "get_preferences",
       "x-ratelimit-tier": 4
     },
     "PUT /v1/users/{user_id}/preferences/{id}": {
-      "x-fern-sdk-group-name": [
-        "users"
-      ],
-      "x-fern-sdk-method-name": "set_preferences",
       "x-ferrule-method-name": "set_preferences",
       "x-ferrule-method-order": 10,
       "x-ferrule-resource": {
@@ -5931,6 +5927,10 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "users"
+      ],
+      "x-forge-method-name": "set_preferences",
       "x-ratelimit-tier": 3
     },
     "PUT /v1/users/{user_id}/preferences/{id}/categories": {
@@ -5952,10 +5952,6 @@
       "x-ratelimit-tier": 3
     },
     "GET /v1/users/{user_id}/schedules": {
-      "x-fern-sdk-group-name": [
-        "users"
-      ],
-      "x-fern-sdk-method-name": "list_schedules",
       "x-ferrule-method-name": "list_schedules",
       "x-ferrule-method-order": 6,
       "x-ferrule-pagination": {
@@ -6026,13 +6022,13 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "users"
+      ],
+      "x-forge-method-name": "list_schedules",
       "x-ratelimit-tier": 4
     },
     "GET /v1/users/{user_id}/subscriptions": {
-      "x-fern-sdk-group-name": [
-        "users"
-      ],
-      "x-fern-sdk-method-name": "list_subscriptions",
       "x-ferrule-method-name": "list_subscriptions",
       "x-ferrule-method-order": 7,
       "x-ferrule-pagination": {
@@ -6103,13 +6099,13 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "users"
+      ],
+      "x-forge-method-name": "list_subscriptions",
       "x-ratelimit-tier": 4
     },
     "POST /v1/workflows/{key}/cancel": {
-      "x-fern-sdk-group-name": [
-        "workflows"
-      ],
-      "x-fern-sdk-method-name": "cancel",
       "x-ferrule-method-name": "cancel",
       "x-ferrule-method-order": 1,
       "x-ferrule-resource": {
@@ -6165,13 +6161,13 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "workflows"
+      ],
+      "x-forge-method-name": "cancel",
       "x-ratelimit-tier": 5
     },
     "POST /v1/workflows/{key}/trigger": {
-      "x-fern-sdk-group-name": [
-        "workflows"
-      ],
-      "x-fern-sdk-method-name": "trigger",
       "x-ferrule-method-name": "trigger",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -6227,6 +6223,10 @@
           "production_repo": "knocklabs/knock-node"
         }
       },
+      "x-forge-group-name": [
+        "workflows"
+      ],
+      "x-forge-method-name": "trigger",
       "x-idempotent": true,
       "x-ratelimit-tier": 5
     }

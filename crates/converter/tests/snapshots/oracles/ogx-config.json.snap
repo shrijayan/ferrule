@@ -1,5 +1,5 @@
 {
-  "sha256": "a28a0f90f6077f9b2e2f33dada8893151dd0f0e3bb670a5ecbc1c3f422c1c95f",
+  "sha256": "9aa421f2568456ccf90c2fd42df5d16c123c4f80eeeeef608aa8d52bf50aea8b",
   "root": {
     "x-ferrule-client": {
       "defaultEnvironment": "production",
@@ -290,10 +290,6 @@
           "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nbatches = client.batches.list()\nfor batch in batches:\n    print(batch.id, batch.status)"
         }
       ],
-      "x-fern-sdk-group-name": [
-        "batches"
-      ],
-      "x-fern-sdk-method-name": "list",
       "x-ferrule-method-name": "list",
       "x-ferrule-method-order": 1,
       "x-ferrule-pagination": {
@@ -348,7 +344,11 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "batches"
+      ],
+      "x-forge-method-name": "list"
     },
     "POST /v1/batches": {
       "x-codeSamples": [
@@ -358,10 +358,6 @@
           "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nbatch = client.batches.create(\n    input_file_id=\"file-abc123\",\n    endpoint=\"/v1/chat/completions\",\n    completion_window=\"24h\",\n)\nprint(batch.id)"
         }
       ],
-      "x-fern-sdk-group-name": [
-        "batches"
-      ],
-      "x-fern-sdk-method-name": "create",
       "x-ferrule-method-name": "create",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -401,7 +397,11 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "batches"
+      ],
+      "x-forge-method-name": "create"
     },
     "GET /v1/batches/{batch_id}": {
       "x-codeSamples": [
@@ -411,10 +411,6 @@
           "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nbatch = client.batches.retrieve(\"batch_abc123\")\nprint(batch)"
         }
       ],
-      "x-fern-sdk-group-name": [
-        "batches"
-      ],
-      "x-fern-sdk-method-name": "retrieve",
       "x-ferrule-method-name": "retrieve",
       "x-ferrule-method-order": 2,
       "x-ferrule-resource": {
@@ -454,7 +450,11 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "batches"
+      ],
+      "x-forge-method-name": "retrieve"
     },
     "POST /v1/batches/{batch_id}/cancel": {
       "x-codeSamples": [
@@ -464,10 +464,6 @@
           "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nbatch = client.batches.cancel(\"batch_abc123\")\nprint(batch)"
         }
       ],
-      "x-fern-sdk-group-name": [
-        "batches"
-      ],
-      "x-fern-sdk-method-name": "cancel",
       "x-ferrule-method-name": "cancel",
       "x-ferrule-method-order": 3,
       "x-ferrule-resource": {
@@ -507,7 +503,11 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "batches"
+      ],
+      "x-forge-method-name": "cancel"
     },
     "GET /v1/chat/completions": {
       "x-codeSamples": [
@@ -517,11 +517,6 @@
           "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nresponse = client.chat.completions.list()\nprint(response)"
         }
       ],
-      "x-fern-sdk-group-name": [
-        "chat",
-        "completions"
-      ],
-      "x-fern-sdk-method-name": "list",
       "x-ferrule-method-name": "list",
       "x-ferrule-method-order": 1,
       "x-ferrule-resource": {
@@ -563,7 +558,12 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "chat",
+        "completions"
+      ],
+      "x-forge-method-name": "list"
     },
     "POST /v1/chat/completions": {
       "x-codeSamples": [
@@ -573,11 +573,6 @@
           "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nresponse = client.chat.completions.create(\n    model=\"meta-llama/Llama-3.1-8B-Instruct\",\n    messages=[\n        {\"role\": \"user\", \"content\": \"What is the capital of France?\"},\n    ],\n)\nprint(response.choices[0].message.content)"
         }
       ],
-      "x-fern-sdk-group-name": [
-        "chat",
-        "completions"
-      ],
-      "x-fern-sdk-method-name": "create",
       "x-ferrule-method-name": "create",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -638,7 +633,12 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "chat",
+        "completions"
+      ],
+      "x-forge-method-name": "create"
     },
     "GET /v1/chat/completions/{completion_id}": {
       "x-codeSamples": [
@@ -648,11 +648,6 @@
           "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\ncompletion = client.chat.completions.retrieve(\"completion_id\")\nprint(completion)"
         }
       ],
-      "x-fern-sdk-group-name": [
-        "chat",
-        "completions"
-      ],
-      "x-fern-sdk-method-name": "retrieve",
       "x-ferrule-method-name": "retrieve",
       "x-ferrule-method-order": 2,
       "x-ferrule-resource": {
@@ -694,7 +689,12 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "chat",
+        "completions"
+      ],
+      "x-forge-method-name": "retrieve"
     },
     "GET /v1/chat/completions/{completion_id}/messages": {
       "x-codeSamples": [
@@ -704,12 +704,6 @@
           "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nmessages = client.chat.completions.messages.list(completion_id=\"completion_id\")\nprint(messages.data)"
         }
       ],
-      "x-fern-sdk-group-name": [
-        "chat",
-        "completions",
-        "messages"
-      ],
-      "x-fern-sdk-method-name": "list",
       "x-ferrule-method-name": "list",
       "x-ferrule-method-order": 0,
       "x-ferrule-pagination": {
@@ -768,7 +762,13 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "chat",
+        "completions",
+        "messages"
+      ],
+      "x-forge-method-name": "list"
     },
     "POST /v1/completions": {
       "x-codeSamples": [
@@ -778,10 +778,6 @@
           "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nresponse = client.completions.create(\n    model=\"meta-llama/Llama-3.1-8B-Instruct\",\n    prompt=\"The capital of France is\",\n)\nprint(response.choices[0].text)"
         }
       ],
-      "x-fern-sdk-group-name": [
-        "completions"
-      ],
-      "x-fern-sdk-method-name": "create",
       "x-ferrule-method-name": "create",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -838,13 +834,13 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "completions"
+      ],
+      "x-forge-method-name": "create"
     },
     "POST /v1/conversations": {
-      "x-fern-sdk-group-name": [
-        "conversations"
-      ],
-      "x-fern-sdk-method-name": "create",
       "x-ferrule-method-name": "create",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -884,13 +880,13 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
-    },
-    "DELETE /v1/conversations/{conversation_id}": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "conversations"
       ],
-      "x-fern-sdk-method-name": "delete",
+      "x-forge-method-name": "create"
+    },
+    "DELETE /v1/conversations/{conversation_id}": {
       "x-ferrule-method-name": "delete",
       "x-ferrule-method-order": 3,
       "x-ferrule-resource": {
@@ -930,13 +926,13 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
-    },
-    "GET /v1/conversations/{conversation_id}": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "conversations"
       ],
-      "x-fern-sdk-method-name": "retrieve",
+      "x-forge-method-name": "delete"
+    },
+    "GET /v1/conversations/{conversation_id}": {
       "x-ferrule-method-name": "retrieve",
       "x-ferrule-method-order": 1,
       "x-ferrule-resource": {
@@ -976,13 +972,13 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
-    },
-    "POST /v1/conversations/{conversation_id}": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "conversations"
       ],
-      "x-fern-sdk-method-name": "update",
+      "x-forge-method-name": "retrieve"
+    },
+    "POST /v1/conversations/{conversation_id}": {
       "x-ferrule-method-name": "update",
       "x-ferrule-method-order": 2,
       "x-ferrule-resource": {
@@ -1022,14 +1018,13 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "conversations"
+      ],
+      "x-forge-method-name": "update"
     },
     "GET /v1/conversations/{conversation_id}/items": {
-      "x-fern-sdk-group-name": [
-        "conversations",
-        "items"
-      ],
-      "x-fern-sdk-method-name": "list",
       "x-ferrule-method-name": "list",
       "x-ferrule-method-order": 1,
       "x-ferrule-pagination": {
@@ -1086,14 +1081,14 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
-    },
-    "POST /v1/conversations/{conversation_id}/items": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "conversations",
         "items"
       ],
-      "x-fern-sdk-method-name": "create",
+      "x-forge-method-name": "list"
+    },
+    "POST /v1/conversations/{conversation_id}/items": {
       "x-ferrule-method-name": "create",
       "x-ferrule-method-order": 2,
       "x-ferrule-resource": {
@@ -1135,14 +1130,14 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
-    },
-    "DELETE /v1/conversations/{conversation_id}/items/{item_id}": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "conversations",
         "items"
       ],
-      "x-fern-sdk-method-name": "delete",
+      "x-forge-method-name": "create"
+    },
+    "DELETE /v1/conversations/{conversation_id}/items/{item_id}": {
       "x-ferrule-method-name": "delete",
       "x-ferrule-method-order": 3,
       "x-ferrule-resource": {
@@ -1184,14 +1179,14 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
-    },
-    "GET /v1/conversations/{conversation_id}/items/{item_id}": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "conversations",
         "items"
       ],
-      "x-fern-sdk-method-name": "get",
+      "x-forge-method-name": "delete"
+    },
+    "GET /v1/conversations/{conversation_id}/items/{item_id}": {
       "x-ferrule-method-name": "get",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -1233,7 +1228,12 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "conversations",
+        "items"
+      ],
+      "x-forge-method-name": "get"
     },
     "POST /v1/embeddings": {
       "x-codeSamples": [
@@ -1243,10 +1243,6 @@
           "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nresponse = client.embeddings.create(\n    model=\"all-MiniLM-L6-v2\",\n    input=\"OGX is awesome\",\n)\nprint(response.data[0].embedding[:5])"
         }
       ],
-      "x-fern-sdk-group-name": [
-        "embeddings"
-      ],
-      "x-fern-sdk-method-name": "create",
       "x-ferrule-method-name": "create",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -1286,7 +1282,11 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "embeddings"
+      ],
+      "x-forge-method-name": "create"
     },
     "GET /v1/files": {
       "x-codeSamples": [
@@ -1296,10 +1296,6 @@
           "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nfiles = client.files.list()\nfor f in files:\n    print(f.id, f.filename)"
         }
       ],
-      "x-fern-sdk-group-name": [
-        "files"
-      ],
-      "x-fern-sdk-method-name": "list",
       "x-ferrule-method-name": "list",
       "x-ferrule-method-order": 1,
       "x-ferrule-pagination": {
@@ -1354,7 +1350,11 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "files"
+      ],
+      "x-forge-method-name": "list"
     },
     "POST /v1/files": {
       "x-codeSamples": [
@@ -1364,10 +1364,6 @@
           "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nfile = client.files.create(\n    file=open(\"data.jsonl\", \"rb\"),\n    purpose=\"batch\",\n)\nprint(file.id)"
         }
       ],
-      "x-fern-sdk-group-name": [
-        "files"
-      ],
-      "x-fern-sdk-method-name": "create",
       "x-ferrule-method-name": "create",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -1407,7 +1403,11 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "files"
+      ],
+      "x-forge-method-name": "create"
     },
     "DELETE /v1/files/{file_id}": {
       "x-codeSamples": [
@@ -1417,10 +1417,6 @@
           "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nresponse = client.files.delete(\"file-abc123\")\nprint(response)"
         }
       ],
-      "x-fern-sdk-group-name": [
-        "files"
-      ],
-      "x-fern-sdk-method-name": "delete",
       "x-ferrule-method-name": "delete",
       "x-ferrule-method-order": 3,
       "x-ferrule-resource": {
@@ -1460,7 +1456,11 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "files"
+      ],
+      "x-forge-method-name": "delete"
     },
     "GET /v1/files/{file_id}": {
       "x-codeSamples": [
@@ -1470,10 +1470,6 @@
           "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nfile = client.files.retrieve(\"file-abc123\")\nprint(file)"
         }
       ],
-      "x-fern-sdk-group-name": [
-        "files"
-      ],
-      "x-fern-sdk-method-name": "retrieve",
       "x-ferrule-method-name": "retrieve",
       "x-ferrule-method-order": 2,
       "x-ferrule-resource": {
@@ -1513,7 +1509,11 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "files"
+      ],
+      "x-forge-method-name": "retrieve"
     },
     "GET /v1/files/{file_id}/content": {
       "x-codeSamples": [
@@ -1523,10 +1523,6 @@
           "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\ncontent = client.files.content(\"file-abc123\")\nprint(content.text)"
         }
       ],
-      "x-fern-sdk-group-name": [
-        "files"
-      ],
-      "x-fern-sdk-method-name": "content",
       "x-ferrule-method-name": "content",
       "x-ferrule-method-order": 4,
       "x-ferrule-resource": {
@@ -1566,13 +1562,13 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "files"
+      ],
+      "x-forge-method-name": "content"
     },
     "GET /v1/health": {
-      "x-fern-sdk-group-name": [
-        "inspect"
-      ],
-      "x-fern-sdk-method-name": "health",
       "x-ferrule-method-name": "health",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -1613,13 +1609,13 @@
           "production_repo": "ogx-ai/ogx-client-python"
         }
       },
+      "x-forge-group-name": [
+        "inspect"
+      ],
+      "x-forge-method-name": "health",
       "x-public": true
     },
     "GET /v1/inspect/routes": {
-      "x-fern-sdk-group-name": [
-        "routes"
-      ],
-      "x-fern-sdk-method-name": "list",
       "x-ferrule-method-name": "list",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -1659,7 +1655,11 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "routes"
+      ],
+      "x-forge-method-name": "list"
     },
     "POST /v1/messages": {
       "x-codeSamples": [
@@ -1690,10 +1690,6 @@
       ],
       "x-forge-aliases": [
         {
-          "x-fern-sdk-group-name": [
-            "models"
-          ],
-          "x-fern-sdk-method-name": "list",
           "x-ferrule-client": {
             "defaultEnvironment": "production",
             "defaultHeaders": {},
@@ -1926,14 +1922,13 @@
               "package_name": "ogx_client",
               "production_repo": "ogx-ai/ogx-client-python"
             }
-          }
+          },
+          "x-forge-group-name": [
+            "models"
+          ],
+          "x-forge-method-name": "list"
         },
         {
-          "x-fern-sdk-group-name": [
-            "models",
-            "openai"
-          ],
-          "x-fern-sdk-method-name": "list",
           "x-ferrule-client": {
             "defaultEnvironment": "production",
             "defaultHeaders": {},
@@ -2168,7 +2163,12 @@
               "package_name": "ogx_client",
               "production_repo": "ogx-ai/ogx-client-python"
             }
-          }
+          },
+          "x-forge-group-name": [
+            "models",
+            "openai"
+          ],
+          "x-forge-method-name": "list"
         }
       ]
     },
@@ -2190,10 +2190,6 @@
           "source": "from google import genai\nfrom google.genai import types\n\nclient = genai.Client(\n    api_key=\"fake\",\n    http_options=types.HttpOptions(\n        base_url=\"http://localhost:8321\",\n        api_version=\"v1\",\n    ),\n)\nmodel = client.models.get(model=\"openai/gpt-4o\")\nprint(model.name)"
         }
       ],
-      "x-fern-sdk-group-name": [
-        "models"
-      ],
-      "x-fern-sdk-method-name": "retrieve",
       "x-ferrule-method-name": "retrieve",
       "x-ferrule-method-order": 1,
       "x-ferrule-resource": {
@@ -2233,13 +2229,13 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "models"
+      ],
+      "x-forge-method-name": "retrieve"
     },
     "GET /v1/prompts": {
-      "x-fern-sdk-group-name": [
-        "prompts"
-      ],
-      "x-fern-sdk-method-name": "list",
       "x-ferrule-method-name": "list",
       "x-ferrule-method-order": 1,
       "x-ferrule-resource": {
@@ -2279,13 +2275,13 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
-    },
-    "POST /v1/prompts": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "prompts"
       ],
-      "x-fern-sdk-method-name": "create",
+      "x-forge-method-name": "list"
+    },
+    "POST /v1/prompts": {
       "x-ferrule-method-name": "create",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -2325,13 +2321,13 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
-    },
-    "DELETE /v1/prompts/{prompt_id}": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "prompts"
       ],
-      "x-fern-sdk-method-name": "delete",
+      "x-forge-method-name": "create"
+    },
+    "DELETE /v1/prompts/{prompt_id}": {
       "x-ferrule-method-name": "delete",
       "x-ferrule-method-order": 4,
       "x-ferrule-resource": {
@@ -2371,13 +2367,13 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
-    },
-    "GET /v1/prompts/{prompt_id}": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "prompts"
       ],
-      "x-fern-sdk-method-name": "retrieve",
+      "x-forge-method-name": "delete"
+    },
+    "GET /v1/prompts/{prompt_id}": {
       "x-ferrule-method-name": "retrieve",
       "x-ferrule-method-order": 2,
       "x-ferrule-resource": {
@@ -2417,13 +2413,13 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
-    },
-    "PUT /v1/prompts/{prompt_id}": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "prompts"
       ],
-      "x-fern-sdk-method-name": "update",
+      "x-forge-method-name": "retrieve"
+    },
+    "PUT /v1/prompts/{prompt_id}": {
       "x-ferrule-method-name": "update",
       "x-ferrule-method-order": 3,
       "x-ferrule-resource": {
@@ -2463,13 +2459,13 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
-    },
-    "PUT /v1/prompts/{prompt_id}/set-default-version": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "prompts"
       ],
-      "x-fern-sdk-method-name": "set_default_version",
+      "x-forge-method-name": "update"
+    },
+    "PUT /v1/prompts/{prompt_id}/set-default-version": {
       "x-ferrule-method-name": "set_default_version",
       "x-ferrule-method-order": 5,
       "x-ferrule-resource": {
@@ -2509,14 +2505,13 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "prompts"
+      ],
+      "x-forge-method-name": "set_default_version"
     },
     "GET /v1/prompts/{prompt_id}/versions": {
-      "x-fern-sdk-group-name": [
-        "prompts",
-        "versions"
-      ],
-      "x-fern-sdk-method-name": "list",
       "x-ferrule-method-name": "list",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -2558,13 +2553,14 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "prompts",
+        "versions"
+      ],
+      "x-forge-method-name": "list"
     },
     "GET /v1/providers": {
-      "x-fern-sdk-group-name": [
-        "providers"
-      ],
-      "x-fern-sdk-method-name": "list",
       "x-ferrule-method-name": "list",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -2604,13 +2600,13 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
-    },
-    "GET /v1/providers/{provider_id}": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "providers"
       ],
-      "x-fern-sdk-method-name": "retrieve",
+      "x-forge-method-name": "list"
+    },
+    "GET /v1/providers/{provider_id}": {
       "x-ferrule-method-name": "retrieve",
       "x-ferrule-method-order": 1,
       "x-ferrule-resource": {
@@ -2650,7 +2646,11 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "providers"
+      ],
+      "x-forge-method-name": "retrieve"
     },
     "GET /v1/responses": {
       "x-codeSamples": [
@@ -2660,10 +2660,6 @@
           "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nresponses = client.responses.list()\nfor r in responses:\n    print(r.id)"
         }
       ],
-      "x-fern-sdk-group-name": [
-        "responses"
-      ],
-      "x-fern-sdk-method-name": "list",
       "x-ferrule-method-name": "list",
       "x-ferrule-method-order": 2,
       "x-ferrule-pagination": {
@@ -2718,7 +2714,11 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "responses"
+      ],
+      "x-forge-method-name": "list"
     },
     "POST /v1/responses": {
       "x-codeSamples": [
@@ -2728,10 +2728,6 @@
           "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nresponse = client.responses.create(\n    model=\"meta-llama/Llama-3.1-8B-Instruct\",\n    input=\"What is the capital of France?\",\n)\nprint(response.output_text)"
         }
       ],
-      "x-fern-sdk-group-name": [
-        "responses"
-      ],
-      "x-fern-sdk-method-name": "create",
       "x-ferrule-method-name": "create",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -2790,13 +2786,13 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
-    },
-    "POST /v1/responses/compact": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "responses"
       ],
-      "x-fern-sdk-method-name": "compact",
+      "x-forge-method-name": "create"
+    },
+    "POST /v1/responses/compact": {
       "x-ferrule-method-name": "compact",
       "x-ferrule-method-order": 4,
       "x-ferrule-resource": {
@@ -2836,7 +2832,11 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "responses"
+      ],
+      "x-forge-method-name": "compact"
     },
     "DELETE /v1/responses/{response_id}": {
       "x-codeSamples": [
@@ -2846,10 +2846,6 @@
           "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nresponse = client.responses.delete(\"resp_abc123\")\nprint(response)"
         }
       ],
-      "x-fern-sdk-group-name": [
-        "responses"
-      ],
-      "x-fern-sdk-method-name": "delete",
       "x-ferrule-method-name": "delete",
       "x-ferrule-method-order": 3,
       "x-ferrule-resource": {
@@ -2889,7 +2885,11 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "responses"
+      ],
+      "x-forge-method-name": "delete"
     },
     "GET /v1/responses/{response_id}": {
       "x-codeSamples": [
@@ -2899,10 +2899,6 @@
           "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nresponse = client.responses.retrieve(\"resp_abc123\")\nprint(response)"
         }
       ],
-      "x-fern-sdk-group-name": [
-        "responses"
-      ],
-      "x-fern-sdk-method-name": "retrieve",
       "x-ferrule-method-name": "retrieve",
       "x-ferrule-method-order": 1,
       "x-ferrule-resource": {
@@ -2942,7 +2938,11 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "responses"
+      ],
+      "x-forge-method-name": "retrieve"
     },
     "POST /v1/responses/{response_id}/cancel": {
       "x-codeSamples": [
@@ -2961,11 +2961,6 @@
           "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\ninput_items = client.responses.input_items.list(\"resp_abc123\")\nfor item in input_items:\n    print(item)"
         }
       ],
-      "x-fern-sdk-group-name": [
-        "responses",
-        "input_items"
-      ],
-      "x-fern-sdk-method-name": "list",
       "x-ferrule-method-name": "list",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -3007,13 +3002,14 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "responses",
+        "input_items"
+      ],
+      "x-forge-method-name": "list"
     },
     "POST /v1/vector-io/insert": {
-      "x-fern-sdk-group-name": [
-        "vector_io"
-      ],
-      "x-fern-sdk-method-name": "insert",
       "x-ferrule-method-name": "insert",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -3053,13 +3049,13 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
-    },
-    "POST /v1/vector-io/query": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "vector_io"
       ],
-      "x-fern-sdk-method-name": "query",
+      "x-forge-method-name": "insert"
+    },
+    "POST /v1/vector-io/query": {
       "x-ferrule-method-name": "query",
       "x-ferrule-method-order": 1,
       "x-ferrule-resource": {
@@ -3099,7 +3095,11 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "vector_io"
+      ],
+      "x-forge-method-name": "query"
     },
     "GET /v1/vector_stores": {
       "x-codeSamples": [
@@ -3109,10 +3109,6 @@
           "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nvector_stores = client.vector_stores.list()\nfor vs in vector_stores:\n    print(vs.id, vs.name)"
         }
       ],
-      "x-fern-sdk-group-name": [
-        "vector_stores"
-      ],
-      "x-fern-sdk-method-name": "list",
       "x-ferrule-method-name": "list",
       "x-ferrule-method-order": 1,
       "x-ferrule-pagination": {
@@ -3167,7 +3163,11 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "vector_stores"
+      ],
+      "x-forge-method-name": "list"
     },
     "POST /v1/vector_stores": {
       "x-codeSamples": [
@@ -3177,10 +3177,6 @@
           "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nvector_store = client.vector_stores.create(\n    name=\"my-vector-store\",\n)\nprint(vector_store.id)"
         }
       ],
-      "x-fern-sdk-group-name": [
-        "vector_stores"
-      ],
-      "x-fern-sdk-method-name": "create",
       "x-ferrule-method-name": "create",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -3220,7 +3216,11 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "vector_stores"
+      ],
+      "x-forge-method-name": "create"
     },
     "DELETE /v1/vector_stores/{vector_store_id}": {
       "x-codeSamples": [
@@ -3230,10 +3230,6 @@
           "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nresponse = client.vector_stores.delete(\"vs_abc123\")\nprint(response)"
         }
       ],
-      "x-fern-sdk-group-name": [
-        "vector_stores"
-      ],
-      "x-fern-sdk-method-name": "delete",
       "x-ferrule-method-name": "delete",
       "x-ferrule-method-order": 4,
       "x-ferrule-resource": {
@@ -3273,7 +3269,11 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "vector_stores"
+      ],
+      "x-forge-method-name": "delete"
     },
     "GET /v1/vector_stores/{vector_store_id}": {
       "x-codeSamples": [
@@ -3283,10 +3283,6 @@
           "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nvector_store = client.vector_stores.retrieve(\"vs_abc123\")\nprint(vector_store)"
         }
       ],
-      "x-fern-sdk-group-name": [
-        "vector_stores"
-      ],
-      "x-fern-sdk-method-name": "retrieve",
       "x-ferrule-method-name": "retrieve",
       "x-ferrule-method-order": 2,
       "x-ferrule-resource": {
@@ -3326,7 +3322,11 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "vector_stores"
+      ],
+      "x-forge-method-name": "retrieve"
     },
     "POST /v1/vector_stores/{vector_store_id}": {
       "x-codeSamples": [
@@ -3336,10 +3336,6 @@
           "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nvector_store = client.vector_stores.update(\n    \"vs_abc123\",\n    name=\"updated-name\",\n)\nprint(vector_store)"
         }
       ],
-      "x-fern-sdk-group-name": [
-        "vector_stores"
-      ],
-      "x-fern-sdk-method-name": "update",
       "x-ferrule-method-name": "update",
       "x-ferrule-method-order": 3,
       "x-ferrule-resource": {
@@ -3379,7 +3375,11 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "vector_stores"
+      ],
+      "x-forge-method-name": "update"
     },
     "POST /v1/vector_stores/{vector_store_id}/file_batches": {
       "x-codeSamples": [
@@ -3389,11 +3389,6 @@
           "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nbatch = client.vector_stores.file_batches.create(\n    vector_store_id=\"vs_abc123\",\n    file_ids=[\"file-abc123\", \"file-def456\"],\n)\nprint(batch)"
         }
       ],
-      "x-fern-sdk-group-name": [
-        "vector_stores",
-        "file_batches"
-      ],
-      "x-fern-sdk-method-name": "create",
       "x-ferrule-method-name": "create",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -3435,7 +3430,12 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "vector_stores",
+        "file_batches"
+      ],
+      "x-forge-method-name": "create"
     },
     "GET /v1/vector_stores/{vector_store_id}/file_batches/{batch_id}": {
       "x-codeSamples": [
@@ -3445,11 +3445,6 @@
           "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nbatch = client.vector_stores.file_batches.retrieve(\n    vector_store_id=\"vs_abc123\",\n    batch_id=\"vsfb_abc123\",\n)\nprint(batch)"
         }
       ],
-      "x-fern-sdk-group-name": [
-        "vector_stores",
-        "file_batches"
-      ],
-      "x-fern-sdk-method-name": "retrieve",
       "x-ferrule-method-name": "retrieve",
       "x-ferrule-method-order": 1,
       "x-ferrule-resource": {
@@ -3491,7 +3486,12 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "vector_stores",
+        "file_batches"
+      ],
+      "x-forge-method-name": "retrieve"
     },
     "POST /v1/vector_stores/{vector_store_id}/file_batches/{batch_id}/cancel": {
       "x-codeSamples": [
@@ -3501,11 +3501,6 @@
           "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nbatch = client.vector_stores.file_batches.cancel(\n    vector_store_id=\"vs_abc123\",\n    batch_id=\"vsfb_abc123\",\n)\nprint(batch)"
         }
       ],
-      "x-fern-sdk-group-name": [
-        "vector_stores",
-        "file_batches"
-      ],
-      "x-fern-sdk-method-name": "cancel",
       "x-ferrule-method-name": "cancel",
       "x-ferrule-method-order": 3,
       "x-ferrule-resource": {
@@ -3547,7 +3542,12 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "vector_stores",
+        "file_batches"
+      ],
+      "x-forge-method-name": "cancel"
     },
     "GET /v1/vector_stores/{vector_store_id}/file_batches/{batch_id}/files": {
       "x-codeSamples": [
@@ -3557,11 +3557,6 @@
           "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nfiles = client.vector_stores.file_batches.list_files(\n    vector_store_id=\"vs_abc123\",\n    batch_id=\"vsfb_abc123\",\n)\nfor f in files:\n    print(f.id)"
         }
       ],
-      "x-fern-sdk-group-name": [
-        "vector_stores",
-        "file_batches"
-      ],
-      "x-fern-sdk-method-name": "list_files",
       "x-ferrule-method-name": "list_files",
       "x-ferrule-method-order": 2,
       "x-ferrule-pagination": {
@@ -3618,7 +3613,12 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "vector_stores",
+        "file_batches"
+      ],
+      "x-forge-method-name": "list_files"
     },
     "GET /v1/vector_stores/{vector_store_id}/files": {
       "x-codeSamples": [
@@ -3628,11 +3628,6 @@
           "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nfiles = client.vector_stores.files.list(\"vs_abc123\")\nfor f in files:\n    print(f.id)"
         }
       ],
-      "x-fern-sdk-group-name": [
-        "vector_stores",
-        "files"
-      ],
-      "x-fern-sdk-method-name": "list",
       "x-ferrule-method-name": "list",
       "x-ferrule-method-order": 0,
       "x-ferrule-pagination": {
@@ -3689,7 +3684,12 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "vector_stores",
+        "files"
+      ],
+      "x-forge-method-name": "list"
     },
     "POST /v1/vector_stores/{vector_store_id}/files": {
       "x-codeSamples": [
@@ -3699,11 +3699,6 @@
           "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nfile = client.vector_stores.files.create(\n    vector_store_id=\"vs_abc123\",\n    file_id=\"file-abc123\",\n)\nprint(file)"
         }
       ],
-      "x-fern-sdk-group-name": [
-        "vector_stores",
-        "files"
-      ],
-      "x-fern-sdk-method-name": "create",
       "x-ferrule-method-name": "create",
       "x-ferrule-method-order": 4,
       "x-ferrule-resource": {
@@ -3745,7 +3740,12 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "vector_stores",
+        "files"
+      ],
+      "x-forge-method-name": "create"
     },
     "DELETE /v1/vector_stores/{vector_store_id}/files/{file_id}": {
       "x-codeSamples": [
@@ -3755,11 +3755,6 @@
           "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nresponse = client.vector_stores.files.delete(\n    vector_store_id=\"vs_abc123\",\n    file_id=\"file-abc123\",\n)\nprint(response)"
         }
       ],
-      "x-fern-sdk-group-name": [
-        "vector_stores",
-        "files"
-      ],
-      "x-fern-sdk-method-name": "delete",
       "x-ferrule-method-name": "delete",
       "x-ferrule-method-order": 3,
       "x-ferrule-resource": {
@@ -3801,7 +3796,12 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "vector_stores",
+        "files"
+      ],
+      "x-forge-method-name": "delete"
     },
     "GET /v1/vector_stores/{vector_store_id}/files/{file_id}": {
       "x-codeSamples": [
@@ -3811,11 +3811,6 @@
           "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nfile = client.vector_stores.files.retrieve(\n    vector_store_id=\"vs_abc123\",\n    file_id=\"file-abc123\",\n)\nprint(file)"
         }
       ],
-      "x-fern-sdk-group-name": [
-        "vector_stores",
-        "files"
-      ],
-      "x-fern-sdk-method-name": "retrieve",
       "x-ferrule-method-name": "retrieve",
       "x-ferrule-method-order": 1,
       "x-ferrule-resource": {
@@ -3857,14 +3852,14 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
-    },
-    "POST /v1/vector_stores/{vector_store_id}/files/{file_id}": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "vector_stores",
         "files"
       ],
-      "x-fern-sdk-method-name": "update",
+      "x-forge-method-name": "retrieve"
+    },
+    "POST /v1/vector_stores/{vector_store_id}/files/{file_id}": {
       "x-ferrule-method-name": "update",
       "x-ferrule-method-order": 2,
       "x-ferrule-resource": {
@@ -3906,7 +3901,12 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "vector_stores",
+        "files"
+      ],
+      "x-forge-method-name": "update"
     },
     "GET /v1/vector_stores/{vector_store_id}/files/{file_id}/content": {
       "x-codeSamples": [
@@ -3916,11 +3916,6 @@
           "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\ncontent = client.vector_stores.files.content(\n    vector_store_id=\"vs_abc123\",\n    file_id=\"file-abc123\",\n)\nprint(content)"
         }
       ],
-      "x-fern-sdk-group-name": [
-        "vector_stores",
-        "files"
-      ],
-      "x-fern-sdk-method-name": "content",
       "x-ferrule-method-name": "content",
       "x-ferrule-method-order": 5,
       "x-ferrule-resource": {
@@ -3962,7 +3957,12 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "vector_stores",
+        "files"
+      ],
+      "x-forge-method-name": "content"
     },
     "POST /v1/vector_stores/{vector_store_id}/search": {
       "x-codeSamples": [
@@ -3972,10 +3972,6 @@
           "source": "from openai import OpenAI\n\nclient = OpenAI(base_url=\"http://localhost:8321/v1\", api_key=\"fake\")\n\nresults = client.vector_stores.search(\n    vector_store_id=\"vs_abc123\",\n    query=\"What is OGX?\",\n)\nfor result in results:\n    print(result)"
         }
       ],
-      "x-fern-sdk-group-name": [
-        "vector_stores"
-      ],
-      "x-fern-sdk-method-name": "search",
       "x-ferrule-method-name": "search",
       "x-ferrule-method-order": 5,
       "x-ferrule-resource": {
@@ -4015,13 +4011,13 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "vector_stores"
+      ],
+      "x-forge-method-name": "search"
     },
     "GET /v1/version": {
-      "x-fern-sdk-group-name": [
-        "inspect"
-      ],
-      "x-fern-sdk-method-name": "version",
       "x-ferrule-method-name": "version",
       "x-ferrule-method-order": 1,
       "x-ferrule-resource": {
@@ -4062,14 +4058,13 @@
           "production_repo": "ogx-ai/ogx-client-python"
         }
       },
+      "x-forge-group-name": [
+        "inspect"
+      ],
+      "x-forge-method-name": "version",
       "x-public": true
     },
     "GET /v1alpha/admin/health": {
-      "x-fern-sdk-group-name": [
-        "alpha",
-        "admin"
-      ],
-      "x-fern-sdk-method-name": "health",
       "x-ferrule-method-name": "health",
       "x-ferrule-method-order": 3,
       "x-ferrule-resource": {
@@ -4111,14 +4106,14 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
-    },
-    "GET /v1alpha/admin/inspect/routes": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "alpha",
         "admin"
       ],
-      "x-fern-sdk-method-name": "list_routes",
+      "x-forge-method-name": "health"
+    },
+    "GET /v1alpha/admin/inspect/routes": {
       "x-ferrule-method-name": "list_routes",
       "x-ferrule-method-order": 2,
       "x-ferrule-resource": {
@@ -4160,14 +4155,14 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
-    },
-    "GET /v1alpha/admin/providers": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "alpha",
         "admin"
       ],
-      "x-fern-sdk-method-name": "list_providers",
+      "x-forge-method-name": "list_routes"
+    },
+    "GET /v1alpha/admin/providers": {
       "x-ferrule-method-name": "list_providers",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -4209,14 +4204,14 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
-    },
-    "GET /v1alpha/admin/providers/{provider_id}": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "alpha",
         "admin"
       ],
-      "x-fern-sdk-method-name": "inspect_provider",
+      "x-forge-method-name": "list_providers"
+    },
+    "GET /v1alpha/admin/providers/{provider_id}": {
       "x-ferrule-method-name": "inspect_provider",
       "x-ferrule-method-order": 1,
       "x-ferrule-resource": {
@@ -4258,14 +4253,14 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
-    },
-    "GET /v1alpha/admin/version": {
-      "x-fern-sdk-group-name": [
+      },
+      "x-forge-group-name": [
         "alpha",
         "admin"
       ],
-      "x-fern-sdk-method-name": "version",
+      "x-forge-method-name": "inspect_provider"
+    },
+    "GET /v1alpha/admin/version": {
       "x-ferrule-method-name": "version",
       "x-ferrule-method-order": 4,
       "x-ferrule-resource": {
@@ -4307,14 +4302,14 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "alpha",
+        "admin"
+      ],
+      "x-forge-method-name": "version"
     },
     "POST /v1alpha/inference/rerank": {
-      "x-fern-sdk-group-name": [
-        "alpha",
-        "inference"
-      ],
-      "x-fern-sdk-method-name": "rerank",
       "x-ferrule-method-name": "rerank",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -4356,7 +4351,12 @@
           "package_name": "ogx_client",
           "production_repo": "ogx-ai/ogx-client-python"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "alpha",
+        "inference"
+      ],
+      "x-forge-method-name": "rerank"
     },
     "POST /v1alpha/interactions": {
       "x-codeSamples": [

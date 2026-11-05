@@ -1,5 +1,5 @@
 {
-  "sha256": "d3ccc21d1dba73b51c899ea41f8070a36dff117bdeecb30cc21781be175d9eb5",
+  "sha256": "08c3a0588ebcc090b0833bc43c5812a4c06b916cbdda3c4c6886ddf8581dbe9a",
   "root": {
     "x-ferrule-client": {
       "defaultEnvironment": "production",
@@ -178,10 +178,6 @@
   },
   "operations": {
     "GET /api/where/agencies-with-coverage.json": {
-      "x-fern-sdk-group-name": [
-        "agencies_with_coverage"
-      ],
-      "x-fern-sdk-method-name": "list",
       "x-ferrule-method-name": "list",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -240,13 +236,13 @@
           },
           "production_repo": "OneBusAway/ruby-sdk"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "agencies_with_coverage"
+      ],
+      "x-forge-method-name": "list"
     },
     "GET /api/where/agency/{agencyID}.json": {
-      "x-fern-sdk-group-name": [
-        "agency"
-      ],
-      "x-fern-sdk-method-name": "retrieve",
       "x-ferrule-method-name": "retrieve",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -305,13 +301,13 @@
           },
           "production_repo": "OneBusAway/ruby-sdk"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "agency"
+      ],
+      "x-forge-method-name": "retrieve"
     },
     "GET /api/where/arrival-and-departure-for-stop/{stopID}.json": {
-      "x-fern-sdk-group-name": [
-        "arrival_and_departure"
-      ],
-      "x-fern-sdk-method-name": "retrieve",
       "x-ferrule-method-name": "retrieve",
       "x-ferrule-method-order": 1,
       "x-ferrule-resource": {
@@ -370,13 +366,13 @@
           },
           "production_repo": "OneBusAway/ruby-sdk"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "arrival_and_departure"
+      ],
+      "x-forge-method-name": "retrieve"
     },
     "GET /api/where/arrivals-and-departures-for-location.json": {
-      "x-fern-sdk-group-name": [
-        "arrivals_and_departures_for_location"
-      ],
-      "x-fern-sdk-method-name": "list",
       "x-ferrule-method-name": "list",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -435,13 +431,13 @@
           },
           "production_repo": "OneBusAway/ruby-sdk"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "arrivals_and_departures_for_location"
+      ],
+      "x-forge-method-name": "list"
     },
     "GET /api/where/arrivals-and-departures-for-stop/{stopID}.json": {
-      "x-fern-sdk-group-name": [
-        "arrival_and_departure"
-      ],
-      "x-fern-sdk-method-name": "list",
       "x-ferrule-method-name": "list",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -500,13 +496,13 @@
           },
           "production_repo": "OneBusAway/ruby-sdk"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "arrival_and_departure"
+      ],
+      "x-forge-method-name": "list"
     },
     "GET /api/where/block/{blockID}.json": {
-      "x-fern-sdk-group-name": [
-        "block"
-      ],
-      "x-fern-sdk-method-name": "retrieve",
       "x-ferrule-method-name": "retrieve",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -565,13 +561,13 @@
           },
           "production_repo": "OneBusAway/ruby-sdk"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "block"
+      ],
+      "x-forge-method-name": "retrieve"
     },
     "GET /api/where/config.json": {
-      "x-fern-sdk-group-name": [
-        "config"
-      ],
-      "x-fern-sdk-method-name": "retrieve",
       "x-ferrule-method-name": "retrieve",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -630,13 +626,13 @@
           },
           "production_repo": "OneBusAway/ruby-sdk"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "config"
+      ],
+      "x-forge-method-name": "retrieve"
     },
     "GET /api/where/current-time.json": {
-      "x-fern-sdk-group-name": [
-        "current_time"
-      ],
-      "x-fern-sdk-method-name": "retrieve",
       "x-ferrule-method-name": "retrieve",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -695,13 +691,13 @@
           },
           "production_repo": "OneBusAway/ruby-sdk"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "current_time"
+      ],
+      "x-forge-method-name": "retrieve"
     },
     "GET /api/where/report-problem-with-stop/{stopID}.json": {
-      "x-fern-sdk-group-name": [
-        "report_problem_with_stop"
-      ],
-      "x-fern-sdk-method-name": "retrieve",
       "x-ferrule-method-name": "retrieve",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -760,13 +756,13 @@
           },
           "production_repo": "OneBusAway/ruby-sdk"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "report_problem_with_stop"
+      ],
+      "x-forge-method-name": "retrieve"
     },
     "GET /api/where/report-problem-with-trip/{tripID}.json": {
-      "x-fern-sdk-group-name": [
-        "report_problem_with_trip"
-      ],
-      "x-fern-sdk-method-name": "retrieve",
       "x-ferrule-method-name": "retrieve",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -825,13 +821,13 @@
           },
           "production_repo": "OneBusAway/ruby-sdk"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "report_problem_with_trip"
+      ],
+      "x-forge-method-name": "retrieve"
     },
     "GET /api/where/route-ids-for-agency/{agencyID}.json": {
-      "x-fern-sdk-group-name": [
-        "route_ids_for_agency"
-      ],
-      "x-fern-sdk-method-name": "list",
       "x-ferrule-method-name": "list",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -890,13 +886,13 @@
           },
           "production_repo": "OneBusAway/ruby-sdk"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "route_ids_for_agency"
+      ],
+      "x-forge-method-name": "list"
     },
     "GET /api/where/route/{routeID}.json": {
-      "x-fern-sdk-group-name": [
-        "route"
-      ],
-      "x-fern-sdk-method-name": "retrieve",
       "x-ferrule-method-name": "retrieve",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -955,13 +951,13 @@
           },
           "production_repo": "OneBusAway/ruby-sdk"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "route"
+      ],
+      "x-forge-method-name": "retrieve"
     },
     "GET /api/where/routes-for-agency/{agencyID}.json": {
-      "x-fern-sdk-group-name": [
-        "routes_for_agency"
-      ],
-      "x-fern-sdk-method-name": "list",
       "x-ferrule-method-name": "list",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -1020,13 +1016,13 @@
           },
           "production_repo": "OneBusAway/ruby-sdk"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "routes_for_agency"
+      ],
+      "x-forge-method-name": "list"
     },
     "GET /api/where/routes-for-location.json": {
-      "x-fern-sdk-group-name": [
-        "routes_for_location"
-      ],
-      "x-fern-sdk-method-name": "list",
       "x-ferrule-method-name": "list",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -1085,13 +1081,13 @@
           },
           "production_repo": "OneBusAway/ruby-sdk"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "routes_for_location"
+      ],
+      "x-forge-method-name": "list"
     },
     "GET /api/where/schedule-for-route/{routeID}.json": {
-      "x-fern-sdk-group-name": [
-        "schedule_for_route"
-      ],
-      "x-fern-sdk-method-name": "retrieve",
       "x-ferrule-method-name": "retrieve",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -1150,13 +1146,13 @@
           },
           "production_repo": "OneBusAway/ruby-sdk"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "schedule_for_route"
+      ],
+      "x-forge-method-name": "retrieve"
     },
     "GET /api/where/schedule-for-stop/{stopID}.json": {
-      "x-fern-sdk-group-name": [
-        "schedule_for_stop"
-      ],
-      "x-fern-sdk-method-name": "retrieve",
       "x-ferrule-method-name": "retrieve",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -1215,13 +1211,13 @@
           },
           "production_repo": "OneBusAway/ruby-sdk"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "schedule_for_stop"
+      ],
+      "x-forge-method-name": "retrieve"
     },
     "GET /api/where/search/route.json": {
-      "x-fern-sdk-group-name": [
-        "search_for_route"
-      ],
-      "x-fern-sdk-method-name": "list",
       "x-ferrule-method-name": "list",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -1280,13 +1276,13 @@
           },
           "production_repo": "OneBusAway/ruby-sdk"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "search_for_route"
+      ],
+      "x-forge-method-name": "list"
     },
     "GET /api/where/search/stop.json": {
-      "x-fern-sdk-group-name": [
-        "search_for_stop"
-      ],
-      "x-fern-sdk-method-name": "list",
       "x-ferrule-method-name": "list",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -1345,13 +1341,13 @@
           },
           "production_repo": "OneBusAway/ruby-sdk"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "search_for_stop"
+      ],
+      "x-forge-method-name": "list"
     },
     "GET /api/where/shape/{shapeID}.json": {
-      "x-fern-sdk-group-name": [
-        "shape"
-      ],
-      "x-fern-sdk-method-name": "retrieve",
       "x-ferrule-method-name": "retrieve",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -1410,13 +1406,13 @@
           },
           "production_repo": "OneBusAway/ruby-sdk"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "shape"
+      ],
+      "x-forge-method-name": "retrieve"
     },
     "GET /api/where/stop-ids-for-agency/{agencyID}.json": {
-      "x-fern-sdk-group-name": [
-        "stop_ids_for_agency"
-      ],
-      "x-fern-sdk-method-name": "list",
       "x-ferrule-method-name": "list",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -1475,13 +1471,13 @@
           },
           "production_repo": "OneBusAway/ruby-sdk"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "stop_ids_for_agency"
+      ],
+      "x-forge-method-name": "list"
     },
     "GET /api/where/stop/{stopID}.json": {
-      "x-fern-sdk-group-name": [
-        "stop"
-      ],
-      "x-fern-sdk-method-name": "retrieve",
       "x-ferrule-method-name": "retrieve",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -1540,13 +1536,13 @@
           },
           "production_repo": "OneBusAway/ruby-sdk"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "stop"
+      ],
+      "x-forge-method-name": "retrieve"
     },
     "GET /api/where/stops-for-agency/{agencyID}.json": {
-      "x-fern-sdk-group-name": [
-        "stops_for_agency"
-      ],
-      "x-fern-sdk-method-name": "list",
       "x-ferrule-method-name": "list",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -1605,13 +1601,13 @@
           },
           "production_repo": "OneBusAway/ruby-sdk"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "stops_for_agency"
+      ],
+      "x-forge-method-name": "list"
     },
     "GET /api/where/stops-for-location.json": {
-      "x-fern-sdk-group-name": [
-        "stops_for_location"
-      ],
-      "x-fern-sdk-method-name": "list",
       "x-ferrule-method-name": "list",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -1670,13 +1666,13 @@
           },
           "production_repo": "OneBusAway/ruby-sdk"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "stops_for_location"
+      ],
+      "x-forge-method-name": "list"
     },
     "GET /api/where/stops-for-route/{routeID}.json": {
-      "x-fern-sdk-group-name": [
-        "stops_for_route"
-      ],
-      "x-fern-sdk-method-name": "list",
       "x-ferrule-method-name": "list",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -1735,13 +1731,13 @@
           },
           "production_repo": "OneBusAway/ruby-sdk"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "stops_for_route"
+      ],
+      "x-forge-method-name": "list"
     },
     "GET /api/where/trip-details/{tripID}.json": {
-      "x-fern-sdk-group-name": [
-        "trip-details"
-      ],
-      "x-fern-sdk-method-name": "retrieve",
       "x-ferrule-method-name": "retrieve",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -1800,13 +1796,13 @@
           },
           "production_repo": "OneBusAway/ruby-sdk"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "trip-details"
+      ],
+      "x-forge-method-name": "retrieve"
     },
     "GET /api/where/trip-for-vehicle/{vehicleID}.json": {
-      "x-fern-sdk-group-name": [
-        "trip_for_vehicle"
-      ],
-      "x-fern-sdk-method-name": "retrieve",
       "x-ferrule-method-name": "retrieve",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -1865,13 +1861,13 @@
           },
           "production_repo": "OneBusAway/ruby-sdk"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "trip_for_vehicle"
+      ],
+      "x-forge-method-name": "retrieve"
     },
     "GET /api/where/trip/{tripID}.json": {
-      "x-fern-sdk-group-name": [
-        "trip"
-      ],
-      "x-fern-sdk-method-name": "retrieve",
       "x-ferrule-method-name": "retrieve",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -1930,13 +1926,13 @@
           },
           "production_repo": "OneBusAway/ruby-sdk"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "trip"
+      ],
+      "x-forge-method-name": "retrieve"
     },
     "GET /api/where/trips-for-location.json": {
-      "x-fern-sdk-group-name": [
-        "trips_for_location"
-      ],
-      "x-fern-sdk-method-name": "list",
       "x-ferrule-method-name": "list",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -1995,13 +1991,13 @@
           },
           "production_repo": "OneBusAway/ruby-sdk"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "trips_for_location"
+      ],
+      "x-forge-method-name": "list"
     },
     "GET /api/where/trips-for-route/{routeID}.json": {
-      "x-fern-sdk-group-name": [
-        "trips_for_route"
-      ],
-      "x-fern-sdk-method-name": "list",
       "x-ferrule-method-name": "list",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -2060,13 +2056,13 @@
           },
           "production_repo": "OneBusAway/ruby-sdk"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "trips_for_route"
+      ],
+      "x-forge-method-name": "list"
     },
     "GET /api/where/vehicles-for-agency/{agencyID}.json": {
-      "x-fern-sdk-group-name": [
-        "vehicles_for_agency"
-      ],
-      "x-fern-sdk-method-name": "list",
       "x-ferrule-method-name": "list",
       "x-ferrule-method-order": 0,
       "x-ferrule-resource": {
@@ -2125,7 +2121,11 @@
           },
           "production_repo": "OneBusAway/ruby-sdk"
         }
-      }
+      },
+      "x-forge-group-name": [
+        "vehicles_for_agency"
+      ],
+      "x-forge-method-name": "list"
     }
   }
 }

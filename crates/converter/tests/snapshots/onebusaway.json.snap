@@ -777,7 +777,7 @@
           "trips"
         ],
         "type": "object",
-        "x-fern-type-name": "References"
+        "x-forge-model-name": "References"
       },
       "ResponseWrapper": {
         "properties": {
@@ -801,7 +801,7 @@
           "version"
         ],
         "type": "object",
-        "x-fern-type-name": "ResponseWrapper"
+        "x-forge-model-name": "ResponseWrapper"
       },
       "Route": {
         "properties": {
@@ -2156,10 +2156,6 @@
         "tags": [
           "default"
         ],
-        "x-fern-sdk-group-name": [
-          "agencies_with_coverage"
-        ],
-        "x-fern-sdk-method-name": "list",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},
@@ -2283,7 +2279,11 @@
             },
             "production_repo": "OneBusAway/ruby-sdk"
           }
-        }
+        },
+        "x-forge-group-name": [
+          "agencies_with_coverage"
+        ],
+        "x-forge-method-name": "list"
       }
     },
     "/api/where/agency/{agencyID}.json": {
@@ -2328,10 +2328,6 @@
           }
         },
         "summary": "Retrieve info for a specific transit agency identified by ID",
-        "x-fern-sdk-group-name": [
-          "agency"
-        ],
-        "x-fern-sdk-method-name": "retrieve",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},
@@ -2455,7 +2451,11 @@
             },
             "production_repo": "OneBusAway/ruby-sdk"
           }
-        }
+        },
+        "x-forge-group-name": [
+          "agency"
+        ],
+        "x-forge-method-name": "retrieve"
       }
     },
     "/api/where/arrival-and-departure-for-stop/{stopID}.json": {
@@ -2544,10 +2544,6 @@
         "tags": [
           "default"
         ],
-        "x-fern-sdk-group-name": [
-          "arrival_and_departure"
-        ],
-        "x-fern-sdk-method-name": "retrieve",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},
@@ -2671,7 +2667,11 @@
             },
             "production_repo": "OneBusAway/ruby-sdk"
           }
-        }
+        },
+        "x-forge-group-name": [
+          "arrival_and_departure"
+        ],
+        "x-forge-method-name": "retrieve"
       }
     },
     "/api/where/arrivals-and-departures-for-location.json": {
@@ -2820,10 +2820,6 @@
         "tags": [
           "default"
         ],
-        "x-fern-sdk-group-name": [
-          "arrivals_and_departures_for_location"
-        ],
-        "x-fern-sdk-method-name": "list",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},
@@ -2947,7 +2943,11 @@
             },
             "production_repo": "OneBusAway/ruby-sdk"
           }
-        }
+        },
+        "x-forge-group-name": [
+          "arrivals_and_departures_for_location"
+        ],
+        "x-forge-method-name": "list"
       }
     },
     "/api/where/arrivals-and-departures-for-stop/{stopID}.json": {
@@ -3024,10 +3024,6 @@
         "tags": [
           "default"
         ],
-        "x-fern-sdk-group-name": [
-          "arrival_and_departure"
-        ],
-        "x-fern-sdk-method-name": "list",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},
@@ -3151,7 +3147,11 @@
             },
             "production_repo": "OneBusAway/ruby-sdk"
           }
-        }
+        },
+        "x-forge-group-name": [
+          "arrival_and_departure"
+        ],
+        "x-forge-method-name": "list"
       }
     },
     "/api/where/block/{blockID}.json": {
@@ -3184,10 +3184,6 @@
           }
         },
         "summary": "Get details of a specific block by ID",
-        "x-fern-sdk-group-name": [
-          "block"
-        ],
-        "x-fern-sdk-method-name": "retrieve",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},
@@ -3311,7 +3307,11 @@
             },
             "production_repo": "OneBusAway/ruby-sdk"
           }
-        }
+        },
+        "x-forge-group-name": [
+          "block"
+        ],
+        "x-forge-method-name": "retrieve"
       },
       "parameters": [
         {
@@ -3358,10 +3358,6 @@
         "tags": [
           "default"
         ],
-        "x-fern-sdk-group-name": [
-          "config"
-        ],
-        "x-fern-sdk-method-name": "retrieve",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},
@@ -3485,7 +3481,11 @@
             },
             "production_repo": "OneBusAway/ruby-sdk"
           }
-        }
+        },
+        "x-forge-group-name": [
+          "config"
+        ],
+        "x-forge-method-name": "retrieve"
       }
     },
     "/api/where/current-time.json": {
@@ -3521,10 +3521,6 @@
         "tags": [
           "default"
         ],
-        "x-fern-sdk-group-name": [
-          "current_time"
-        ],
-        "x-fern-sdk-method-name": "retrieve",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},
@@ -3648,7 +3644,11 @@
             },
             "production_repo": "OneBusAway/ruby-sdk"
           }
-        }
+        },
+        "x-forge-group-name": [
+          "current_time"
+        ],
+        "x-forge-method-name": "retrieve"
       }
     },
     "/api/where/report-problem-with-stop/{stopID}.json": {
@@ -3733,10 +3733,6 @@
           }
         },
         "summary": "Submit a user-generated problem report for a stop",
-        "x-fern-sdk-group-name": [
-          "report_problem_with_stop"
-        ],
-        "x-fern-sdk-method-name": "retrieve",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},
@@ -3860,7 +3856,11 @@
             },
             "production_repo": "OneBusAway/ruby-sdk"
           }
-        }
+        },
+        "x-forge-group-name": [
+          "report_problem_with_stop"
+        ],
+        "x-forge-method-name": "retrieve"
       }
     },
     "/api/where/report-problem-with-trip/{tripID}.json": {
@@ -3992,10 +3992,6 @@
           }
         },
         "summary": "Submit a user-generated problem report for a particular trip.",
-        "x-fern-sdk-group-name": [
-          "report_problem_with_trip"
-        ],
-        "x-fern-sdk-method-name": "retrieve",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},
@@ -4119,7 +4115,11 @@
             },
             "production_repo": "OneBusAway/ruby-sdk"
           }
-        }
+        },
+        "x-forge-group-name": [
+          "report_problem_with_trip"
+        ],
+        "x-forge-method-name": "retrieve"
       }
     },
     "/api/where/route-ids-for-agency/{agencyID}.json": {
@@ -4152,10 +4152,6 @@
           }
         },
         "summary": "Get route IDs for a specific agency",
-        "x-fern-sdk-group-name": [
-          "route_ids_for_agency"
-        ],
-        "x-fern-sdk-method-name": "list",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},
@@ -4279,7 +4275,11 @@
             },
             "production_repo": "OneBusAway/ruby-sdk"
           }
-        }
+        },
+        "x-forge-group-name": [
+          "route_ids_for_agency"
+        ],
+        "x-forge-method-name": "list"
       },
       "parameters": [
         {
@@ -4336,10 +4336,6 @@
           }
         },
         "summary": "Retrieve info for a specific route identified by ID",
-        "x-fern-sdk-group-name": [
-          "route"
-        ],
-        "x-fern-sdk-method-name": "retrieve",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},
@@ -4463,7 +4459,11 @@
             },
             "production_repo": "OneBusAway/ruby-sdk"
           }
-        }
+        },
+        "x-forge-group-name": [
+          "route"
+        ],
+        "x-forge-method-name": "retrieve"
       }
     },
     "/api/where/routes-for-agency/{agencyID}.json": {
@@ -4511,10 +4511,6 @@
         "tags": [
           "default"
         ],
-        "x-fern-sdk-group-name": [
-          "routes_for_agency"
-        ],
-        "x-fern-sdk-method-name": "list",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},
@@ -4638,7 +4634,11 @@
             },
             "production_repo": "OneBusAway/ruby-sdk"
           }
-        }
+        },
+        "x-forge-group-name": [
+          "routes_for_agency"
+        ],
+        "x-forge-method-name": "list"
       }
     },
     "/api/where/routes-for-location.json": {
@@ -4730,10 +4730,6 @@
         "tags": [
           "default"
         ],
-        "x-fern-sdk-group-name": [
-          "routes_for_location"
-        ],
-        "x-fern-sdk-method-name": "list",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},
@@ -4857,7 +4853,11 @@
             },
             "production_repo": "OneBusAway/ruby-sdk"
           }
-        }
+        },
+        "x-forge-group-name": [
+          "routes_for_location"
+        ],
+        "x-forge-method-name": "list"
       }
     },
     "/api/where/schedule-for-route/{routeID}.json": {
@@ -4918,10 +4918,6 @@
         "tags": [
           "default"
         ],
-        "x-fern-sdk-group-name": [
-          "schedule_for_route"
-        ],
-        "x-fern-sdk-method-name": "retrieve",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},
@@ -5045,7 +5041,11 @@
             },
             "production_repo": "OneBusAway/ruby-sdk"
           }
-        }
+        },
+        "x-forge-group-name": [
+          "schedule_for_route"
+        ],
+        "x-forge-method-name": "retrieve"
       }
     },
     "/api/where/schedule-for-stop/{stopID}.json": {
@@ -5099,10 +5099,6 @@
           }
         },
         "summary": "Get schedule for a specific stop",
-        "x-fern-sdk-group-name": [
-          "schedule_for_stop"
-        ],
-        "x-fern-sdk-method-name": "retrieve",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},
@@ -5226,7 +5222,11 @@
             },
             "production_repo": "OneBusAway/ruby-sdk"
           }
-        }
+        },
+        "x-forge-group-name": [
+          "schedule_for_stop"
+        ],
+        "x-forge-method-name": "retrieve"
       }
     },
     "/api/where/search/route.json": {
@@ -5280,10 +5280,6 @@
           }
         },
         "summary": "Search for a route based on its name.",
-        "x-fern-sdk-group-name": [
-          "search_for_route"
-        ],
-        "x-fern-sdk-method-name": "list",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},
@@ -5407,7 +5403,11 @@
             },
             "production_repo": "OneBusAway/ruby-sdk"
           }
-        }
+        },
+        "x-forge-group-name": [
+          "search_for_route"
+        ],
+        "x-forge-method-name": "list"
       }
     },
     "/api/where/search/stop.json": {
@@ -5461,10 +5461,6 @@
           }
         },
         "summary": "Search for a stop based on its name.",
-        "x-fern-sdk-group-name": [
-          "search_for_stop"
-        ],
-        "x-fern-sdk-method-name": "list",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},
@@ -5588,7 +5584,11 @@
             },
             "production_repo": "OneBusAway/ruby-sdk"
           }
-        }
+        },
+        "x-forge-group-name": [
+          "search_for_stop"
+        ],
+        "x-forge-method-name": "list"
       }
     },
     "/api/where/shape/{shapeID}.json": {
@@ -5633,10 +5633,6 @@
           }
         },
         "summary": "Retrieve a shape by ID",
-        "x-fern-sdk-group-name": [
-          "shape"
-        ],
-        "x-fern-sdk-method-name": "retrieve",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},
@@ -5760,7 +5756,11 @@
             },
             "production_repo": "OneBusAway/ruby-sdk"
           }
-        }
+        },
+        "x-forge-group-name": [
+          "shape"
+        ],
+        "x-forge-method-name": "retrieve"
       }
     },
     "/api/where/stop-ids-for-agency/{agencyID}.json": {
@@ -5793,10 +5793,6 @@
           }
         },
         "summary": "Get stop IDs for a specific agency",
-        "x-fern-sdk-group-name": [
-          "stop_ids_for_agency"
-        ],
-        "x-fern-sdk-method-name": "list",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},
@@ -5920,7 +5916,11 @@
             },
             "production_repo": "OneBusAway/ruby-sdk"
           }
-        }
+        },
+        "x-forge-group-name": [
+          "stop_ids_for_agency"
+        ],
+        "x-forge-method-name": "list"
       },
       "parameters": [
         {
@@ -5964,10 +5964,6 @@
           }
         },
         "summary": "Get details of a specific stop",
-        "x-fern-sdk-group-name": [
-          "stop"
-        ],
-        "x-fern-sdk-method-name": "retrieve",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},
@@ -6091,7 +6087,11 @@
             },
             "production_repo": "OneBusAway/ruby-sdk"
           }
-        }
+        },
+        "x-forge-group-name": [
+          "stop"
+        ],
+        "x-forge-method-name": "retrieve"
       },
       "parameters": [
         {
@@ -6135,10 +6135,6 @@
           }
         },
         "summary": "Get stops for a specific agency",
-        "x-fern-sdk-group-name": [
-          "stops_for_agency"
-        ],
-        "x-fern-sdk-method-name": "list",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},
@@ -6262,7 +6258,11 @@
             },
             "production_repo": "OneBusAway/ruby-sdk"
           }
-        }
+        },
+        "x-forge-group-name": [
+          "stops_for_agency"
+        ],
+        "x-forge-method-name": "list"
       },
       "parameters": [
         {
@@ -6372,10 +6372,6 @@
         "tags": [
           "default"
         ],
-        "x-fern-sdk-group-name": [
-          "stops_for_location"
-        ],
-        "x-fern-sdk-method-name": "list",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},
@@ -6499,7 +6495,11 @@
             },
             "production_repo": "OneBusAway/ruby-sdk"
           }
-        }
+        },
+        "x-forge-group-name": [
+          "stops_for_location"
+        ],
+        "x-forge-method-name": "list"
       }
     },
     "/api/where/stops-for-route/{routeID}.json": {
@@ -6532,10 +6532,6 @@
           }
         },
         "summary": "Get stops for a specific route",
-        "x-fern-sdk-group-name": [
-          "stops_for_route"
-        ],
-        "x-fern-sdk-method-name": "list",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},
@@ -6659,7 +6655,11 @@
             },
             "production_repo": "OneBusAway/ruby-sdk"
           }
-        }
+        },
+        "x-forge-group-name": [
+          "stops_for_route"
+        ],
+        "x-forge-method-name": "list"
       },
       "parameters": [
         {
@@ -6782,10 +6782,6 @@
         "tags": [
           "default"
         ],
-        "x-fern-sdk-group-name": [
-          "trip-details"
-        ],
-        "x-fern-sdk-method-name": "retrieve",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},
@@ -6909,7 +6905,11 @@
             },
             "production_repo": "OneBusAway/ruby-sdk"
           }
-        }
+        },
+        "x-forge-group-name": [
+          "trip-details"
+        ],
+        "x-forge-method-name": "retrieve"
       }
     },
     "/api/where/trip-for-vehicle/{vehicleID}.json": {
@@ -6989,10 +6989,6 @@
         "tags": [
           "default"
         ],
-        "x-fern-sdk-group-name": [
-          "trip_for_vehicle"
-        ],
-        "x-fern-sdk-method-name": "retrieve",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},
@@ -7116,7 +7112,11 @@
             },
             "production_repo": "OneBusAway/ruby-sdk"
           }
-        }
+        },
+        "x-forge-group-name": [
+          "trip_for_vehicle"
+        ],
+        "x-forge-method-name": "retrieve"
       }
     },
     "/api/where/trip/{tripID}.json": {
@@ -7149,10 +7149,6 @@
           }
         },
         "summary": "Get details of a specific trip",
-        "x-fern-sdk-group-name": [
-          "trip"
-        ],
-        "x-fern-sdk-method-name": "retrieve",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},
@@ -7276,7 +7272,11 @@
             },
             "production_repo": "OneBusAway/ruby-sdk"
           }
-        }
+        },
+        "x-forge-group-name": [
+          "trip"
+        ],
+        "x-forge-method-name": "retrieve"
       },
       "parameters": [
         {
@@ -7393,10 +7393,6 @@
           }
         },
         "summary": "Retrieve trips for a given location",
-        "x-fern-sdk-group-name": [
-          "trips_for_location"
-        ],
-        "x-fern-sdk-method-name": "list",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},
@@ -7520,7 +7516,11 @@
             },
             "production_repo": "OneBusAway/ruby-sdk"
           }
-        }
+        },
+        "x-forge-group-name": [
+          "trips_for_location"
+        ],
+        "x-forge-method-name": "list"
       }
     },
     "/api/where/trips-for-route/{routeID}.json": {
@@ -7613,10 +7613,6 @@
         "tags": [
           "default"
         ],
-        "x-fern-sdk-group-name": [
-          "trips_for_route"
-        ],
-        "x-fern-sdk-method-name": "list",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},
@@ -7740,7 +7736,11 @@
             },
             "production_repo": "OneBusAway/ruby-sdk"
           }
-        }
+        },
+        "x-forge-group-name": [
+          "trips_for_route"
+        ],
+        "x-forge-method-name": "list"
       }
     },
     "/api/where/vehicles-for-agency/{agencyID}.json": {
@@ -7773,10 +7773,6 @@
           }
         },
         "summary": "Get vehicles for a specific agency",
-        "x-fern-sdk-group-name": [
-          "vehicles_for_agency"
-        ],
-        "x-fern-sdk-method-name": "list",
         "x-ferrule-client": {
           "defaultEnvironment": "production",
           "defaultHeaders": {},
@@ -7900,7 +7896,11 @@
             },
             "production_repo": "OneBusAway/ruby-sdk"
           }
-        }
+        },
+        "x-forge-group-name": [
+          "vehicles_for_agency"
+        ],
+        "x-forge-method-name": "list"
       },
       "parameters": [
         {
