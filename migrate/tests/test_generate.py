@@ -89,6 +89,19 @@ def test_resolve_tools_precedence(tmp_path: Path) -> None:
     assert default == Tools(gen=tmp_path / "target/release/ferrule-gen", ruff="ruff")
 
 
+def test_resolve_tools_falls_back_to_path(tmp_path: Path) -> None:
+    bin_dir = tmp_path / "bin"
+    installed = write(bin_dir / "ferrule-gen")
+    installed.chmod(0o755)
+    env = {"PATH": str(bin_dir)}
+    assert resolve_tools(env, root=tmp_path / "repo").gen == installed
+    built = write(tmp_path / "repo/target/release/ferrule-gen")
+    assert resolve_tools(env, root=tmp_path / "repo").gen == built
+    assert resolve_tools({"PATH": str(tmp_path / "empty")}, root=tmp_path).gen == (
+        tmp_path / "target/release/ferrule-gen"
+    )
+
+
 def test_plan_steps(inputs: tuple[GenerateRequest, Path]) -> None:
     request, tmp = inputs
     convert, gen = plan_steps(request, tmp / "work")
@@ -259,13 +272,38 @@ def test_generate_with_renderer(inputs: tuple[GenerateRequest, Path]) -> None:
     request = replace(request, runtime_from=None)
     seen: list[tuple[str, Path]] = []
 
-    def render(package: str, package_dir: Path, /, **_: object) -> None:
+    def render(package: str, package_dir: Path, /, **options: object) -> None:
+        assert options.get("client_name") is None
         seen.append((package, package_dir))
         write(package_dir / "_base_client.py", "x\n")
 
     result = generate(request, runner=fake_runner([]), renderer=render)
     assert seen == [("acme", request.out / "src/acme")]
     assert result.runtime_files == 1
+
+
+def test_generate_names_the_runtime_after_the_client_class(
+    inputs: tuple[GenerateRequest, Path],
+) -> None:
+    # `acme` with the client class `AcmeQA`: the generated code imports `AcmeQAError`.
+    request, _ = inputs
+    request = replace(request, runtime_from=None)
+    seen: list[object] = []
+    base = fake_runner([])
+
+    def runner(argv: Sequence[str]) -> subprocess.CompletedProcess[str]:
+        done = base(argv)
+        if argv[1] == "generate":
+            client = Path(argv[argv.index("--out") + 1]) / "src/acme/_client.py"
+            write(client, "class AcmeQA(SyncAPIClient):\n    pass\n")
+        return done
+
+    def render(package: str, package_dir: Path, /, **options: object) -> None:
+        del package, package_dir
+        seen.append(options.get("client_name"))
+
+    generate(request, runner=runner, renderer=render)
+    assert seen == ["AcmeQA"]
 
 
 def test_generate_without_runtime(inputs: tuple[GenerateRequest, Path]) -> None:
@@ -506,4 +544,4 @@ def test_generate_renders_the_configured_timeout_and_retries(
         write(package_dir / "_utils/__init__.py")
 
     generate(request, runner=runner, renderer=render)
-    assert seen == [{"timeout": 600, "max_retries": 0}]
+    assert seen == [{"client_name": None, "timeout": 600, "max_retries": 0}]

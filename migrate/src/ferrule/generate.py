@@ -67,7 +67,8 @@ class RuntimeRenderer(Protocol):
 
     It writes the runtime modules for ``package`` into ``package_dir`` (``<out>/src/<package>``),
     with the options :func:`renderer_options` reads from the annotated spec (``pagination.py``
-    from its page schemes, the client's timeout and retries).
+    from its page schemes, the client's timeout and retries) and
+    ``client_name``, the client class (the package's name when absent).
     """
 
     def __call__(self, package: str, package_dir: Path, /, **options: Any) -> object:  # noqa: ANN401 - renderer options
@@ -135,9 +136,16 @@ def resolve_tools(
     root: Path = REPO_ROOT,
     gen: Path | None = None,
 ) -> Tools:
-    """Pick tool paths: explicit argument, then ``FERRULE_*`` env var, then repo default."""
+    """Pick tool paths: explicit argument, then ``FERRULE_*`` env var, then repo default.
+
+    ``ferrule-gen`` falls back to the one on ``PATH`` (an installed release, ADR 0022) when the
+    repo has no build; the repo path is kept when neither exists, so the error names it.
+    """
+    built = root / "target/release/ferrule-gen"
+    installed = shutil.which("ferrule-gen", path=env["PATH"]) if env.get("PATH") else None
+    default = built if built.is_file() or installed is None else Path(installed)
     return Tools(
-        gen=gen or Path(env.get("FERRULE_GEN") or root / "target/release/ferrule-gen"),
+        gen=gen or Path(env.get("FERRULE_GEN") or default),
         ruff=env.get("FERRULE_RUFF", "ruff"),
     )
 
@@ -283,6 +291,16 @@ def tree_digest(root: Path) -> str:
     return h.hexdigest()
 
 
+_CLIENT_CLASS = re.compile(r"^class (?P<name>\w+)\(SyncAPIClient\):", re.MULTILINE)
+
+
+def client_class(package_dir: Path) -> str | None:
+    """Return the sync client class the plugin wrote to ``_client.py``, if there is one."""
+    client = package_dir / "_client.py"
+    match = _CLIENT_CLASS.search(client.read_text(encoding="utf-8")) if client.is_file() else None
+    return None if match is None else match["name"]
+
+
 def renderer_options(annotated: Path) -> dict[str, object]:
     """Return what the runtime renderer takes from the annotated spec the converter wrote.
 
@@ -346,7 +364,9 @@ def _check_inputs(request: GenerateRequest) -> None:
         )
 
 
-_BUILD_GEN = "run `cargo build --release -p ferrule-gen`, or set FERRULE_GEN"
+_BUILD_GEN = (
+    "install ferrule-gen on PATH, run `cargo build --release -p ferrule-gen`, or set FERRULE_GEN"
+)
 
 
 def _check_gen(tools: Tools) -> None:
@@ -492,7 +512,7 @@ def generate(
         package = pick_package(_src_packages(request.out), "--out")
         package_dir = request.out / "src" / package
         before = set(relative_files(package_dir))
-        renderer(package, package_dir, **options)
+        renderer(package, package_dir, client_name=client_class(package_dir), **options)
         prefix = PurePosixPath("src", package)
         rendered = tuple(prefix / p for p in relative_files(package_dir) if p not in before)
         runtime_count = len(rendered)
