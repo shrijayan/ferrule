@@ -101,6 +101,14 @@ def lock_requirements(lock_text: str, exclude: Sequence[str] = ()) -> list[str]:
     return sorted(pins.values(), key=str.lower)
 
 
+def pytest_config_args(out: Path, sdk_dir: Path) -> tuple[str, ...]:
+    """Pytest's config: the generated SDK's, else the oracle's (older runtimes get no project)."""
+    config = sdk_dir / "pyproject.toml"
+    if (out / "pyproject.toml").is_file() or not config.is_file():
+        return ()
+    return ("-c", str(config), "--rootdir", str(out))
+
+
 def mock_command(mock_script: str, spec: Path, port: int = MOCK_PORT) -> tuple[str, ...]:
     """Return the pinned mock server command matching what the oracle's scripts/mock uses."""
     if "@stdy/cli" in mock_script:
