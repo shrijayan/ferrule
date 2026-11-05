@@ -14,14 +14,15 @@ from __future__ import annotations
 
 import hashlib
 import importlib
+import json
 import os
 import re
 import shutil
 import subprocess
 import tempfile
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path, PurePosixPath
-from typing import TYPE_CHECKING, Protocol, cast
+from typing import TYPE_CHECKING, Any, Protocol, cast
 
 from ferrule.errors import (
     MISSING_INPUT,
@@ -64,10 +65,12 @@ SKIP_PARTS = frozenset({"__pycache__", ".ruff_cache", ".mypy_cache", ".pytest_ca
 class RuntimeRenderer(Protocol):
     """What ``ferrule_runtime.render`` must look like for ``generate`` to use it.
 
-    It writes the runtime modules for ``package`` into ``package_dir`` (``<out>/src/<package>``).
+    It writes the runtime modules for ``package`` into ``package_dir`` (``<out>/src/<package>``),
+    with the options :func:`renderer_options` reads from the annotated spec (``pagination.py``
+    from its page schemes, the client's timeout and retries).
     """
 
-    def __call__(self, package: str, package_dir: Path, /) -> object:
+    def __call__(self, package: str, package_dir: Path, /, **options: Any) -> object:  # noqa: ANN401 - renderer options
         """Render the runtime for ``package`` into ``package_dir``."""
         ...
 
@@ -123,6 +126,8 @@ class GenerateResult:
     files: int
     runtime_files: int
     digest: str
+    # The runtime files Ferrule rendered (not copied from an SDK), relative to the output.
+    rendered: tuple[PurePosixPath, ...] = ()
 
 
 def resolve_tools(
@@ -278,6 +283,30 @@ def tree_digest(root: Path) -> str:
     return h.hexdigest()
 
 
+def renderer_options(annotated: Path) -> dict[str, object]:
+    """Return what the runtime renderer takes from the annotated spec the converter wrote.
+
+    ``pagination``: the ``x-ferrule-page-schemes`` entries; ``timeout`` and ``max_retries``:
+    the client settings (``x-ferrule-client``), when the config sets them.
+    """
+    try:
+        spec: object = json.loads(annotated.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    root = cast("dict[str, object]", spec) if isinstance(spec, dict) else {}
+    options: dict[str, object] = {}
+    schemes = root.get("x-ferrule-page-schemes")
+    if isinstance(schemes, list) and schemes:
+        options["pagination"] = list(cast("list[object]", schemes))
+    raw_client = root.get("x-ferrule-client")
+    client = cast("dict[str, object]", raw_client) if isinstance(raw_client, dict) else {}
+    for key, name in (("timeoutSeconds", "timeout"), ("maxRetries", "max_retries")):
+        value = client.get(key)
+        if isinstance(value, int | float) and not isinstance(value, bool) and value == int(value):
+            options[name] = int(value)
+    return options
+
+
 def load_renderer() -> RuntimeRenderer | None:
     """``ferrule_runtime.render`` when the runtime package provides it."""
     try:
@@ -391,6 +420,17 @@ def ensure_inside(root: Path, rel: PurePosixPath) -> Path:
     return path
 
 
+def is_stainless_runtime(source_root: Path) -> bool:
+    """Whether the SDK at ``source_root`` ships a Stainless-style runtime (it has ``_utils/``).
+
+    Generated resources call into that runtime (``_utils.maybe_transform``, ``_compat``); an SDK
+    another generator wrote (opencode-python-sdk) has its own runtime without them, so it gets
+    Ferrule's runtime instead and keeps its other modules (ADR 0011).
+    """
+    package = pick_package(_src_packages(source_root), "--runtime-from")
+    return any((source_root / "src" / package / d).is_dir() for d in RUNTIME_DIRS)
+
+
 def _copy_runtime(source_root: Path, out: Path) -> tuple[str, int]:
     package = pick_package(_src_packages(source_root), "--runtime-from")
     src_pkg = source_root / "src" / package
@@ -427,20 +467,33 @@ def generate(
     runner: Runner = run_subprocess,
     renderer: RuntimeRenderer | None = None,
 ) -> GenerateResult:
-    """Run the whole pipeline into ``request.out``."""
+    """Run the whole pipeline into ``request.out``.
+
+    With ``runtime_from``, a Stainless-style runtime is copied from that SDK (ADR 0004); any
+    other runtime is replaced by Ferrule's, and the SDK's other files are kept as they are.
+    """
     _check_inputs(request)
+    own = request.runtime_from is not None and is_stainless_runtime(request.runtime_from)
+    foreign = request.runtime_from if request.runtime_from is not None and not own else None
     request.out.mkdir(parents=True, exist_ok=True)
+    planned = request if foreign is None else replace(request, runtime_from=None)
     with tempfile.TemporaryDirectory(prefix="ferrule-") as tmp:
-        for step in plan_steps(request, Path(tmp)):
+        for step in plan_steps(planned, Path(tmp)):
             _run(step, runner)
-    if request.runtime_from is not None:
+        options = renderer_options(Path(tmp) / "annotated.json")
+    rendered: tuple[PurePosixPath, ...] = ()
+    if request.runtime_from is not None and own:
         package, runtime_count = _copy_runtime(request.runtime_from, request.out)
     elif renderer is not None:
         package = pick_package(_src_packages(request.out), "--out")
         package_dir = request.out / "src" / package
-        before = len(relative_files(package_dir))
-        renderer(package, package_dir)
-        runtime_count = len(relative_files(package_dir)) - before
+        before = set(relative_files(package_dir))
+        renderer(package, package_dir, **options)
+        prefix = PurePosixPath("src", package)
+        rendered = tuple(prefix / p for p in relative_files(package_dir) if p not in before)
+        runtime_count = len(rendered)
+        if foreign is not None:
+            _copy_runtime(foreign, request.out)
     else:
         raise fail(
             NO_RUNTIME,
@@ -456,4 +509,5 @@ def generate(
         files=len(relative_files(request.out)),
         runtime_files=runtime_count,
         digest=tree_digest(request.out),
+        rendered=rendered,
     )

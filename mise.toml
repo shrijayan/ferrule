@@ -37,7 +37,7 @@ run = "pnpm exec biome check ."
 run = ["uv run ruff check .", "uv run ruff format --check ."]
 
 [tasks."typecheck:py"]
-run = ["uv run pyright", "uv run mypy runtime/src migrate/src", "uv run mypy -p scripts.parity", "uv run mypy -p scripts.corpus", "uv run mypy -p scripts.board"]
+run = ["uv run pyright", "uv run mypy runtime/src migrate/src", "uv run mypy -p scripts.parity", "uv run mypy -p scripts.corpus", "uv run mypy -p scripts.board", "uv run mypy -p scripts.opencode"]
 
 [tasks."test:py"]
 run = "uv run pytest"
@@ -108,7 +108,7 @@ depends = ["build:gen"]
 run = "uv run python -m scripts.parity.run"
 
 [tasks."adopt:gate"]
-description = "Phase 4 gate: adopt five public Stainless SDKs locally and prove nothing changed"
+description = "Phase 4 gate: adopt five public Stainless SDKs locally and prove nothing changed; check the adopted opencode SDK"
 depends = ["build:gen"]
 run = "uv run python -m scripts.adopt.gate"
 

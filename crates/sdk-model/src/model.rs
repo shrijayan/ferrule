@@ -266,6 +266,10 @@ pub struct Response {
     pub status: String,
     pub media_type: String,
     pub ty: Type,
+    /// The envelope field the method returns instead of the whole body (`unwrap_response`).
+    /// Generators that do not unwrap return `ty` as before.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub unwrap: Option<String>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -388,6 +392,9 @@ pub struct Method {
     /// when set.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub only: Option<Vec<String>>,
+    /// Why the method's generated tests are skipped (`skip_test_reason`), if they are.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub skip_test: Option<String>,
 }
 
 impl Method {

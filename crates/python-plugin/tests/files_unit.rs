@@ -284,6 +284,9 @@ fn wraps_a_long_assert_matches_type_call() {
             module: "types.x".to_owned(),
         }),
         stream_switch: None,
+        page: None,
+        streaming: false,
+        skip_test: None,
     }];
     let tests = emit_api_tests(&input);
     let text = file(&tests, "tests/api_resources/test_cases.py");
@@ -527,4 +530,77 @@ fn example_value_matches_typescript_quirks() {
         "[\n      {\n          \"d\": parse_date(\"2019-12-27\"),\n      }\n  ]"
     );
     assert_eq!(uses.into_iter().collect::<Vec<_>>(), ["parse_date"]);
+}
+
+/// A paginated method (honcho-python-core `workspaces.list`): the tests check the page of items,
+/// `SyncPage[Workspace]` and `AsyncPage[Workspace]`, imported from the package's `pagination`.
+#[test]
+fn checks_the_page_a_paginated_method_returns() {
+    let mut input = acme();
+    let r: &mut FilesResource = &mut input.resources[0];
+    r.subresources.clear();
+    r.methods = vec![FilesMethod {
+        name: "list".to_owned(),
+        http_method: HttpVerb::Get,
+        path: "/cases".to_owned(),
+        params: Vec::new(),
+        params_module: None,
+        response: Some(ferrule_python_plugin::emit::files::input::PyName {
+            name: "Case".to_owned(),
+            module: "types.case".to_owned(),
+        }),
+        stream_switch: None,
+        page: Some("CursorPage".to_owned()),
+        streaming: false,
+        skip_test: None,
+    }];
+    let tests = emit_api_tests(&input);
+    let text = file(&tests, "tests/api_resources/test_cases.py");
+    assert!(
+        text.contains("assert_matches_type(SyncCursorPage[Case], case, path=[\"response\"])"),
+        "{text}"
+    );
+    assert!(
+        text.contains("assert_matches_type(AsyncCursorPage[Case], case, path=[\"response\"])"),
+        "{text}"
+    );
+    assert!(
+        text.contains("from acme.pagination import SyncCursorPage, AsyncCursorPage\n"),
+        "{text}"
+    );
+}
+
+/// A method that always streams (the Stainless opencode-sdk-python `event.list`): the tests close
+/// the stream the call returns instead of checking a model.
+#[test]
+fn closes_the_stream_an_always_streaming_method_returns() {
+    let mut input = acme();
+    let r: &mut FilesResource = &mut input.resources[0];
+    r.subresources.clear();
+    r.methods = vec![FilesMethod {
+        name: "watch".to_owned(),
+        http_method: HttpVerb::Get,
+        path: "/cases/watch".to_owned(),
+        params: Vec::new(),
+        params_module: None,
+        response: Some(ferrule_python_plugin::emit::files::input::PyName {
+            name: "CaseEvent".to_owned(),
+            module: "types.case_event".to_owned(),
+        }),
+        stream_switch: None,
+        page: None,
+        streaming: true,
+        skip_test: None,
+    }];
+    let tests = emit_api_tests(&input);
+    let text = file(&tests, "tests/api_resources/test_cases.py");
+    assert!(
+        text.contains("        case_stream = client.cases.watch()\n        case_stream.response.close()\n"),
+        "{text}"
+    );
+    assert!(
+        text.contains("        stream = response.parse()\n        stream.close()\n"),
+        "{text}"
+    );
+    assert!(!text.contains("CaseEvent"), "{text}");
 }

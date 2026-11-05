@@ -4,17 +4,20 @@
 use std::collections::HashSet;
 
 use super::common::{
-    HEADER, args_docstring, has_inline_object, header_params, is_header, is_param_switched, keyword_path_params, leaf,
-    method_args, method_ref, py_fstring, py_string, rel_import, resource_class_base, resource_module, return_model,
-    stainless_method_order, stream_event_model, stream_switch, with_bool_literal,
+    HEADER, ReturnModel, args_docstring, example_type, has_inline_object, header_params, is_binary_body, is_header,
+    is_param_switched, keyword_path_params, leaf, method_args, method_ref, py_fstring, py_string, rel_import,
+    resource_class_base, resource_module, return_model, stainless_method_order, stream_event_model, stream_switch,
+    with_bool_literal,
 };
 use super::format::{Bracket, Cond, Expr, bracket, call, flat, print_expr};
 use super::models::all_list;
 use super::params::{ParamsContext, UnionBody, name_params, name_union_body};
 use crate::diagnostics::{FerCode, FerruleError};
 use crate::model::{
-    HttpVerb, ParamLocation, SdkClient, SdkLiteral, SdkMethod, SdkParam, SdkPrimitive, SdkResource, SdkType,
+    HttpVerb, ParamLocation, SdkClient, SdkLiteral, SdkMethod, SdkModelDecl, SdkParam, SdkPrimitive, SdkResource,
+    SdkType,
 };
+use crate::naming::{pascal_case, split_words};
 use crate::printer::PythonPrinter;
 use crate::type_mapper::{AnnotationContext, is_nullable, to_annotation};
 
@@ -63,6 +66,27 @@ fn unsupported(method: &SdkMethod, what: &str) -> FerruleError {
 struct FileState<'a> {
     here: &'a str,
     client: &'a SdkClient,
+    /// The shared models the file's methods return (see [`ParamsContext::outputs`]).
+    outputs: HashSet<String>,
+}
+
+/// The shared models `methods` return or stream, by class name.
+fn shared_outputs<'m>(
+    holder: Option<&SdkResource>,
+    methods: impl IntoIterator<Item = &'m SdkMethod>,
+) -> HashSet<String> {
+    methods
+        .into_iter()
+        .flat_map(|m| {
+            [
+                return_model(holder, m).map(|r| r.r#ref),
+                stream_event_model(holder, m).map(|r| r.r#ref),
+            ]
+        })
+        .flatten()
+        .filter(|r| r.module.starts_with("shared."))
+        .map(|r| r.name)
+        .collect()
 }
 
 fn imp(s: &FileState<'_>, p: &mut PythonPrinter, target: &str, name: &str) {
@@ -84,6 +108,35 @@ fn arg_of(p: &mut PythonPrinter, q: &SdkParam, ctx: &dyn AnnotationContext) -> A
     Arg {
         name: q.py_name.clone(),
         ann,
+        required: q.required,
+    }
+}
+
+/// A keyword argument: the raw-bytes body as [`binary_arg`], any other as [`arg_of`].
+fn keyword_arg(
+    s: &FileState<'_>,
+    p: &mut PythonPrinter,
+    method: &SdkMethod,
+    q: &SdkParam,
+    is_async: bool,
+    ctx: &dyn AnnotationContext,
+) -> Arg {
+    if is_binary_body(method, q) {
+        binary_arg(s, p, q, is_async)
+    } else {
+        arg_of(p, q, ctx)
+    }
+}
+
+/// The argument of a raw-bytes body: file content (a path is read) or bytes, an async iterable
+/// of them for the async client.
+fn binary_arg(s: &FileState<'_>, p: &mut PythonPrinter, q: &SdkParam, is_async: bool) -> Arg {
+    let bytes = if is_async { "AsyncBinaryTypes" } else { "BinaryTypes" };
+    imp(s, p, "_types", "FileContent");
+    imp(s, p, "_types", bytes);
+    Arg {
+        name: q.py_name.clone(),
+        ann: format!("FileContent | {bytes}"),
         required: q.required,
     }
 }
@@ -458,6 +511,94 @@ fn print_header_merge(s: &FileState<'_>, p: &mut PythonPrinter, method: &SdkMeth
     print_expr(p, &merged.into(), "extra_headers = ", "");
 }
 
+/// The content type of a raw-bytes body: the body's media type.
+fn print_binary_prelude(p: &mut PythonPrinter, method: &SdkMethod) {
+    let media = method.body_media_type.as_deref().unwrap_or("application/octet-stream");
+    p.line(&format!(
+        "extra_headers = {{\"Content-Type\": {}, **(extra_headers or {{}})}}",
+        py_string(media)
+    ));
+}
+
+/// `content=`: a raw-bytes body as it is, or the file a path names, read.
+fn binary_content(s: &FileState<'_>, p: &mut PythonPrinter, awaits: bool) -> Expr {
+    p.import_module("os");
+    let read = if awaits {
+        "async_read_file_content"
+    } else {
+        "read_file_content"
+    };
+    imp(s, p, "_files", read);
+    format!(
+        "content={}{read}(body) if isinstance(body, os.PathLike) else body",
+        if awaits { "await " } else { "" }
+    )
+    .into()
+}
+
+/// `options=make_request_options(...)` and `cast_to=` (`model=` for a page): an unwrapped envelope
+/// field adds a post-parser and casts through its wrapper, as ogx-client-python's
+/// `providers.list` does (`DataWrapper[ProviderListResponse]`).
+#[allow(clippy::too_many_arguments)]
+fn push_options_and_cast(
+    s: &FileState<'_>,
+    p: &mut PythonPrinter,
+    method: &SdkMethod,
+    items: &mut Vec<Expr>,
+    query: Option<Expr>,
+    paged: bool,
+    no_content: bool,
+    model: &str,
+    union: bool,
+) {
+    imp(s, p, "_base_client", "make_request_options");
+    let mut options: Vec<Expr> = OPTIONS_ARGS.iter().map(|&a| a.into()).collect();
+    let multiline = query.is_some() || method.unwrap.is_some();
+    options.extend(query);
+    let wrapper = method.unwrap.as_deref().map(wrapper_class);
+    if let Some(w) = &wrapper {
+        options.push(format!("post_parser={w}[{model}]._unwrapper").into());
+    }
+    items.push(call("options=make_request_options(", options, multiline).into());
+    if union {
+        p.import_from("typing", "Any");
+        p.import_from("typing", "cast");
+        let key = if paged { "model" } else { "cast_to" };
+        items.push(format!("{key}=cast(Any, {model}){UNION_COMMENT}").into());
+    } else if paged {
+        items.push(format!("model={model}").into());
+    } else if no_content {
+        imp(s, p, "_types", "NoneType");
+        items.push("cast_to=NoneType".into());
+    } else if let Some(w) = &wrapper {
+        p.import_from("typing", "Type");
+        p.import_from("typing", "cast");
+        imp(s, p, "_wrappers", w);
+        items.push(format!("cast_to=cast(Type[{model}], {w}[{model}])").into());
+    } else {
+        items.push(format!("cast_to={model}").into());
+    }
+}
+
+/// Stainless's note on a union passed where the request helpers take a type.
+const UNION_COMMENT: &str = "  # Union types cannot be passed in as arguments in the type system";
+
+/// Whether a method returns a union (inline, or a named alias of one), which the request helpers
+/// cannot take as a type (knock-mgmt-python `audiences.retrieve`).
+fn returns_union(models: &[SdkModelDecl], ret: &ReturnModel<'_>) -> bool {
+    let ty = match ret.inline {
+        Some(t) => t,
+        None => &example_type(&SdkType::Ref(ret.r#ref.clone()), models),
+    };
+    matches!(ty, SdkType::Union { .. })
+}
+
+/// The wrapper class of an unwrapped envelope field: `data` -> `DataWrapper`.
+#[must_use]
+pub fn wrapper_class(field: &str) -> String {
+    format!("{}Wrapper", pascal_case(&split_words(field)))
+}
+
 /// FER201 for a method shape [`emit_method`] does not generate yet.
 fn check_supported(method: &SdkMethod) -> Result<(), FerruleError> {
     let switch = stream_switch(method);
@@ -517,7 +658,7 @@ fn emit_method(
     let union = name_union_body(method);
     let params = union.as_ref().map_or_else(|| method_args(method), |u| u.args.clone());
     // Header parameters alone make no params file (ogx `models.retrieve`).
-    let params_ref = if params.iter().all(|q| is_header(method, q)) {
+    let params_ref = if params.iter().all(|q| is_header(method, q) || is_binary_body(method, q)) {
         None
     } else {
         Some(method_ref(holder, method, "Params"))
@@ -537,11 +678,12 @@ fn emit_method(
         qualify: format!("{leaf_module}."),
         here: s.here.to_owned(),
         shadowed: HashSet::new(),
+        outputs: s.outputs.clone(),
     };
 
     let model = ret
         .as_ref()
-        .map_or_else(|| "None".to_owned(), |r| ctx.ref_name(p, &r.r#ref));
+        .map_or_else(|| "None".to_owned(), |r| ctx.output_ref(p, &r.r#ref));
     let mut returns = model.clone();
     let sync_or_async = if is_async { "Async" } else { "Sync" };
     if let Some(page) = page {
@@ -562,7 +704,8 @@ fn emit_method(
     }
     // A param-switched method returns the response, or a stream of events.
     let streamed = switch.map(|_| {
-        let event = stream_event_model(holder, method).map_or_else(|| "None".to_owned(), |r| ctx.ref_name(p, &r.r#ref));
+        let event =
+            stream_event_model(holder, method).map_or_else(|| "None".to_owned(), |r| ctx.output_ref(p, &r.r#ref));
         let streamed = format!("{}[{event}]", if is_async { "AsyncStream" } else { "Stream" });
         returns = format!("{model} | {streamed}");
         streamed
@@ -585,7 +728,7 @@ fn emit_method(
         (None, None) => keyword_path_params(method)
             .iter()
             .chain(params.iter().copied())
-            .map(|q| arg_of(p, q, &ctx))
+            .map(|q| keyword_arg(s, p, method, q, is_async, &ctx))
             .collect(),
     };
     print_signature(s, p, &method.name, awaits, &path, &args, &returns);
@@ -645,6 +788,10 @@ fn emit_method(
     if multipart {
         print_multipart_prelude(s, p, method, &body);
     }
+    let binary = method.body_binary && !body.is_empty();
+    if binary {
+        print_binary_prelude(p, method);
+    }
     let mut items: Vec<Expr> = vec![path_expr(s, p, method)];
     if let Some(page) = page {
         items.push(format!("page={sync_or_async}{}[{model}]", page.page).into());
@@ -659,6 +806,8 @@ fn emit_method(
         let open = format!("body={}{f}(", if awaits { "await " } else { "" });
         items.push(call(&open, vec!["body".into(), params_name.clone().into()], false).into());
         items.push("files=files".into());
+    } else if binary {
+        items.push(binary_content(s, p, awaits));
     } else if let ([whole], true) = (body.as_slice(), method.body_whole) {
         // Stainless checks a map against the method's params, an array against its own type.
         let against = if matches!(whole.ty, SdkType::Map(_)) {
@@ -678,23 +827,30 @@ fn emit_method(
         let against = body_against(switch, &params_name);
         items.push(transform_expr(s, p, "body", &body, against, awaits && page.is_none()).into());
     }
-    imp(s, p, "_base_client", "make_request_options");
-    let options: Vec<Expr> = OPTIONS_ARGS.iter().map(|&a| a.into()).collect();
-    if query.is_empty() {
-        items.push(call("options=make_request_options(", options, false).into());
-    } else {
-        let mut options = options;
-        options.push(transform_expr(s, p, "query", &query, params_name.clone().into(), awaits).into());
-        items.push(call("options=make_request_options(", options, true).into());
-    }
-    if page.is_some() {
-        items.push(format!("model={model}").into());
-    } else if ret.is_none() && stream.is_none() {
-        imp(s, p, "_types", "NoneType");
-        items.push("cast_to=NoneType".into());
-    } else {
-        items.push(format!("cast_to={model}").into());
-    }
+    let query_option = (!query.is_empty()).then(|| {
+        Expr::from(transform_expr(
+            s,
+            p,
+            "query",
+            &query,
+            params_name.clone().into(),
+            awaits,
+        ))
+    });
+    // A union is cast unless it is unwrapped through a wrapper or switched to a stream.
+    let union =
+        switch.is_none() && method.unwrap.is_none() && ret.as_ref().is_some_and(|r| returns_union(&s.client.models, r));
+    push_options_and_cast(
+        s,
+        p,
+        method,
+        &mut items,
+        query_option,
+        page.is_some(),
+        ret.is_none() && stream.is_none(),
+        &model,
+        union,
+    );
     if page.is_some() && method.http_method != HttpVerb::Get {
         items.push(format!("method=\"{}\"", method.http_method.as_str()).into());
     }
@@ -716,12 +872,15 @@ fn emit_method(
     } else {
         format!("_{}", method.http_method.as_str())
     };
-    print_expr(
-        p,
-        &call(&format!("self.{f}("), items, true).into(),
-        &format!("return {}", if awaits { "await " } else { "" }),
-        "",
-    );
+    let aw = if awaits { "await " } else { "" };
+    let request = call(&format!("{aw}self.{f}("), items, true);
+    if union && page.is_none() && stream.is_none() {
+        // `return cast(Model, self._get(...))`, as knock-mgmt-python writes it.
+        let cast = call("cast(", vec![model.clone().into(), request.into()], false);
+        print_expr(p, &cast.into(), "return ", "");
+    } else {
+        print_expr(p, &request.into(), "return ", "");
+    }
     p.close(opened);
     Ok(())
 }
@@ -859,11 +1018,18 @@ fn emit_wrapper(s: &FileState<'_>, p: &mut PythonPrinter, resource: &SdkResource
 pub fn emit_resource_file(client: &SdkClient, resource: &SdkResource) -> Result<String, FerruleError> {
     let mut p = PythonPrinter::new(&[HEADER]);
     let here = resource_module(resource);
-    let s = FileState { here: &here, client };
+    let s = FileState {
+        here: &here,
+        client,
+        outputs: shared_outputs(Some(resource), &resource.methods),
+    };
     p.import_from("__future__", "annotations");
-    p.import_module("httpx");
-    for name in ["Body", "Query", "Headers", "NotGiven", client.style.not_given()] {
-        imp(&s, &mut p, "_types", name);
+    // Only methods take request options (groq-python `chat.py` has subresources alone).
+    if !resource.methods.is_empty() {
+        p.import_module("httpx");
+        for name in ["Body", "Query", "Headers", "NotGiven", client.style.not_given()] {
+            imp(&s, &mut p, "_types", name);
+        }
     }
     // Imports render above the body whatever order they are registered in.
     for l in all_list(&[
@@ -899,7 +1065,11 @@ pub fn emit_client_methods(
     here: &str,
     mode: Mode,
 ) -> Result<(), FerruleError> {
-    let s = FileState { here, client };
+    let s = FileState {
+        here,
+        client,
+        outputs: shared_outputs(None, &client.client_methods),
+    };
     for method in stainless_method_order(&client.client_methods) {
         p.blank();
         emit_method(&s, p, method, mode, None)?;

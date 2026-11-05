@@ -1,0 +1,21 @@
+openapi: 3.1.0
+info: {title: fx, version: '1'}
+servers: [{url: 'https://api.example.com'}]
+
+paths:
+  /shell:
+    post:
+      operationId: createShell
+      parameters: [{name: extra_query, in: query, schema: {type: string}}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [command]
+              properties:
+                command: {type: string}
+                timeout: {type: integer, description: Seconds before the command is stopped}
+      responses:
+        '200': {description: ok, content: {application/json: {schema: {type: object, properties: {id: {type: string}}}}}}

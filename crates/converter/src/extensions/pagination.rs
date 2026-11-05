@@ -2,8 +2,8 @@
 //! matches them against operations.
 
 use super::json::{
-    arr, bool_, deref, is_array_schema, items_schema, obj, obj_of, property_names, property_schema, str_,
-    success_response,
+    arr, bool_, deref, is_array_schema, items_schema, json_schema_of, obj, obj_of, property_names, property_schema,
+    str_, success_response,
 };
 use crate::Diagnostic;
 use crate::diagnostic::{Seg, to_json_pointer};
@@ -168,6 +168,77 @@ fn to_scheme(raw: &Map, name: &str, ty: &str) -> Scheme {
     }
 }
 
+/// One configured field as an ordered entry: `{name, type?, purpose?, fields?}`, its object
+/// properties as `fields` in config order.
+fn field_entries(fields: &Map) -> Vec<Value> {
+    fields
+        .iter()
+        .map(|(name, raw)| {
+            let def = obj_of(Some(raw));
+            let mut entry = Map::new();
+            entry.insert("name", Value::from(name.as_str()));
+            if let Some(ty) = str_(def, "type") {
+                entry.insert("type", Value::from(ty));
+            }
+            if let Some(purpose) = str_(obj(def, "x-stainless-pagination-property"), "purpose") {
+                entry.insert("purpose", Value::from(purpose));
+            }
+            let props = obj(def, "properties");
+            if !props.is_empty() {
+                entry.insert("fields", Value::Array(field_entries(props)));
+            }
+            Value::Object(entry)
+        })
+        .collect()
+}
+
+/// The field entry's `key`, if it is a string.
+fn entry_str<'a>(field: &'a Value, key: &str) -> Option<&'a str> {
+    field.as_object().and_then(|f| str_(f, key))
+}
+
+/// Stainless's implicit items: with no field of purpose `items`, the one array without a purpose.
+fn mark_implicit_items(fields: &mut [Value]) {
+    if fields.iter().any(|f| entry_str(f, "purpose") == Some("items")) {
+        return;
+    }
+    let arrays: Vec<usize> = (0..fields.len())
+        .filter(|&i| entry_str(&fields[i], "purpose").is_none() && entry_str(&fields[i], "type") == Some("array"))
+        .collect();
+    if let [only] = arrays.as_slice()
+        && let Value::Object(f) = &mut fields[*only]
+    {
+        f.insert("purpose", Value::from("items"));
+    }
+}
+
+/// `x-ferrule-page-schemes`: every configured scheme with its request and response fields as
+/// lists, so they keep config order in the annotated spec. When no response field has the
+/// purpose `items`, the one top-level array without a purpose gets it (Stainless's implicit items).
+#[must_use]
+pub fn page_scheme_extension(config: &Value) -> Option<Value> {
+    let list: Vec<&Value> = match config.get("pagination") {
+        Some(Value::Array(a)) => a.iter().collect(),
+        Some(v @ Value::Object(_)) => vec![v],
+        _ => return None,
+    };
+    let schemes = list
+        .into_iter()
+        .map(|entry| {
+            let raw = obj_of(Some(entry));
+            let mut fields = field_entries(obj(raw, "response"));
+            mark_implicit_items(&mut fields);
+            let mut out = Map::new();
+            out.insert("name", Value::from(str_(raw, "name").unwrap_or(UNNAMED_PAGE)));
+            out.insert("kind", raw.get("type").cloned().unwrap_or(Value::Null));
+            out.insert("request", Value::Array(field_entries(obj(raw, "request"))));
+            out.insert("response", Value::Array(fields));
+            Value::Object(out)
+        })
+        .collect();
+    Some(Value::Array(schemes))
+}
+
 /// Normalize `pagination` (a list, or the single-object form) into schemes, in config order.
 #[must_use]
 pub fn read_schemes(config: &Value) -> (Vec<Scheme>, Vec<Diagnostic>) {
@@ -228,10 +299,6 @@ pub struct OperationShape<'a> {
     pub response_schema: Option<&'a Value>,
 }
 
-fn json_schema(content: &Map) -> Option<&Value> {
-    obj(content, "application/json").get("schema")
-}
-
 /// The query params, JSON body properties and 2xx JSON response schema of an operation.
 #[must_use]
 pub fn operation_shape<'a>(spec: &'a Value, path_item: &'a Map, op: &'a Map) -> OperationShape<'a> {
@@ -247,10 +314,10 @@ pub fn operation_shape<'a>(spec: &'a Value, path_item: &'a Map, op: &'a Map) -> 
         }
     }
     let body = match deref(spec, op.get("requestBody")) {
-        Some(Value::Object(rb)) => property_names(spec, json_schema(obj(rb, "content")), 0),
+        Some(Value::Object(rb)) => property_names(spec, json_schema_of(obj(rb, "content")), 0),
         _ => Vec::new(),
     };
-    let response_schema = success_response(spec, op).and_then(|r| json_schema(obj(r, "content")));
+    let response_schema = success_response(spec, op).and_then(|r| json_schema_of(obj(r, "content")));
     OperationShape {
         query,
         body,

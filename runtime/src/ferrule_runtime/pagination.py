@@ -13,10 +13,10 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    from collections.abc import Mapping, Sequence
 
 __all__ = [
     "PageField",
@@ -24,6 +24,7 @@ __all__ = [
     "PageModel",
     "PageScheme",
     "PaginationError",
+    "page_schemes",
     "render_pagination",
 ]
 
@@ -331,6 +332,97 @@ def _wrap(
 
 def _used(body: str, candidates: tuple[str, ...]) -> list[str]:
     return [n for n in candidates if re.search(rf"\b{n}\b", body)]
+
+
+# How the configured purposes (stainless.yml `x-stainless-pagination-property`) map onto a scheme.
+_PARAM_PURPOSES = frozenset(
+    {"next_cursor_param", "page_number_param", "offset_count_param", "next_cursor_id_param"}
+)
+_PATH_PURPOSES = frozenset({"next_cursor_field", "current_page_number_field", "next_url_field"})
+_TOTAL_PURPOSES = frozenset({"total_page_count_field", "offset_total_count_field"})
+_SCALARS = {"string": "str", "integer": "int", "number": "float", "boolean": "bool"}
+
+
+def _pascal(name: str) -> str:
+    """``openai_cursor_page`` -> ``OpenaiCursorPage``: how the plugin names a page class."""
+    spaced = re.sub(r"([A-Z]+)([A-Z][a-z])", r"\1 \2", re.sub(r"([a-z0-9])([A-Z])", r"\1 \2", name))
+    return "".join(
+        word[:1].upper() + word[1:] for word in re.split(r"[^0-9A-Za-z]+", spaced) if word
+    )
+
+
+def _purpose(fields: Sequence[Mapping[str, Any]], wanted: frozenset[str]) -> tuple[str, ...]:
+    """Return the path of the first field (nested ones too) with a purpose in ``wanted``."""
+    for field in fields:
+        if field.get("purpose") in wanted:
+            return (str(field["name"]),)
+        inner = _purpose(cast("Sequence[Mapping[str, Any]]", field.get("fields", ())), wanted)
+        if inner:
+            return (str(field["name"]), *inner)
+    return ()
+
+
+def _page_field(field: Mapping[str, Any], owner: str, models: list[PageModel]) -> PageField:
+    name = str(field["name"])
+    if field.get("purpose") == "items":
+        return PageField(name, "List[_T]")
+    kind = field.get("type")
+    nested = cast("Sequence[Mapping[str, Any]]", field.get("fields", ()))
+    if nested:
+        model = f"{owner}{_pascal(name)}"
+        models.append(PageModel(model, tuple(_page_field(f, model, models) for f in nested)))
+        inner = model
+    elif kind == "array":
+        inner = "List[object]"
+    else:
+        inner = _SCALARS.get(str(kind), "object")
+    return PageField(name, f"Optional[{inner}]", optional=True)
+
+
+def page_schemes(entries: Sequence[Mapping[str, Any]]) -> tuple[PageScheme, ...]:
+    """Derive the page schemes from the converter's ``x-ferrule-page-schemes`` (pure).
+
+    Each entry is a configured scheme: its ``name`` (the class is that name in PascalCase, as
+    the plugin spells it), ``kind`` and its ``request`` and ``response`` fields in config
+    order. The items field is ``List[_T]``; every other field is optional, a nested object
+    becoming a model named after the class and the field (``EntriesCursorPageInfo``).
+    ``has_more`` is the ``has_next_page`` field, else a boolean named ``has_more``
+    (ogx-client-python).
+    """
+    schemes: list[PageScheme] = []
+    for entry in entries:
+        name = _pascal(str(entry["name"]))
+        request = cast("Sequence[Mapping[str, Any]]", entry.get("request", ()))
+        response = cast("Sequence[Mapping[str, Any]]", entry.get("response", ()))
+        models: list[PageModel] = []
+        fields = tuple(_page_field(f, name, models) for f in response)
+        items = next((str(f["name"]) for f in response if f.get("purpose") == "items"), "")
+        has_more = next(
+            (
+                str(f["name"])
+                for f in response
+                if f.get("purpose") == "has_next_page"
+                or (f.get("name") == "has_more" and f.get("type") == "boolean")
+            ),
+            None,
+        )
+        param = _purpose(request, _PARAM_PURPOSES)
+        before = _purpose(request, frozenset({"previous_cursor_id_param"}))
+        schemes.append(
+            PageScheme(
+                name=name,
+                kind=cast("PageKind", entry["kind"]),
+                items=items,
+                fields=fields,
+                models=tuple(models),
+                has_more=has_more,
+                param=".".join(param) or None,
+                before_param=".".join(before) or None,
+                path=_purpose(response, _PATH_PURPOSES),
+                total_path=_purpose(response, _TOTAL_PURPOSES),
+            )
+        )
+    return tuple(schemes)
 
 
 def render_pagination(schemes: Sequence[PageScheme], *, line_length: int = 120) -> str:

@@ -1,0 +1,41 @@
+openapi: 3.1.0
+info: {title: fx, version: '1'}
+servers: [{url: 'https://api.example.com'}]
+
+paths:
+  /providers:
+    get:
+      operationId: listProviders
+      summary: List all available providers.
+      responses:
+        '200': {description: ok, content: {application/json: {schema: {$ref: '#/components/schemas/ListProvidersResponse'}}}}
+  /sessions/{id}:
+    get:
+      operationId: getSession
+      parameters: [{name: id, in: path, required: true, schema: {type: string}}]
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  location: {type: string}
+                  data: {$ref: '#/components/schemas/SessionInfo'}
+                required: [location, data]
+components:
+  schemas:
+    ListProvidersResponse:
+      type: object
+      properties:
+        data: {type: array, items: {$ref: '#/components/schemas/ProviderInfo'}}
+      required: [data]
+    ProviderInfo:
+      type: object
+      properties: {provider_id: {type: string}}
+      required: [provider_id]
+    SessionInfo:
+      type: object
+      properties: {id: {type: string}}
+      required: [id]

@@ -1,5 +1,6 @@
 # Copyright 2026 Ferrule contributors
 # SPDX-License-Identifier: Apache-2.0
+import json
 import shutil
 import subprocess
 import sys
@@ -258,7 +259,7 @@ def test_generate_with_renderer(inputs: tuple[GenerateRequest, Path]) -> None:
     request = replace(request, runtime_from=None)
     seen: list[tuple[str, Path]] = []
 
-    def render(package: str, package_dir: Path, /) -> None:
+    def render(package: str, package_dir: Path, /, **_: object) -> None:
         seen.append((package, package_dir))
         write(package_dir / "_base_client.py", "x\n")
 
@@ -336,7 +337,7 @@ def test_relative_files_missing_dir(tmp_path: Path) -> None:
 def test_load_renderer(monkeypatch: pytest.MonkeyPatch) -> None:
     import ferrule_runtime  # noqa: PLC0415
 
-    def render(package: str, package_dir: Path, /) -> None:
+    def render(package: str, package_dir: Path, /, **_: object) -> None:
         del package, package_dir
 
     monkeypatch.setattr(ferrule_runtime, "render", render, raising=False)
@@ -411,3 +412,98 @@ def test_symlink_helpers(tmp_path: Path) -> None:
     assert ensure_inside(root, P("a/b.py")) == root / "a/b.py"
     with pytest.raises(FerruleError, match="FER4007"):
         ensure_inside(root, P("link.py"))
+
+
+def foreign_sdk(root: Path) -> Path:
+    """An SDK whose runtime another generator wrote: no ``_utils/`` (opencode-python-sdk)."""
+    sdk = root / "foreign"
+    write(sdk / "src/acme/__init__.py", "old\n")
+    write(sdk / "src/acme/_base_client.py", "class RequestOptions: ...\n")
+    write(sdk / "src/acme/_types.py", "NOT_GIVEN = object()\n")
+    write(sdk / "src/acme/_rpc.py", "custom rpc\n")
+    write(sdk / "src/acme/types/_generated.py", "old types\n")
+    return sdk
+
+
+def test_generate_renders_ferrule_runtime_for_a_foreign_runtime(
+    inputs: tuple[GenerateRequest, Path],
+) -> None:
+    # The runtime of a non-Stainless SDK can't run Stainless-style resources: Ferrule's own
+    # runtime is rendered, the generator's style is today's, and the SDK's other modules stay.
+    request, tmp = inputs
+    request = replace(request, runtime_from=foreign_sdk(tmp))
+    calls: list[tuple[str, ...]] = []
+    rendered: list[str] = []
+
+    def render(package: str, package_dir: Path, /, **_: object) -> None:
+        rendered.append(package)
+        write(package_dir / "_base_client.py", "ferrule runtime\n")
+        write(package_dir / "_utils/__init__.py", "ferrule utils\n")
+
+    result = generate(request, runner=fake_runner(calls), renderer=render)
+    assert "--runtime-from" not in calls[0]
+    assert rendered == ["acme"]
+    out = request.out / "src/acme"
+    assert (out / "_base_client.py").read_text() == "ferrule runtime\n"
+    assert (out / "_types.py").read_text() == "# generated wins\n"
+    assert (out / "_rpc.py").read_text() == "custom rpc\n"
+    assert (out / "types/_generated.py").read_text() == "old types\n"
+    assert result.runtime_files == 2
+
+
+def test_generate_foreign_runtime_needs_the_renderer(inputs: tuple[GenerateRequest, Path]) -> None:
+    request, tmp = inputs
+    request = replace(request, runtime_from=foreign_sdk(tmp))
+    with pytest.raises(FerruleError, match="FER4004"):
+        generate(request, runner=fake_runner([]))
+
+
+def test_generate_renders_the_configured_pagination(inputs: tuple[GenerateRequest, Path]) -> None:
+    # A rendered runtime (no SDK to copy it from) gets pagination.py from the page schemes the
+    # converter wrote on the annotated spec.
+    request, tmp = inputs
+    request = replace(request, runtime_from=foreign_sdk(tmp))
+    entry: dict[str, object] = {
+        "name": "cursor_page",
+        "kind": "cursor",
+        "request": [],
+        "response": [],
+    }
+    base = fake_runner([])
+
+    def runner(argv: Sequence[str]) -> subprocess.CompletedProcess[str]:
+        if argv[1] == "convert":
+            write(Path(argv[argv.index("-o") + 1]), json.dumps({"x-ferrule-page-schemes": [entry]}))
+        return base(argv)
+
+    seen: list[object] = []
+
+    def render(_package: str, package_dir: Path, /, **options: object) -> None:
+        seen.append(options.get("pagination"))
+        write(package_dir / "_utils/__init__.py")
+
+    generate(request, runner=runner, renderer=render)
+    assert seen == [[entry]]
+
+
+def test_generate_renders_the_configured_timeout_and_retries(
+    inputs: tuple[GenerateRequest, Path],
+) -> None:
+    request, tmp = inputs
+    request = replace(request, runtime_from=foreign_sdk(tmp))
+    client = {"name": "acme", "timeoutSeconds": 600, "maxRetries": 3}
+    base = fake_runner([])
+
+    def runner(argv: Sequence[str]) -> subprocess.CompletedProcess[str]:
+        if argv[1] == "convert":
+            write(Path(argv[argv.index("-o") + 1]), json.dumps({"x-ferrule-client": client}))
+        return base(argv)
+
+    seen: list[dict[str, object]] = []
+
+    def render(_package: str, package_dir: Path, /, **options: object) -> None:
+        seen.append(options)
+        write(package_dir / "_utils/__init__.py")
+
+    generate(request, runner=runner, renderer=render)
+    assert seen == [{"timeout": 600, "max_retries": 3}]

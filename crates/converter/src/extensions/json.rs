@@ -171,6 +171,12 @@ pub fn success_response<'a>(spec: &'a Value, op: &'a Map) -> Option<&'a Map> {
     deref(spec, responses.get(code.as_str())).and_then(Value::as_object)
 }
 
+/// The `application/json` schema of a request body's or response's `content`.
+#[must_use]
+pub fn json_schema_of(content: &Map) -> Option<&Value> {
+    obj(content, "application/json").get("schema")
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
