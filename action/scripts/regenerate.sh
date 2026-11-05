@@ -25,10 +25,9 @@ fi
 
 against="${INPUT_AGAINST:-}"
 if [[ -z "$against" ]]; then
-  # The latest release tag if the repo has one, else the commit being regenerated.
-  against="$(git -C "$WORKSPACE" describe --tags --abbrev=0 2>/dev/null || echo HEAD)"
+  # The latest release tag if the repo has one, else the commit being regenerated (set below).
+  against="$(git -C "$WORKSPACE" describe --tags --abbrev=0 2>/dev/null || true)"
 fi
-echo "verifying against $against"
 
 cd "$WORKSPACE"
 git config user.name >/dev/null || git config user.name "github-actions[bot]"
@@ -39,6 +38,9 @@ if git rev-parse --verify --quiet refs/remotes/origin/generated >/dev/null; then
   git branch --force generated refs/remotes/origin/generated
 fi
 start="$(git rev-parse HEAD)"
+# Pinned now: regenerating moves HEAD, and the SDK must not be compared with itself.
+against="${against:-$start}"
+echo "verifying against $against"
 git switch --quiet --force-create "$BRANCH"
 
 output() { if [[ -n "${GITHUB_OUTPUT:-}" ]]; then echo "$1" >> "$GITHUB_OUTPUT"; fi; }
