@@ -202,7 +202,7 @@ fn on_path(tool: &str) -> bool {
 /// Whether one of `names`, the spellings of one tool, is a file.
 fn any_on_path(names: &[String], path: Option<&std::ffi::OsStr>) -> bool {
     if names.iter().any(|name| Path::new(name).components().count() > 1) {
-        return Path::new(&names[0]).is_file();
+        return names.iter().any(|name| Path::new(name).is_file());
     }
     path.is_some_and(|path| std::env::split_paths(path).any(|dir| names.iter().any(|name| dir.join(name).is_file())))
 }
